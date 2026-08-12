@@ -49,5 +49,14 @@
   "publishedAt": "2026-07-27T09:33:22+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/stm32mp257fak3-marvell-88e1512-ic-probe-error-167246",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><section> </section><section><p>From the logs, the PHY is initially detected, but later all PHY registers read <strong><code>0xFFFF</code></strong> and <code>phy_poll_reset failed (-110)</code> indicates the PHY is no longer responding over MDIO.</p><p>A few things I'd verify first:</p><ul><li>Double-check the <strong>PHY reset timing</strong> against the 88E1512 datasheet (hold/reset delays after power-up).</li> <li>Confirm the <strong>RGMII clock mode</strong> (internal PHY delay vs. MAC delay) and DTS <code>phy-mode</code> match your hardware.</li> <li>Verify <strong>MDIO/MDC signal integrity</strong> during the failure (not just reset/clock) and ensure the PHY power rails remain stable.</li> <li>Compare your DTS and pinctrl with the <strong>STM32MP257 Ethernet reference design</strong> to rule out pinmux or clock configuration issues.</li></ul><p>Since the PHY ID changes to <code>0xFFFF</code>, this looks more like a hardware, reset, or MDIO communication issue than a MAC driver problem.</p></section></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2c3e50;\">Hi,</span></p><p><span style=\"color:#2c3e50;\">I verified the hardware signals using an oscilloscope:</span></p><ul><li> <p><span style=\"color:#2c3e50;\">The PHY reset sequence is correct and follows the timing requirements.</span></p> </li> <li> <p><span style=\"color:#2c3e50;\">MDC and MDIO signals are present and look normal.</span></p> </li> <li> <p><span style=\"color:#2c3e50;\">The reference clocks are also present and stable.</span></p> </li> <li> <p><span style=\"color:#2c3e50;\">The PHY power rails remain stable during boot.</span></p> </li></ul><p><span style=\"color:#2c3e50;\">I also noticed that the Marvell driver (<code>marvell.c</code>) is successfully matched with the PHY and <code>m88e1510_config_init()</code> is called. The kernel detects the PHY with ID <code>0x01410dd0</code>, but once the configuration starts, subsequent MDIO reads return <code>0xFFFF</code>, and </span><code>phy_poll_reset()</code><span style=\"color:#2c3e50;\"> times out with <code>-110</code>.</span></p><p><span style=\"color:#2c3e50;\">My PHY device is <strong>Marvell 88E1512</strong>, while the driver appears to use the <strong>88E1510</strong> configuration path.<br/>Is there any additional patch or specific support required for the 88E1512 on the STM32MP257 platform? Is there a recommended driver update or patch that should be applied?</span></p><p><span style=\"color:#2c3e50;\">Any guidance would be appreciated.</span></p></div>"
+    }
+  ]
 }

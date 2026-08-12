@@ -50,5 +50,90 @@
   "publishedAt": "2026-08-07T13:25:50+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/stm32g431kb-timer-xor-on-hall-sensor-mode-not-triggering-the-pwm-timer-167552",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; I can read the time period between the hall sensor changes via TIM2-&gt;CCR1 register </p><p>So, why don’t you use CC1IF as TRGO source in TIM2 (TIM2-&gt;CR2.MMS = 0b011)?</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, thanks for the answer.<br/><br/>But in the reference manual it says I should choose tim_oc2ref as the trigger source. And it’s the only one available to choose in the CUBEMX when I choose the XOR ON/Hall Sensor Mode for TIM2. Yes I can do it manually by registers but I am just trying to stay loyal to the reference manual.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c3abcf69-f91d-49a8-a096-ee57f912b6f5.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>OK so do you have this setup done? I.e. is TIM2’s slave-mode controller set to Reset, triggered by TI1F_ED, ARR to max, running freely? If you output TIM2_CH2 to a pin, do you see the waveform as per Fig.380?</p><p>Read out and check/post content of TIM2/TIM1 registers.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I used CUBEMX to do the setup, when I select XOR ON/Hall Sensor Mode for TIM2, the option to select a different function for TIM2_CH2 is not possible on CUBE MX.<br/><br/>You can see it on the first image I posted. I can try setting up the process via registers. Is that what I need to do? Also I realized that in the reference manual </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3876c7c-352b-404d-911d-1301aa093db7.png\"/></figure><p><br/>In the instructions it says TIMx_CCMR1 register’s CC1S bits should be written to 01 thus <strong>tim_trc</strong> from the slave controller is selected as input capture signal. But in the TIMx_CCMR1 register description it says if we write 01 tim_ic1 gets connected to the tim_ti1.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/48477e0e-bada-46d2-812a-dca4d547ebe6.png\"/></figure><p>Which one is correct here? Our trigger source comes from the slave mode controller or the tim_ti1 input?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>In the instructions it says TIMx_CCMR1 register’s CC1S bits should be written to 01 thus <strong>tim_trc</strong> from the slave controller is selected as input capture signal. But in the TIMx_CCMR1 register description it says if we write 01 tim_ic1 gets connected to the tim_ti1.</p></blockquote><p> </p><p>Nice catch. It shows the quality of the documentation.</p><p>Both will work in some way - tim_ic1 is here output of the XOR (after filtering), tim_trc, given slave-mode controller is set to tim_ti1f_ed is output of edge detector of CH1. The behaviour then depends also on TIM2_CCER.CC1P/CC1NP settings.</p><p> </p><blockquote><p>I can try setting up the process via registers. Is that what I need to do?</p></blockquote><p> </p><p>I don’t use Cube/CubeMX, but I don’t want to force this to those who do. IMO the sensible thing here is to have a look at the timers’ registers (mostly TIM2), try to output TIM2_CH2 as I wrote above, and proceed from there. Post the registers here if you are unsure.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>First of all thank you for your interest and help. I really appreciate it.<br/><br/>Here is me following the reference manual steps and also decoding what I see from the SFR tab after ‘MX_TIM2_Init();’ function has ran.<br/><br/>Step 1: Configure three timer inputs ORed to the tim_ti1 input channel by writing the TI1S bit in the TIMx_CR2 register to 1.<br/><br/>Let’s check:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/acda3160-a430-4efa-af74-582b37263cd0.png\"/></figure><p>Here you can see the TI1S bit is set. This enables XOR gate which is outputted on the tim_ti1 signal line. Also MMS and MMS_1 bits total value comes as 0x5 = 0101 this means ‘tim_oc2ref signal is used as trigger output’ this is the last step in reference manual but I didn’t wanted to post the same picture twice. So just decoding it here.<br/><br/>Step 2: Program the time base: write the TIMx_ARR to the max value (the counter must be cleared by the tim_ti1 change. Set the prescaler to get a maximum counter period longer than the time between two changes on the sensors.<br/><br/>I set the PSC as 169 as the TIM2 runs at 170MHz to get a time-base of 1µs. I left the ARR register to it’s maximum value as recommended. Here is the picture:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bc4dee44-8c0e-4611-aea0-1986673c9a27.png\"/></figure><p>Step 3: Program the channel 1 in capture mode (tim_trc selected): write the CC1S bits in the TIMx_CCMR1 register to 01. The digital filter can also be programmed if needed.<br/><br/>As you might remember this step was a bit suspicious. Because the reference manual says ‘tim_trc’ should be selected as input capture channel trigger by writing ‘01’ to the CC1S bits in the TIM2_CCMR1 register but in register description of CC1S bits in TIM2_CCMR1 register it says ‘tim_trc’ is selected as trigger source if only I write ‘11’ to CC1S bits.<br/>While looking at the SFR tab I realized this step is written wrong in refence manual and yes the correct value to be written into CC1S bits is ‘11’ as it is what it can be seen from the SFR tab. Here it is:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1b3c480b-236e-4508-a911-401aa1c6d8cf.png\"/></figure><p>CC1S is 0x3 = 11<br/><br/>The description is as following: CC1 channel is configured as input, tim_ic1 is mapped on tim_trc. <strong>This mode is working only if an internal trigger is selected through TS bit (TIMx_SMCR register)</strong>. Note: CC1S bits are writable only when the channel is OFF (CC1E = 0 in TIMx_CCER).<br/><br/>So after all the init function does write ‘11’ to CC1S bits in TIM2_CCMR1 register. I also noticed the ‘IC2F’ bits set as 0x7, I checked this out and for some reason the digital filters gets set on their own. 0x7 = 0111 so this means:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0c92fb73-f49c-4c76-98f5-0dcebc6e0404.png\"/></figure><p> Also I thought I should also check out the TS bit in TIM2_SMCR register. Here is what I saw:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e88b6e15-f379-4110-b27e-f24f99e1955c.png\"/></figure><p>From here: TS = 0x4 and TS_1 = 0x0 combine them and I get 00100. This means, tim_ti1_ed is selected as the trigger input to the slave mode controller, right? Here are the bit field and 00100 value descriptions.<br/><br/>‘This bitfield selects the trigger input to be used to synchronize the counter.’<br/>‘tim_ti1 edge detector (tim_ti1f_ed)’<br/><br/>Also the SMS = 0x4 and SMS_1 = 0x0 if we combine them: 0100. This stands for:<br/><br/>Reset mode- Rising edge of the selected trigger input (tim_trgi) reinitiazes the counter and generates an update of registers.’<br/><br/>So, as far as I know tim_ti1f_ed signal generates a rising edge signal everytime the XOR gate output toggles, am I right? Each time the XOR output toggles there is going to be a rising edge that’s going to fed into the slave mode controller.<br/><br/>Step 4: Program the channel 2 in PWM 2 mode with the desired delay: write the OC2M bits to 111 and the CC2S bits to 00 in the TIMx_CCMR1 register.<br/><br/>SFR shows: </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03cbacb3-bf01-4c96-966f-f435d5279961.png\"/></figure><p>OC2M bits are 00 this means Capture Compare Channel 2 is configured as output. OC2M[12:3] bits are 0x7 and OC2M[24:1] = 0x0, combine them 0111. This means:<br/><br/>PWM mode 2 - In up-counting, channel 1 is inactive as long as TIMx_CNT&lt;TIMx_CCR1 else active. In down-counting, channel 1 is active as long as TIMx_CNT&gt;TIMx_CCR1 else inactive.<br/><br/>Step 5: Select tim_oc2ref as trigger output on tim_trgo: write the MMS bits in the TIMx_CR2<br/>register to 101.<br/><br/>This was already done as it can be seen in the first picture. <br/><br/>So far it seems everything is okay with TIM2. Can you also verify?<br/><br/>Thank you</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This all looks good.</p><p>Now this all to work, CH1 and CH2 have to be enabled in TIM2_CCER, too. </p><p>As I’ve said, as a check, you should output TIM2_CH2 to some pin and observe the pulses there. </p><p>Then, check TIM1 slave-mode controller setting.</p><p>And, back to your original question:</p><p>&gt; I can not get the COM event with TIM1</p><p>How do you know that?</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>As ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> noticed, read back registers value after TIM1_Init and before PWM start, use STM32IDE -&gt;debug→ read SFRs as attached picture</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42624a00-db53-42d5-a2e7-b41b47b1e8ac.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I am very interesting your project, if you locate in silicon valley,  I can join your project.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you sir this means a lot. I will check what I see on the SFR tab and get back</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cb7037e2-523e-46d7-9daa-365c5179d43b.png\"/></figure><p>In RM0440 Rev 9, page 32, as I attached, the XOR function only support TIM15.</p><p>This why CUBEMX doesn’t support,  looks you need change to TIM15.</p><p>Your debug is very good, only problem is, don’t dig so deep before check RM carefully, otherwise waste your time.</p><p>If any more questions, I like help.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>But sir, I got it running on the TIM2 already, the problem here is that I cannot trigger the COM event on TIM1. Also I think you misunderstood the reference manual. In the section ‘30.4 TIM2/TIM3/TIM4/TIM5 functional description’ there is no warning as per the ‘30.4.21 Timer input XOR function’ so all the TIMERs specified here can be used for that mode. I also did this on TIM3 as well.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1227cf01-2382-49cf-a579-052d1579f14b.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>My bad, happy you passed TIM, your debug skill is very good, could you set break in callback, then looking for NVIC detail?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Let me see if I understand you clearly sir. I must put a breakpoint in the input capture callback for the TIMER2, correct?<br/><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ca8772c-8ba2-4364-bc47-35c30455f381.png\"/><figcaption>Here is my callback</figcaption></figure><p>This function gets triggered when I spin the hall sensored motor with an external controller. I extended another cable from the sensor outputs of the motor to my STM32G431KB-Nucleo to read them.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You can try, but I think should add in HAL_TIMx_Commut_Callback, your event didn’t come out, so I guess interrupt didn’t go though. </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>For my debug, need try every possibility if not damage something.</p><p>Other people suggestion only try help you, and they don’t like you got more real information. </p><p>So may misguide you, give you wrong instruction. </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Most important is NVIC, for my understanding, callback use NVIC. Beside RM0440 , you need read PM0214.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I am not really familiar with register based programming and NVIC architecture but I’ll try to decode what’s going on. Right now I don’t quite understand why I get 2 commutation events per hall sensor change.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>My English no good, and some my answer may sounds rude, please ignore those, Do you know interrupt?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>BYW, don’t need “sir”, engineer job is solve problem, don’t care other people like or not, it just like play one game, after finish, fell good by myself.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I understand. Thank you so much for helping this far</p></div>"
+    }
+  ]
 }

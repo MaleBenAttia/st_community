@@ -48,5 +48,10 @@
   "publishedAt": "2026-07-10T13:53:07+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/mems-sensors-48/assistance-required-with-spi-communication-on-nbp8fd4st1-pressure-sensor-166851",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> Hi Pratyusha,</p><p>Thank you for the question and the details.</p><p>Let me start by saying that lowering the CS_B pin and waiting for READY pin to be asserted before starting the SPI transfers is correct. Now, from the screenshot that you shared, it looks like the CS_B and SCLK signals are not correctly driven by the Host during the SPI transfers.</p><p>Per SPI protocol, the Host (S32K in your case) needs to provide the clock (SCLK) and lower the chip select (CS_B) at every SPI transaction, which is 16-bit long for the NBP8. In your logic analyzer screenshot, I do not see any SCLK or CS_B activity while the MOSI command is being transmitted.</p><p>Below figure shows an example of CS_B and SCLK signals during SPI communication. These signals need to be driven by the Host. This figure is extracted from the NBP application note available at following link: <a href=\"https://www.nxp.com/docs/en/application-note/AN13882.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.nxp.com/docs/en/application-note/AN13882.pdf</a></p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/67ee1f5c-6d4a-4ee4-ab1c-c8003eb4cf26.png\"/></figure><p> </p><p>For more details on the expected content of SPI transfers (including dummy read etc...), you can also refer to the <em>sw user guide </em>available in the <em>doc </em>folder of the example Host project at the following link: <a href=\"https://www.nxp.com/webapp/Download?colCode=NBP8x_Application&amp;appType=license\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.nxp.com/webapp/Download?colCode=NBP8x_Application&amp;appType=license</a></p><p> </p><p>The NBP-related resources are for now still on NXP website, but they will be migrated to ST website soon.</p><p>Hoping this will help,</p><p>Camille </p></div>"
+    }
+  ]
 }

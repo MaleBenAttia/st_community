@@ -49,5 +49,10 @@
   "publishedAt": "2026-08-05T05:06:35+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/rak3172-chirpstack-fuota-class-c-session-confirmed-active-but-zero-radio-irq-activity-no-rxdone-rxtimeout-rxerror-multicast-fragments-167479",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> I actually found the   while debugging on my end just now.</p><p>Turned out the issue was that the <strong>\"Gen App Key (for Remote Multicast Setup)\"</strong> field on the failing device was left at all-zeros (<code>00000000000000000000000000000000</code>) instead of matching the actual Application key. I confirmed this by dumping the derived <code>MCAppSKey</code>/<code>MCNwkSKey</code> on the device side and comparing them against what ChirpStack had generated for the multicast group — they didn't match, which explained why the device would join fine, receive the multicast setup commands fine, but silently fail on every actual fragment (MIC verification failing on decrypt).</p><p>Setting <strong>Application key = Gen App Key</strong> on the device profile and regenerating the FUOTA deployment fixed it. Appreciate you confirming this is a known ChirpStack requirement — <strong>it's working now, FUOTA completed successfully on the previously failing device.</strong> Thanks for the help!</p></div>"
+    }
+  ]
 }

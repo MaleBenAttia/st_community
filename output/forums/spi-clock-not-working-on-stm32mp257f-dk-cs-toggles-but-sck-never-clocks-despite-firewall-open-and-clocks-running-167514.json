@@ -49,5 +49,10 @@
   "publishedAt": "2026-08-06T13:14:15+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/spi-clock-not-working-on-stm32mp257f-dk-cs-toggles-but-sck-never-clocks-despite-firewall-open-and-clocks-running-167514",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>SOLVED:</p><p>The board's default M33 firmware (USBPD_DRP_UCSI_CM33_NonSecure_stripped.elf, which handles USB-C Power Delivery) was occupying SPI6. stopping it manually is not enough:</p><p>echo stop &gt; /sys/class/remoteproc/remoteprocN/state</p><p>The systemd service that manages it, st-m33firmware-load.service, has auto-reload on failure. It interprets a manual stop as a crash, so it reloads and restarts the PD firmwarE, silently killing the Zephyr image a few seconds after it starts. This is mentioned briefly in the wiki: https://wiki.st.com/stm32mpu/wiki/Linux_remoteproc_framework_overview#Remote_processor_stop</p><p>Fixed by:</p><p>systemctl disable st-m33firmware-load.service</p><p>After a power cycle, SPI6 works correctly from the M33 and the spi_loopback test passes. No device tree changes, no firewall changes, and no need for the m33-examples image.<br/>Beware: disabling that service also disables USB-C networking, since the PD firmware handles USB-C role negotiation. The usb0 interface goes to NO-CARRIER, so SSH over 192.168.7.1 stops working. Use Ethernet (end0) or the ST-LINK serial console for access instead.</p><p>Things that tested and turned out NOT to be the cause, in case it saves someone time:<br/>RIFSC firewall: SPI6 was already unrestricted (NSEC, no CID filtering), and no IAC/SERC errors were logged<br/>Device tree assignment: status = \"disabled\" on the Linux side plus an open firewall is the correct configuration for M33 use<br/>The -m33-examples image variant: not required. The plain starter image works<br/>Peripheral reset/missing resets property in the Zephyr DT node<br/>Pin configuration: verified via pinconf-pins, which correctly showed PC4/PC7/PF7 in alternate 3<br/>Hardware fault: three separate DK boards behaved identically</p></div>"
+    }
+  ]
 }

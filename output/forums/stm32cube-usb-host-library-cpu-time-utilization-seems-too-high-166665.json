@@ -52,7 +52,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32cube-usb-host-library-cpu-time-utilization-seems-too-high-166665",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @Rostyslav,</p><p>The behavior can be normal. During USB Mass Storage transfers, the STM32 USB Host stack may spend an amount of CPU time in host processing, so USBH_Queue can look heavily loaded while I/O is active.</p><p>In my understanding, I suggest also checking: </p><ul><li>transfer correctness,</li> <li>sustained throughput,</li> <li>system responsiveness,</li> <li>absence of stalls, timeouts, task starvation.</li></ul><p>Also, STM32 embedded USB DMA is not the main lever for reducing CPU load here; that feature is generally relevant to USB_OTG_HS rather than FS. When internal USB DMA is available, it does not eliminate all CPU involvement. The USB stack and class layer still require software processing.</p></div>"
     },
     {

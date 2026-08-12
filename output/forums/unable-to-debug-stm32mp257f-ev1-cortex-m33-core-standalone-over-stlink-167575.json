@@ -51,5 +51,14 @@
   "publishedAt": "2026-08-09T12:37:38+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-software-development-tools-138/unable-to-debug-stm32mp257f-ev1-cortex-m33-core-standalone-over-stlink-167575",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, the <strong>M33</strong> can be debugged over SWD, but boot/provisioning and security state matter. On the MP257F-EV1, first verify the device is in Development mode, RDP/TZEN settings allow debug access, and that ST-LINK is correctly connected to the M33 access port. You generally don’t need SD/eMMC/QSPI just to establish the <em>SWD debug connection</em>; the key is getting the M33 into a debuggable state and loading the bare-metal image through the supported debug flow.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the guidance. Here's where things stand on my end:</p><p><strong>Boot switch (SW1) configuration:</strong> Development boot mode — Boot0=1, Boot1=1, Boot2=0, Boot3=0.</p><p><strong>ST-LINK connection attempt via STM32CubeProgrammer:</strong></p><p><strong>14:52:16 : STM32CubeProgrammer API v2.23.0 | Windows-64Bits<br/>14:54:39 : UR connection mode is defined with the HWrst reset mode<br/>14:54:39 : ST-LINK SN  : 004900203234511237333934<br/>14:54:39 : ST-LINK FW  : V3J17M11B6S1<br/>14:54:39 : Board       : STM32MP257F-EV1<br/>14:54:39 : Voltage     : 3.28V<br/>14:54:39 : Error: Unable to get core ID<br/>14:54:39 : Error: No STM32 target found! If your product embeds Debug Authentication, please perform a discovery using Debug Authentication</strong></p><p>I also tried both Access Port 0 and Access Port 1 in the ST-LINK configuration, both return the identical 'Unable to get core ID' / Debug Authentication error</p><p>So ST-LINK itself connects fine (board identified correctly, voltage nominal, firmware version reads out), but the actual core ID read fails, and CubeProgrammer is explicitly flagging Debug Authentication.</p><p><strong>How do I check the current RDP and TZEN settings</strong> on this board through STM32CubeProgrammer (or another supported tool)</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c4bc4063-d7f7-4e33-9e53-e49959e9c25f.png\"/></figure><p> </p></div>"
+    }
+  ]
 }

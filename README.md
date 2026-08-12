@@ -44,6 +44,7 @@ Le pipeline est divisé en 3 étapes autonomes, orchestrées soit par la ligne d
 ```powershell
 # 1. Créer et activer un environnement virtuel
 python -m venv venv
+.\venv\Scripts\Activate.ps1  
 venv\Scripts\activate
 
 # 2. Installer les dépendances (y compris Flask)

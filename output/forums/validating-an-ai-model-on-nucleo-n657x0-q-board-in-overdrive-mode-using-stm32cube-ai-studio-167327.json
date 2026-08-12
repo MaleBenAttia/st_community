@@ -51,5 +51,18 @@
   "publishedAt": "2026-07-29T14:37:04+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/edge-ai-134/validating-an-ai-model-on-nucleo-n657x0-q-board-in-overdrive-mode-using-stm32cube-ai-studio-167327",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108652\">@stes11</user-mention> </p><p>You are right, with STM32N6570-DK, STM32Cube AI Studio uses overdrive mode where with NUCLEO-N657X0-Q, it does not.</p><p>It is because the Out-Of-The-Box demo, which is delivered with STM32N6570-DK Discovery Kit, enables the overdrive mode by default (for the best performance), where the MCU stays without overdrive for the Nucleo. Since overdrive enablement is not reversible (it break fuses in the microcontroller), we don’t want to apply it by default.</p><p>To apply an overdrive mode / modify the clock tree with the NUCLEO, you can either modify your project after being done with STM32Cube AI Studio and execute ST Edge AI Core with the Command Line Interface, or I can create for you a set of settings to patch your current STM32Cube AI Studio installation.</p><p> </p><p>I will still take the point since it can be interesting to give the user the ability to either use overdrive configuration or not.</p><p> </p><p>Best regards,</p><p>Yanis</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"1795\">@hamitiya</user-mention> ,</p><p>thank you for your answer. I tried to modify the project, rebuild it and flash it again. Unfortunately, this did not work as I wished it would. However, in order to be able to validate my model with STM32Cube AI Studio I would highly appreciate if you can provide the settings for running the NUCLEO in overdrive mode. I’m running version 1.2.0 of Cube AI Studio on Linux.</p><p>Thank you in advance!</p><p><br/>Best regards,</p><p>Stefan</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108652\">@stes11</user-mention>,</p><p> </p><p>First of all, to have best performance, you need to break OTP fuse to allow higher voltage for XSPI</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3c936450-583c-4596-badf-f17a757a9993.png\"/></figure><p>This can be done through STM32CubeProgrammer. To do so, please execute the following:</p><ul><li>Open STM32CubePrg</li> <li>Connect to your NUCLEO-N657X0-Q</li> <li>Go to “Option Bytes” (OB) menu</li> <li>Scroll to HCONF1 / OTP124</li> <li> <figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee9d2add-0cd2-4610-98d7-4b1efca088f1.png\"/></figure></li></ul><p> </p><p>In the lines HSLV_VDDIO3 and HSLV_VDDIO2, ensure you have value “0x1”. If not, apply the following for both of them</p><ul><li>1 (not 0x1, it sounds counterintuitive but 0x1 is not allowed by the GUI)</li></ul><p>Press “Apply”</p><p> </p><p>Afterwards, you need to “patch” a file in your STM32Cube AI Studio installation. </p><ul><li>Go to &lt;/path/to/your/installation&gt;/resources/stedgeai-desktop-backend/dependencies</li> <li>Replace “boardExternalMem.xml” with updated one in copy of this message</li> <li>Restart STM32Cube AI Studio if it was already opened</li></ul><p>After this patch, you should see your runs with frequency up to 800MHz for the MCU, and 1GHz for ST Neural-ART Accelerator. XSPI (Memory bus) frequency raise from 50MHz to 200MHz</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6f9817b6-435b-42d6-b552-39547a9a4de2.png\"/></figure><p> </p><p>Best regards,</p><p>Yanis</p></div>"
+    }
+  ]
 }

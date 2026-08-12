@@ -48,5 +48,14 @@
   "publishedAt": "2026-07-27T12:30:52+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/interface-and-connectivity-ics-52/st67w611m-t01-https-download-aborts-at-200-kb-tls-record-buffer-too-small-for-16-kb-records-167253",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Unfortunately, I’m not sure there is a way to achieve this with the T01 architecture. The buffer indeed has a fixed length in the module FW. You can try to increase the W6X_NET_RECV_BUFFER_SIZE (in w6x_config.h) which should be the setting for a separate buffer.</p><p>The only other valid option I see currently is to move to the T02 architecture.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I already tried increasing W6X_NET_RECV_BUFFER_SIZE  to 18 KB and , W61_MAX_SPI_XFER but neither solved the issue. The problem always occurs once Cloudflare ramps up the TLS record size beyond 4 KB. I eventually worked around it by using HTTP Partial Content (206), which keeps the transferred chunks below the limit.</p></div>"
+    }
+  ]
 }

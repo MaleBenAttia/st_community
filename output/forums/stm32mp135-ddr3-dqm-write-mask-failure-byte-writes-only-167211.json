@@ -49,5 +49,30 @@
   "publishedAt": "2026-07-24T10:02:40+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp135-ddr3-dqm-write-mask-failure-byte-writes-only-167211",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107255\">@TP1</user-mention> and welcome to the ST community,</p><p>You have posted your thread in a wrong forum board (STM32 M<strong>C</strong>Us Boards and hardware tools). Your question is about a M<strong>P</strong>U product.</p><p>I moved your post to “STM32 MPUs Products and hardware related” forum board.</p><p>Good luck.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107255\">@TP1</user-mention> ,</p><p>could you share the complete MP13/DDR3L schematic parts where we could see all DDR signals as with only the information above there is still possibility of wrong swap (data/DQS/DQM should always be together). </p><p>Regards.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"642\">@PatrickF</user-mention>,</p><p> </p><p>Here is the DDR schematic :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c2c45ce1-3ca1-47eb-9e5e-20dff87b5422.png\"/></figure><p>From what I can tell, it looks similar to the layout of stm32mp135f-dk but the DDR models are different. </p><p> </p><p>Thank you for your help,</p><p> </p><p>Regards.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107255\">@TP1</user-mention> </p><p>unfortunately, what I see in your schematics is wrong and explain you byte write issues.</p><p>You did not wired the same bytes mask/strobe with associated byte data:</p><ul><li>MP13 DQM0/DQS0 (DQ0-DQ7 <strong>Lower bytes </strong>write Data Mask/Data Strobe) to DDR3L UDM/UDQS (DQ15-8 <strong>Upper byte </strong>write Data Mask/Sata Strobe). This requires the data byte to be also swapped.</li> <li>but you wired MP13 DATA0-DATA7 (<strong>Lower byte</strong>) to DDR3L DQ0-DQ7 (<strong>Lower byte</strong>)</li></ul><p> </p><p>No way to solve that by SW setting, you should correct your PCB.<br/><br/>see example on MP135F-DK board<br/>MP13 side:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/04a1bc9e-1270-4c5e-bafd-0415d42d620a.png\"/></figure><p>DDR3L side: </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9a176631-d337-4b9d-9eb8-624c9809f7a4.png\"/></figure><p><br/><br/><br/>Regards.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you ​<user-mention data-id=\"642\">@PatrickF</user-mention> for your help.<br/>Would this rewiring be correct if I don’t swap the DQ0-DQ7 and DQ8-DQ15 data lanes ?<br/> </p><p>DQM0 &lt;-&gt; LDM<br/>DQM1 &lt;-&gt; UDM<br/>DDR_DQS0P &lt;-&gt; LDQS</p><p>DDR_DQS0N &lt;-&gt; LDQS#</p><p>DDR_DQS1P &lt;-&gt; UDQS</p><p>DDR_DQS1N &lt;-&gt; UDQS#</p><p> </p><p>Regards.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, this would be ok.<br/><br/>You should take DQ0/DQS0/DQM0 (or their alternate names LDQ/LUDM) as a 10 signals group which must be altogether. and similarly for other byte. <br/>DDR3L don’t care about lower or higher byte meanings, but all bytes related signals should be on same byte.</p><p>Regards.</p><p> </p></div>"
+    }
+  ]
 }

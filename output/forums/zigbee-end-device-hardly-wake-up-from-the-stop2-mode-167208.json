@@ -49,5 +49,22 @@
   "publishedAt": "2026-07-24T08:30:32+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/zigbee-end-device-hardly-wake-up-from-the-stop2-mode-167208",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"95308\">@Phang</user-mention></p><p>Please find below the answers :</p><ol><li> <p>The 2 added lines configure the product as a <strong>Sleepy End Device (SED)</strong>.<br/>\tSpecifically, <code>MCP_ASSOC_CAP_RXONIDLE</code> is cleared so the Zigbee receiver is <strong>not always on when idle</strong>, which is why current consumption drops significantly.<br/><code>config.endDeviceTimeout = ZED_SLEEP_TIME_30S;</code> sets the parent timeout for the sleepy device.</p> <p>However, these settings alone are <strong>not sufficient</strong> to guarantee stable STOP2 operation. In addition to SED configuration, the application must also correctly handle <strong>STOP2 wake-up source configuration, GPIO/EXTI button wake-up, clock/timer restoration after wake-up, and Zigbee polling/resume behavior</strong>.</p> <p>Based on the symptom, the issue is likely related to <strong>STOP2 wake-up handling or low-power integration</strong>, rather than these 2 lines themselves.</p> <p>In short: the current reduction is expected, but the wake-up instability indicates that the full sleepy-end-device low-power implementation is not yet completely integrated.</p> </li> <li> <p>The issue after 37h has been identified internally and fixed in the release version v1.24, please upgrade the firmware to the latest version.</p> </li></ol><p>Kind regards,</p><p>Ouadi</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Ouadi,</p><ol type=\"1\"><li>Yes, you are right. Understand from the SED sample code readme.txt, in order to reached ultra low power consumption, it is needed to use RFD wireless stack on client side and hence the 2 lines of code to take effect. So I followed and flashed the RFD stack into our board. However, this action create another problem where the client cannot/fail to pair with the sever which use FFD wireless stack. As shown below debug picture. Any idea what is wrong? Any suggestion? \t<figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/49034feb-e689-4373-ae86-3f6edbdbe53c.png\"/></figure></li> <li>What do you mean by “fixed in the release version v1.10”? Can you shared the details and link if any? Thanks</li></ol></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"95308\">@Phang</user-mention>,</p><ol><li>Have you done a full chip erase on both boards before trying a new commissioning ? Can you give it a try ? </li> <li>Please use the latest version of Cube firmware v1.24</li></ol><p>Regards,</p><p>Ouadi</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Ouadi,</p><p> </p><ol type=\"1\"><li>Yes, I did it but doesn’t help. By the way, I manage to resolve the hang at “Init_ZigbeeStack_Infrastructure” mentioned in my earlier post. After I removed others 6 OnOff client clusters and it move on to do the pairing with the server (Dongle with FFD wireless stack). However, the server cannot receive and output the signal/data from the client router which I’m not sure why. Attached is the debug message  text file. Can you help to interpret the output messages and find out why the client OnOff router cannot transmit signal/data after paired with the server. Thanks.</li> <li>What is the fixes in “Cube firmware v1.24” especially for the OnOff client router / SED with RFD wireless stack? </li></ol></div>"
+    }
+  ]
 }

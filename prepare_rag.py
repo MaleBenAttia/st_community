@@ -272,7 +272,12 @@ def process_forums(token: str) -> dict:
             for idx, ans in enumerate(best_answers, start=1):
                 rag_item[f"best_answer_content{idx}"] = ans
         else:
-            rag_item["best_answer_content"] = ""
+            # Fallback : si best_answers est vide mais qu'il y a au moins une réponse extraite
+            all_scraped_md = [clean_html_to_markdown(r.get("html", "")) for r in scraped_replies if clean_html_to_markdown(r.get("html", ""))]
+            if all_scraped_md:
+                rag_item["best_answer_content"] = all_scraped_md[0]
+            else:
+                rag_item["best_answer_content"] = ""
 
         rag_item["content_text"] = question_md
         rag_item["images"] = list(all_images)

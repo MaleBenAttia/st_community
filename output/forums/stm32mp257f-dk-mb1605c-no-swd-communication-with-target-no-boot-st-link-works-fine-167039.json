@@ -48,5 +48,14 @@
   "publishedAt": "2026-07-17T11:07:43+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257f-dk-mb1605c-no-swd-communication-with-target-no-boot-st-link-works-fine-167039",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>first try connect with your actual boot/switch setting, connect in Programmer in DFU mode.</p><p>(as this should be dfu boot mode)</p><p>Otherwise…</p><p>to boot (OpenSTLinux) from MicroSD-card , set  <code>BOOT0</code> = OFF, <code>BOOT1</code> = ON, <code>BOOT2</code> = OFF, <code>BOOT3</code> = OFF (Binär: <code>0001</code>) .</p><p>try…</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><strong>Update / Resolution:</strong></p><p>Thanks for the pointers so far. For anyone finding this thread with the same symptoms, here's what turned out to be the issue and how I resolved it:</p><p><strong>Symptoms recap:</strong></p><ul><li>ST-LINK detected fine, target voltage read correctly (~3.28-3.29V)</li> <li>SWD connection always failed (\"Unable to get core ID\" / \"No STM32 target found\") in every Reset mode / Mode combination</li> <li>Debug Authentication discovery also failed (\"Failed to communicate with target!\")</li> <li>No output on either virtual COM port, no blue Linux Heartbeat LED (LED1)</li> <li>Boot switches correctly set for microSD boot (BOOT0=ON, rest OFF)</li></ul><p><strong>Root cause:</strong><br/>Connecting via USB DFU (CN16, \"USB DRD\" port) instead of ST-LINK showed the board was actually alive and enumerating in DFU mode (Device: STM32MP23xx/25xx, Device ID 0x505, CPU Cortex-A35). This meant the SoC's ROM code was running fine, but it kept falling back into USB DFU recovery instead of completing a normal boot - regardless of what was on the microSD card. This pointed to missing/corrupted RSSE (root-of-trust) partitions and/or FSBL, which the SoC needs before it can even attempt to load anything from the microSD card.</p><p><strong>Fix:</strong><br/>Reflashed the board from scratch using STM32CubeProgrammer over USB/DFU, using the FlashLayout_sdcard_stm32mp257f-dk-optee.tsv from the latest OpenSTLinux Starter Package (v26.06.10), pointing \"Binaries path\" to the images/stm32mp2 folder. After flashing completed successfully and rebooting, LED1 started blinking (heartbeat pattern) and the console became available on COM8 (115200-8-N-1), with the board booting straight to a login prompt.</p><p><strong>Takeaway for others with similar symptoms:</strong> if SWD/DA fails completely but the target voltage reads correctly, try connecting via USB (DFU) instead of ST-LINK before assuming a hardware fault - if the chip enumerates there, the SoC itself is fine and a full reflash of FSBL/RSSE via DFU may resolve it, even if the microSD card content seems irrelevant to the failure.</p><p>Thanks again for the help!</p></div>"
+    }
+  ]
 }

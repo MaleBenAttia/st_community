@@ -16,7 +16,7 @@
             "views": 50,
             "reply_count": 2,
             "best_answer": true,
-            "best_answer_content": "",
+            "best_answer_content": "Very long story very short, it works with this setup:\n\n* PIPE1 → buffer → VENC JPEG\n\n* pPipeConfig.FrameRate = DCMIPP\\_FRAME\\_RATE\\_1\\_OVER\\_2;\n\nI was a fool for thinking this would work:\n\n* PIPE1 → buffer a/b → DMA2D → jpeg input → VENC JPEG\n\n* pPipeConfig.FrameRate = DCMIPP\\_FRAME\\_RATE\\_ALL;\n\nBy the way, you can still run PIPE2 capturing every frame. And since it shares its demosaic unit somewhat with PIPE1, this is still perfectly doable:\n\n```\n\nHAL_DCMIPP_CSI_PIPE_DoubleBufferStart(&hdcmipp, DCMIPP_PIPE2, DCMIPP_VIRTUAL_CHANNEL0, buffer_a, buffer_b, DCMIPP_MODE_CONTINUOUS);\n\nHAL_DCMIPP_CSI_PIPE_Start(&hdcmipp, DCMIPP_PIPE1, DCMIPP_VIRTUAL_CHANNEL0, jpeg_input, DCMIPP_MODE_CONTINUOUS);\n\n```",
             "content_text": "Hi all,\n\nI merged the VENC\\_JPEG\\_Encoding example with a DCMIPP app. Both parts work on their own, but the JPEG encoding breaks (error -9 = JPEGENC\\_HW\\_BUS\\_ERROR) as soon as I turn on the DCMIPP capture. The JPEG input/output buffer is completely unrelated to the DCMIPP buffer. It’s just that as soon as I start the DCMIPP in CONTINUOUS mode, the JPEG encoder breaks… Very strange.\n\nDid anyone else experience this problem? What could cause this? How would I fix this?\n\nBest regards, rphii",
             "images": [],
             "author": "rphii"

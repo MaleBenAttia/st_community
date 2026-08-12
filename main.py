@@ -228,38 +228,7 @@ session.headers.update({
 def scrape_all_replies(url: str) -> list:
     """
     Scrape la page publique d'un topic et extrait toutes ses réponses.
-
-    Retourne une liste de dicts :
-        [
-            {"is_best": bool, "html": str},
-            ...
-        ]
-
-    ---
-    STRATÉGIE DE DÉTECTION DE LA MEILLEURE RÉPONSE (100 % fiable)
-    ---
-    La plateforme inSided (Gainsight Community) utilise deux zones distinctes
-    pour afficher les réponses d'un topic résolu :
-
-      Zone A — Bloc épinglé en haut de page
-          Lorsqu'un topic est marqué "Solved", la meilleure réponse est copiée
-          et affichée en évidence AVANT la liste des réponses. Ce bloc possède
-          lui aussi l'élément <span data-qa="pill-best-answer">, ce qui provoque
-          un faux positif si on scanne tout le document sans restriction.
-
-      Zone B — Fil chronologique (.paginated-threaded-replies)
-          C'est ici que se trouvent les VRAIES réponses individuelles, chacune
-          dans un <div class="threaded-reply-item">. Le badge
-          <span data-qa="pill-best-answer"> n'apparaît qu'UNE SEULE FOIS dans
-          cette zone, sur la réponse réellement acceptée par l'auteur.
-
-    Solution : on scope TOUJOURS dans `.paginated-threaded-replies` avant de
-    chercher `.threaded-reply-item`. Cela exclut définitivement le bloc épinglé
-    et garantit qu'un seul post reçoit is_best=True.
-
-    Vérifié empiriquement sur plusieurs topics ST Community :
-        - stm32u375-adf1-stereo-... : best answer = reply 3 (JonathanC) ✅
-        - mcu-suggestion            : best answer = reply 4 (Nico3)     ✅
+    Extrait les réponses chronologiques et identifie la réponse acceptée (best answer).
     """
     replies = []
     try:
@@ -267,28 +236,30 @@ def scrape_all_replies(url: str) -> list:
         if resp.status_code == 200:
             soup = BeautifulSoup(resp.content, 'html.parser')
 
-            # ── ÉTAPE 1 : Trouver le conteneur du fil de discussion ──────────
-            # On cherche en priorité '.paginated-threaded-replies' qui contient
-            # uniquement les réponses chronologiques (Zone B), excluant ainsi
-            # le bloc épinglé (Zone A) qui provoquerait un faux is_best.
-            # Les fallbacks couvrent d'éventuelles variations de classe CSS
-            # en cas de mise à jour de la plateforme inSided.
+            # ÉTAPE 1 : Détections prioritaires de la réponse épinglée (Best Answer / Solved Box)
+            best_answer_box = (
+                soup.find(class_='qa-answer-field') or
+                soup.find(class_='reply-flexbox--bestanswer') or
+                soup.find(attrs={"data-qa": "qa-answer-field"})
+            )
+            best_answer_html = None
+            if best_answer_box:
+                content_div = best_answer_box.find(class_='post__content') or best_answer_box.find(class_='qa-qa-post-content')
+                if content_div:
+                    best_answer_html = str(content_div)
+
+            # ÉTAPE 2 : Conteneur principal du fil de discussion
             thread_container = (
-                soup.find(class_='paginated-threaded-replies') or  # inSided standard
-                soup.find(class_='thread__list') or                # variante possible
-                soup.find(class_='replies-list') or                # autre variante
-                soup                                               # fallback total
+                soup.find(class_='paginated-threaded-replies') or
+                soup.find(class_='threaded-replies') or
+                soup.find(class_='thread__list') or
+                soup.find(class_='replies-list') or
+                soup
             )
 
-            # ── ÉTAPE 2 : Récupérer les réponses individuelles ───────────────
-            # Chaque réponse est encapsulée dans un <div class="threaded-reply-item">
-            # avec l'attribut data-qa="threaded-reply-item".
+            # ÉTAPE 3 : Extrait les posts individuels du fil
             post_divs = thread_container.find_all(class_="threaded-reply-item")
-
             if not post_divs:
-                # Fallback : si la structure DOM change, chercher des conteneurs
-                # génériques de type "post" en évitant les conteneurs trop larges
-                # (listes, wrappers) pour ne capturer que les posts unitaires.
                 post_divs = thread_container.find_all(
                     lambda tag: tag.name in ['div', 'article', 'li']
                     and tag.get('class')
@@ -296,25 +267,22 @@ def scrape_all_replies(url: str) -> list:
                     and not any('list' in c.lower() or 'container' in c.lower() for c in tag.get('class'))
                 )
 
-            # ── ÉTAPE 3 : Analyser chaque réponse ───────────────────────────
+            found_best = False
             for pd in post_divs:
                 is_best = False
-
-                # Le badge officiel inSided pour la meilleure réponse.
-                # Attribut HTML : <span data-qa="pill-best-answer">BEST ANSWER</span>
-                # Scoper dans thread_container (étape 1) garantit que ce badge
-                # n'est trouvé qu'une seule fois, sur le bon post.
-                if pd.find(attrs={"data-qa": "pill-best-answer"}):
+                if pd.find(attrs={"data-qa": "pill-best-answer"}) or pd.find(class_="best-answer"):
                     is_best = True
 
-                # Extraire le contenu HTML brut de la réponse
                 content_div = pd.find(class_='qa-qa-post-content') or pd.find(class_='post__content')
                 if content_div:
                     html = str(content_div)
 
-                    # Déduplication : si le même HTML apparaît deux fois
-                    # (cas très rare de doublon DOM), on fusionne en conservant
-                    # is_best=True si l'un des doublons l'est.
+                    if best_answer_html and html == best_answer_html:
+                        is_best = True
+
+                    if is_best:
+                        found_best = True
+
                     existing = next((r for r in replies if r['html'] == html), None)
                     if existing:
                         if is_best:
@@ -324,6 +292,22 @@ def scrape_all_replies(url: str) -> list:
                             "is_best": is_best,
                             "html": html,
                         })
+
+            # Si le sujet est résolu et qu'une box best answer était présente ou qu'il y a 1 réponse
+            if best_answer_html and not found_best:
+                existing = next((r for r in replies if r['html'] == best_answer_html), None)
+                if existing:
+                    existing['is_best'] = True
+                else:
+                    replies.insert(0, {
+                        "is_best": True,
+                        "html": best_answer_html
+                    })
+                    found_best = True
+
+            # Si aucune réponse n'est marquée is_best mais qu'il existe des réponses
+            if not any(r.get('is_best') for r in replies) and replies:
+                replies[0]['is_best'] = True
 
     except Exception as e:
         print(f"  [Scrape Error] {url} -> {e}")

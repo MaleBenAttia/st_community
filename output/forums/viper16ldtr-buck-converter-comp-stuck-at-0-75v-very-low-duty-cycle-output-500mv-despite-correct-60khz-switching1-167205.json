@@ -49,5 +49,46 @@
   "publishedAt": "2026-07-24T06:12:37+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/power-management-53/viper16ldtr-buck-converter-comp-stuck-at-0-75v-very-low-duty-cycle-output-500mv-despite-correct-60khz-switching1-167205",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108520\">@Jeeva_Gen4</user-mention> and welcome to the ST community,</p><p>I removed the same other post having the same content. </p><p>Please avoid post duplication. Thank you for your understanding.</p><p>Good luck.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Your double post had to be deleted repeatedly. ​<user-mention data-id=\"499\">@mƎALLEm</user-mention> had already asked you not to ask the same question multiple times.</p><p>I took a closer look at your problem and found that the schematics had apparently not been simulated before. Using the values in your schematics (L3, C24 and R28), the resulting Bode plot is very poor, with unsuitable values for phase margin of about 34° (target: 76°) and bandwidth of about 6kHz (target: 3.7kHz ±10%). You can try the following values: C24 = 130nF, R28 = 13kΩ, an additional Cp = 2nF (Cp to be connected between COMP and GND_1/2). Also check that your version of the SRR1206-102KL has a saturation current (not average current) of at least 500mA.</p><p>If these changes do not help, I strongly recommend simulation and verification with the online simulator eDesignSuite.</p><p>Regards<br/>/Peter</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>      Datasheet FB is 3.3V, why you measure 0.5V?</p><ul><li>FB divider (R26/R27): reading 500mV correctly reflecting actual output via divider ratio</li></ul></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I probed the FB pin directly. Previously it was reading only ~0.5V, not the expected ~3.3V (internal reference level) it should regulate to.</p><p>After implementing the updated RC values you suggested by <strong><u>Peter BENSCH</u></strong>(C24 = 130nF, R28 = 13kΩ) on the problem board, FB is now reading ~3.219V — close to the expected reference — but the output is still not regulating correctly to 12V still the Output Stuck in 500mV. VDD_Viper pin getting 12V.</p><p>On our second (working) board, the exact same voltage divider ratio and RC compensation(C24 = 1.8nF, R28 = 1kΩ)values produce a correct ~3.3V-equivalent at FB, and that board outputs a healthy 12V.</p><p>So now that FB is close to reference on the problem board too, could you clarify what might still be preventing the output from reaching 12V?</p><p><a href=\"https://eds.st.com/acdc-ff-lite/?eDesign=W4SNkiN1\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://eds.st.com/acdc-ff-lite/?eDesign=W4SNkiN1</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You should understand ​<user-mention data-id=\"2379\">@Peter BENSCH</user-mention> gave you the fundamental knowledge, if Bode plot show your compensation network no good, your design may got big problem later, even damage all board. So even your “good” board you need change too.</p><p>You should looking for switch node waveform (SW pin) most like didn’t switching.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, sir, I understood your reply and appreciate the guidance. I will update the RC values on the other (good) board as well.</p><p>However, on the problem board, even after changing to the recommended C24 = 130nF and R28 = 13kΩ, I'm still not getting the expected 12V output. I confirmed on the SW pin (pin 2) that switching is present at 60kHz in both RC Network, consistent with the VIPER16L variant per the datasheet.</p><p>Since switching is confirmed but output is still not building up correctly even with the corrected RC network, could you please advise what else I should check next? I'll continue checking and update with findings.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>If feedback phase change, at least output should impact, still stuck at 0.5V is weird.</p><p>You noticed early:</p><ul><li>C22 (220uF, 25V output cap): 1.4MΩ to GND — no leakage, no short</li> <li>12V rail to GND (load side): 4.5kΩ — no downstream short</li></ul><p>Why these two different values? (May not big issue, no short)</p><p>Could you turn off power, measure L3 resistance. Compare with good board.</p><p>For the SW node 60K pulse, is change compensation network values impact duty cycle (For bad board)?</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>BTW, ​<user-mention data-id=\"2379\">@Peter BENSCH</user-mention> suggestion, add one more pole - add one capacitor between COMP and GND 1,2.</p><p>This should make phase more smooth.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your reply.  I will check and Update on this.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>No hurry, I am going to sleep.</p></div>"
+    }
+  ]
 }

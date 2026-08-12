@@ -48,5 +48,18 @@
   "publishedAt": "2026-07-30T00:23:54+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/mems-sensors-48/lps22df-first-fifo-element-corruption-167335",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"46171\">@KWine</user-mention> ,</p><p>Thank you for the detailed description.</p><p>The <a href=\"https://www.st.com/resource/en/application_note/an5699-lps22df-lowpower-and-highprecision-mems-nano-pressure-sensor-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">application note</a> recommends reading FIFO data as a <strong>3-byte multi-read starting from 0x78</strong> (with <strong>IF_ADD_INC = 1</strong>), and for a full FIFO it even recommends a <strong>single 384-byte burst read</strong>. This suggests that the FIFO data should be accessed as an <strong>atomic 3-byte dataset</strong>, rather than as separate single-byte transactions.</p><p>For this reason, I would first verify the read sequence on the I²C bus. If the three bytes are currently being read as separate transactions, the FIFO contents may advance between accesses and the reconstructed 24-bit value could be corrupted.</p><p>So, the recommended workaround would be:</p><ul><li>keep <strong>IF_ADD_INC enabled</strong></li> <li>read each FIFO entry with a <strong>single 3-byte burst</strong></li> <li>if possible, drain the FIFO with a <strong>single multi-read</strong> of the entire watermark block</li></ul><p> </p><p>Let me know!</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you. Each FIFO entry is already read as one atomic three-byte I2C transaction. The host writes subaddress 0x78, issues a repeated START, requests three bytes in one operation, and reconstructs the 24-bit pressure only after all three bytes have been received. The three pressure bytes are not read as separate I2C transactions.</p><p>The same three-byte function is called repeatedly to drain the FIFO. Only the first three-byte dataset after every watermark event is approximately 32 hPa high; all subsequent datasets read with the identical function agree closely with PRESS_OUT. The raw error is close to 0x020000, suggesting that bit 17 is set in the first returned dataset.</p><p>We also attempted one 30-byte read from 0x78 with IF_ADD_INC enabled. In that test, the first three bytes contained the same anomalous pressure, while the remaining bytes were 0xFF rather than wrapping through 0x78–0x7A. We are repeating that test after correcting an unrelated interface-register initialization issue.</p><p>Is any configuration beyond CTRL_REG3.IF_ADD_INC = 1 required for FIFO register wrapping? Does ST’s <code>lps22df_fifo_data_get()</code> perform one <code>3 × sample_count</code> register read starting at 0x78, or does it internally issue one three-byte transaction per dataset?</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Well, somewhat embarrassingly, we cannot reproduce this behavior even using the same Arduino sketch we originally discovered it with. This seems to indicate an anomalous hardware glitch that somehow resolved. We can now successfully read the FIFO either in three-byte bursts or in 32-sample (96 byte) bursts without any corruption of the first FIFO sample and with the correct and expected results. Sorry for the false alarm.</p></div>"
+    }
+  ]
 }

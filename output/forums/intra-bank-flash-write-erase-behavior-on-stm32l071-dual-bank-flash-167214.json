@@ -52,7 +52,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/intra-bank-flash-write-erase-behavior-on-stm32l071-dual-bank-flash-167214",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"37451\">@TKopp.67</user-mention> ,</p><p> </p><blockquote><p>1. When erasing/programming a page in Bank 1, does the CPU stall (wait state) if it tries to fetch an instruction from a different, non-erased page within the same Bank 1 — similar to the documented single-bank stall behavior — or is this operation simply not permitted/undefined?</p></blockquote><p>According to your question and the reference manual, the answer is described in Section 3.3.3, \"Reading the NVM.\"</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f9ecd5d6-4777-4882-a0ab-5fac8dd4ff8f.png\"/></figure><p>From this, we understand that the only possible use case with two banks is to perform read operations on one bank while write or erase operations are carried out on the other bank. In your case, it is not possible to do both operations on the same bank at the same time.<br/>Therefore, as a solution, we recommend placing your application code in the second bank. Also, why did you choose this application code partitioning between the two banks?</p><p>Best regards,</p><p>Hamdi</p><p> </p><p> </p></div>"
     },
     {

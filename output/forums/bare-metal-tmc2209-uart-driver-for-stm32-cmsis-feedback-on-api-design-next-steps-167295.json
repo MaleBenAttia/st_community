@@ -48,5 +48,26 @@
   "publishedAt": "2026-07-28T15:35:11+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/others-stm32-mcus-related-142/bare-metal-tmc2209-uart-driver-for-stm32-cmsis-feedback-on-api-design-next-steps-167295",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>To keep it hardware-agnostic …</p></blockquote><p> </p><blockquote><p>…  <strong>Bitfields vs. Shifts/Masks:</strong> Is using <code>union</code> + <code>struct</code> (bitfields) acceptable</p></blockquote><p> </p><p>Bitfields are very much not portable; as K&amp;R says, “<em>Almost everything about fields is implementation-dependent</em>”.</p><p>So, if being “hardware-agnostic” is a requirement, definitely prefer shifts &amp; masks.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the reply! I want this driver to be universal and usable across STM32, ESP32, and even AVR. So, as suggested, I will get rid of <code>union</code> and bitfields. I'll implement an initial setup function like <code>tmc2209_init()</code>, and then expose API functions to change specific key parameters. The <code>tmc2209_write_register()</code> function will be called internally through those API functions and hidden from the user.</p><p>Also, to change parameters on the fly, does that mean reading the register, modifying the bits via shifts and masks, and writing it back? Is this the right approach? What would you suggest?</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"Rafo\"><div class=\"content-quote-content\"> <p>Also, to change parameters on the fly, does that mean reading the register, modifying the bits via shifts and masks, and writing it back? </p> </div></content-quote><p>What “register” are you talking about here?</p><ul><li>In the TMC2209 ?</li> <li>In the host processor (STM32, AVR, whatever) ?</li> <li>Both ?</li> <li>Other ?</li></ul><p>As ​<user-mention data-id=\"37189\">@Pavel A.</user-mention> suggests, you will have to study the datasheets for the devices to determine what is possible.</p><p>In some cases (STM32 and AVR certainly have some), there are specific bit set/reset registers - which allow things to be changed without doing a read-modify-write.</p><p>But, if your device has only read and write, then you’ll have to do a read, then modify, then write.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Usually drivers are developed to satisfy some requirements and specifications (for example, be compatible with some existing or new software). Without knowing your requirements we cannot give feedback on “architecture” etc.</p><p>Being portable among STM32, other ARMS, ESP32 and more is good, but by itself it is not architecture, and not clear whether it is a feature.</p><p>&gt; Also, to change parameters on the fly, does that mean reading the register, modifying the bits via shifts and masks, and writing it back? Is this the right approach?</p><p>ARM cortex has only “load” and “store” operations on device registers, so yes - to modify some bits in a UART register you have to load it into a CPU register, modify the bits and store it back. ST in their “HAL” library has added an interesting twist: use of ldrex &amp; strex instructions. The intent is enable lock-less “atomic” operations on the same UART register in several program flows, such as receive and transmit. Using ldrex &amp; strex on device registers is AFAIK a vendor-specific extension of Cortex-M, so be warned. If your driver needs to synchronize modification of one or more registers in parallel flows, provide locking.</p><p>Good luck.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the detailed answer and the info I'll go study the theory behind what you mentioned</p></div>"
+    }
+  ]
 }

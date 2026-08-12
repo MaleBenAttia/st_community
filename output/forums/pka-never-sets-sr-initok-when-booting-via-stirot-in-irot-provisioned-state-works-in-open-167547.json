@@ -49,5 +49,10 @@
   "publishedAt": "2026-08-07T11:01:09+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-security-36/pka-never-sets-sr-initok-when-booting-via-stirot-in-irot-provisioned-state-works-in-open-167547",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Finally got it working…<br/><br/><strong>STiRoT</strong> leaves SAES in a state that retains the shared <strong>RNG</strong> path, causing <code>PKA_SR.INITOK</code> to remain 0 because, as described in <a href=\"https://www.st.com/resource/en/reference_manual/rm0481-stm32h523533xx-stm32h543553xx-stm32h562xx-and-stm32h563573xx-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">RM0481</a>, <code>INITOK</code> stays low while <strong>SAES</strong> is using the <strong>RNG</strong> bus.</p><p>Resetting <strong>SAES</strong> in the secure application before the non-secure handoff fixed it:</p><pre><code class=\"language-c\">__HAL_RCC_SAES_CLK_ENABLE();<br/>__HAL_RCC_SAES_FORCE_RESET();<br/>__DSB();<br/>__HAL_RCC_SAES_RELEASE_RESET();<br/>__DSB();</code></pre><p><strong>PKA</strong> now initializes normally in <code>IROT_PROVISIONED</code>.</p></div>"
+    }
+  ]
 }

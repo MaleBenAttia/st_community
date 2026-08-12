@@ -49,5 +49,46 @@
   "publishedAt": "2026-07-14T09:58:37+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/stm32cubeide-for-visual-studio-code-the-project-conversion-tool-doesn-t-copy-over-assembly-files-s-files-166929",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108230\">@ad101</user-mention> </p><p>do you have any project to share please ?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108230\">@ad101</user-mention>,</p><p>As Nawres mentioned, could you give more details about your project, especially where the assembly sources are located? Are they in the project tree, or somewhere on disk as linked resources?</p><p>I just tried it myself: I defined new <code>asm_utils.s</code> and <code>asm_utils.h</code> files in an empty STM32CubeIDE project, used the functions in <code>main.c</code>, built it successfully in STM32CubeIDE, converted the project in VS Code, and then built it successfully in VS Code too.</p><p>I attached the sample.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi there,<br/><br/>The files that fail to copy over during the conversion are from the threadx libraries.<br/><br/>The files were missing after the conversion so I had to copy them over and also make changes to the generated .cmake to successfully build.<br/><br/>vscode_generated.cmake:<br/> </p><pre><code class=\"language-makefile\"># Add sources to executable/library<br/>target_sources(${BUILD_UNIT_0_NAME} PRIVATE<br/><br/>    …<br/><br/>    # Add the missing low-level initialization assembly file:<br/>    \"Core/Src/tx_initialize_low_level.S\"<br/><br/>    # Add the missing Core ThreadX Cortex-M33 Assembly ports:<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_context_restore.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_context_save.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_interrupt_control.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_interrupt_disable.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_interrupt_restore.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_schedule.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_stack_build.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_thread_system_return.S\"<br/>    \"Middlewares/ST/threadx/ports/cortex_m33/gnu/src/tx_timer_interrupt.S\"<br/>)</code></pre><p><br/>“</p><div><div><p>STM32CubeIDE</p><p> </p><p>Version: 2.1.1</p><p>Build: 28236_20260312_0043 (UTC)</p><p>”<br/><br/>“<br/>Version: 1.124.0 (user setup)<br/>Commit: 1b50d58d73426c9171299ec4037d01365d995b78<br/>Date: 2026-06-09T21:29:32-07:00<br/>Electron: 42.2.0<br/>ElectronBuildId: 14159160<br/>Chromium: 148.0.7778.97<br/>Node.js: 24.15.0<br/>V8: 14.8.178.14-electron.0<br/>OS: Windows_NT x64 10.0.26200<br/>“<br/> </p></div></div></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I’m still struggling to reproduce the issue.</p><p>Could you please try the latest version of the converter bundle released last week, <code>ide-project-converter@1.2.1</code>?</p><p>There were many improvements, and several example projects have changed from <strong>fail</strong> to <strong>pass</strong> status.</p><p>If it still fails, could you please send me by private message the STM32CubeIDE project metadata (<code>.project</code> and <code>.cproject</code> files) and the intermediate converter description, which should be part of the generated CMake project (<code>stm32cubeide-export.json</code>)?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ef6239f4-a5a6-4efe-bbab-52badce82538.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c785214f-a79a-4005-96bc-9229cf5c521a.png\"/></figure><p><br/>Hi Julien,<br/><br/>I’m using the “Convert Eclipse Stm32CubeIDE project” command that appears to be part of the STM32Cube Project Manager Extension Pack.<br/><br/>And that looks like it was updated 2 hours ago. And the problem persists, just tried it again. I’ll send those files to you via private message.</p><p> </p><p>Alex</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry I had not been precise enough, the ide-project-converter is a bundle, so installed aside vscode extensions.</p><p>You can check its version using the bundle manager, system view:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6dbaa48d-142d-4300-969c-d2599d6fe992.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8acc051a-acdb-4f13-b733-3a2176096705.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Julien,<br/><br/>Ah I see, yeah, the ide-project-converter bundle was on 1.1.1, I believe. Unfortunately, even after updating to 1.2.1, the issue persists.</p><p> </p><p>Alex</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for sharing the files.</p><p>Indeed all asm sources from threadx are not listed as sources into the intermediate file so it is “normal” to not have them into the generated cmake project.</p><p>Means, if such asm sources are visible and built by STM32CubeIDE, then there is likely an issue with another bundle called osgi-exporter. The latest version is 0.0.5, released a couple of months ago; <strong>maybe something to verify on your side before going deeper.</strong></p><p>What looks strange at that stage is the fact that apparently the threadx sources are located outside of the STM32CubeIDE project tree, and ../Middlewares/ST/threadx/ports/cortex_m33/gnu/src seems never be referenced. Means I don’t explain how they can be built in STM32CubeIDE neither.</p><p>Usually external sources are referenced as Linked Resources from STM32CubeIDE project, and in your case I don’t see any trace of such.</p><p>Here is a screenshot using a random cortex m33 threadx example from FW package (STM32Cube_FW_WBA_V1.8.0/Projects/NUCLEO-WBA55CG/Applications/Zigbee/Zigbee_OnOff_Client_Router_ThreadX/STM32CubeIDE)</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4309022-00f0-4ef1-a118-5727db5e5b2d.png\"/></figure><p>The icons show they are Linked Resources, also visible from project properties:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54fc3905-4422-4e0f-b601-59f44d0c2e02.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Julien,</p><p> </p><p>osgi-exporter is on the latest version, 0.0.5.<br/><br/>And I believe the threadx assembly files should be part of the project tree:<br/><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd3e5bd4-a6d9-4836-9d38-9124c192ae2e.png\"/></figure><p><br/>So I guess it’s just some niche bug then? I didn’t create the project, so I don’t know if there was anything unique about the creation process.<br/><br/>Alex</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks ​<user-mention data-id=\"108230\">@ad101</user-mention>, for your screenshot. It helped a lot in understanding the root cause.</p><p>This is only a matter of file extension: the exporter considers only <code>.s</code> files as assembler sources, not <code>.S</code> files.</p><p>You can confirm this on your side by simply renaming the assembly sources to <code>*.s</code>.</p><p>I created an internal ticket to address this bug. Thanks again for helping improve the robustness of our extensions.</p></div>"
+    }
+  ]
 }

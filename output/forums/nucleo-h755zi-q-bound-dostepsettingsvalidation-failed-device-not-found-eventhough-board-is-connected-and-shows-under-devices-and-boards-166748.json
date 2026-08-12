@@ -50,5 +50,18 @@
   "publishedAt": "2026-07-07T19:22:35+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/nucleo-h755zi-q-bound-dostepsettingsvalidation-failed-device-not-found-eventhough-board-is-connected-and-shows-under-devices-and-boards-166748",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108041\">@Magnys</user-mention>,</p><p> </p><p>To help you better, could you please verify that your <strong>ST Extensions </strong>are up to date?</p><p>Regarding the <strong>“second project”</strong> for the <strong>Cortex-M7</strong> in the <strong>configuration Setup panel</strong>, there is indeed a bug that is currently being fixed. However, it should not affect debugging.</p><p>Do you get the same message if you launch only the <strong>CM7_debug</strong> debug configuration instead of the compound one?</p><p> </p><p>KR,<br/>/Flo</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Another point:<br/>Have you updated the binary paths in your debug configuration?<br/>Because in the guide’s launch.json, it is: ${workspaceFolder}/CM4/build/<strong>STM32H745ZI_DualCore_Example_CM</strong>…<br/>But the binary name of your project may be different.</p><p>/Flo</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks, that’s a good catch. No, I didn’t change them, that was certainly a problem. I did change the lines to</p><pre><code class=\"language-json\">\"imageFileName\": \"${workspaceFolder}/CM4/build/Dual_Core_Test_4_CM4.elf\" // Loads the CM4.elf image</code></pre><p>and</p><pre><code class=\"language-json\">\"imageFileName\": \"${workspaceFolder}/CM7/build/Dual_Core_Test_4_CM7.elf\" // Loads the CM7.elf image</code></pre><p>in all three cases (two lines for the CM7_Debug and one for the CM4_Debug).</p><p> </p><p>When running the debug the error no longer persists and I am able to start the debug session and step through some of the startup code. But after some time I get various error messages. Most of the time I receive the message “bound doStepConnectToTarget Failed: could not connect: Connection timed out.” The errors are very different with each restart of the debugging session, I can’t make out any pattern. I can give further information if neccesary.</p><p>One thing I might suspect is that in the launch.json there is another path that will be different from mine:</p><pre><code class=\"language-json\">\"svdPath\": \"C:/ST/STM32CubeCLT_1.19.0/STMicroelectronics_CMSIS_SVD/STM32H745_CM7.svd\"</code></pre><p>and</p><pre><code class=\"language-json\">\"svdPath\": \"C:/ST/STM32CubeCLT_1.19.0/STMicroelectronics_CMSIS_SVD/STM32H745_CM4.svd\"</code></pre><p>But I can’t really find information about what to replace these with. Since I’m running Linux I don’t know where to look for SVD files.</p></div>"
+    }
+  ]
 }

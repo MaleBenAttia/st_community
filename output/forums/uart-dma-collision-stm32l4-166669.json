@@ -50,7 +50,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/uart-dma-collision-stm32l4-166669",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>There are two issues in your code:</p><p><strong>1.</strong> In <code>HW_DMA_NewUart3Rx</code> you call <code>HAL_DMA_Start</code> followed by <code>HAL_UART_Receive_DMA</code>. The problem is that <code>HAL_DMA_Start</code> sets the DMA state to <code>HAL_DMA_STATE_BUSY</code>, so when <code>HAL_UART_Receive_DMA</code> tries to start the DMA internally, it gets <code>HAL_BUSY</code> and silently fails. Remove the explicit <code>HAL_DMA_Start</code> call — <code>HAL_UART_Receive_DMA</code> handles DMA setup internally.</p><p><strong>2.</strong> In <code>HW_DMA_CheckErrorflags</code>, when any DMA error is detected, it calls <code>HW_DMA_Init</code> which does <code>__HAL_RCC_DMA1_FORCE_RESET()</code>. This resets the entire DMA1 controller including all active channels — so UART2 DMA gets killed even though it had no error. Fix the error recovery to only restart the affected channel, not the whole DMA controller.</p></div>"
     },
     {

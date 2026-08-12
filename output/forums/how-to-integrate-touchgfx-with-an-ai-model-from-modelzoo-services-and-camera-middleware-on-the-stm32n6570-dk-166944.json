@@ -51,5 +51,30 @@
   "publishedAt": "2026-07-14T15:06:53+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/how-to-integrate-touchgfx-with-an-ai-model-from-modelzoo-services-and-camera-middleware-on-the-stm32n6570-dk-166944",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Please, anyone? I really need this information for my project at my job</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105925\">@TatianaP</user-mention> ,</p><p>The other post with the same content has been removed.</p><p>In next time please don’t duplicate threads. You can continue in one thread by posting reminder posts. Your post will be seen at the top queue of the community home page.</p><p>Thank you for your understanding.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105925\">@TatianaP</user-mention>.</p><p>First of all, I should mention that I am not very familiar with STM32 Model Zoo. However, could you be more specific about what is missing from the guide you are referring to? Are you looking for more information on how to do this the other way around? In other words, instead of basing an AI project on the TouchGFX Board Setup available in TouchGFX Designer, do you want to integrate TouchGFX into an existing AI project from STM32 Model Zoo?</p><p>If so, I would recommend reading this section of the TouchGFX documentation: <a href=\"https://support.touchgfx.com/docs/development/touchgfx-hal-development/touchgfx-al-development-introduction\" rel=\"noreferrer noopener\" target=\"_blank\">https://support.touchgfx.com/docs/development/touchgfx-hal-development/touchgfx-al-development-introduction</a>.</p><p>Best regards,<br/>Johan</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your reply ​<user-mention data-id=\"66911\">@JohanAstrup</user-mention> </p><p>Yes, my goal is actually the opposite of the article (<a href=\"https://community.st.com/stm32-mcus-60/how-to-integrate-touchgfx-and-camera-middleware-on-an-stm32n6570-dk-159856\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">https://community.st.com/stm32%2Dmcus%2D60/how%2Dto%2Dintegrate%2Dtouchgfx%2Dand%2Dcamera%2Dmiddleware%2Don%2Dan%2Dstm32n6570%2Ddk%2D159856</a>)</p><p>I already have a fully working STM32 Model Zoo Object Detection project running on the STM32N6570-DK. The camera, ISP, NPU, inference and post-processing are all working correctly.</p><p>I also have a separate TouchGFX project with my complete user interface.</p><p>What I would like to achieve is to integrate TouchGFX into the existing STM32 Model Zoo project, instead of starting from a TouchGFX project and adding the camera middleware.</p><p>The main difficulty is that the Model Zoo project already initializes many components (camera pipeline, NPU, AI runtime, post-processing, display pipeline, ThreadX, etc.), so migrating all of that into a TouchGFX-generated project seems considerably more complex than integrating TouchGFX into the existing AI project.</p><p>I also noticed that the Object Detection example already uses both LTDC layers:</p><ul><li>Layer 1 for the camera preview.</li> <li>Layer 2 for the detection overlay (bounding boxes and labels).</li></ul><p>Because of this, I am not sure what would be the recommended architecture for integrating TouchGFX.</p><p>Would ST recommend:</p><ol><li>Starting from the STM32 Model Zoo project and integrating TouchGFX into it?</li> <li>Starting from the TouchGFX Board Setup and migrating all the AI components?</li> <li>Another architecture that is recommended for STM32N6?</li></ol><p>My goal is to keep the TouchGFX GUI active (menus, buttons, navigation) while running the Object Detection demo.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I also have this doubt ​<user-mention data-id=\"66911\">@JohanAstrup</user-mention> , in an STM32N6 application combining TouchGFX and STM32 Model Zoo Object Detection, should the AI application continue drawing the bounding boxes directly into the LTDC overlay framebuffer (as Display_NetworkOutput() does), or is the recommended architecture to pass the detection results to TouchGFX and let TouchGFX perform all the rendering?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I agree that TouchGFX sounds easier to integrate into your Model Zoo project than doing it the other way around, based on your description. If you follow <a href=\"https://support.touchgfx.com/docs/development/touchgfx-hal-development/generator-how-to/enabling-touchgfx-generator\" rel=\"noopener noreferrer\" target=\"_blank\">this procedure</a> from the link I shared in the previous reply, you get TouchGFX enabled in your project.</p><p>However, the STM32N6 is an advanced chip with many capabilities, so I would recommend using the TouchGFX Board Setups (TBSs) available in TouchGFX Designer as reference when integrating TouchGFX. Settings like e.g. the MPU configuration are important.</p><p>As I see it, you have multiple options, but the cleanest approach would be to pass the camera feed to TouchGFX using a dynamic bitmap. You could then also draw the bounding boxes in TouchGFX. Whether you choose to do this is up to you. It would result in a cleaner project, but since you already have the other solution where the overlay exists in a different layer, you would likely be done faster by keeping that approach. That said, it should be fairly simple to pass the information and draw the boxes in TouchGFX.</p><p>Best regards,<br/>Johan</p></div>"
+    }
+  ]
 }

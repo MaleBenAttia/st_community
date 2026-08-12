@@ -19,12 +19,13 @@
   "replyCount": 1,
   "inclusiveReplyCount": 1,
   "inclusiveVisibleReplyCount": 1,
-  "likes": 1,
+  "likes": 2,
   "votes": 0,
-  "views": 57,
+  "views": 58,
   "voteSet": [],
   "likeSet": [
-    "2125"
+    "2125",
+    "36029"
   ],
   "trashed": false,
   "sticky": false,
@@ -52,5 +53,10 @@
   "publishedAt": "2026-07-28T13:06:20+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/edge-ai-134/issue-with-npu-operation-on-discovery-n657-167289",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi everyone,</p><p>I finally found the root cause of the issue.</p><p>The problem was <strong>not</strong> related to the generated network, HyperRAM, quantization or the STAI runtime itself.</p><p>I integrated a STEdgeAI-generated network into my own RTOS (uKOS-X), where all low-level hardware initialization (clocks, CACHEAXI, external memories, etc.) is already performed by the operating system.</p><p>The missing step was simply the initialization of the ST CACHEAXI software module:</p><pre><code>#include \"npu_cache.h\"<br/><br/>npu_cache_enable();<br/>stai_runtime_init();<br/>stai_network_init(s_network);<br/></code></pre><p>Although the CACHEAXI hardware was already configured, the Neural-ART runtime expects <code>npu_cache_enable()</code> to initialize its internal software handle before performing any cache maintenance operations.</p><p>After adding this call, the network became fully deterministic:</p><ul><li> <p>identical inputs always produce identical outputs;</p> </li> <li> <p>activation memory checksums are identical across multiple runs.</p> </li></ul><p>I hope this helps anyone integrating STEdgeAI into an existing RTOS instead of using the generated standalone application.</p><p>Many thanks to the ST team for their support during the investigation.</p></div>"
+    }
+  ]
 }

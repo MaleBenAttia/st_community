@@ -48,5 +48,14 @@
   "publishedAt": "2026-07-16T16:52:40+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/imaging-sensors-49/vl53l4cd-interrupt-not-firing-after-setting-detection-thresholds-167022",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p><p>if you want to run example code, after adding the example function, we must mask all remaining default codes to ensure that only the configuration and result output of the example are run.</p><p>int main(void)</p><p>{</p><p>/* MCU Configuration--------------------------------------------------------*/</p><p>/* Reset of all peripherals, Initializes the Flash interface and the <u>Systick</u>. */</p><p>HAL_Init();</p><p>/* Configure the system clock */</p><p>SystemClock_Config();</p><p>/* Initialize all configured peripherals */</p><p>MX_GPIO_Init();</p><p>MX_I2C1_Init();</p><p>MX_USART2_UART_Init();</p><p>/* USER CODE BEGIN 2 */</p><p>/* Assign the default address to the sensor */</p><p>dev = 0x52;</p><p>/* Toggle <u>Xshut</u> pin to reset the sensor */</p><p>HAL_GPIO_WritePin(GPIOB, TOF_C_XSHUT_Pin, <em>GPIO_PIN_RESET</em>);</p><p>HAL_Delay(5);</p><p>HAL_GPIO_WritePin(GPIOB, TOF_C_XSHUT_Pin, <em>GPIO_PIN_SET</em>);</p><p>HAL_Delay(5);</p><p>/* Print the software version */</p><p>status = VL53L4CD_GetSWVersion(&amp;sw_version);</p><p>printf(\"Starting VL53L4CD driver version2.2.3 is %u.%u.%u\\n\",sw_version.major,sw_version.minor,sw_version.build);</p><p>/* run example code */</p><p>status = example6();</p><p>}</p><p>Then focus on the example function, you can set the settings you needed and get the results by interrupt.</p><p>WaitForL4CDInterrupt() . At here, just complete the interrupt function, you will get what you want.</p><p> </p><p>void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)</p><p>{</p><p>if (GPIO_Pin==GPIO_PIN_4)</p><p>{</p><p>IntCount++;</p><p>}</p><p>}</p><p> </p><p>uint8_t check_for_gpio_interrupt(void)</p><p>{</p><p>if(IntCount != 0)</p><p>{</p><p>IntCount = 0;</p><p>return 1;</p><p>}</p><p>return 0;</p><p>}</p><p> </p><p>uint8_t WaitForL4CDInterrupt(Dev_t dev)</p><p>{</p><p>while ( !check_for_gpio_interrupt() );</p><p>return(1);</p><p>}</p><p>Hope the information provided can help you, Thanks~</p><p>Best regards,</p><p>Bin FAN</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you! I since solved the issue… after more carefully reading the API comments, I realized that some settings from the init I was using were producing non zero range status returns for all my readings, and that the GPIO only activates for valid ones. </p></div>"
+    }
+  ]
 }

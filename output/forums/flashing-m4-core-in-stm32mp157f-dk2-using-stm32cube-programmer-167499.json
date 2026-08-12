@@ -49,5 +49,10 @@
   "publishedAt": "2026-08-05T17:16:54+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-software-development-tools-138/flashing-m4-core-in-stm32mp157f-dk2-using-stm32cube-programmer-167499",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The behavior you are observing, where the board is detected as an <code>STM32 Bootloader</code> via USB rather than an ST-LINK device, is completely expected. For the STM32MP1 series, STM32CubeProgrammer utilizes the USB DFU (Device Firmware Upgrade) interface for flashing, not the ST-LINK debug interface. The ST-LINK connector is primarily intended for debugging with STM32CubeIDE, not for mass programming.</p><p>To successfully flash your M4 core <code>.hex</code> file, you must force the board into USB boot mode by setting the <code>SW1</code> boot switches to all OFF positions (BOOT0=0, BOOT1=0, BOOT2=0). Once powered on via the USB Type-C port (<code>CN7</code>), the board will be correctly recognized, allowing STM32CubeProgrammer to connect via USB and flash your firmware.</p><p>After flashing, remember to reconfigure the <code>SW1</code> switches for your normal boot mode (e.g., from the microSD card). The A7 core, running Linux, will then load and start the M4 firmware using the <code>remoteproc</code> framework.</p></div>"
+    }
+  ]
 }

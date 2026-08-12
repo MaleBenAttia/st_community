@@ -11,8 +11,8 @@
                 "STM32F4 series"
             ],
             "published_at": "2026-08-12T07:02:39+00:00",
-            "views": 47,
-            "reply_count": 3,
+            "views": 51,
+            "reply_count": 4,
             "best_answer": true,
             "best_answer_content": "> To ensure clock synchronization, I plan to use a single external crystal.\n\nThis will not ensure that the *applications* run in sync.\n\nYou will need to provide some separate application-level synchronisation mechanism.\n\nYour proposal will certainly achieve the goal of having the two MCUs running from the same clock source: look at the Nucleo board schematics - this is how the target MCU is clocked from the ST-Link.\n\nBut, again, this will not ensure that the *applications* on the MCUs run in sync.\n\n#4 may not be necessary.\n\n**PS:**\n\n**PPS:**\n\nAnother way to share a common clock would be to have an external clock source (crystal oscillator, MEMS, whatever) and feed that to both of the STM32s in Bypass mode.\n\nStill won’t synchronise the applications.",
             "content_text": "Hello everyone,\n\nI need to design a board featuring two STM32 microcontrollers that must operate in sync. To ensure clock synchronization, I plan to use a single external crystal.\n\nMy proposed hardware approach is:\n\n1. Connect the standard external crystal (HSE) to MCU 1.\n\n2. Route the MCO (Microcontroller Clock Output) pin of MCU 1 to the OSC\\_IN pin of MCU 2.\n\n3. Configure MCU 2 to use HSE Bypass Mode, leaving its OSC\\_OUT pin floating.\n\n4. Place a series damping resistor on the trace between MCO and OSC\\_IN to prevent ringing.\n\nCould you please confirm if this topology is the correct and officially recommended approach for STM32 devices? Thanks in advance for your time and suggestions!",

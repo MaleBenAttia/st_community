@@ -51,5 +51,10 @@
   "publishedAt": "2026-08-11T03:46:37+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/mems-sensors-48/configured-lsm6dsv-in-mode-2-odr-trigger-mode-167602",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Sagar,</p><p>Thanks for sharing the detailed setup and requirements. Your approach makes sense, particularly the need to synchronize IMU sampling with the camera reference signal.</p><p>One area I would verify first is the exact relationship between the LSM6DSV ODR-triggered mode, the DEN functionality, and the INT2 input configuration. Since the current SSC driver appears to be handling the sensor primarily through FIFO and INT1, simply configuring the sensor registers may not be sufficient if the SSC framework does not expose or handle the required INT2/DEN events.</p><p>I would recommend checking the LSM6DSVTR datasheet and application notes for the supported trigger/synchronization configuration, especially the required INT2 routing and DEN timing. It would also be useful to confirm whether the Qualcomm SSC driver supports the corresponding hardware interrupt and timestamp handling.</p><p>If the hardware is already designed around Mode-1, it would be worth confirming the exact INT2/DEN pin routing before considering any board changes. This should help determine whether the requirement can be achieved through the existing hardware and driver configuration or requires modifications to the SSC driver.</p><p>Hopefully this helps narrow down the issue.</p></div>"
+    }
+  ]
 }

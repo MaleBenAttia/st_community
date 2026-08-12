@@ -50,5 +50,14 @@
   "publishedAt": "2026-07-14T14:38:44+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/st-link-gdb-server-never-starts-from-vs-code-extension-bundled-config-txt-ships-with-cp-placeholder-166943",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"108240\">@Hongjuan Jiang</user-mention></p><p>This is most probably a known issue. See </p><p><oembed url=\"https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/v3-9-0-breaks-debugger-165671\"></oembed></p><p>The issue concerns project bundle locking. Bundles must be stored on a local disk, but each project consumes its own bundle set. Updating the local bundle repository is not sufficient. The related projects must also be updated.</p><p>Use the bundle manager to locate the project and update the locks to the latest STLINK GDB server and programmer versions.<br/>Indicate whether this action resolves the issue.<br/><br/>June extensions update is solving issue. See changelog:<br/><a href=\"https://marketplace.visualstudio.com/items/stmicroelectronics.stm32cube-ide-debug-stlink-gdbserver/changelog\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://marketplace.visualstudio.com/items/stmicroelectronics.stm32cube-ide-debug-stlink-gdbserver/changelog</a><br/>Have you updated your extension set ?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes — extension set is on 1.3.1 (June update), and the issue is resolved.</p><p>Captured the actual spawn command line while debugging (via <code>Get-CimInstance Win32_Process</code>):</p><p><code>\"...\\stlink-gdbserver\\7.12.0+st.2\\bin\\ST-LINK_gdbserver.exe\" \"-cp C:\\...\\programmer\\2.21.0\\bin\" -k -d -m 0 -p 61234 -l 1</code></p><p>Notably, my project is still locked to the legacy 7.12.0+st.2 bundle, and it now works regardless — the spawn passes a single well-formed <code>-cp</code>, and since no <code>-c config.txt</code> is passed, the factory placeholder in config.txt is bypassed entirely. RTOS-aware debug via serverRtos also works.</p><p>Marking your reply as the solution, thanks for the pointer to the bundle locking behavior.</p></div>"
+    }
+  ]
 }

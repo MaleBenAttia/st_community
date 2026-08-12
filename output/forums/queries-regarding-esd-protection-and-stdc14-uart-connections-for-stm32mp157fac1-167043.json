@@ -50,5 +50,18 @@
   "publishedAt": "2026-07-17T11:58:53+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/queries-regarding-esd-protection-and-stdc14-uart-connections-for-stm32mp157fac1-167043",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107509\">@PS_115</user-mention> </p><p> </p><p>for ESD device, you could certainly put another one, JTAG is quite slow, so the one for SD-Card is OK even if overkilling.</p><p>For UART, you could use any UART pins assuming your SW device tree will be adapted to use this one as console output. there is come community posts showing that USART1 has been slightly more complex to setup in DT as secure by default (especially in TF-A early console), but there is no HW limitation to use it.</p><p>Notice also that USART1 is not part of possible BootROM boot pins (please refer to AN5031), but this is only a concern during early board bring-up in case USB DFU is not working (which is rarely the case except big HW mistakes). Boot UART allow to download basic tests (TF-A / uBoot), until board USB DFU being corrected.</p><p> </p><p>UART4 PB2 and PG11 are still the recommended UART console (as it default to this one in our OpenSTLinux ecosystem deliveries)</p><p> </p><p>Regards.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"642\">@PatrickF</user-mention>,</p><p> </p><p>Thank you for your valuable response.</p><p>We are planning to use the SWD interface (instead of JTAG) for programming and debugging. In this case, would it be acceptable to use the HSP053-4M5 device for ESD protection as well?</p><p>Regarding the UART, yes the USART1 is not one of the BootROM boot interfaces as mentioned.</p><p>We are using STM32CubeMX software for the pin assignments of STM32MP157FAC1, and we observed that whenever UART4 is enabled in our project, CubeMX reports a warning (shown in the attached snapshots) at both UART4 and DEBUG interface. When UART4 is disabled, the warning disappears.</p><p>Could you please help us understand the reason for this warning and advise whether it has any impact on the design or we can just ignore it and connect UART4 with the VCP of the programmer ?</p><p> </p><p>Regards,</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/68bee189-1687-4c31-a79c-824e347fea31.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>This is a warning to inform you that some modes are not available (pins used by other IPs or GPIOs).<br/>Here for DEBUG, it is probably some TRACE_DATA pins which might be ‘blocked’ by GPIO, UART4 or UART7 assignments.</p><p>You could more details on ‘pink’ options in the Debug drop-down.<br/> </p><p>Similarly for UART4.</p><p> </p><p>Regards.</p></div>"
+    }
+  ]
 }

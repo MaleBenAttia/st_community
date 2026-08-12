@@ -49,5 +49,18 @@
   "publishedAt": "2026-08-11T19:19:44+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/imaging-sensors-49/esp32-2x-vl53l8cx-with-50-cm-cables-i-c-initialization-issues-with-and-without-tca9548a-multiplexer-167630",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Use shorter cables to avoid signal integrity issues. Stronger pullups can help mitigate. 1.2m cables are antennas.</p><p>Software cannot compensate for signal integrity issues here. You should address the problem at the source. Nothing here is device specific. Just generic noise issues due to long cables.</p><p> </p><p>You can recover gracefully from signal integrity issues in software if that is acceptable, but you’d have to look at the arduino library to see if and how that’s possible.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I’d suggest that you need some of that old-school “real EE stuff” to identify and resolve the problem(s) with your topology.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p> I just effectively measured the cables, and they’re are 1.2m</p></blockquote><p>That’s <strong>really</strong> not what I2C is intended for!</p><p>I2C is designed for <strong>short </strong>interconnects between chips <strong><em>on the same board</em></strong>.</p><p>As ​<user-mention data-id=\"8205\">@TDK</user-mention> suggests, look at the signals on an oscilloscope: are they good and clean, with good edges?</p><p>Do you have a good ground connection?</p><p> </p><blockquote><p>The sensors work correctly when<strong> tested individually</strong> (with <strong>both long or short cables</strong>) and also worked together when using short cables. Also using one long cable connected to one sensor and a short one connected to the second. The problems start appearing when the c<strong>able length is increased</strong> and when <strong>both sensors are connected.</strong></p></blockquote><p>So, again, use an oscilloscope to see what’s different between the working and non-working cases.</p><p>The big problem for I2C is the total bus capacitance: it sounds like one of your long cables is (just) OK, but the total capacitance of both is <em>too much</em>.</p><p>The scope should confirm this.</p><p>Some good, clear photos of your setup may be informative.</p><p>Also your schematic.</p><p> </p><p>There are products available for “boosting” I2C; eg, <a href=\"https://www.nxp.com/docs/en/brochure/75016527.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.nxp.com/docs/en/brochure/75016527.pdf</a></p><p><a href=\"https://www.nxp.com/products/P82B715\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.nxp.com/products/P82B715</a></p><p><a href=\"https://www.ti.com/product/P82B715\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.ti.com/product/P82B715</a></p><p><a href=\"https://www.sparkfun.com/sparkfun-qwiicbus-endpoint.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.sparkfun.com/sparkfun-qwiicbus-endpoint.html</a></p><p> </p><p>Or, perhaps, use something else for the “long haul”; eg,</p><p><a href=\"https://www.ti.com/lit/ug/tiduei0/tiduei0.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.ti.com/lit/ug/tiduei0/tiduei0.pdf</a></p><p> </p><p><a href=\"https://forum.arduino.cc/t/i2c-and-long-distance/923850/8\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://forum.arduino.cc/t/i2c-and-long-distance/923850/8</a></p></div>"
+    }
+  ]
 }

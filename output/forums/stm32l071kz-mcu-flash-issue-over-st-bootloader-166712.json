@@ -51,7 +51,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32l071kz-mcu-flash-issue-over-st-bootloader-166712",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>Do you use the ST HAL library to program the flash? If yes: the HAL_FLASH_Program function accepts only 4-byte payload, so it’s not clear how you program other sizes.</p><p><a href=\"https://github.com/STMicroelectronics/stm32l0xx-hal-driver/blob/9f614d91f5a4aa094a86c7ee3ca9292e8492f2c0/Src/stm32l0xx_hal_flash.c#L228\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/stm32l0xx-hal-driver/blob/9f614d91f5a4aa094a86c7ee3ca9292e8492f2c0/Src/stm32l0xx_hal_flash.c#L228</a></p><p>However, STM32L0 has a “multiple” programming mode that programs by chunks of exactly 64 bytes - but this mode is off after reset, and the current STM32L0 HAL library doesn't seem to implement it.</p><p>Looks like you’ve activated it somehow.</p><p>( see RM0377, 3.3.4)</p><p>UPDATE:</p><p>Sorry so you’re using the built-in ST bootloader. Then again, it looks like the “multiple” mode activates somehow. If this behavior is stable (always reproduces) - just keep programming by 64 bytes?</p><p> </p></div>"
     },
     {

@@ -51,5 +51,10 @@
   "publishedAt": "2026-07-28T10:24:52+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-security-36/reading-flash-ext-user-base-gives-always-0-from-user-application-after-oemirot-jumped-with-exithdplib-pfunc-jumphdplvl2-167282",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I have some news.</p><p>The HardFault from reading FLASH_EXT_USER_BASE in OEMiRoT is because non-defined MPU areas will HardFault, configured by this code:</p><pre><code class=\"language-c\">HAL_CORTEX_MPU_Enable(HAL_CORTEX_MPU_HARDFAULT_NMI_ENABLE, HAL_CORTEX_MPU_ACCESS_FAULT_ALL);</code></pre><p>So it’s expected.<br/><br/>My issue seems to me like a HDP protection, somehow making FLASH_EXT_USER_BASE read-as-zero and write-ignored (RAZ/WI). So let’s drop anything not related to MPU and CACHE.</p><p> </p><p>In the User Application, after the jump from OEMiRoT, I just tried to read all data in FLASH_EXT_USER_BASE. And it appears that the first 0x8000 Bytes are RAZ/WI, while the rest 0x8000 is correctly read as non-zero values. Thus the <em>bank 1</em> is somehow HDP protected.</p><p>From the RM0522, section 6.5.6:</p><blockquote><p>The FLASH can be configured to have 64-Kbyte (or 48-Kbyte if EDATA_EN is set) memory area to store data and emulate EEPROM (see Section 6.3.10: FLASH data area). These pages can not be protected by HDP or WRPGS whatever the setting of EDATA_EN.</p></blockquote><p>But…. in practice, this statement is wrong, as <em><span style=\"color:#f1c40f;\">my Option Bytes `HDP1_STRT = 0; HDP1_END = 0x9; HDP2_STRT = 1; HDP2_END = 0` should only hide the first 10 pages of the FLASH_BASE (so 0x08000000 .. 0x08014000 included), but it also hides FLASH_EXT_USER_BASE bank 1 (so 0x08400000 .. 0x08408000 included).</span></em></p><p><span style=\"color:#e74c3c;\"><u><strong>I think</strong></u> this is either a bug, or a incorrect statement from the RM0522 reference manual. I did check the erratasheet ES0676, but it does not say anything about HDP.</span> Or there’s something I really don’t understand.</p><p>It would be great if someone can reproduce this issue.</p></div>"
+    }
+  ]
 }

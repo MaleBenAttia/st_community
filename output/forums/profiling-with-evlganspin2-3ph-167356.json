@@ -52,5 +52,30 @@
   "publishedAt": "2026-07-30T11:36:35+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/profiling-with-evlganspin2-3ph-167356",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"106038\">@BlachaL</user-mention>,</p><p>Refer to the <em>Known problems</em> chapter of the Motor Profiler application note in the user manual, available from <strong>Workbench tool</strong> &gt; <strong>About</strong> &gt; <strong>Documentations</strong> &gt; <strong>Documentation</strong>.</p><p>Set the MC Profiler maximum current parameter to a value lower than the maximum current of the motor or board.<br/>Limit the current in the DC supply.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I doubt this is the overcurrent problem, as the power supply current limit was set to 800 mA during profiling. The motor only hums, buzzes, or stays silent to the point of timeout. He didn't rotate. There were no signs of overcurrent during profiling. Current sensing options were set to default settings for this evalboard.</p><p>The overcurrent occurred when I tried to recompile the project as STO-Cordic and run it in speed mode in MotorPilot. In fact, the start and acceleration were very smooth – until the overcurrent occurred.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><section><p>It sounds like a configuration or current-feedback issue rather than the profiler itself. verify the motor parameters, current sensing, and phase wiring before testing again. Also, use an oscilloscope to check phase currents during startup to avoid damaging more GaN devices.</p></section></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I replaced all the GANSPIN612 ICs with brand new GANSPIN611 ICs (the stronger ones). I started a new project in MCSDK and generated code for the profiler. The profiler started with some issues – it ran at low voltage and/or low current – ​​due to detected overcurrent signals.</p><p>Profiling was completed at 70 V/3 A and 320 V/0.5 A. With these parameters, the motor started running. Now the problems occur when the motor is running at full speed and I start applying torque. The BREAK signal from the GANSPIN's FLT output appears again. If I set the RPM to a low value, I can load the motor even to a stop without any overload indication. Increasing the PWM frequency from 10 kHz to 20 kHz helped a bit. The motor needs to operate throughout the entire RPM and load range, so I replaced the 33 mOhm sensing resistors with 20 mOhms – this also improved a bit, but didn't completely solve the problem. The oscilloscope shows no current spikes that could trigger the overcurrent protection – the current through the measuring resistors does not exceed 3A.</p><p>I'm wondering what to do next.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"106038\">@BlachaL</user-mention>,</p><p>The FLT/BREAK signal is triggered not only by overcurrent detection. Refer to the <a href=\"https://www.st.com/resource/en/datasheet/ganspin612.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">GANSPIN612 datasheet</a>.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for reply.</p><p>I am aware of this. FLT can be triggered by overcurrent, overheating or VCC undervoltage. The thermal camera shows over 50 Celsius degrees across the three shunt resistors and on inrush NTC thermistor. That’s it. GANSPIN’s thermal condition looks fine. I didn’t check VCC stability because there are dedicated Viper06 module on this evalboard. This should be sufficent under all condition, but i'll check it today  on oscilloscope for peace of mind.</p><p> </p></div>"
+    }
+  ]
 }

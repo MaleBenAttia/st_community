@@ -50,5 +50,38 @@
   "publishedAt": "2026-07-06T11:13:23+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/engine-stalled-due-to-undervoltage-or-overheating-166703",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>now I see completely distorted, unrecognisable pulses</p></blockquote><p> </p><p>Have you tried adding resistors as termination? IO-pins are high impedance so they can pick up a lot of distortion.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Which value? Do you mean in series between ENC_A, ENC_B and Z and the uC’s GPIOs?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I looked it up.<br/>The BL23E33-01D-04RO motor has a E5 Encoder. Those have an output voltage of max  3.4 V 20 mA. So that means you need at least 170 ohm. You can start with 1k or 470 ohm. I wouldn’t go lower. I see the board already has 4k7 resistors and 10pf capacitors. That should help at least somewhat. So perhaps you can try keeping the signal wires away from motor cables.<br/>When measuring with an oscilloscope use a ground spring, not ground crocodile clamp.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"23734\">@luke514</user-mention> ,</p><p>That thread should be posted in <a href=\"https://community.st.com/stm32-mcus-motor-control-34\" rel=\"noreferrer\" target=\"_self\">STM32 MCUs Motor control</a> forum board.</p><p>I’m moving the post then.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You’re right, thank you</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"23734\">@luke514</user-mention>,</p><p><strong>MC Workbench</strong><br/>This behavior is often due to the fact that the U, V, and W motor phases or the ENC A and B signals are not connected correctly to the board.</p><p><strong>Motor Profiler</strong> - PROBLEM no.2: refer to the Motor Profiler Application Note document available through \"Workbench tool\"&gt;About&gt;Documentations&gt;Documentation, User Manual tab: <br/><em>Progress execution bar stays at 28%<br/>The FW was not able to find a suitable start-up speed ramp solution. Max current and Max speed can be tuned to reach a functional speed startup ramp.</em></p><p>If you want to manually set Motor parameters, refer to this Motor Control <a href=\"https://wiki.st.com/stm32mcu/wiki/STM32MotorControl:How_To_manually_configure_the_motor_parameters\" rel=\"noreferrer noopener\" target=\"_blank\">wiki</a> page.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><strong>MC Workbench</strong></p><p>I don’t think the connections are wrong. This is what I’ve done – please let me know if I’ve made any mistakes:</p><ol><li><u>In the <strong>stm32g4-nucleo </strong>schematic</u>:</li></ol><p>Ch U: <span style=\"color:#0b769f;\">PA8 </span>(pin 42, D7)</p><p>Ch V: <span style=\"color:#80340d;\">PA9 </span>(pin 43, D8)</p><p>Ch W: <span style=\"color:#d86dcb;\">PA10 </span>(pin 44, D2)<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fa8b712c-25d7-4a34-8c8f-83880dbdcc4c.png\"/></figure><ol start=\"2\"><li><u>In the <strong>IHM-08M1 </strong>schematic</u>:</li></ol><p><span style=\"color:#0b769f;\">OUT 1</span>: PhA à TIM1_CH1 which corresponds to <span style=\"color:#3498db;\">PA8 </span>(as seen in the microcontroller reference manual)</p><p><span style=\"color:#80340d;\">OUT 2</span>: PhB à TIM1_CH2 which corresponds to <span style=\"color:#663333;\">PA9</span> (as seen in the microcontroller reference manual)</p><p><span style=\"color:#d86dcb;\">OUT 3</span>: PhC à TIM1_CH3 chewhich corresponds to <span style=\"color:#ff66cc;\">PA10 </span>(as seen in the microcontroller reference manual)</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e516435a-5b14-452e-8ca0-dbeafb7e8d6d.png\"/></figure><ol start=\"3\"><li><u>In my <strong>motor</strong>’s datasheet</u>:</li></ol><p>Ph U: <span style=\"color:#0070c0;\">blue wire</span></p><p>Ph V: <span style=\"color:#80340d;\">brown wire</span></p><p>Ph W: <span style=\"color:#d86dcb;\">pink wire</span></p><p> </p><p>As for the encoder, on the IHM08M1 the PCB clearly shows where A, B and Z go … so I connected the encoder’s A, B and Z pins</p><p> </p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"23734\">@luke514</user-mention>,</p><p>As mentioned ​<user-mention data-id=\"27597\">@unsigned_char_array</user-mention>, did you check the MCU Encoder inputs with a scope? <br/>If signals are correct, setting the Main Speed sensor to STO-PLL sensor less, and the Auxiliary Speed sensor to Quadrature Encoder, you can verify that by plotting STOPLL_EL_ANGLE and ENCODER_EL_ANGLE, that both are aligned at RUN state.<br/> </p></div>"
+    }
+  ]
 }

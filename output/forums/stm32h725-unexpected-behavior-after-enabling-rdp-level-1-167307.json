@@ -51,7 +51,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h725-unexpected-behavior-after-enabling-rdp-level-1-167307",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>To be more precise, this is the code to set RDP to level 1:</p><p>  FLASH_OBProgramInitTypeDef OBInit;</p><p>  OPENBL_FLASH_OB_Unlock();</p><p>    HAL_FLASHEx_OBGetConfig(&amp;OBInit);</p><p>    OBInit.OptionType = OPTIONBYTE_RDP;</p><p>    OBInit.RDPLevel   = RDPLevel;</p><p>    if (HAL_FLASHEx_OBProgram(&amp;OBInit) != HAL_OK)</p><p>    {</p><p>      OPENBL_FLASH_OB_Lock();</p><p>        return ERROR;</p><p>    }</p><p>    // OPENBL_FLASH_OB_Lock();</p><p>    if (HAL_FLASH_OB_Launch() != HAL_OK)</p><p>    {</p><p>      Error_Handler(); // This is not the cause of problem</p><p>      return ERROR;</p><p>    }</p><p>With debugger, when the execution reaches “ HAL_FLASH_OB_Launch()”, the hardfault VECTTBL happened:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ded3e7dc-7742-474b-9f0f-fce40689a92c.png\"/></figure><p>To rule out debugger causing an illegal flash access when rdp = 1, I repeated this execution after removing the debugger physically. After commanding the application to activate rdp = 1, it appears to stop responding. After  power off and on, rdp = 1 is successfully set and the device works normally.</p><p>According to the reference manual, a reset is not required. Therefore I would like to confirm if this behavior is expected or not.</p></div>"
     },
     {

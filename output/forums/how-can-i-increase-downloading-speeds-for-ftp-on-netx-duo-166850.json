@@ -51,7 +51,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/how-can-i-increase-downloading-speeds-for-ftp-on-netx-duo-166850",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"91031\">@Hey0256</user-mention>,</p><p>Thank you for your report.</p><p>The FTP server stack size is usually not the main limiting factor for download speed. A throughput around 150 KB/s does not, by itself, identify the root cause. The bottleneck can be in the storage path, the network path, or their interaction.</p><p>To isolate the bottleneck, first run two measurements:</p><ul><li>Raw fx_file_read() throughput from microSD to RAM (no network transfer)</li> <li>Raw TCP throughput from RAM buffer to Ethernet (no FileX access)</li></ul><p>These two tests help determine whether the limit is storage-related, network-related, or system-wide.</p><p>If raw file reads are slow, investigate SDMMC DMA mode, D-Cache/MPU configuration, and 512-byte aligned accesses.<br/>If raw TCP is fast, tune NetX packet pool sizing, FTP data window size, transmit queue depth, and Ethernet DMA descriptor counts.</p><p> </p><p>With Regards,</p></div>"
     }
   ]

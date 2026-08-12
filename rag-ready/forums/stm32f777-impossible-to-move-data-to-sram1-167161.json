@@ -16,16 +16,16 @@
             "best_answer_content": "> Is it OK to do such thing :\n\n>\n\n> ![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png)\n\n>\n\n> It looks good in the Memory Details tab :\n\n>\n\n> ![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png)\n\nYes it’s OK\n\nNo issue to put heap and stack anywhere in the internal RAM including SRAM2. The CPU is accessing all the memory resources in the product. For performance reasons, need to activate the cache for that region (heap and stack): enable the cache and ensure SRAM2 is cacheable with MPU.",
             "content_text": "Hello everyone.\n\nI will use my MCU to acquire big amounts of analog data and transfer them to a host using UDP.\n\nAs DTCM is 128K and SRAM1 is 368K I would like to store those data in SRAM1. As an exercice I’m trying to configure LwIP in SRAM1.\n\nI’ve followed many tutorials (MPU is, I beleive, set correctly) :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6e2b61-d31b-4eb6-bf61-7bf4991df33c.png)\n\nwith a cache protected region where all the LwIP data should be (normally it should only matter when I’ll run this program)\n\nI’ve also configure ETH to point to this area :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf41ae96-9c2f-49f1-9677-a6a79429a932.png)\n\nAnd Lwip is also configured with this same area\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61ba1c72-38df-4126-b1f6-4c417c422d0e.png)\n\nAnd the flash script is also set :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83f38286-6522-49ff-a99d-0862eb696baa.png)\n\nBut when I compile the code directly after importing from cubeMX, I get :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3a2bb75-92b9-4b16-81fd-b8a3034621ad.png)\n\nData are not in SRAM1, they are in the DTCM.\n\nAm I missing something ? Do I have to set some options in the compiler ?\n\nAlso I’m a bit surprised to see that 4 descriptors x 32 bits = 0xa0 (0d160) ??? Or F777 descriptors are 40 bits ?\n\nThanks to anyone who will take some time to help me.\n\nBest regards",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/faad7373-ac63-4bdf-af63-45742bec56d6.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6e2b61-d31b-4eb6-bf61-7bf4991df33c.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61ba1c72-38df-4126-b1f6-4c417c422d0e.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/edf3f2e1-e8a1-4e10-9bfb-c1f624818f93.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf41ae96-9c2f-49f1-9677-a6a79429a932.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42f99c0b-3fdc-43e2-8d49-e438cf494c3f.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3a2bb75-92b9-4b16-81fd-b8a3034621ad.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83f38286-6522-49ff-a99d-0862eb696baa.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/edf3f2e1-e8a1-4e10-9bfb-c1f624818f93.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61ba1c72-38df-4126-b1f6-4c417c422d0e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6e2b61-d31b-4eb6-bf61-7bf4991df33c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf41ae96-9c2f-49f1-9677-a6a79429a932.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42f99c0b-3fdc-43e2-8d49-e438cf494c3f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83f38286-6522-49ff-a99d-0862eb696baa.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/faad7373-ac63-4bdf-af63-45742bec56d6.png"
             ],
             "author": "Haarkon"
         }

@@ -51,7 +51,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32g4-stuck-on-interrupt-call-167176",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>I think there is too little context to identify the issue immediately, but the crucial interrupt handler code is missing.</p><p>Have you checked you handled all interrupt causes, including (UART) error interrupts. TxE and RxNE are cleared with accessing TDR, but other flags (like error interrupt flags) must be reset explicitely. Otherwise the core will immediately reenter the handler.</p><p>Second, make sure no other interrupt takes precedence and causes “overflows” in the UART handler.</p><p>Your image suggests the TxE interrupt is responsible for this effect.<br/>I hope you are aware that you need to disable the TxE interrupt when writing the last byte of a “string” to TDR.<br/>I use to do that in the TxE section of the handler itself, directly before writing this last byte.</p></div>"
     },
     {

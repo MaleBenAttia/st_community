@@ -49,5 +49,22 @@
   "publishedAt": "2026-07-22T13:47:25+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/problem-with-stm32wb5mmg-calendar-on-battery-167155",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>So does your code start by setting the RTC to default?</p><p>If it does, you’ll need to stop that ...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Good point. In searching the code, I found that CubeMX includes that code by default and not between “USER CODE” markers. I simply put a return at the appropriate spot and it works.</p><p>It would be nice if CubeMX gave an option to not initialize the RTC.</p><p>Thanks, Dave</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You need to initialize the RTC but not the RTC calendar: hour and date. / two different things.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>As said by ​<user-mention data-id=\"35659\">@Andrew Neil</user-mention> , most probably you are automatically doing the initialization of the hour and the date at the beginning of the application by setting them to 0.</p><p>This is how you can implement it (inspired from a STM32F4 <a href=\"https://github.com/STMicroelectronics/STM32CubeF4/blob/master/Projects/STM324xG_EVAL/Examples/RTC/RTC_Calendar/Src/main.c\" rel=\"noreferrer noopener\" target=\"_blank\">example</a>): </p><p>Set a flag (water mark value: select your own value) in the buck up register to tell you have already configured the RTC calendar:</p><pre><code class=\"language-c\">static void RTC_CalendarConfig(void)<br/>{<br/>  /* RTC calendar config here */<br/>.<br/>.<br/>.<br/><br/>  /*##-3- Writes a data in a RTC Backup data Register0 #######################*/<br/>  HAL_RTCEx_BKUPWrite(&amp;RtcHandle,RTC_BKP_DR0,0x32F2);  <br/>}</code></pre><p>In the startup in main, you need to check if the that water mark value is written in the bkp register:</p><pre><code class=\"language-c\">  /*##-2- Check if Data stored in BackUp register0: No Need to reconfigure RTC#*/<br/>  /* Read the Back Up Register 0 Data */<br/>  if(HAL_RTCEx_BKUPRead(&amp;RtcHandle, RTC_BKP_DR0) != 0x32F2)<br/>  {  <br/>    /* Configure RTC Calendar */<br/>    RTC_CalendarConfig();<br/>  }<br/></code></pre><p>If not written configure the RTC calendar.</p><p>Hope that helps.</p></div>"
+    }
+  ]
 }

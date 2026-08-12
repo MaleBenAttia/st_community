@@ -48,5 +48,30 @@
   "publishedAt": "2026-07-22T09:42:01+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/how-to-reproduce-the-stm32wl33-datasheet-rx-sensitivity-figures-132dbm-128dbm-112dbm-using-nucleo-wl33-radioexplorer-gui-167140",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <a href=\"https://community.st.com/members/wwang-15-2840\" rel=\"noopener noreferrer\" target=\"_self\">WWang.15</a>,</p><p> </p><p>the configuration you are looking for are in the datasheet itself:</p><ul><li>Table 30. Sensitivity at 433 MHz (SMPS clock frequency= 4 MHz)</li> <li> Table 32. Sensitivity at 868.5 MHz (SMPS clock frequency = 4.27 MHz)</li></ul><p>In the paragraph “6.3.5 RF receiver” you can find the test conditions. <br/><br/>FEC and whitening are not enabled for these measurements. <br/>For the OOK modulation, Fdev is not used.<br/><br/><br/>BR,<br/>Filippo</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ST Experts.</p><p>Thanks for your reply.</p><p>We tried using the original DK board with DR=1.2kHz and CHF=4kHz OOK modulation. We used an attenuator for attenuation, and data loss occurred at approximately -110dBm.</p><p>The frequency bias of this DK board are -1419Hz(DK1) and -3563Hz(DK2) using CW mode with spectrum.</p><p>When using OOK with DR=1.2kHz, is there a requirement for the center frequency bias, and if so, how many Hz should it be maintained within?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi WWang.15,</p><p> </p><p>You got the point: when using a channel filter like 4 kHz, the offset between the nominal frequency and the actual frequency must be reduced. Otherwise, part of the signal power falls outside the channel filter bandwidth, resulting in lower sensitivity.</p><p>Considering that 1 ppm at 868 MHz means an 868 Hz offset, I suggest targeting 0.1 ppm after calibration. In this way, the channel filter is well centered on the incoming signal, and sensitivity improves.<br/><br/>BR,<br/>Filippo</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Experts.</p><p>I tried using XTAL offset on the original DK board to calibrate it to the correct frequency as much as possible. I used TX start (CW) and viewed the waveform through the spectrometer, but the thermal drift was much greater than 0.1ppm (86Hz).</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/879608f9-e9b1-431e-9585-03618ad38228.png\"/></figure><p>Do you have any suggestions for a good calibration XTAL offsetrs method?</p><p>Also, did you use a constant temperature chamber (25 degrees Celsius) for your tests?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Dear ST experts,</p><p>Thank you for your suggestion.</p><p>After calibrating the XTAL, I was able to test -131dBm using the original DK board in OOK mode.</p><p>Next, we will test in GFSK mode.</p><p>in GFSK mode, should we control the XTAL drift to 1/3 of the FDEV right?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ca5a935c-7ba8-4af7-ab53-16d7597bda72.png\"/></figure><p> </p><p>Regarding the SMPS clock frequency of 4.27 MHz, should we set RCC_KRMR to 0x0000001F?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <strong><a href=\"https://community.st.com/members/wwang-15-2840\" rel=\"noopener noreferrer\" target=\"_self\">WWang.15</a>,</strong></p><p> </p><p>the frequency tolerance at 25°C can be compensated by the calibration. <br/><br/>The frequency versus temperature drift of a typical XTAL is ± 12 ppm at -30°C to +85°C (The reference temperature shall be +25°C), so the receiver bandwidth must be chosen considering the worst case: center frequency ± 12 ppm, that for 868 MHz means ± 10 kHz.<br/><br/>With a CHF bandwidth of 1.7 kHz or 4 kHz you need to use a TCXO with low ppm drift in temperature with respect to the receiver bandwidth, to have the signal band inside the channel filter.<br/><br/>Another option is to characterize the drift in temperature and use the temperature sensor of the WL3 to adjust the XTAL drift at different temperatures.<br/><br/>BR,<br/>Filippo<br/><br/><br/> </p></div>"
+    }
+  ]
 }

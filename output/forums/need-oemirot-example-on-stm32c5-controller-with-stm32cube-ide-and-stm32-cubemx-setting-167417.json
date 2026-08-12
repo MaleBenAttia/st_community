@@ -52,7 +52,7 @@
   "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/need-oemirot-example-on-stm32c5-controller-with-stm32cube-ide-and-stm32-cubemx-setting-167417",
   "scraped_replies": [
     {
-      "is_best": false,
+      "is_best": true,
       "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108783\">@arpit.shah1</user-mention> ,</p><p> </p><p>For STM32CubeIDE, use the Open-CMSIS variant of the OEMiRoT example (NUCLEO-C562RE/open-cmsis). <br/>The overall OEMiRoT process stays the same as in the wiki (provisioning, build OEMiRoT, build Appli, generate signed/encrypted images, then program/provision).  <br/>What changes vs EWARM is mainly the build integration:</p><p>1. OEMiRoT project: pre-build runs project_oemirot.py prebuild.  <br/>2. Appli project: pre-build runs project_appli.py prebuild, and post-build runs project_appli.py postbuild (image generation).  <br/>3. Build order: OEMiRoT first, then Appli (Release).  <br/>4. Then run provisioning.py to program OB + binaries.</p><p>The prebuild/postbuild commands for CubeIDE: </p><pre><code class=\"language-c\"># OEMiRoT prebuild<br/>python ./../../../oemirot/project_oemirot.py prebuild --compiler AC6<br/><br/># Appli prebuild<br/>python ./../../../appli/project_appli.py prebuild --compiler AC6<br/><br/># Appli postbuild<br/>python ./../../../appli/project_appli.py postbuild</code></pre><p>To know how to import the Open-CMSIS project in the STM32CubeIDE please refer to this <a href=\"https://wiki.st.com/stm32mcu/wiki/STM32StepByStep:Getting_started_with_STM32C5\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">link</a>.</p><p>Kind regards, </p><p>DHIF Khaled</p></div>"
     },
     {

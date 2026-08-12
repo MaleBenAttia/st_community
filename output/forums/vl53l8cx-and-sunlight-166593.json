@@ -49,5 +49,18 @@
   "publishedAt": "2026-07-01T14:20:14+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/imaging-sensors-49/vl53l8cx-and-sunlight-166593",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p><p>What you observe is expected in a strong daylight environment, especially near a window. Higher ambient IR can reduce the signal-to-noise ratio and may generate more noisy zones or additional responses in the matrix.</p><p>To improve the behavior, we recommend the following:</p><p>1. Use 4x4 resolution</p><p>This is generally more robust than 8x8 under strong ambient light.</p><p>vl53l8cx_set_resolution(&amp;Dev, VL53L8CX_RESOLUTION_4X4);</p><p>2. Use Continuous mode</p><p>Continuous mode usually provides better ambient light immunity than Autonomous mode.</p><p>vl53l8cx_set_ranging_mode(&amp;Dev, VL53L8CX_RANGING_MODE_CONTINUOUS);</p><p>3. Reduce the ranging frequency</p><p>For example, try 5 Hz or 10 Hz.</p><p>vl53l8cx_set_ranging_frequency_hz(&amp;Dev, 5);</p><p>4. Increase the sharpener</p><p>This can help reduce the spreading of a target into neighboring zones.</p><p>vl53l8cx_set_sharpener_percent(&amp;Dev, 20);</p><p>5. Use Strongest target order</p><p>This is often more stable in difficult conditions.</p><p>vl53l8cx_set_target_order(&amp;Dev, VL53L8CX_TARGET_ORDER_STRONGEST);</p><p>6. If Autonomous mode must be used, try increasing the integration time</p><p>For example:</p><p>vl53l8cx_set_integration_time_ms(&amp;Dev, 10);</p><p>or try higher values such as 15 ms or 20 ms.</p><p>7. Filter the output using output date</p><p>Also, if possible, please check the mechanical setup to reduce direct or reflected daylight entering the FoV.</p><p>Hope these can help you, Thanks~</p><p>Best regards.</p><p>Bin FAN</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Thank you for your valuables answers. <br/>I succeed to filter the sunlight that comes in my sensor, in modifiying the integration time at 30ms. </p><p>But i noticed that the frequency is lower now. In fact, i record data during 30s and i have only 233 matrices. Also when i don’t have integration time in my soft i was at 15Hz with around 450 matrices for 30s (450/30=15). <br/>Why this parameter influence the frequency ? <br/>And was is really integration time in case of our TOF? </p><p>Thanks and regards </p><p>Samuel</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p><p>if the ranging mode is VL53L8CX_RANGING_MODE_CONTINUOUS, integration time (Timing Budget) setting decides the frequence.</p><p>you can refer to the below diagram, it means when the first data ready, the operation of the second frame of data will immediately begin, and so on...</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/008d504c-13eb-486e-a00a-b87792183ac1.png\"/></figure><p>But if the ranging mode is VL53L8CX_RANGING_MODE_AUTONOMOUS, for example the below diagram: set the frequency 15hz means inter-measurement time is 66.67ms, the integration time (Timing Budget) setting less than the period for save power.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/02bd2b70-ece4-43a7-ae33-1fb8bae47674.png\"/></figure><p> </p><p>Best Regards,</p><p>Bin FAN</p></div>"
+    }
+  ]
 }
