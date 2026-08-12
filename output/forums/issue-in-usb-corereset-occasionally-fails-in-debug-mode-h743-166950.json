@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "166932",
+  "publicId": "166950",
+  "title": "Issue in USB_CoreReset() occasionally fails in debug mode H743",
+  "content": "<p>On the H743 using V1.12.1 library, CubeIDE,  the USB_CoreReset() procedure occasionally fails to reset the Host USB core in debug mode.  I have added a reset call which seems to fix the issue in debug, reproduced below.<br />I would like to know if this is a known issue in CubeIDE debug mode?<br /><br />See fix below in USB_CoreReset()<br /> </p><pre><code class=\"language-c\">// mod - added extra reset as in debug the USB host core fails to reset correctly at times<br /><br />static void USB_Hard_Reset(USB_OTG_GlobalTypeDef *USBx)<br /><br />{<br /><br />/* Example from USBH_LL_Init() in usbh_conf.c USB_HOST/Target/<br /><br />__HAL_RCC_USB_OTG_HS_FORCE_RESET();<br /><br />HAL_Delay(50);<br /><br />__HAL_RCC_USB_OTG_HS_RELEASE_RESET();<br /><br />HAL_Delay(50);<br /><br />/* --- FS BACK-POWER FIX START ---<br /><br />HAL_PWREx_EnableUSBVoltageDetector();<br /><br />uint32_t to = 100000;<br /><br />while (__HAL_PWR_GET_FLAG(PWR_FLAG_USB33RDY) == 0U &amp;&amp; to--) ;<br /><br />assert(to &gt; 0);*/<br /><br />uint32_t timeout;<br /><br />/* 1. Mask all interrupts and stop AHB transactions */<br /><br />USBx-&gt;GINTMSK = 0U;<br /><br />USBx-&gt;GAHBCFG &amp;= ~USB_OTG_GAHBCFG_GINT; // disable global int<br /><br />/* 2. Wait for AHB idle */<br /><br />timeout = 0xFFFFU;<br /><br />while (((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_AHBIDL) == 0U) &amp;&amp; (timeout-- &gt; 0U))<br /><br />{<br /><br />/* wait */<br /><br />}<br /><br />/* 3. Core soft reset */<br /><br />USBx-&gt;GRSTCTL |= USB_OTG_GRSTCTL_CSRST;<br /><br />timeout = 0xFFFFU;<br /><br />while (((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_CSRST) != 0U) &amp;&amp; (timeout-- &gt; 0U))<br /><br />{<br /><br />/* wait */<br /><br />}<br /><br />/* 4. Flush TX FIFOs */<br /><br />USBx-&gt;GRSTCTL = USB_OTG_GRSTCTL_TXFFLSH | (0x10U &lt;&lt; 6); // all TX FIFOs<br /><br />timeout = 0xFFFFU;<br /><br />while (((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_TXFFLSH) != 0U) &amp;&amp; (timeout-- &gt; 0U))<br /><br />{<br /><br />/* wait */<br /><br />}<br /><br />/* 5. Flush RX FIFO */<br /><br />USBx-&gt;GRSTCTL = USB_OTG_GRSTCTL_RXFFLSH;<br /><br />timeout = 0xFFFFU;<br /><br />while (((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_RXFFLSH) != 0U) &amp;&amp; (timeout-- &gt; 0U))<br /><br />{<br /><br />/* wait */<br /><br />}<br /><br />/* 6. Clear pending core interrupts */<br /><br />USBx-&gt;GINTSTS = 0xFFFFFFFFU;<br /><br /><br /><br />/* 7. Leave core in clean, disabled state.<br /><br />Higher-level init (host/device, FIFOs, GCCFG, etc.) must be redone after this. */<br /><br />}<br /><br /><br /><br />Affected stock HAL routine:-<br /><br />/**<br /><br />* @brief Reset the USB Core (needed after USB clock settings change)<br /><br />* @param USBx Selected device<br /><br />* @retval HAL status<br /><br />*/<br /><br />static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx)<br /><br />{<br /><br />#ifdef DEBUG // mod - added to overcome debug mode HOST HS core hang<br /><br />USB_Hard_Reset(USBx);<br /><br />#endif<br /><br />__IO uint32_t count = 0U;<br /><br />/* Wait for AHB master IDLE state. */<br /><br />do<br /><br />{<br /><br />count++;<br /><br />if (count &gt; HAL_USB_TIMEOUT)<br /><br />{<br /><br />return HAL_TIMEOUT;<br /><br />}<br /><br />} while ((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_AHBIDL) == 0U);<br /><br />/* Core Soft Reset */<br /><br />count = 0U;<br /><br />USBx-&gt;GRSTCTL |= USB_OTG_GRSTCTL_CSRST;<br /><br />do<br /><br />{<br /><br />count++;<br /><br />// BUG IN DEBUG MODE?? SOMETIMES TIMES-OUT IN DEBUG MODE THEM USB HOST FAILS TO WORK<br /><br />if (count &gt; HAL_USB_TIMEOUT)<br /><br />{<br /><br />return HAL_TIMEOUT;<br /><br />}<br /><br />} while ((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_CSRST) == USB_OTG_GRSTCTL_CSRST);<br /><br />return HAL_OK;<br /><br />}</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32H7 series",
+    "USB"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 39,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "53669",
+    "username": "Robmar",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/65ec2a13-80b4-5d9c-06fc-e3691fff5869.png"
+  },
+  "lastContributor": {
+    "id": "53669",
+    "username": "Robmar",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/65ec2a13-80b4-5d9c-06fc-e3691fff5869.png"
+  },
+  "createdAt": "2026-07-14T17:29:52+00:00",
+  "lastActivityAt": "2026-07-14T17:42:26+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743040,
+  "publishedAt": "2026-07-14T17:29:52+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/issue-in-usb-corereset-occasionally-fails-in-debug-mode-h743-166950",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This article seems to relate though gives no hard fix:<br/><br/><a href=\"https://community.st.com/stm32-mcus-60/faq-troubleshooting-a-usb-core-soft-reset-stuck-on-an-stm32-151577\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">FAQ: Troubleshooting a USB core soft reset stuck on an STM32 | Community</a></p></div>"
+    }
+  ]
+}

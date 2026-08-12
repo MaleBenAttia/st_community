@@ -1,0 +1,55 @@
+{
+  "contentType": "article",
+  "id": "165884",
+  "publicId": "167152",
+  "title": "How RTC is powered in shutdown mode when VDD is removed",
+  "content": "<p><br />The RTC is connected by a switch to either VDD or VBAT.</p><p><span style=\"color:#000000;\">Voltage monitoring controls this switch to ensure that the transition occurs before VDD drops below the minimum voltage that the RTC circuitry requires.</span></p><p>However, among several products such as STM32L4 and STM32G4, the reference manual states in the shutdown mode section:</p><p>“The brownout reset (BOR) is not available in shutdown mode. No power voltage monitoring is possible in this mode, therefore the switch to the backup domain is not supported.\"</p><p><span style=\"color:#000000;\">It may appear that this voltage monitoring is disabled to reduce power consumption.</span></p><p>But, when using the real-time clock (RTC) in shutdown mode, users may observe that the RTC that is powered from VDD continues to operate correctly after VDD is removed and restored, regardless of whether the microcontroller was placed in shutdown mode.</p><p>This behavior can be reproduced by performing a <a href=\"https://www.efton.sk/STM32/gotcha/g308.html\" rel=\"noopener noreferrer\" target=\"_blank\">test</a> shared by our Super User ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> in this product forum <a href=\"https://community.st.com/t5/stm32-mcus-products/in-shutdown-how-is-rtc-powered/m-p/893464#M294794\" rel=\"noopener noreferrer\" target=\"_self\">thread.</a></p><ol><li>Remove the 0R resistor R90 connecting VDD to VBAT.</li>\t<li>Add a parallel 100uF ceramic capacitor to the decoupling capacitor at VBAT.</li>\t<li>Flash a simple project that places the MCU into Shutdown then remove VDD shorted (3V-to-GND) to ensure that VBAT is powered.</li>\t<li>After several seconds, wake the MCU from shutdown mode and read RTC registers.<br />\t </li></ol><p><span style=\"background-color:#fcfcfd;\"><span style=\"color:#000000;\">The question is how the RTC remains powered in shutdown mode.</span></span></p><p>The simple answer is that disabling the voltage monitoring system does not mean that the RTC will always stop operating. In practice, because the control switches themselves are supplied from <strong>VDD</strong>, when VDD collapses, their internal state may naturally force the RTC supply path to move to <strong>VBAT</strong>.</p><p>This can happen on some samples and in some test conditions. <span style=\"color:#000000;\">However, this transition may occur below the minimum voltage that the RTC supply circuitry requires. </span></p><p><span style=\"color:#000000;\">In those conditions, internal registers may already be at risk of corruption during the switchover, so the reference manual states that the switch is unsupported because the behavior is not guaranteed.</span></p><p> </p><h2>Conclusion</h2><p><span style=\"color:#000000;\">Even though Shutdown mode disables voltage monitoring and the RTC backup switch is officially unsupported, the RTC may keep running thanks to a hardware fallback to <strong>VBAT</strong> when <strong>VDD</strong> disappears, but this behavior is <strong>not guaranteed by design</strong>.<br />Note: section 2.2.10 in the </span><a href=\"https://www.st.com/resource/en/errata_sheet/es0587-stm32u535xx-and-stm32u545xx-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">ES0587</a> <span style=\"color:#000000;\">mentions this topic.</span></p><h2><span style=\"color:#000000;\">Related links</span></h2><ul><li><a href=\"http://www.efton.sk/STM32/gotcha/g308.html\" rel=\"noopener noreferrer\" target=\"_blank\">efton.sk STM32 gotchas 308</a></li>\t<li><a href=\"https://community.st.com/stm32-mcus-products-25/in-shutdown-how-is-rtc-powered-164531?postid=735039#post735039\" rel=\"noopener noreferrer\" target=\"_self\">ST Community product forums: In shutdown, how is RTC powered? </a></li>\t<li><a href=\"https://www.st.com/resource/en/errata_sheet/es0587-stm32u535xx-and-stm32u545xx-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Errata sheet ES0587: STM32U535xx and STM32U545xx device errata</a> </li></ul><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "60",
+  "categoryName": "STM32 MCUs",
+  "tags": [
+    "Power",
+    "RTC",
+    "STM32U5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 1,
+  "votes": 0,
+  "views": 80,
+  "voteSet": [],
+  "likeSet": [
+    "17162"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "88547",
+    "username": "Gyessine",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "88547",
+    "username": "Gyessine",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-22T13:30:28+00:00",
+  "lastActivityAt": "2026-07-22T13:32:25+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-22T13:32:25+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-60/how-rtc-is-powered-in-shutdown-mode-when-vdd-is-removed-167152"
+}

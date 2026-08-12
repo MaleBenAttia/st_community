@@ -1,0 +1,62 @@
+{
+  "contentType": "question",
+  "id": "166814",
+  "publicId": "166830",
+  "title": "STM32G4 ADC: Clarification on exact execution order of Offset and Gain Compensation at 10-bit resolution",
+  "content": "<p>Hello ST Community,</p><p>I am working with the STM32G4 ADC and am experiencing a conflict between my understanding of the internal digital processing pipeline and the behavior I am observing when combining <strong>Offset Correction</strong> and <strong>Gain Compensation</strong> at a reduced resolution (<strong>10-bit</strong>).</p><p>According to the reference manual (RM0440), the digital processing back-end handles data in a specific sequence. However, I need absolute clarification on the mathematical interaction between <code>ADC_OFRx</code> and <code>ADC_GCOMP</code>.</p><p><strong>My Setup:</strong></p><ul><li>\t<p><strong>MCU:</strong> STM32G4 Series</p>\t</li>\t<li>\t<p><strong>ADC Resolution:</strong> 10-Bit (<code>ADC_RESOLUTION_10B</code>)</p>\t</li>\t<li>\t<p><strong>Gain Compensation Factor:</strong> 16383 (Maximum 14-bit value, which equals a ~4x multiplier)</p>\t</li>\t<li>\t<p><strong>Offset Sign:</strong> Negative (<code>ADC_OFFSET_SIGN_NEGATIVE</code>)</p>\t</li></ul><p><strong>My Configuration Code:</strong></p><pre><code class=\"language-c\">// Resolution configuration<br />ADC_Head-&gt;Init.Resolution = ADC_RESOLUTION_10B;<br />ADC_Head-&gt;Init.DataAlign = ADC_DATAALIGN_RIGHT;<br />// ... standard HAL init ...<br /><br />// Apply maximum gain compensation (~4x)<br />LL_ADC_SetGainCompensation(ADC_Head-&gt;Instance, 16383);</code></pre><p><strong>My offset setting code:</strong></p><pre><code class=\"language-c\">uint32_t tmpOffsetShifted = ADC_OFFSET_SHIFT_RESOLUTION(ADC_Head, offset); <br /><br />LL_ADC_SetOffset(ADC_Head-&gt;Instance, ADC_OFFSET_1, ADC_Channel, tmpOffsetShifted);<br />LL_ADC_SetOffsetSign(ADC_Head-&gt;Instance, ADC_OFFSET_1, ADC_OFFSET_SIGN_NEGATIVE);<br />LL_ADC_SetOffsetSaturation(ADC_Head-&gt;Instance, ADC_OFFSET_1, LL_ADC_OFFSET_SATURATION_ENABLE);</code></pre><h3>The Dilemma &amp; Observations:</h3><p>Because the <code>ADC_OFFSET_SHIFT_RESOLUTION</code> macro left-shifts the offset value by 2 bits for 10-bit mode, the maximum value I can pass to my <code>offset</code> variable is <code>1023</code>. If I pass <code>1024</code>, it left-shifts to <code>4096</code> (<code>0x1000</code>), overflowing the 12-bit <code>OFFSETy[11:0]</code> register and flipping back to <code>0</code>.</p><p>I am trying to achieve an effective post-gain offset reduction of <strong>1600</strong> in the 10-bit domain.</p><ol start=\"1\"><li>\t<p><strong>Hypothesis A (Offset applied BEFORE Gain):</strong> If offset is applied first in the 12-bit domain, then to get a final reduction of 1600, my raw offset should be divided by the gain factor ($1600 / 4 = 400$). I would program <code>offset = 400</code>, which safely avoids the 1023 register overflow.</p>\t</li>\t<li>\t<p><strong>Hypothesis B (Gain applied BEFORE Offset):</strong> If gain happens first, I would need to subtract 1600 directly. But I cannot program <code>offset = 1600</code> because the 12-bit register flips at 1023 due to the macro shift.</p>\t</li></ol><p>In my bench testing, <strong>I am observing behavior that matches Hypothesis B</strong> (the offset behaves as if it is applied <em>after</em> the gain stage, or it is simply not being amplified by the gain factor). An offset of 100 counts reduces my final gained output by exactly 100 counts. </p><p>Could an ST engineer clarify the exact hardware equations running inside the digital processing backend? Does the hardware scale the offset register bounds when Gain Compensation is active, or does the subtraction strictly happen on the raw 12-bit padded conversion before the multiplier?</p><p>Thank you!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32G4 series",
+    "ADC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 77,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108130",
+    "username": "whansify2143",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108130",
+    "username": "whansify2143",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-10T07:02:23+00:00",
+  "lastActivityAt": "2026-08-06T07:08:03+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744914,
+  "publishedAt": "2026-07-10T07:02:23+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32g4-adc-clarification-on-exact-execution-order-of-offset-and-gain-compensation-at-10-bit-resolution-166830",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108130\">@whansify2143</user-mention> <br/>Sorry for the delayed reply<br/>I did some tests and measured results suggest that gain compensation is applied before offset subtraction (hypothesis B)<br/>However, could you please clarify your use case in more detail? In particular, why do you need an offset of 1600 while using a 10-bit ADC resolution, where the conversion range is only 0 to 1023?</p><p>With such a large offset, the result would likely be driven permanently to 1023 or 0, depending on whether the correction pushes the signal upward or downward and whether the offset sign is positive or negative. in case you are enabling SATEN bit<br/>BR<br/>Gyessine<br/> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><div><p>Hi Gyessine,</p><p>Thanks for your reply.</p><p>My use case is that the production calibration settings for the CCD exposure control are still stored in the 12-bit domain (saved in flash memory).</p><p>By using a gain factor of 4, I can switch to a 10-bit ADC resolution while keeping the existing calibration parameters unchanged. This works as long as I do not apply the offset correction and only use the 10-bit ADC together with the ×4 gain.</p><p>I was therefore investigating whether the offset compensation could also be used without modifying the existing calibration data.</p><p>Best regards,<br/>Hannes</p></div></div>"
+    }
+  ]
+}

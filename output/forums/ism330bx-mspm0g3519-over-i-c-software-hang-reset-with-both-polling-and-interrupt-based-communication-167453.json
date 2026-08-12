@@ -1,0 +1,55 @@
+{
+  "contentType": "question",
+  "id": "167425",
+  "publicId": "167453",
+  "title": "ISM330BX + MSPM0G3519 over I²C: Software Hang/Reset with Both Polling and Interrupt-Based Communication",
+  "content": "<p><strong>Configuration:</strong></p><ul><li>I2C address: 0x6A</li>\t<li>Bus speed: 100kHz (standard mode)</li>\t<li>ODR: 1920Hz for both XL and GY (<code>ISM330BX_XL_ODR_AT_1920Hz</code>, <code>ISM330BX_GY_ODR_AT_1920Hz</code>)</li>\t<li>Full scale: ±125dps gyro, ±4G accel</li>\t<li>Reading a 14-byte burst starting at register 0x20 (TEMP + GYRO + ACCEL) once every 10ms, from our control loop.</li>\t<li>The application currently checks the IMU every 10ms.</li></ul><p><strong>My intention is:</strong></p><ol><li>Every 10ms, determine whether a fresh IMU sample is available.</li>\t<li>If fresh data is available, start one interrupt-driven burst read (gyro + accel).</li>\t<li>When the transfer completes, update the application variables once.</li>\t<li>Ignore intermediate samples produced by the IMU between 10ms periods.</li></ol><p><strong>Polling-based implementation</strong></p><p>Initially, we have implemented the IMU driver using a <strong>polling-based I²C</strong> implementation (partially based on an open-source GitHub driver). During long-duration testing, the application hung/resetting inside the blocking I²C loops. Code for this method is attached in <strong>attachment 1.</strong></p><p><strong>Interrupt-based implementation</strong></p><p>To overcome the blocking behavior, we redesigned the IMU driver using an <strong>interrupt-driven (non-blocking) I²C implementation</strong>. Although this implementation eliminates the blocking polling loops, the application still <strong>hangs/resets</strong> during long-duration testing. The code for this implementation is attached as <strong>Attachment 2</strong>.</p><p><strong>Sysconfig settings (I2C):</strong></p><p>I2C1.basicEnableController             = true;<br />I2C1.$name                             = \"I2C_2\";<br />I2C1.advDigitalGlitchFilter            = \"CLOCKS_1\";<br />I2C1.enableDMAEvent1                   = false;<br />I2C1.enableDMAEvent2                   = false;<br />I2C1.basicTargetSecAddressEnable       = true;<br />I2C1.intController                     = [\"ARBITRATION_LOST\",\"NACK\",\"RXFIFO_TRIGGER\",\"RX_DONE\",\"TXFIFO_TRIGGER\",\"TX_DONE\"];<br />I2C1.timeoutACount                     = 2;<br />I2C1.peripheral.$assign                = \"I2C2\";<br />I2C1.peripheral.sdaPin.$assign         = \"PC3\";<br />I2C1.peripheral.sclPin.$assign         = \"PC2\";<br />I2C1.sdaPinConfig.hideOutputInversion  = scripting.forceWrite(false);<br />I2C1.sdaPinConfig.onlyInternalResistor = scripting.forceWrite(false);<br />I2C1.sdaPinConfig.passedPeripheralType = scripting.forceWrite(\"Digital\");<br />I2C1.sdaPinConfig.$name                = \"ti_driverlib_gpio_GPIOPinGeneric20\";<br />I2C1.sclPinConfig.hideOutputInversion  = scripting.forceWrite(false);<br />I2C1.sclPinConfig.onlyInternalResistor = scripting.forceWrite(false);<br />I2C1.sclPinConfig.passedPeripheralType = scripting.forceWrite(\"Digital\");<br />I2C1.sclPinConfig.$name                = \"ti_driverlib_gpio_GPIOPinGeneric21\";</p><h2>Questions</h2><ol><li><strong>Based on the attached polling-based and interrupt-driven implementations, is there any issue in our overall communication sequence or software architecture that could lead to intermittent software hangs or resets?</strong></li>\t<li><strong>Is the current approach of checking the <code>STATUS_REG (0x1E)</code> every 10ms before initiating a burst read the recommended method for synchronizing with the ISM330BX, or is there a better approach? </strong></li>\t<li><strong>When executing the I²C read operation in the 10 ms task, <code>DL_I2C_getControllerStatus()</code>, <code>DL_I2C_startFlushControllerTXFIFO()</code>, and <code>DL_I2C_isControllerTXFIFOEmpty()</code> intermittently fail. Why does this happen, and what modifications are required to resolve the issue?</strong></li>\t<li><strong>Are there any specific timing requirements, delays, register access sequences, or configuration settings that should be considered when communicating with the ISM330BX over I²C to ensure reliable operation?</strong></li>\t<li><strong>After reviewing the attached code, are there any portions of the implementation that should be modified or improved to align with ST's recommended software practices for the ISM330BX?</strong></li></ol><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "48",
+  "categoryName": "MEMS (sensors)",
+  "tags": [
+    "Embedded software",
+    "I2C"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 1,
+  "votes": 0,
+  "views": 72,
+  "voteSet": [],
+  "likeSet": [
+    "108618"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108745",
+    "username": "Dilip M",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-08-04T06:44:36+00:00",
+  "lastActivityAt": "2026-08-04T11:24:15+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744750,
+  "publishedAt": "2026-08-04T06:44:36+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/mems-sensors-48/ism330bx-mspm0g3519-over-i-c-software-hang-reset-with-both-polling-and-interrupt-based-communication-167453",
+  "scraped_replies": []
+}

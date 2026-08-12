@@ -1,0 +1,25 @@
+{
+    "forum": [
+        {
+            "id": "166896",
+            "publicId": "166914",
+            "title": "ADC DMA real value reading STM32F103c8t6",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/adc-dma-real-value-reading-stm32f103c8t6-166914",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "DMA",
+                "ADC"
+            ],
+            "published_at": "2026-07-13T17:40:54+00:00",
+            "views": 62,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Thank you\n\ni think i found the error i changed 10uf smoothing capacitor after voltage divider i think now its working with correct value",
+            "content_text": "this is my code ADC real value read and calculation part but ADC real value not real when input dr\n\n```\n\nvoid process_adc_averages_and_filter(void)\n\n{\n\nfor (uint8_t ch = 0; ch < ADC_CHANNELS; ch++)\n\n{\n\nuint32_t sum = 0;\n\nfor (uint8_t i = 0; i < ADC_SAMPLES; i++)\n\n{\n\nsum += adc_dma_buf[i * ADC_CHANNELS + ch];\n\n}\n\nadc_avg[ch] = sum / ADC_SAMPLES;\n\n// Apply exponential low-pass filter\n\n//float alpha = 0.1f; // Filter strength\n\n/// adc_filtered[ch] = (1 - alpha) * adc_filtered[ch] + alpha * adc_avg[ch];\n\n// adc_hist[ch] = (adc_hist[ch] * 31 + adc_avg[ch]) / 32;\n\n// adc_filtered[ch] = adc_hist[ch];\n\n// Fast stable filter\n\n// single smooth filter\n\n// adc_filtered[ch] = (adc_filtered[ch] * 0.95f) +\n\n/// (adc_avg[ch] * 0.05f);\n\nadc_filtered[ch] = (adc_filtered[ch] * 31 + adc_avg[ch])/32;\n\n}\n\nvfb_adc_fixed = (adc_filtered[3] + 2) / 5 * 5;\n\nVref = 160.0f + (adc_filtered[1] * 100.0f / 4095.0f);\n\nGain = 0.5f + (adc_filtered[2] * 30.5f / 4095.0f);\n\nAdjust = 0.5f + (adc_filtered[0] * 4.5f / 4095.0f);\n\nint32_t difference = (int32_t)vfb_adc_fixed - (int32_t)stable_adc_value;\n\nif(difference > NOISE_THRESHOLD || difference < -NOISE_THRESHOLD ){\n\nstable_adc_value = vfb_adc_fixed;\n\n}\n\nVfb = (stable_adc_value * ADC_REF ) / 4095.0f;\n\nVfb = Vfb * (43.5+10)/10;\n\nVfbl = (Vfb + ((Vfb/10000)/0.047))/1.405;\n\n///Voltage = Vfb;\n\n// Voltage = (Vfbl * VFB_SCALE);\n\nVoltage = stable_adc_value * VFB_SCALE;\n\n///Vfb_Filter = 0.95f * Vfb_Filter + 0.05f * Vfb;\n\nerror = Vref - Voltage;\n\nif (fabsf(error) < 0.5f)\n\n{\n\nerror = 0;\n\n}\n\n// Gain adjustment\n\nKp = Gain * 120.0f;\n\nKi = Gain * 0.25f * Adjust;\n\n// Integral\n\nintegral += error * 0.1f;\n\n// Anti-windup\n\nif (integral > 300.0f)\n\nintegral = 300.0f;\n\nif (integral < -300.0f)\n\nintegral = -300.0f;\n\n// PI output\n\ncontrol = (Kp * error) + (Ki * integral);\n\n// Convert PI output to SCR firing delay\n\ndim_delay = 4000 - control;\n\nint32_t difference_firing_delay = (int32_t)dim_delay - (int32_t)stable_dim_delay;\n\nif(difference_firing_delay > NOISE_THRESHOLD_DELAY || difference_firing_delay < -NOISE_THRESHOLD_DELAY ){\n\nstable_dim_delay = dim_delay;\n\n}\n\n// Limit firing angle\n\nif (stable_dim_delay < 300)\n\nstable_dim_delay = 300;\n\nif (stable_dim_delay > 5000)\n\nstable_dim_delay = 5000;\n\n}\n\n```\n\nop to 187V Voltage variable show 202v and when input is 227 voltage shows 210v 🤷🏽",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe88b44c-2fe4-4d9e-920e-e7a03b8863ac.png"
+            ],
+            "author": "Neran88"
+        }
+    ]
+}

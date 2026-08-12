@@ -1,0 +1,80 @@
+{
+  "contentType": "question",
+  "id": "167353",
+  "publicId": "167380",
+  "title": "STM32G474RET6 USART",
+  "content": "<p>Hello, I am using the stm32g47ret6 microcontroller and I am having troubles with transmitting and receiving data using the USART2 to my PC through the ST-LINK V3-SET. If I understand correctly, I left the v3-set configured as default (did not change the jumper configurations). I used MX to configure the usart2 module and used vcp_rx and vcp_tx for communication, used the pins PA3 and PA2 and also configured them in MX. I checked the baud rates, COM Port in my device manager. I am using tera term 5 to read the data, but I get a blank screen every time I start the program. To debug this, I tried probing the pins using an oscilloscope and I do see some repeated pulses, the baud rate matches and Uppercase 'U’ does give a square wave. I also checked the UART transmit status which shows HAL_OK in live expressions in the CUBEIDE. I am using a custom hardware board with the stm32g474ret6 mcu, it is connected to the st-link via the stdc14 connecter. This is the schematic for it.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0bfc0a85-db2b-47bc-8384-7cec889b8949.png\" /></figure><p> Below is the code. </p><pre><code class=\"language-c\">/* USER CODE BEGIN Header */<br /><br />/**<br /><br />******************************************************************************<br /><br />* @file : main.c<br /><br />* @brief : Main program body<br /><br />******************************************************************************<br /><br />* @attention<br /><br />*<br /><br />* Copyright (c) 2026 STMicroelectronics.<br /><br />* All rights reserved.<br /><br />*<br /><br />* This software is licensed under terms that can be found in the LICENSE file<br /><br />* in the root directory of this software component.<br /><br />* If no LICENSE file comes with this software, it is provided AS-IS.<br /><br />*<br /><br />******************************************************************************<br /><br />*/<br /><br />/* USER CODE END Header */<br /><br />/* Includes ------------------------------------------------------------------*/<br /><br />#include \"main.h\"<br /><br /><br /><br />/* Private includes ----------------------------------------------------------*/<br /><br />/* USER CODE BEGIN Includes */<br /><br /><br /><br />/* USER CODE END Includes */<br /><br /><br /><br />/* Private typedef -----------------------------------------------------------*/<br /><br />/* USER CODE BEGIN PTD */<br /><br /><br /><br />/* USER CODE END PTD */<br /><br /><br /><br />/* Private define ------------------------------------------------------------*/<br /><br />/* USER CODE BEGIN PD */<br /><br /><br /><br />/* USER CODE END PD */<br /><br /><br /><br />/* Private macro -------------------------------------------------------------*/<br /><br />/* USER CODE BEGIN PM */<br /><br /><br /><br />/* USER CODE END PM */<br /><br /><br /><br />/* Private variables ---------------------------------------------------------*/<br /><br />UART_HandleTypeDef huart2;<br /><br /><br /><br />/* USER CODE BEGIN PV */<br /><br />uint8_t data =0;<br /><br />HAL_StatusTypeDef uart_status;<br /><br />uint8_t message[] = \"Hello STM32\\r\\n\";<br /><br />/* USER CODE END PV */<br /><br /><br /><br />/* Private function prototypes -----------------------------------------------*/<br /><br />void SystemClock_Config(void);<br /><br />static void MX_GPIO_Init(void);<br /><br />static void MX_USART2_UART_Init(void);<br /><br />/* USER CODE BEGIN PFP */<br /><br /><br /><br />/* USER CODE END PFP */<br /><br /><br /><br />/* Private user code ---------------------------------------------------------*/<br /><br />/* USER CODE BEGIN 0 */<br /><br /><br /><br />/* USER CODE END 0 */<br /><br /><br /><br />/**<br /><br />* @brief The application entry point.<br /><br />* @retval int<br /><br />*/<br /><br />int main(void)<br /><br />{<br /><br /><br /><br />/* USER CODE BEGIN 1 */<br /><br /><br /><br />/* USER CODE END 1 */<br /><br /><br /><br />/* MCU Configuration--------------------------------------------------------*/<br /><br /><br /><br />/* Reset of all peripherals, Initializes the Flash interface and the Systick. */<br /><br />HAL_Init();<br /><br /><br /><br />/* USER CODE BEGIN Init */<br /><br /><br /><br />/* USER CODE END Init */<br /><br /><br /><br />/* Configure the system clock */<br /><br />SystemClock_Config();<br /><br /><br /><br />/* USER CODE BEGIN SysInit */<br /><br /><br /><br />/* USER CODE END SysInit */<br /><br /><br /><br />/* Initialize all configured peripherals */<br /><br />MX_GPIO_Init();<br /><br />MX_USART2_UART_Init();<br /><br />/* USER CODE BEGIN 2 */<br /><br />// uint8_t message = 123;<br /><br /><br /><br /><br /><br />/* USER CODE END 2 */<br /><br /><br /><br />/* Infinite loop */<br /><br />/* USER CODE BEGIN WHILE */<br /><br />while (1)<br /><br />{<br /><br />/* USER CODE END WHILE */<br /><br /><br /><br />/* USER CODE BEGIN 3 */<br /><br /><br /><br />uart_status = HAL_UART_Transmit(<br /><br />&amp;huart2,<br /><br />message,<br /><br />sizeof(message) - 1,<br /><br />HAL_MAX_DELAY<br /><br />);<br /><br />data++;<br /><br />HAL_Delay(1000);<br /><br /><br /><br /><br /><br />/* USER CODE END 3 */<br /><br />}<br /><br /><br /><br />/**<br /><br />* @brief System Clock Configuration<br /><br />* @retval None<br /><br />*/<br /><br />void SystemClock_Config(void)<br /><br />{<br /><br />RCC_OscInitTypeDef RCC_OscInitStruct = {0};<br /><br />RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};<br /><br /><br /><br />/** Configure the main internal regulator output voltage<br /><br />*/<br /><br />HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);<br /><br /><br /><br />/** Initializes the RCC Oscillators according to the specified parameters<br /><br />* in the RCC_OscInitTypeDef structure.<br /><br />*/<br /><br />RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;<br /><br />RCC_OscInitStruct.HSIState = RCC_HSI_ON;<br /><br />RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;<br /><br />RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;<br /><br />if (HAL_RCC_OscConfig(&amp;RCC_OscInitStruct) != HAL_OK)<br /><br />{<br /><br />Error_Handler();<br /><br />}<br /><br /><br /><br />/** Initializes the CPU, AHB and APB buses clocks<br /><br />*/<br /><br />RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK<br /><br />|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;<br /><br />RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;<br /><br />RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;<br /><br />RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;<br /><br />RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;<br /><br /><br /><br />if (HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)<br /><br />{<br /><br />Error_Handler();<br /><br />}<br /><br />}<br /><br /><br /><br />/**<br /><br />* @brief USART2 Initialization Function<br /><br />* @param None<br /><br />* @retval None<br /><br />*/<br /><br />static void MX_USART2_UART_Init(void)<br /><br />{<br /><br /><br /><br />/* USER CODE BEGIN USART2_Init 0 */<br /><br /><br /><br />/* USER CODE END USART2_Init 0 */<br /><br /><br /><br />/* USER CODE BEGIN USART2_Init 1 */<br /><br /><br /><br />/* USER CODE END USART2_Init 1 */<br /><br />huart2.Instance = USART2;<br /><br />huart2.Init.BaudRate = 115200;<br /><br />huart2.Init.WordLength = UART_WORDLENGTH_8B;<br /><br />huart2.Init.StopBits = UART_STOPBITS_1;<br /><br />huart2.Init.Parity = UART_PARITY_NONE;<br /><br />huart2.Init.Mode = UART_MODE_TX_RX;<br /><br />huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;<br /><br />huart2.Init.OverSampling = UART_OVERSAMPLING_16;<br /><br />huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;<br /><br />huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;<br /><br />huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;<br /><br />if (HAL_UART_Init(&amp;huart2) != HAL_OK)<br /><br />{<br /><br />Error_Handler();<br /><br />}<br /><br />if (HAL_UARTEx_SetTxFifoThreshold(&amp;huart2, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)<br /><br />{<br /><br />Error_Handler();<br /><br />}<br /><br />if (HAL_UARTEx_SetRxFifoThreshold(&amp;huart2, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)<br /><br />{<br /><br />Error_Handler();<br /><br />}<br /><br />if (HAL_UARTEx_DisableFifoMode(&amp;huart2) != HAL_OK)<br /><br />{<br /><br />Error_Handler();<br /><br />}<br /><br />/* USER CODE BEGIN USART2_Init 2 */<br /><br /><br /><br />/* USER CODE END USART2_Init 2 */<br /><br /><br /><br />}<br /><br /><br /><br />/**<br /><br />* @brief GPIO Initialization Function<br /><br />* @param None<br /><br />* @retval None<br /><br />*/<br /><br />static void MX_GPIO_Init(void)<br /><br />{<br /><br />/* USER CODE BEGIN MX_GPIO_Init_1 */<br /><br /><br /><br />/* USER CODE END MX_GPIO_Init_1 */<br /><br /><br /><br />/* GPIO Ports Clock Enable */<br /><br />__HAL_RCC_GPIOA_CLK_ENABLE();<br /><br />__HAL_RCC_GPIOB_CLK_ENABLE();<br /><br /><br /><br />/* USER CODE BEGIN MX_GPIO_Init_2 */<br /><br /><br /><br />/* USER CODE END MX_GPIO_Init_2 */<br /><br />}<br /><br /><br /><br />/* USER CODE BEGIN 4 */<br /><br /><br /><br />/* USER CODE END 4 */<br /><br /><br /><br />/**<br /><br />* @brief This function is executed in case of error occurrence.<br /><br />* @retval None<br /><br />*/<br /><br />void Error_Handler(void)<br /><br />{<br /><br />/* USER CODE BEGIN Error_Handler_Debug */<br /><br />/* User can add his own implementation to report the HAL error return state */<br /><br />__disable_irq();<br /><br />while (1)<br /><br />{<br /><br />}<br /><br />/* USER CODE END Error_Handler_Debug */<br /><br />}<br /><br />#ifdef USE_FULL_ASSERT<br /><br />/**<br /><br />* @brief Reports the name of the source file and the source line number<br /><br />* where the assert_param error has occurred.<br /><br />* @param file: pointer to the source file name<br /><br />* @param line: assert_param error line source number<br /><br />* @retval None<br /><br />*/<br /><br />void assert_failed(uint8_t *file, uint32_t line)<br /><br />{<br /><br />/* USER CODE BEGIN 6 */<br /><br />/* User can add his own implementation to report the file name and line number,<br /><br />ex: printf(\"Wrong parameters value: file %s on line %d\\r\\n\", file, line) */<br /><br />/* USER CODE END 6 */<br /><br />}<br /><br />#endif /* USE_FULL_ASSERT */</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "26",
+  "categoryName": "STM32 MCUs Boards and hardware tools",
+  "tags": [
+    "STM32CubeIDE",
+    "ST-Link",
+    "STM32G4 series",
+    "UART-USART"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 7,
+  "inclusiveVisibleReplyCount": 7,
+  "likes": 0,
+  "votes": 0,
+  "views": 94,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107795",
+    "username": "SamB",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "87198",
+    "username": "mfgkw",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-31T10:33:56+00:00",
+  "lastActivityAt": "2026-07-31T16:07:05+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744531,
+  "publishedAt": "2026-07-31T10:33:56+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32g474ret6-usart-167380",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum</p><p>Please see <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></em> for best results.</p><p>See also: <em><u><a href=\"https://community.st.com/community-guidelines-160/how-to-insert-source-code-135969\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\"><u>How to insert source code</u></a></u></em></p><p> </p><p>In particular, what board are you using, and how is it connected to your STLink ?</p><p>Show your schematic; Some good, clear photos of your setup could help.</p><p> </p><p>Before adding the complications of an external STLink, have you got this working on a Nucleo board (or similar) with built-in STLink, using a standard ST example?</p><p> </p><blockquote><p> I tried probing the pins using an oscilloscope and I do see some repeated pulses</p></blockquote><p>Are they valid UART frames, with the expected format, at the expected baud rate ?</p><p> </p><p>For easier scope triggering, just send a single repeating character - Uppercase ‘U’ is good, as it gives a square wave...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I am using a custom hardware board with the stm32g474ret6 mcu, it is connected to the st-link via the stdc14 connecter. This is the schematic for it. I also checked the baud rate and Uppercase 'U’ does give a square wave.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/79701b7d-0910-46fd-bb7d-4dcc6515fc33.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"SamB\"><div class=\"content-quote-content\"> <p>I am using a custom hardware board</p> </div></content-quote><p>Before going to a custom board, have you got this working on a known-good ST board?</p><p>Have you tried a separate, known-good UART-to-USB converter?</p><p>Have you tried a loop-back from your TeraTerm, through the STLink, back to TeraTerm?</p><p> </p><blockquote><p>I also checked the baud rate</p></blockquote><p>How, exactly, did you do that?</p><p> </p><blockquote><p>Uppercase 'U’ does give a square wave</p></blockquote><p>With correct framing, baud rate, etc ?</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>In your question I miss the connection from PA3 and PA2 to your PC?</p><p>You will need some UART/USB converter probably, since PA2 and PA3 are 0/3.3V level.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"87198\">@mfgkw</user-mention> OP is using an <a href=\"https://www.st.com/en/development-tools/stlink-v3set.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">ST-Link V3/Set</a></p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>sorry, I missed that</p></div>"
+    }
+  ]
+}

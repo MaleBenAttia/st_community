@@ -1,0 +1,55 @@
+{
+  "contentType": "question",
+  "id": "166662",
+  "publicId": "166687",
+  "title": "Bug Report: STM32G474 Vienna Rectifier – TIM7 16-bit ARR overflow causes wrong interrupt frequency",
+  "content": "<p>Title: Bug Report: STM32G474 Vienna Rectifier firmware – TIM7 16-bit ARR register overflow (Wrong interrupt frequency)</p><p>Hi everyone,</p><p>I want to share my experience and a bug I recently discovered while working with the <strong>vienna_stm32G474</strong> reference software (generated via ST eDesignSuite).</p><p></p><p>🔍 The Problem</p><p>The interrupt frequency for <strong>TIM7</strong> was measured at <strong>8734 Hz</strong> instead of the configured <strong>2000 Hz</strong>.</p><p></p><p>⚙️ Cause of the Bug</p><p>The issue stems from the generic timer initialization function used across the project:</p><p></p><p>c</p><pre><code>void DPC_MISC_ApplTimer_Init(TIM_HandleTypeDef AppTIM, uint32_t APPL_Freq_Desidered);<br /></code></pre><p> </p><p></p><p></p><p>This function assumes it is always dealing with 32-bit timers (like <code>TIM2</code>). However, <code>TIM7</code> is a <strong>16-bit basic timer</strong>.</p><p>When calculating the Auto-Reload Register (ARR) value for the desired 2000 Hz frequency at a 170 MHz clock, the following math occurs:</p><p></p><p>c</p><pre><code>Timers_ClockARR = (170000000 / 2000) - 1; // 85000 - 1 = 84999<br />AppTIM.Init.Period = Timers_ClockARR;     // Assigning 84999 to a 16-bit register<br /></code></pre><p> </p><p></p><p></p><p>Because <code>TIM7-&gt;ARR</code> is only 16-bit, the value <strong>84999</strong> (<code>0x14C07</code>) overflows and gets truncated to <strong>19463</strong> (<code>0x4C07</code>).<br />As a result, the actual hardware frequency becomes:<br /><code>Actual Frequency = 170000000 / (19463 + 1) = 8734 Hz</code>.<br /></p><p><em>Note: There is another minor oversight in this initialization function—it fetches the peripheral clock using <code>HAL_RCC_GetPCLK2Freq()</code> (APB2), even though <code>TIM7</code> resides on the APB1 bus. Luckily, in this specific clock configuration, both buses run at the same frequency (170 MHz).</em></p><p></p><p>🛠️ The Fix (Workaround)</p><p>You can easily fix this with a minimal change in the <code>.ioc</code> file using STM32CubeMX:</p><ol><li>Open the project configuration and navigate to: <strong>Pinout &amp; Configuration &gt; Timers &gt; TIM7</strong>.</li>\t<li>Under <strong>Configuration &gt; Parameter Settings &gt; Counter Settings</strong>, change the <strong>Prescaler</strong> value from <code>0</code> to <code>1</code>.</li>\t<li>Click <strong></strong> to update the project.</li>\t</ol><p>By setting <code>PSC = 1</code>, the timer clock is halved, and the initialization function will compute an ARR value of <strong>42499</strong>. Since this is well below the 16-bit limit (65535), it loads perfectly without overflow.</p><p>After applying this change, <code>TIM7</code> successfully triggers at the intended <strong>2000 Hz</strong>. Hope this helps anyone scratching their head over unexpected telemetry or timing issues in this application!</p><p></p><p></p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "53",
+  "categoryName": "Power management",
+  "tags": [
+    "STM32CubeMX",
+    "Power",
+    "STM32G4 series",
+    "STM32 Digital Power"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 24,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107973",
+    "username": "k_nedelchev",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107973",
+    "username": "k_nedelchev",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-06T05:16:13+00:00",
+  "lastActivityAt": "2026-07-06T05:16:13+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-06T05:16:13+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/power-management-53/bug-report-stm32g474-vienna-rectifier-tim7-16-bit-arr-overflow-causes-wrong-interrupt-frequency-166687",
+  "scraped_replies": []
+}

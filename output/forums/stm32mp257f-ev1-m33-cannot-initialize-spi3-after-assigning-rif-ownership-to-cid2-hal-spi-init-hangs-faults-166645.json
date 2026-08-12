@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166621",
+  "publicId": "166645",
+  "title": "STM32MP257F-EV1: M33 cannot initialize SPI3 after assigning RIF ownership to CID2 (HAL_SPI_Init hangs/faults)",
+  "content": "<p>Hi,</p><p>I am trying to use <strong>SPI3 from the Cortex-M33</strong> on the <strong>STM32MP257F-EV1</strong> running <strong>OpenSTLinux 6.6 (Scarthgap)</strong>.</p><h3>Software versions</h3><ul><li>Board: STM32MP257F-EV1</li>\t<li>OpenSTLinux: 5.0.15</li>\t<li>Kernel: 6.6.116</li>\t<li>STM32Cube_FW_MP2_V1.3.0</li>\t<li>M33 application based on <code>OpenAMP_TTY_echo_CM33</code></li></ul><h3>What I changed</h3><p>I modified the OP-TEE RIF configuration file:</p><pre> </pre><pre><code>external-dt-v6.0-stm32mp-r3/stm32mp2/a35-td/optee/stm32mp257f-ev1-ca35tdcid-ostl-rif.dtsi</code></pre><p>I changed SPI3 ownership from CID1 to CID2:</p><pre> </pre><pre><code>RIFPROT(STM32MP25_RIFSC_SPI3_ID,<br />        RIF_UNUSED,<br />        RIF_UNLOCK,<br />        RIF_NSEC,<br />        RIF_PRIV,<br />        RIF_CID2,<br />        RIF_SEM_DIS,<br />        RIF_CFEN)</code></pre><p>I also assigned the SPI3 GPIO pins to CID2:</p><ul><li>PB7</li>\t<li>PB8</li>\t<li>PB10</li></ul><p>using:</p><pre> </pre><pre><code>RIFPROT(... RIF_CID2 ...)</code></pre><p>Then I rebuilt:</p><ul><li>OP-TEE</li>\t<li>FIP</li></ul><p>and flashed the new images while keeping the original TF-A.</p><h3>Verification</h3><p>Using a small RIF access test on the M33, I verified that SPI3 is now accessible.</p><p>Before:</p><pre> </pre><pre><code>RIF CRC=0 I2C1=0 UART5=0 SPI3=3</code></pre><p>After modifying the RIF configuration:</p><pre> </pre><pre><code>RIF CRC=0 I2C1=0 UART5=0 SPI3=0</code></pre><p>So the peripheral ownership appears to be correct.</p><h3>M33 code</h3><p>The M33 application enables the SPI3 clock and initializes SPI3 using HAL:</p><pre> </pre><pre><code>__HAL_RCC_SPI3_CLK_ENABLE();<br /><br />HAL_SPI_Init(&amp;hspi3);</code></pre><p>GPIO is configured as:</p><pre> </pre><pre><code>PB7  MOSI<br />PB8  MISO<br />PB10 SCK<br />AF2</code></pre><p>SPI configuration:</p><pre> </pre><pre><code>SPI_MODE_MASTER<br />SPI_DIRECTION_2LINES<br />SPI_DATASIZE_8BIT<br />SPI_POLARITY_HIGH<br />SPI_PHASE_2EDGE<br />SPI_NSS_SOFT</code></pre><h3>Problem</h3><p>The application never reaches successful SPI operation.</p><p>It appears to stop during or immediately after:</p><pre> </pre><pre><code>__HAL_RCC_SPI3_CLK_ENABLE();<br /><br />HAL_SPI_Init(&amp;hspi3);</code></pre><p>The clock enable macro expands to:</p><pre> </pre><pre><code>SET_BIT(RCC-&gt;SPI3CFGR, RCC_SPI3CFGR_SPI3EN);</code></pre><p>which makes me suspect that the M33 may still not have permission to access the corresponding RCC resource.</p><h3>Questions</h3><ol><li>Besides assigning <code>STM32MP25_RIFSC_SPI3_ID</code> to <code>RIF_CID2</code>, are there additional RIF entries required for SPI3?</li>\t<li>Does the M33 also need ownership of the RCC resource controlling <code>SPI3CFGR</code>?</li>\t<li>If so, which <code>RIF_RCC_RESOURCE(x)</code> corresponds to <code>SPI3CFGR</code> / <code>SPI3_R</code>?</li>\t<li>Are there any additional security, clock, reset, or firewall settings required for SPI3 on STM32MP257 when accessed from the M33?</li></ol><p>Any guidance or working example of SPI3 running from the M33 on STM32MP257 would be greatly appreciated.</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "SPI",
+    "STM32MP25 lines"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 27,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "102389",
+    "username": "Amruta_Dixit",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "102389",
+    "username": "Amruta_Dixit",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-03T06:00:24+00:00",
+  "lastActivityAt": "2026-07-03T06:00:24+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-03T06:00:24+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257f-ev1-m33-cannot-initialize-spi3-after-assigning-rif-ownership-to-cid2-hal-spi-init-hangs-faults-166645",
+  "scraped_replies": []
+}

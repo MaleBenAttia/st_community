@@ -1,0 +1,74 @@
+{
+  "contentType": "question",
+  "id": "167606",
+  "publicId": "167636",
+  "title": "Using Two STM32 IC in one board",
+  "content": "<p>Hello everyone,</p><p>I need to design a board featuring two STM32 microcontrollers that must operate in sync. To ensure clock synchronization, I plan to use a single external crystal.</p><p>My proposed hardware approach is:</p><ol start=\"1\"><li>\t<p>Connect the standard external crystal (HSE) to MCU 1.</p>\t</li>\t<li>\t<p>Route the MCO (Microcontroller Clock Output) pin of MCU 1 to the OSC_IN pin of MCU 2.</p>\t</li>\t<li>\t<p>Configure MCU 2 to use HSE Bypass Mode, leaving its OSC_OUT pin floating.</p>\t</li>\t<li>\t<p>Place a series damping resistor on the trace between MCO and OSC_IN to prevent ringing.</p>\t</li></ol><p>Could you please confirm if this topology is the correct and officially recommended approach for STM32 devices? Thanks in advance for your time and suggestions!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32H7 series",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 47,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "109010",
+    "username": "berkayoozz",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "39813",
+    "username": "LCE",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/c6547345-4bfa-4b5a-b6f7-8d606679294e.png"
+  },
+  "createdAt": "2026-08-12T07:02:39+00:00",
+  "lastActivityAt": "2026-08-12T08:39:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745465,
+  "publishedAt": "2026-08-12T07:02:39+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/using-two-stm32-ic-in-one-board-167636",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>To ensure clock synchronization, I plan to use a single external crystal.</p></blockquote><p>This will not ensure that the <em>applications </em>run in sync.</p><p>You will need to provide some separate application-level synchronisation mechanism.</p><p> </p><p>Your proposal will certainly achieve the goal of having the two MCUs running from the same clock source: look at the Nucleo board schematics - this is how the target MCU is clocked from the ST-Link.</p><p>But, again, this will not ensure that the <em>applications</em> on the MCUs run in sync.</p><p> </p><p>#4 may not be necessary.</p><p> </p><p><strong><u>PS</u>:</strong></p><p><oembed url=\"https://community.st.com/stm32-mcus-products-25/synchronizing-the-clocks-of-two-stm32s-139692\"></oembed><oembed url=\"https://community.st.com/stm32-mcus-products-25/hello-i-have-three-stm32f469i-disco-boards-that-i-need-to-be-fully-synchronized-as-i-searched-the-best-way-to-do-this-is-by-making-them-all-operate-with-the-same-clock-how-can-i-do-this-please-help-8670?postid=34442#post34442\"></oembed></p><p> </p><p><strong><u>PPS</u>:</strong></p><p>Another way to share a common clock would be to have an external clock source (crystal oscillator, MEMS, whatever) and feed that to both of the STM32s in Bypass mode.</p><p>Still won’t synchronise the applications.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the detailed clarification, Andrew!</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You’re welcome.</p><p>If your issue is now solved, please <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">mark the solution</a> <em>on the post which provided the answer</em> - not this one!</p><p> </p><p>You might want to start a separate thread on the separate issue of how to “synchronise” the applications on two different microcontrollers.</p><p>You would need to give more details on what, exactly, you mean by “synchronise” in this particular case…</p><p> </p><oembed url=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\"></oembed><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Question is , how sync type you require. Long time equal freq is guaranted exactly. If PLL is used on both exist residual jitter. And based on real electric phase is always shifted. For example SPI from STM A is shifted against SPI B on same speed...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>In case you might need software sync in the future, I would use some extra interface / GPIOs to connect both controllers.</p><p>At least one or 2 GPIOs with EXTI enabled on the sync slave, e.g. to reset the SysTick as a simple example.</p></div>"
+    }
+  ]
+}

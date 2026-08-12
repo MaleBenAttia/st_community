@@ -1,0 +1,126 @@
+{
+  "contentType": "question",
+  "id": "166863",
+  "publicId": "166880",
+  "title": "STM32H753VIT6 FreeRTOS idle ~53°C at 480 MHz — is this normal?",
+  "content": "<p>MCU: STM32H753VIT6</p><p>CPU clock: 480 MHz</p><p>OS: FreeRTOS</p><p>Question:</p><p>In idle (no application workload, just FreeRTOS idle), the MCU package temperature is about 53°C.</p><p>I measured this with a thermal camera.</p><p>Is this temperature range expected/normal for STM32H753 at 480 MHz in idle?</p><p>Or should I expect a significantly lower temperature?</p><p>Additional notes:</p><p>- No heavy application tasks running (idle-dominant)</p><p>- Measurement method: thermal camera (not estimated)</p><p>Any reference values or known typical idle temperatures for H753 at 480 MHz would be appreciated.</p><p>Thanks.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32H7 series",
+    "FreeRTOS"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 9,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 317,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108176",
+    "username": "seonho",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "34409",
+    "username": "AScha.3",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/60d29077-e89a-e289-a5b6-1836d7f87f90.png"
+  },
+  "createdAt": "2026-07-13T00:48:26+00:00",
+  "lastActivityAt": "2026-07-16T15:44:06+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743252,
+  "publishedAt": "2026-07-13T00:48:26+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32h753vit6-freertos-idle-53-c-at-480-mhz-is-this-normal-166880",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>So what are the IOs doing?</p><p>Any (clock) outputs with load?</p><p>And what does the OS actually to in idle mode, does it put the CPU to sleep?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks — answers below.</p><p>1) IOs</p><p>Custom board (not Nucleo). Still active in this “idle”:</p><p>- USB FS CDC</p><p>- 5x SAI to external TLV320 ADCs (SAI1 = TDM master)</p><p>- SPI/GPIO for 3x AD9837 DDS</p><p>- ADC enable/shutdown GPIOs</p><p>So not bare unused-IO idle.</p><p>2) Clock outputs / load</p><p>Yes:</p><p>- SAI1 TDM bit/master clock to ADC chain</p><p>- PLL2 clocks SAI/ADC</p><p>- DDS keep RF carriers on (~25–31 kHz)</p><p>No intentional loaded MCO.</p><p>3) FreeRTOS idle / sleep</p><p>Yes:</p><p>- configUSE_IDLE_HOOK = 1</p><p>- Idle hook: __WFI()</p><p>- Sleep mode only (SLEEPDEEP = 0), not Stop/Standby</p><p>- HCLK + SysTick stay on; next IRQ wakes CPU</p><p>Summary: CPU can sleep in idle, but peripherals/clocks still burn power.</p><p>Condition: 480 MHz, FreeRTOS idle-dominant, package ~53°C by thermal camera.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"seonho\"><div class=\"content-quote-content\"> <p>- HCLK + SysTick stay on; next IRQ wakes CPU</p> </div></content-quote><p>So the CPU will be waking on every SysTick - every 1 ms ?</p><p>Have you looked at the current consumption using something like <a href=\"https://www.st.com/en/development-tools/stlink-v3pwr.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">STLINK-V3PWR</a> or <a href=\"https://www.st.com/en/evaluation-tools/x-nucleo-lpm01a.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">X-NUCLEO-LPM01A</a> to see the actual current consumption?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>All these peripherals “running” in the background via DMA or interrupts?</p><p>If yes, then at 480 MHz the temperature doesn’t seem too unrealistic. (I do not know this H7, and have no experience with FreeRTOS)</p><p> </p><p>Anything else on the PCB that might heat things up? What I mean is, check if anything else in the vicinity of the STM32 causes a higher ambient / PCB temperature-</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks.</p><p>In normal operation, yes — SAI uses DMA, and FreeRTOS tasks handle the ADC/DSP work from those completions. Under that load the MCU is about ~60°C.</p><p>The ~53°C figure is the opposite case: ADC SAI DMA off, DSP/demod off, no other app load, FreeRTOS idle ~99%, CPU still at 480 MHz.</p><p>On the PCB there are other parts that could add heat, and coil-related hardware is mostly not connected right now.<br/>In both cases only the power section and the MCU package are hot; nearby parts are not.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108176\">@seonho</user-mention> and welcome to the ST community,</p><p>At which temperature room value you are measuring that MCU temperature?</p><p>Try to run a simple program (forget about RTOS for now): toggle a GPIO pin, do you have the same measured temperature? Otherwise I can suspect a hardware issue. </p><p>What voltage scale you set for 480MHz? VOS0? if no you should set VOS = <strong>VOS0</strong></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"seonho\"><p>Hello, thank you.</p> <p>The room temperature during the measurement was approximately 24°C.</p> <p>The MCU temperature was checked using two methods, and the results were almost identical:<br/>\t- Thermal camera measurement of the package<br/>\t- ADC3 internal temperature sensor</p> <p>During full application operation: approximately 60°C.<br/>\tWith everything stopped (DMA/DSP off, FreeRTOS idle ≈ 99%, CPU at 480 MHz): approximately 53°C.</p> <p>On the PCB, only the power supply section and the MCU become hot.</p> <p>The voltage scale is VOS0.<br/>\tThe configuration is PWR_LDO_SUPPLY with SYSCLK at 480 MHz.</p></content-quote></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>In idle (no application workload, just FreeRTOS idle),  …</em></span></p><p>Microcontrollers usually have no dynamic frequency scaling capability, and unless you utilize sleep or power-down modes, you always get “100 % CPU load”.<br/>What part of this CPU load constitutes useful application workload is a different matter.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, that’s what I forgot to mention.</p><p>Unless the CPU is sleeping, it’s running through the main loop no matter if necessary or not.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Can you use SMPS mode? This lowers power consumption as it uses a buck converter instead of an LDO to produce core voltage. It requires an external inductor. Unfortunately SMPS mode is only supported up to 400MHz. But if that is acceptable for you it might be worth it.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"27597\">@unsigned_char_array</user-mention> </p><blockquote><p>Can you use SMPS mode? </p></blockquote><p>That’s not possible as STM32H753 doesn’t feature SMPS. Only STM32H7 dual core MCUs have SMPS.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>That's unfortunate. </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Are you running at 3.3v or 3.0v? </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>We're running at 3.3 V (VDD/VDDA), not 3.0 V.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>If the MCU is idle for significant % of the time - consider running slower (say, 400 or 250 MHz instead of 480). This will help with temperature, unless something else on the board generates more heat than the MCU.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Which puts the entire MCU choice in question.<br/>Probably a smaller (and cheaper) MCU like a F4 could easily manage as well.</p><p>Occasionally other considerations like platform compatibility take precedence, though.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>FYI:</p><p>I’m just working with a G4, don’t have the final hardware yet, so I grabbed a Nucleo - and did not mind adapting the GPIOs to the Nucleo…</p><p>Nothing broken, but with the “wrong” GPIOs I measured a CPU temperature of about 48°C (internal sensor).</p><p>Turning the GPIOs off brought the temperature down to 35°C, which is about 5°C above my current office temperature (sigh...).</p><p>Changing the CPU clock between ~ 100 MHz and 150 MHz didn’t change much (using non-deep sleep mode, but with SysTick interrupt waking it up every 1 ms - which I found let’s the CPU sleep &gt; 80% of the time anyway).</p><p>Not using sleep mode (simple __WFI with exit on interrupt, no deep sleep, nothing else changed) brings the temperature to about 39°C.</p><p>(ADC and both SAI blocks (fs 96 kHz) with DMA running all the time).</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>53° seems ok, at 480M .   See ds for current :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bcf49fa8-6b79-4224-9be2-fa7e279afacf.png\"/></figure><p>200mA at 3v3 giving about 0.7W heat...assuming about 50°/W , for lqfp100 case on pcb,  you get +33°, so at 24° ambient : 57° to expect, at max current.</p><p> </p><p>btw</p><p>Thats why i run my H743 at 200M , VOS2, giving about 60mA heat;  in lqfp144 case, about +5° rise above ambient.</p><p> </p></div>"
+    }
+  ]
+}

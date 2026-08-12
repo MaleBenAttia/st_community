@@ -1,0 +1,60 @@
+{
+  "contentType": "question",
+  "id": "166852",
+  "publicId": "166869",
+  "title": "Undocumented 10s reset time of Bootloader on unexpected I2C behaviour",
+  "content": "<p>I’m using a Raspberry Pi host to flash an STM32G030 via I2C.<br />The Raspberry Pi (all models except 5 and newer) have a known hardware bug in their I2C clock-stretching support.<br />See e.g. <a href=\"https://www.advamation.com/knowhow/raspberrypi/rpi-i2c-bug.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.advamation.com/knowhow/raspberrypi/rpi-i2c-bug.html</a><br />The interaction between a Raspberry Pi and the STM32 Bootloader over I2C is thus erratic. It works most of the time (including full verify, erase and flash cycles), but around 10% of the time, it will fail on the first two commands sent. Since it is quite timing-sensitive, with the bug triggering if the STM32 responds within a specific time window, that might be a reason why commands like GET, GET_VERSION, and GET_ID seem to be affected more, but flashing (which is sent much more often) works.<br /> </p><p>Obviously there is little that can be done on the STM32 side. But I wish the AN4221 would document the followup behaviour of the Bootloader more clearly to help identify this issue.<br />Notably, the STM32 gets into an invalid state, in which it does not respond to any I2C command, and then resets after 10s and enters user code.<br /><br /><strong>Please consider mentioning this behaviour in AN4221!</strong></p><p>Thank you!<br /><br />PS: I attached a recording made with PulseView of how it looks on the wire (both with and without the clock stretching bug of the Pis).<br />The 0x3E address is used in the user code, in between it will try to switch to the bootloader and back, 6 times successfully, 1 time unsuccessfully. A first GET_VERSION will trigger the bug, a second attempt will enter an invalid state. The 10s reset time is not recorded.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Documentation",
+    "Bootloader",
+    "STM32G0 series",
+    "I2C"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 53,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108158",
+    "username": "Rainstick",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "499",
+    "username": "mƎALLEm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f063c58-40af-4b0d-9381-650ca815d5be.png"
+  },
+  "createdAt": "2026-07-11T18:42:50+00:00",
+  "lastActivityAt": "2026-07-16T09:05:06+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743201,
+  "publishedAt": "2026-07-11T18:42:50+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/undocumented-10s-reset-time-of-bootloader-on-unexpected-i2c-behaviour-166869",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108158\">@Rainstick</user-mention> and welcome to the ST community,</p><p>I’ve escalated your case internally over this ticket: <em><strong>CDM0064397 </strong></em>(not accessible by the community users).</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "contentType": "question",
+  "id": "167151",
+  "publicId": "167177",
+  "title": "How to use liveWatch when debugging with Jlink in STM32CubeIDE for Visual Studio Code",
+  "content": "<pre><code class=\"language-c\">        {<br />            \"type\": \"jlinkgdbtarget\",<br />            \"request\": \"launch\",<br />            \"name\": \"STM32Cube: Launch JLink GDB Server\",<br />            \"origin\": \"snippet\",<br />            \"cwd\": \"${workspaceFolder}\",<br />            \"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",<br />            \"runEntry\": \"main\",<br />            \"imagesAndSymbols\": [<br />                {<br />                    \"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"<br />                }<br />            ],<br />            \"liveWatch\": {<br />                \"enabled\": true,<br />                \"samplesPerSecond\": \"4\"<br />            }              <br />        },</code></pre><p>Under this configuration, the prompt indicates that the attribute \"liveWatch\" is not allowed.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "VSCode for STM32"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 1,
+  "votes": 0,
+  "views": 36,
+  "voteSet": [],
+  "likeSet": [
+    "104606"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "104606",
+    "username": "GGB1",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "104606",
+    "username": "GGB1",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-23T08:12:47+00:00",
+  "lastActivityAt": "2026-07-23T08:16:47+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743740,
+  "publishedAt": "2026-07-23T08:12:47+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/how-to-use-livewatch-when-debugging-with-jlink-in-stm32cubeide-for-visual-studio-code-167177",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This is the analysis conducted by GPT.</p><p>STM32CubeIDE for Visual Studio Code 3.10.0</p><p>JLinkDebugTargetAdapter correctly creates the Live Watch client.</p><p>However, the Live Watch client immediately issues</p><p>-var-create</p><p>while the target is running.</p><p>SEGGER J-Link GDB Server returns</p><p>Cannot execute this command while the target is running.</p><p>Use the \"interrupt\" command to stop the target and then try again.</p><p>Therefore all Live Watch variables remain</p><p>Not Available.</p><p>This works with ST-Link GDB Server because it apparently accepts -var-create while the target is running.</p><p>It seems the J-Link adapter should either</p><p>1. interrupt the target before issuing -var-create</p><p>or</p><p>2. create all variable objects before continuing execution.</p></div>"
+    }
+  ]
+}

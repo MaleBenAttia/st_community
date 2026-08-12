@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "166678",
+  "publicId": "166703",
+  "title": "Engine stalled due to undervoltage or overheating",
+  "content": "<p>Hello everyone, I have successfully controlled the Lin Engineering BL23E3301D04RO motor with the Nucleo-G474RE and IHM08M1 inverter .. using FOC configured in MC Workbench and the motor’s built-in encoder.</p><p>I then copied the entire project and changed only the engine.</p><p>Now I’m having trouble getting the following PMSM motor to run.</p><ul><li>\t<p><strong>Kt</strong> — 1.54 N·m/Arms</p>\t</li>\t<li>\t<p><strong>Motor Constant</strong> <strong>Km</strong>— 1.63 Nm/sqrt(watt)</p>\t</li>\t<li>\t<p><strong>RM (lin to line) at Amb</strong> — 0.60 Ohms</p>\t</li>\t<li>\t<p><strong>Inductance</strong> — 2.24 mH</p>\t</li>\t<li>\t<p><strong>Motor Poles</strong> — 16</p>\t</li>\t<li>\t<p><strong>Ipeak Motor</strong> — 51.19 Arms</p>\t</li>\t<li>\t<p><strong>Tcont Stall</strong> — 20.74 N·m</p>\t</li>\t<li>\t<p><strong>Icont Stall Motor</strong> — 13.60 Arms</p>\t</li>\t<li>\t<p><strong>Tpk motor (25°C)</strong> — 64.54 Nm</p>\t</li>\t<li>\t<p><strong>Rated speed</strong> — 1914 rpm</p>\t</li>\t<li>\t<p><strong>Rated Power </strong>— 2826 W</p>\t</li>\t<li>\t<p><strong>Inertia (KBM) </strong>— 5.69E-3 Kg-m² (4.20E-3 lb-ft-s²)</p>\t</li>\t<li>\t<p><strong>Max Static Friction </strong>— 0.203 Nm (0.150 lb-ft)</p>\t</li>\t<li>\t<p><strong>Cogging Friction </strong>— 0.102 Nm (0.075 lb-ft)</p>\t</li>\t<li>\t<p><strong>Poles </strong>— 16</p>\t</li>\t<li>\t<p><strong>Back EMF Constant</strong>  — 93.3 Vrms/kRPM</p>\t</li></ul><p> </p><p>In MC Workbench, I have set the following:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/abcbed04-6210-4c8b-a9b9-d5ab8af29758.png\" /></figure><p> </p><p>I have configured the quadrature encoder to 2000 pulses per mechanical revolution.</p><p> </p><p>The power supply is CPX400S:</p><ul><li><strong>Vout </strong>— 46V</li>\t<li><strong>Iout,max </strong>— 5A</li></ul><p>I’ll break down the tests I’ve carried out below so we can understand them better.</p><p> </p><p><em><strong>----------------------------------------------------------------MC Workbench----------------------------------------------------------------</strong></em></p><p><span style=\"color:#e74c3c;\"><strong>PROBLEM no.1</strong></span><strong>:</strong> the motor gives a slight initial jolt, then stops (making a noise); the current supplied by the power supply increases and the power supply voltage drops until an undervoltage fault occurs. If I let the current rise, I’ll burn out the IHM driver (it’s happened before).</p><p>I have NOT tried sensorless mode (I was getting feedback errors and didn’t try adjusting all the various parameters) and I’m using <a href=\"https://www.evermotionsolutions.com/it/prodotti/encoders/incrementali/se462000ab10030\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">this encoder</a>. I am required to use the Encoder in the final application so I’d like to sort the problem out with him.</p><p>I don’t think it’s a PID issue, both because I’ve tried various settings and the situation hasn’t changed… and because it seems that something else is blocking the motor; the PID tries to push it to the limit by demanding maximum output, but the motor remains stationary.</p><p><span style=\"color:#2980b9;\"><strong>TEST</strong></span>: trying to change the speed PID parameters and cut-off frequency of the current loop does not seem to solve the problem. In the current loop, the motor either remains stationary or behaves in the same way of the speed loop.</p><p>My application has a maximum speed of 250 rpm (even though the engine can reach 2000rpm), so this immediately raises the first question:</p><ol><li><u>Which parameter in MC Workbench should be set to 250 rpm? The ‘Target speed’ in the Speed Regulator?</u></li></ol><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8452d3c9-ba62-49fb-9fcf-87c41ea4850e.png\" /></figure><p> </p><p><span style=\"color:#f39c12;\"><strong>SUSPECT no.1:</strong></span><span style=\"color:#e74c3c;\"><strong> </strong></span>I don’t know if this has anything to do with it, but (if I remember correctly) when I was using the Lin Engineering BL23E3301D04RO motor on the oscilloscope, with the probe connected to the encoder’s A pulse, I could see a clear signal… now I see completely distorted, unrecognisable pulses. I admit that the encoder cables (mounted on the motor shaft) were cut, soldered to a further 4–5 cm of cable and then adapted (crimped and fitted with a connector) to connect them to the connector on the IHM08M1.</p><p> </p><p><span style=\"color:#f39c12;\"><strong>SUSPECT no.2:</strong></span><span style=\"color:#e74c3c;\"><strong> </strong></span>if I set the quadrature encoder to 1000 pulses per mechanical revolution (and not 2000 as it should be) the motor runs smoothly at a speed that is double (or triple – I can’t remember) the set speed. I’m not surprised that the speed is different… but I am surprised that the motor runs without any problems!</p><p> </p><p><em><strong>----------------------------------------------------------------Motor Profiler----------------------------------------------------------------</strong></em></p><p><span style=\"color:#f39c12;\"><strong>SUSPECT no.3:</strong></span><span style=\"color:#e74c3c;\"><strong> </strong></span>are the motor parameters correct? “It’s good to trust the datasheet, but better not to” – so I’ve decided to estimate them using your Motor Profiler (thereby switching to sensorless control). Here too, I’m not quite sure what values to set for ‘Max Speed’ and ‘Max Current’ for the estimation… the motor’s maximum values? Or the maximum values I set on the bench-top power supply? This test leads to another problem:</p><p> </p><p><span style=\"color:#e74c3c;\"><strong>PROBLEM no.2</strong></span><strong>:</strong> at around 28%, the profiler ‘freezes’ – that is, the motor accelerates for a few seconds, then stops abruptly, then starts turning again for a few seconds, then stops abruptly, and so on, until it triggers an overheating fault. I’ve tried both the motor’s rated current (minus 15%) … and 5A (well below the motor’s 50Apk) … but the problem persists.</p><p> </p><p><span style=\"color:#f39c12;\"><strong>SUSPECT no.4:</strong></span><span style=\"color:#e74c3c;\"><strong> </strong></span>the motor isn’t completely ‘idling’ – that is, it has a shaft and is mounted within a mechanical structure, so it has a bit of load torque… I hope that isn’t a problem for the Motor Profiler.</p><p> </p><p><em><strong>----------------------------------------------------------------CONCLUSIONS----------------------------------------------------------------</strong></em></p><p>I’m wondering what might be causing these two issues… In the meantime, I’m continuing to adjust the parameters in MC Workbench and monitor them using CubeMonitor.</p><p>If there are any specific parameters you’d like to know about or see, just let me know which ones and I’ll plot them and attach screenshots, updating the main post.</p><p> </p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "34",
+  "categoryName": "STM32 MCUs Motor control",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32 motor control",
+    "MC workbench"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 19,
+  "inclusiveVisibleReplyCount": 19,
+  "likes": 0,
+  "votes": 0,
+  "views": 285,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "23734",
+    "username": "luke514",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/1def4794-73b8-65b3-b34f-cc2390bec396.png"
+  },
+  "lastContributor": {
+    "id": "23734",
+    "username": "luke514",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/1def4794-73b8-65b3-b34f-cc2390bec396.png"
+  },
+  "createdAt": "2026-07-06T11:13:23+00:00",
+  "lastActivityAt": "2026-08-04T09:28:43+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744735,
+  "publishedAt": "2026-07-06T11:13:23+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/engine-stalled-due-to-undervoltage-or-overheating-166703",
+  "scraped_replies": []
+}

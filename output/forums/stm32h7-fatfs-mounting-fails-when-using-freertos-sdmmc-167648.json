@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167617",
+  "publicId": "167648",
+  "title": "STM32H7: FatFs mounting fails when using FreeRTOS + SDMMC",
+  "content": "<p>I am working with an STM32H743VIT6 and I am trying to migrate an existing bare-metal LVGL + SDMMC + FatFs project to FreeRTOS + LVGL + SDMMC + FatFs</p><p>In my previous bare-metal project, the SD card worked correctly.</p><p>However, after creating a new project using <strong>STM32CubeMX with FreeRTOS + SDMMC + FatFs</strong>, the FatFs mount operation fails from the beginning.</p><p>The problem occurs when calling:</p><pre><code class=\"language-c\">f_mount(&amp;SDFatFS, SDPath, 1);<br /><br /><br /><br />void LVGL_Task(void *argument) {<br />  (void)argument;<br /><br />  printf(\"LVGL Task START\\r\\n\");<br /><br />  FRESULT fres;<br /><br />  printf(\"before f_mount\\r\\n\");<br /><br />  fres = f_mount(&amp;SDFatFS, (TCHAR const *)SDPath, 1);<br />  printf(\"after f_mount, result = %d\\r\\n\", fres);<br /><br /><br />  if (fres == FR_OK) {<br />    printf(\"SD success\\r\\n\");<br />  } else {<br />    printf(\"SD fail\\r\\n\");<br />  }<br /><br />  printf(\"before ui_init\\r\\n\");<br /><br />  ui_init();<br /><br />  printf(\"after ui_init\\r\\n\");<br /><br />  while (1) {<br />    uint32_t delay = lv_timer_handler();<br /><br />    if (delay &gt; 1000)<br />      delay = 10;<br /><br />    osDelay(delay);<br />  }<br />}</code></pre><p> </p><p>I have placed the buf address in AXI SRAM and confirmed that the address is correct through UART printing<br /> </p><pre><code class=\"language-c\"><br />Linker:<br /><br />/* Specify the memory areas */<br />MEMORY<br />{<br />  DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K<br />  LVGL_RAM (xrw) : ORIGIN = 0x24000000, LENGTH = 320K<br />  SD_DMA_RAM (xrw) : ORIGIN = 0x24050000, LENGTH = 64K<br />  RAM (xrw) : ORIGIN = 0x24060000, LENGTH = 128K<br />  DMA_RAM  (xrw) : ORIGIN = 0x30000000, LENGTH = 64K<br />  RAM_D2   (xrw) : ORIGIN = 0x30010000, LENGTH = 224K<br />  RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 64K<br />  ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K<br />  FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K<br />}<br /><br /><br />fatfs.c:<br /><br />/* USER CODE BEGIN Variables */<br />__attribute__((section(\".SD_DMA_RAM\")))<br />__attribute__((aligned(32))) FATFS SDFatFS;<br /><br />char SDPath[4];<br /><br />/* USER CODE END Variables */</code></pre><p><br />After a timeout of 30 seconds, SD fail will be displayed</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9a2b405e-91b1-4684-8084-7853753398f7.png\" /></figure><p> </p><p> </p><p>Is there something wrong with the configuration of my STM32cubemx? Here are pictures of my various configurations<br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/24dacb8d-6eab-47b7-a2cc-56942634b1d4.png\" /></figure><p><br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1e48e2c3-aa3e-451d-8206-19a41fedbe6c.png\" /></figure><p> </p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/28236d96-1131-4656-b933-9d2085efc27f.png\" /></figure><p> </p><p> </p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/905ccc16-b69d-4769-b9d5-492dbc6c063a.png\" /></figure><p> </p><p><br />I have enabled D-Cache, but I managed the MDMA_buf address with an MPU to prevent D-Cache from accessing it. My LCD's DMAobuf also works this way, so there is no problem</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b2114699-4b80-4c4c-8bc9-31c355e4166a.png\" /></figure><p><br /><br />I have already confirmed that the hardware and SD card itself are working because the previous bare-metal implementation can mount and read the same SD card successfully.<br /><br /> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "FatFS",
+    "SDIO-SDMMC",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 14,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108301",
+    "username": "SimpleMa",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108301",
+    "username": "SimpleMa",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-12T12:25:18+00:00",
+  "lastActivityAt": "2026-08-12T12:25:18+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-12T12:25:18+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/stm32h7-fatfs-mounting-fails-when-using-freertos-sdmmc-167648",
+  "scraped_replies": []
+}

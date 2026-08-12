@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "166973",
+  "publicId": "166993",
+  "title": "stm32f7xx_ll_gpio.h – shift-count-overflow UB detected by GCC -fanalyzer in LL_GPIO_GetPinMode / LL_GPIO_SetPinMode and related functions",
+  "content": "<p>Hi,</p><p> </p><p>**Environment**<br />- STM32F7xx LL Driver (STM32F7xx_HAL_Driver)<br />- GCC arm-none-eabi 15.2 (also reproducible with GCC ≥ 12)<br />- Compiler flag: `-fanalyzer`<br />- File: `STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_gpio.h`</p><p>---</p><p>**Problem**</p><p>When building with `-fanalyzer`, GCC reports the following warning for several inline functions in stm32f7xx_ll_gpio.h:</p><p>```<br />warning: shift by count ('64') &gt;= precision of type ('32')<br />         [-Wanalyzer-shift-count-overflow]<br />```</p><p>**Root cause**</p><p>`POSITION_VAL(VAL)` is defined as `__CLZ(__RBIT(VAL))`. When the analyzer considers `Pin = 0` as a possible runtime value (which it cannot rule out without additional constraints), then:</p><p>- `__RBIT(0)` → `0`<br />- `__CLZ(0)` → `32` (implementation-defined, GCC arm-none-eabi returns 32)<br />- `32 * 2U` → `64` → shift of a `uint32_t` by 64 = **undefined behavior** per C11 §6.5.7</p><p>The affected functions all follow the same pattern:</p><pre><code class=\"language-c\">// e.g. LL_GPIO_GetPinMode (line 307–311)<br />return (uint32_t)(READ_BIT(GPIOx-&gt;MODER,<br />    (GPIO_MODER_MODER0 &lt;&lt; (POSITION_VAL(Pin) * 2U)))<br />    &gt;&gt; (POSITION_VAL(Pin) * 2U));</code></pre><p>Additionally, `POSITION_VAL(Pin)` is evaluated **twice**, which is redundant.</p><p>**Affected functions** (non-exhaustive):<br />- `LL_GPIO_SetPinMode`<br />- `LL_GPIO_GetPinMode`<br />- `LL_GPIO_SetPinSpeed`<br />- `LL_GPIO_GetPinSpeed`<br />- `LL_GPIO_SetPinPull`<br />- `LL_GPIO_GetPinPull`</p><p>---</p><p>**Proposed fix**</p><p>Introduce a local `pos` variable and mask the shift count to a maximum of 30 (`Pin` 15 → bit 15 → `POSITION_VAL` = 15 → `15 * 2 = 30`). This eliminates the UB and the double evaluation:</p><pre><code class=\"language-c\">// Before<br />__STATIC_INLINE uint32_t LL_GPIO_GetPinMode(GPIO_TypeDef *GPIOx, uint32_t Pin)<br />{<br />  return (uint32_t)(READ_BIT(GPIOx-&gt;MODER,<br />                             (GPIO_MODER_MODER0 &lt;&lt; (POSITION_VAL(Pin) * 2U)))<br />                             &gt;&gt; (POSITION_VAL(Pin) * 2U));<br />}<br /><br />// After<br />__STATIC_INLINE uint32_t LL_GPIO_GetPinMode(GPIO_TypeDef *GPIOx, uint32_t Pin)<br />{<br />  uint32_t pos = (POSITION_VAL(Pin) &amp; 0xFU) * 2U;  /* Pin 0..15 → shift 0..30 */<br />  return (uint32_t)(READ_BIT(GPIOx-&gt;MODER, (GPIO_MODER_MODER0 &lt;&lt; pos)) &gt;&gt; pos);<br />}</code></pre><p> </p><p>The same pattern should be applied to all other affected functions. The `&amp; 0xFU` mask clamps the pin index to 15, making the maximum shift 30, which is always within the 32-bit precision. The mask has no effect on valid `LL_GPIO_PIN_x` inputs and adds no runtime overhead (compiler optimizes it away for constant pins).</p><p>The same class of issue likely exists in the STM32F4xx, STM32H7xx, STM32L4xx and other series LL GPIO headers.</p><p>---</p><p> </p><p>Best regards,</p><p>André</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "Bug-report",
+    "STM32F7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 41,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "70914",
+    "username": "AKriehn",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "8205",
+    "username": "TDK",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7577e4b8-db05-6051-ffd8-4370c29016ca.png"
+  },
+  "createdAt": "2026-07-16T09:00:45+00:00",
+  "lastActivityAt": "2026-07-16T23:14:44+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743274,
+  "publishedAt": "2026-07-16T09:00:45+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f7xx-ll-gpio-h-shift-count-overflow-ub-detected-by-gcc-fanalyzer-in-ll-gpio-getpinmode-ll-gpio-setpinmode-and-related-functions-166993",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>pin=0 is an invalid parameter. LL was designed specifically not to check for invalid parameters (unlike HAL) in order to optimize for speed. Adding the &amp; 0xF0 operation is slower unless both 1) the compiler inlines the code and 2) optimization levels are set to nonzero. Those aren’t guarantees.</p><p> </p><p>It’s on the user to pass valid parameters. Invalid parameters lead to invalid or undefined results--that is expected. There is no problem to solve here.</p><p> </p><p><em>&gt; compiler optimizes it away for constant pins</em></p><p>The compiler will also optimize out the double-evaluation on any non-zero optimization level. Though I tend to agree it should be a separate evaluation as you’ve shown it.</p></div>"
+    }
+  ]
+}

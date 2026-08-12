@@ -1,0 +1,81 @@
+{
+  "contentType": "question",
+  "id": "166549",
+  "publicId": "166571",
+  "title": "Incorrect statement in STM32U3, STM32H5, STM32U5 docs",
+  "content": "<p>While looking at STM32U3C5 and STM32H503 datasheets I found incorrect information on ICACHE. Quote:</p><blockquote><p>Hit ratio improved by two-ways set-associative architecture and pLRU-t<br />replacement policy (pseudo-least-recently-used, based on binary tree), algorithm<br />with best complexity/performance balance</p></blockquote><p> </p><p>The problem is: pseudoLRU may only be applied to 3- (or more) way set-associative caches. With 2-way set-associative, the single flip-flop per set provides true LRU and there is no such thing like “pseudoLRU” for 2 ways. You can’t do binary tree with a single flip-flop.  PseudoLRU is normally used with 4 or more ways, since for 4 ways pseudoLRU requires 3 flip-flops organized as 2-level tree, with simple state transition logic while true LRU - 4 flip-flops and 12 states with much more complex state transition logic.</p><p>I suspect the same error might be present in all the STM32 documents describing MCU caches which are 2-way set-associative.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32H5 series",
+    "STM32U5 series",
+    "STM32C5 series"
+  ],
+  "moderatorTags": [
+    "CTT-Nom-to-close"
+  ],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 0,
+  "votes": 0,
+  "views": 167,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "4148",
+    "username": "gbm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/94737c44-d0ec-8a28-6018-7e0515c3533d.png"
+  },
+  "lastContributor": {
+    "id": "18044",
+    "username": "David Littell",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/6a37455d-8821-21e8-63d6-38cfa47694bf.png"
+  },
+  "createdAt": "2026-07-01T07:42:33+00:00",
+  "lastActivityAt": "2026-07-10T12:34:48+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742712,
+  "publishedAt": "2026-07-01T07:42:33+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/incorrect-statement-in-stm32u3-stm32h5-stm32u5-docs-166571",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Need to check internally.</p><p>I’ll get back to you as soon as I have a feedback.</p><p>Internal ticket for follow-up: <em><strong>CDM0063991</strong></em></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello and here is the feedback from the team:</p><p><span style=\"color:#3333ff;\">The phrase was meant to express that both elements independently :</span></p><ul><li><span style=\"color:#3333ff;\">two-ways set-associative architecture</span></li> <li><span style=\"color:#3333ff;\">pLRU replacement policy</span></li></ul><p><span style=\"color:#3333ff;\">Contribute to improve hit ratio</span></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>But there is NO psedoLRU in this cache design. PseudoLRU is simply not possible with associativity below 4, so the statement is pure mistake.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Here is the feedback from the team:</p><p><span style=\"color:#3300ff;\"><em>“Pseudo-LRU behaves like true LRU when the associativity is below 4.<br/>The statement in the Datasheet : \"Hit ratio improved by two-ways set-associative architecture and pLRU-t replacement policy (pseudo-least-recently-used, based on binary tree), algorithm with best complexity/performance balance\"</em></span><br/><span style=\"color:#3300ff;\"><em>Therefore the statement is generic and it is correct.</em></span></p><p>Hope that answered your question.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Well, it wasn’t a question, it was an observation.</p><p>The bottom line is: it is simply LRU - real, true LRU, not pseudoLRU. So calling it “pseudoLRU” is a mistake. PseudoLRU is used when true LRU cannot be efficiently implemented - typically with 4 or more cache ways. And there is no binary tree of flip-flops with 2-way cache, so that’s yet another mistake.</p><p>Of course you may call the light switch in your room “a single-level binary tree of switches, improving the light control using pseudo on/off control” but I believe that “the on/off light switch” name suits and describes it better.</p><p>;)</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Give it up, hahaha!  This is the same mindset that decides decades-old cache terminology “flush” is now henceforth to be known as “clean”.  Can’t help ‘em.  🙄</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "contentType": "question",
+  "id": "167114",
+  "publicId": "167139",
+  "title": "STM32 low power design: How do you optimize battery life for sensor nodes?",
+  "content": "<p>Hi everyone,</p><p>I'm working on a battery-powered sensor node project based on STM32 MCU.</p><p>The device needs to wake up periodically, collect sensor data, process it briefly, transmit the data, and then return to sleep mode.</p><p>The expected lifetime is several years, so I am focusing on reducing the average current consumption rather than only optimizing active mode performance.</p><p>Currently, I am considering several areas:</p><p>1. Which STM32 low-power modes are usually the best choice for long sleep intervals? (Sleep vs Stop vs Standby)</p><p>2. How much impact do you normally see from:</p><ul><li>disabling unused peripherals?</li>\t<li>reducing clock frequency?</li>\t<li>SRAM retention configuration?</li>\t<li>wake-up time optimization?</li></ul><p>3. For sensor applications that wake up every few seconds or minutes, is it generally better to:</p><ol><li>run the MCU at higher frequency for a shorter time and sleep longer?</li>\t<li>or keep a lower frequency continuously?</li></ol><p>4. When measuring low current consumption, do you usually measure only the MCU current, or the whole system including sensors, regulators, and communication modules?</p><p>I know STM32L series is designed for low-power applications, but I'm interested in practical experiences from engineers who have built real battery-powered products.</p><p>Any suggestions or design tips would be appreciated.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32",
+    "Low Power"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 50,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108420",
+    "username": "sdimen",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-07-22T09:32:15+00:00",
+  "lastActivityAt": "2026-07-22T10:45:59+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743650,
+  "publishedAt": "2026-07-22T09:32:15+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32-low-power-design-how-do-you-optimize-battery-life-for-sensor-nodes-167139",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>Which STM32 low-power modes are usually the best choice for long sleep intervals? (Sleep vs Stop vs Standby)</p></blockquote><p>Look at the descriptions in the Datasheet - they tell you how much current is used in each.</p><p>The trade-offs are: Deeper sleep gives longer battery life, but less functionality while asleep, and takes more to wake up.</p><p> </p><p>Look at peripherals that can run “autonomously” while the CPU is asleep;</p><p>Look at sensors which can store data so that the MCU can read a “batch” at a time - rather than having to keep waking to read just one measurement.</p><p> </p><blockquote><ul><li>reducing clock frequency?</li></ul></blockquote><p>Generally speaking, it’s best to sleep as deeply and as long as possible - so you run at a reasonably fast speed when awake to finish processing and get back to sleep as soon as possible.</p><p> </p><blockquote><p>When measuring low current consumption, do you usually measure only the MCU current, or the whole system including sensors, regulators, and communication modules?</p></blockquote><p>Of course, you have to measure everything - because that’s what’s going to define your battery life!</p><p>There’s no point optimising the MCU to microamps if the rest of the system is taking milliamps!</p><p>Achieving really low power is a whole-system exercise.</p><p> </p><p><strong><u>PS</u>:</strong></p><p>And to actually measure the power consumption of such a system, you will need something like <a href=\"https://www.st.com/en/development-tools/stlink-v3pwr.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">STLINK-V3PWR</a> or <a href=\"https://www.st.com/en/evaluation-tools/x-nucleo-lpm01a.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">X-NUCLEO-LPM01A</a> or similar - a meter is not going to give useful results.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"Andrew Neil\"><div class=\"content-quote-content\"> <p>Look at peripherals that can run “autonomously” while the CPU is asleep;</p> </div></content-quote><p>As ​<user-mention data-id=\"499\">@mƎALLEm</user-mention> suggests, more recent families like STM32U feature <strong>LPBAM </strong>- Low-Power Background Autonomous Mode:</p><p><a href=\"https://wiki.st.com/stm32mcu/wiki/Getting_started_with_LPBAM\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://wiki.st.com/stm32mcu/wiki/Getting_started_with_LPBAM</a></p><oembed url=\"https://community.st.com/stm32-mcus-60/how-to-use-the-lpbam-feature-an-example-using-stm32u5-board-262\"></oembed><oembed url=\"https://www.youtube.com/watch?v=JchJbXC2Gvc\"></oembed><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>For low power application, I recommend to opt for new <strong>ultra low power MCUs</strong> such as STM32Uxx family (instead of STM32L1 family/old MCU family): <a href=\"https://www.st.com/en/microcontrollers-microprocessors/stm32u3-series.html\" rel=\"noreferrer noopener\" target=\"_blank\">STM32U3xx</a>, <a href=\"https://www.st.com/en/microcontrollers-microprocessors/stm32u0-series.html\" rel=\"noreferrer noopener\" target=\"_blank\">STM32U0xx</a></p><blockquote><p><em>When measuring low current consumption, do you usually measure only the MCU current, or the whole system including sensors, regulators, and communication modules?</em></p></blockquote><p>Indeed each component on your board/application has it’s own consumption. So it pulls energy from the battery. The current consumption provided in the datasheet are only for the MCU. So you need to add the other component consuptions.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>I'm working on a battery-powered sensor node …</p></blockquote><p>Have you considered going battery-<em>less</em> - use energy harvesting … ?</p><p>eg,</p><oembed url=\"https://www.youtube.com/watch?v=AnnZK5jQ8PM\"></oembed><p> </p></div>"
+    }
+  ]
+}

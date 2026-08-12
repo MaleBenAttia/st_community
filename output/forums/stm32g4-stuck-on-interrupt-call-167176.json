@@ -1,0 +1,90 @@
+{
+  "contentType": "question",
+  "id": "167150",
+  "publicId": "167176",
+  "title": "STM32G4 stuck on interrupt call",
+  "content": "<p>Hello everyone,</p><p>I’m currently working with an STSPIN32G4 MCU on a custom board.</p><p>Two version of this board exist: version A and version B.</p><p>When I upload the firmware to the MCU on board A everything works correctly. The exact same firmware on version B doesn’t work.</p><p>What happens:</p><ol><li>Board B is powered on and the MCU is still fabric new (no firmware uploaded)</li>\t<li>The custom fw is uploaded using the “Debug” feature of STM32CUBEIDE via JTAG</li>\t<li>The code is executed succesfully by the MCU</li>\t<li>Board B is powered off</li>\t<li>After repowering on board B the issue starts to present: the firmware gets stuck as soon as any interrupt is called</li></ol><p>Here’s an image of where the program points at when I press stop on the debugger after an interrupt call</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f05ae48-b778-491e-9527-1fe6fc9a47f2.png\" /></figure><p>What has already been tried:</p><ol type=\"1\"><li>Performing a full chip erase on the MCU and redownloading the firmware, but it still gets stuck on interrupt call</li>\t<li>Removing the interrupt that was causing the firmware to get stuck (UART1 interrupt), but it still gets stuck as soon as TIM2 interrupt gets called</li>\t<li>Removing all the interrupts and the firmware runs fine</li>\t<li>Trying programming another board B, but the same issue is present</li>\t<li>Comparing the OB of board B and board A and they are all the same. Both MCUs have boot mode set as software only, ignoring BOOT0’s pin value \t<figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/591a4283-07e9-4256-9f36-5631bce53b72.png\" /></figure><p> </p>\t</li>\t<li>Verifying the stability of the power supply on board B</li>\t<li>Veryfing the correct frequency of the external crystal resonator</li></ol>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32G4 series",
+    "Interrupt"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 9,
+  "inclusiveVisibleReplyCount": 9,
+  "likes": 0,
+  "votes": 0,
+  "views": 90,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "100872",
+    "username": "Favand",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "106671",
+    "username": "db16122",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-23T07:09:09+00:00",
+  "lastActivityAt": "2026-07-27T00:36:29+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743996,
+  "publishedAt": "2026-07-23T07:09:09+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32g4-stuck-on-interrupt-call-167176",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I think there is too little context to identify the issue immediately, but the crucial interrupt handler code is missing.</p><p>Have you checked you handled all interrupt causes, including (UART) error interrupts. TxE and RxNE are cleared with accessing TDR, but other flags (like error interrupt flags) must be reset explicitely. Otherwise the core will immediately reenter the handler.</p><p>Second, make sure no other interrupt takes precedence and causes “overflows” in the UART handler.</p><p>Your image suggests the TxE interrupt is responsible for this effect.<br/>I hope you are aware that you need to disable the TxE interrupt when writing the last byte of a “string” to TDR.<br/>I use to do that in the TxE section of the handler itself, directly before writing this last byte.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>It seems version A and version B is same with same hardware as well as MCU. So how does the version B come from, Any reason to use version B instead of version A? Look confused about the custom board design idea...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>Two version of this board exist: version A and version B.</p></blockquote><p>So what are the differences between the two versions?</p><p>Are they just different instances of the same design, or different iterations of the design?</p><p>Add instrumentation to your code to see what's happening in each case - and where they differ</p><p> </p><p>As ​<user-mention data-id=\"48557\">@Ozone</user-mention> said, more details required:</p><oembed url=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\"></oembed><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Without trying to understand the description you’ve provided, the 0x1fffXXXX address means, that you most probably have VTOR=0 and the boot memory mapped for whatever reason (boot pin floating?) at address 0.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"106671\">@db16122</user-mention>  Version A and version B are two different design. The only differences are the power rail the signals connected to pin PB6, PB7 have been swapped. The component placement and traces layout changes aswell.</p><p> </p><p>​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> VTOR=0, but the option byte are set so that the boot0 pin is ignored (nSWBOOT0 = 0, nBOOT0 = 0) I also tried enabling the internal pull down, but nothing changed. What’s weird is that VTOR=0 in version A aswell, but this board works fine</p><p> </p><p>​<user-mention data-id=\"48557\">@Ozone</user-mention> I created a simplified version of the program that I’m attaching here (test_easy.zip).</p><p>When adding a breakpoint at line 220 the program never reaches it. It gets stuck before calling the interrupt callback</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aaa963ce-abbf-4c6e-b080-10463f0a34fe.png\"/></figure><p>As a reminder this isn’t linked to a specific interrupt. I tried removing the UART communication and the program gets stuck as soon as TIM2’s interrupt fires.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; The only differences are the power rail the signals connected to pin PB6, PB7 have been swapped.</em></span></p><p>And what functionality is assigned to PB6 and PB7 ?<br/>This might be important here.</p><p><span style=\"color:#2980b9;\"><em>&gt; When adding a breakpoint at line 220 the program never reaches it. It gets stuck before calling the interrupt callback</em></span></p><p>I think you misinterpret the messages by the debugger as shown in your first post.<br/>I very rarely worked with (directlx) GDB-based debuggers lately, but this tool comes from the Unix/Linux world.<br/>And the term “signal handler” does not refer to interrupts in this context, but to other events like access violations or abort requests.<br/>I think you run into a fault handler from within your UART transmit handler routine.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"Ozone\"><div class=\"content-quote-content\"> <p>I think you run into a fault handler from within your UART transmit handler routine.</p> </div></content-quote><p>Good point.</p><p> </p><p>​<user-mention data-id=\"106671\">@db16122</user-mention> for debugging Hard Faults, see <a href=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622?postid=605971#post605971\" rel=\"noreferrer nofollow ugc\" target=\"_self\">this</a>.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you everybody for the help!</p><p>in the end the cause was VTOR pointing at the wrong address.</p><p>Adding this line of code</p><pre><code class=\"language-c\">SCB-&gt;VTOR = FLASH_BASE;</code></pre><p>as first instruction in main solved the issue</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>congratulation! it seems the issue has nothing related to the version A and Version B according to your information</p><p>The PB6 and PB7 function could be possible reason anyway...</p><p> </p></div>"
+    }
+  ]
+}

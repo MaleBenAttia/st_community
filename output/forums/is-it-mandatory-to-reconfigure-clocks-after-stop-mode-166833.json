@@ -1,0 +1,59 @@
+{
+  "contentType": "question",
+  "id": "166817",
+  "publicId": "166833",
+  "title": "Is it mandatory to reconfigure clocks after Stop mode ?",
+  "content": "<p>Hi everyone, </p><p>I am facing an long-standing issue with a STM32L476RE-powered device loosing UART frames when waking up from UART3 from Stop Mode (will be analyzed on another issue).</p><p>Prompted by this, I have a generic question for clock configuration after Stop1-2 mode.</p><p>The device uses HSI &amp; LSE for all of its peripherals, in a bare-metal CubeMX project.</p><p>Q1: The function </p><pre><code class=\"language-c\">__HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);<br /></code></pre><p>is called 1 time before while(1){} loop. Should it be called just once or should it be called every time before calling </p><pre><code class=\"language-c\">HAL_SuspendTick();<br />HAL_PWREx_EnterSTOP1Mode(PWR_STOPENTRY_WFI);</code></pre><p>?<br /><br />Q2: Should we call </p><pre><code class=\"language-c\">SystemClock_Config();</code></pre><p>every time after waking up from Stop mode, despite the fact that the clock selection ( HSI &amp; LSE ) remains the same and no PLL or MSI is used ?<br /><br />Q3: Could calling </p><pre><code class=\"language-c\">SystemClock_Config();<br />HAL_ResumeTick();</code></pre><p>disrupt an ongoing UART-RX ( running on Idle-line callback ) , despite the fact that clock selection is not changing ? <br /><br /><br /><br />Thank you in advance</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "RCC",
+    "STM32L4 series",
+    "UART-USART"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 35,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "33406",
+    "username": "path321",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/2eec875a-6062-c333-1bf9-f0afc7760cd8.png"
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-07-10T07:33:38+00:00",
+  "lastActivityAt": "2026-07-10T08:14:14+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742672,
+  "publishedAt": "2026-07-10T07:33:38+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/is-it-mandatory-to-reconfigure-clocks-after-stop-mode-166833",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The datasheet tells you:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/52e3b3ea-291b-40e2-bb76-728cccbb1c54.png\"/></figure><p> </p><p>So, if that’s the configuration you want after exiting STOP - you don’t need to do anything.</p><p>If it’s not what you want then, of course, you will have to reconfigure it,</p></div>"
+    }
+  ]
+}

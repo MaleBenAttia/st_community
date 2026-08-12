@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167595",
+  "publicId": "167627",
+  "title": "Sensorhub LSM6DSO with H3LIS331DLTR",
+  "content": "<p>Hi ST community,<br /><br />Below is what I have setup for the sensorhub interface between LSM6DSO and H3LIS331DL<br /> </p><p>Goal: Read H3LIS331DL <code>WHO_AM_I</code> (<code>0x0F</code> → expect <code>0x32</code>) via LSM6DSO Mode 2 sensor hub (MCU ↔ LSM on main I²C; H3LIS on SCX/SDX).</p><p>Setup</p><ul><li>H3LIS: CS→VDD (I²C), SA0→GND (addr <code>0x18</code>), SCL/SDA→LSM SCX/SDX</li>\t<li>Hub: 1 slave, <code>MASTER_CONFIG = 0x4C</code> (<code>WRITE_ONCE | SHUB_PU_EN | MASTER_ON</code>), SLV0 read of <code>0x0F</code></li>\t<li>Trigger: internal (XL ODR ~104 Hz, <code>START_CONFIG = 0</code>) — not using INT2 / H3LIS_DRDY for this</li>\t<li>Readback from <code>SENSOR_HUB_1</code> with embedded-page access (<code>SHUB_REG_ACCESS=1</code>)</li></ul><p>What we see</p><ul><li>LSM6DSO itself is OK (<code>WHO = 0x6C</code>)</li>\t<li>After arming the hub: <code>STATUS_MASTER</code> ends as <code>0x09</code> → ENDOP=1, SLAVE0_NACK=1</li>\t<li><code>SENSOR_HUB_1 = 0x00</code> (expected <code>0x32</code>)</li>\t<li>Scope on SCX/SDX: lines go from low → high when hub pull-ups enable, then stay high — no visible I²C clock/data bursts</li>\t<li>Same result after resoldering / swapping H3LIS; also tried addr <code>0x19</code></li></ul><p>Question: With Mode 2 + internal XL trigger, why would we get <code>SENSOR_HUB_1 =0x00</code> . It seems that the sensorhub from the master perspective is setup correctly, but I am unable to talk to the slave.<br />Is there something else I could try to identify the source of the issue? I also tried soldering and resoldering multiple times to no avail.<br /><br />I would appreciate your suggestions.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "48",
+  "categoryName": "MEMS (sensors)",
+  "tags": [
+    "Accelerometers",
+    "MEMS sensors"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 10,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108996",
+    "username": "e2738730",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108996",
+    "username": "e2738730",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-11T16:38:30+00:00",
+  "lastActivityAt": "2026-08-11T16:38:30+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-11T16:38:30+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/mems-sensors-48/sensorhub-lsm6dso-with-h3lis331dltr-167627",
+  "scraped_replies": []
+}

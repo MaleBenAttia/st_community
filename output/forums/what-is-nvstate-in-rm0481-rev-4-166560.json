@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166539",
+  "publicId": "166560",
+  "title": "What is NVSTATE in RM0481 rev 4?",
+  "content": "<p>In RM0481 rev 4 April 2025 I find the following text:</p><blockquote><p><u>7.6.8 Write protection</u></p><p>A write-protected group of sectors cannot be erased nor programmed. As a result, a bank<br />erase cannot be performed if one group of sectors is write-protected, unless a NVSTATE<br />transition to OPEN is triggered (erasing the whole user flash memory).</p></blockquote><p> </p><p><strong>It is not clear what NVSTATE is in this context. Is this a left-over from documentation of a different MCU?</strong></p><p> </p><p>I don’t think it is PRODUCT_STATE. Because to my understanding you can have a PRODUCT_STATE &gt; OPEN and not enable TrustZone and then write to FLASH_WRP1R_PRG to turn off write protection - you should be able to do a bank erase on bank 1. You can set initial values with an OB but I can’t see any documentation that this also makes changing FLASH_WRP1R_PRG illegal and the relevant OBs are not protected by PRODUCT_STATE the same way as e.g. SECWM and HDP.</p><p>Same reasoning for flash bank 2.</p><p>And if you enable TrustZone, it is stated that FLASH_WRP[1, 2]R_PRG is non-secure. So as long as you don’t set part of the flash to secure watermarked, bank erase should work.</p><p>Also note that a AFAIK a regression of PRODUCT_STATE do not restore the WRP OBs to their default state.</p><p> </p><p>The only other place NVSTATE is mentioned in RM0481 is in <em>Table 507 TAMP interconnection</em>:</p><blockquote><p>tamp_itamp6     JTAG/SWD access when NVSTATE ? OPEN</p></blockquote><p> </p><p><strong>Here, “NVSATE” should be “PRODUCT_STATE”?</strong></p><p> </p><p>  Best regards, Jesper</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "36",
+  "categoryName": "STM32 MCUs Security",
+  "tags": [
+    "Documentation",
+    "STM32H5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 118,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "81284",
+    "username": "JesperEC",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "499",
+    "username": "mƎALLEm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f063c58-40af-4b0d-9381-650ca815d5be.png"
+  },
+  "createdAt": "2026-06-30T19:44:32+00:00",
+  "lastActivityAt": "2026-07-08T14:18:29+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742473,
+  "publishedAt": "2026-06-30T19:44:32+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-security-36/what-is-nvstate-in-rm0481-rev-4-166560",
+  "scraped_replies": []
+}

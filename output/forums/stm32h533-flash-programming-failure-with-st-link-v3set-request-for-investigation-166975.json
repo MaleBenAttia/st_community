@@ -1,0 +1,70 @@
+{
+  "contentType": "question",
+  "id": "166956",
+  "publicId": "166975",
+  "title": "STM32H533 Flash Programming Failure with ST-LINK V3SET – Request for Investigation",
+  "content": "<p>Dear Team,</p><p>I am facing an issue while programming an STM32H533 device using the ST-LINK V3SET. I have observed different behavior depending on the compiler optimization level and programming interface. The details are provided below.</p><p><strong>Case 1 – Flash Programming Failure</strong></p><p>Please find the debug log below:</p><pre><code class=\"language-c\">-------------------------------------------------------------------<br />STM32CubeProgrammer v2.20.0<br />-------------------------------------------------------------------<br /><br />Log output file: C:\\Users\\29397\\AppData\\Local\\Temp\\STM32CubeProgrammer_a36804.log<br /><br />ST-LINK SN : 0042001A3234510537333934<br />ST-LINK FW : V3J17M11B6S1<br />Board : STLINK-V3SET<br />Voltage : 0.00V<br />SWD freq : 8000 KHz<br />Connect mode: Under Reset<br />Reset mode : Hardware reset<br />Device ID : 0x478<br />Revision ID : --<br />Device name : STM32H533/523<br />Flash size : 512 KBytes<br />Device type : MCU<br />Device CPU : Cortex-M33<br />BL Version : 0xE2<br />SFSP Version: v1.2.0<br />Debug in Low Power mode enabled<br /><br />Opening and parsing file: ST-LINK_GDB_server_a36804.srec<br /><br />Memory Programming ...<br /><br />File : ST-LINK_GDB_server_a36804.srec<br />Size : 300.51 KB<br />Address : 0x08000000<br /><br />Erasing memory corresponding to segment 0:<br />Erasing internal memory sectors [0 37]<br /><br />Download in Progress:<br />Error: failed to download Sector[0]<br />Error: failed to download the File<br /><br /><br />Shutting down...<br />Exit.</code></pre><p><strong>Case 2 – Flash Programming Successful</strong></p><p>When the project is built with the compiler optimization level set to <strong>-Os</strong>, the programming completes successfully.</p><p>Relevant programming log:</p><pre><code>Device name : STM32H533/523<br />Flash size : 512 KBytes<br />Device type : MCU<br />Device CPU : Cortex-M33<br />BL Version : 0xE2<br />SFSP Version: v1.2.0<br />Debug in Low Power mode enabled<br /><br />Opening and parsing file: ST-LINK_GDB_server_a03496.srec<br /><br />Memory Programming ...<br /><br />File : ST-LINK_GDB_server_a03496.srec<br />Size : 175.14 KB<br />Address : 0x08000000<br /><br />Erasing memory corresponding to segment 0:<br />Erasing internal memory sectors [0 21]<br /><br />Download in Progress:<br />File download complete<br /><br />Time elapsed during download operation: 00:00:00.847</code></pre><h3>Observations</h3><ul><li>In <strong>Case 1</strong>, the generated image size is approximately <strong>300.51 KB</strong>, and the programmer attempts to erase flash sectors <strong>[0–37]</strong>, after which programming fails with the error <strong>\"failed to download Sector[0]\"</strong>.</li>\t<li>In <strong>Case 2</strong>, enabling <strong>-Os</strong> optimization reduces the image size to <strong>175.14 KB</strong>, resulting in flash erase sectors <strong>[0–21]</strong>, and programming completes successfully.</li>\t<li>An additional observation is that the <strong>same binary from Case 1</strong> can be programmed successfully when using the <strong>USB-C interface</strong>, whereas programming fails only when using the <strong>ST-LINK V3SET</strong>.</li></ul><h3>Request</h3><p>Could you please help us understand the following?</p><ol start=\"1\"><li>Why is the ST-LINK V3SET unable to program the image in Case 1, while the same image can be programmed successfully using the USB-C interface?</li>\t<li>Is there any known limitation or configuration related to ST-LINK V3SET, STM32H533, or STM32CubeProgrammer that could explain this behavior?</li>\t<li>Are there any recommended debugger, flash programming, or memory configuration settings that should be verified or modified to resolve this issue?</li></ol><p>Your guidance on identifying the root cause and resolving this programming issue would be greatly appreciated.</p><p>Kind Regards,</p><p><strong>Bhavesh Raju</strong></p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "30",
+  "categoryName": "STM32CubeProgrammer (MCUs)",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeProgrammer"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 70,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107978",
+    "username": "Bhavesh Raju",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107978",
+    "username": "Bhavesh Raju",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-15T13:21:09+00:00",
+  "lastActivityAt": "2026-07-27T09:14:48+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744021,
+  "publishedAt": "2026-07-15T13:21:09+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32h533-flash-programming-failure-with-st-link-v3set-request-for-investigation-166975",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107978\">@Bhavesh Raju</user-mention>,</p><p>Could you provide your option bytes setting as well as the full part number of the device you’re using ?</p><p>An easy option bytes dump can be done with: &gt;STM32_Programmer_CLI -c port=SWD -ob displ</p><p>Aziz</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Dear ​<user-mention data-id=\"1898\">@Aziz BRIGUI</user-mention>,</p><p>Apologies for the delay.</p><p>Please find the attached Option Bytes dump for the STM32H5 device. Kindly let me know if any additional information or logs are required for further analysis.</p><p>Thank you.</p><p>Best regards,<br/>Bhavesh Raju</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>your log shows:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5eea3ea4-b050-472a-b0b5-8f9af24be1f8.png\"/></figure><p>So target is not powered, or VDD to st-link is not connected. (st-link checking voltage here.)</p><p>→ flash dont work.</p><p>Connect VDD to st-link and power target. Then flash should work always.</p><p> </p><p>&gt;Is there any known limitation or configuration</p><p>Just - you cannot flash bigger program, than your chip has flash memory area. As with any other cpu also.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Team,</p><p> </p><p>The issue is reproducible even when the target voltage is detected correctly. I also verified the behavior using STM32CubeProgrammer, where the target voltage is displayed properly, confirming that the voltage is not the root cause of the issue.</p><p>Please find the screenshot below for your reference.</p><p> </p><p>​<user-mention data-id=\"1898\">@Aziz BRIGUI</user-mention>, Once more observation, When I program the device using the USB Type-C interface (on the Nucleo evaluation board used for testing), the flashing completes successfully. However, the issue is consistently reproducible when programming through the ST-LINK interface. Please provide a solution for this issue</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9920a589-8d24-4f69-9624-ab745413d467.png\"/></figure><p>Regards,</p><p>Bhavesh Raju</p></div>"
+    }
+  ]
+}

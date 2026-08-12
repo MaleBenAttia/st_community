@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167473",
+  "publicId": "167502",
+  "title": "Integrating an AS5048A Absolute SPI Encoder into STM32 MCSDK for Sensored FOC and Position Control",
+  "content": "<p>Hello,</p><p>I have an STM32G474RE Nucleo-64 with an X-NUCLEO-IHM16M1 driving a GB2208 motor with 7 pole pairs. My goal is to use an AS5048A absolute magnetic encoder for sensored FOC and position control.</p><p>MCSDK already runs the motor correctly in sensorless mode, and I can reliably read the AS5048A. However, integrating it into MCSDK has been much less straightforward than expected.</p><h3>Current implementation</h3><p>I use TIM1 CH4 to trigger TIM2. TIM2 starts the AS5048A SPI transaction approximately 3 µs after the trigger. My assumption was that this provides a relatively quiet switching interval, avoids interfering with current ADC sampling, and reduces MOSFET switching noise. I am not certain whether this assumption is valid or whether encoder acquisition should instead be synchronized with a specific PWM/ADC event.</p><p>After determining the encoder direction and electrical offset, I calculate the electrical angle as:</p><pre><code class=\"language-c\">electrical_angle = (pole_pairs * mechanical_angle + electrical_offset);</code></pre><p>I then inject the encoder-derived electrical and mechanical angles into the FOC path from:</p><pre><code class=\"language-c\">__weak uint8_t TSK_HighFrequencyTask(void)</code></pre><p>For position control, I implemented an outer PID loop running at 500 Hz, or once every 2 ms. Its output is a speed reference sent through:</p><pre><code class=\"language-c\">MC_ProgramSpeedRampMotor1(...)</code></pre><p>The rotor initially spins, often for multiple revolutions, and then stops with an observer/convergence or speed-feedback fault.</p><p>My current understanding is that I have replaced the angle used by FOC without replacing the State Observer + PLL feedback component. Therefore, the FOC uses the AS5048A angle while the sensorless observer still performs estimation, startup convergence, reliability checks, and fault generation. Unsurprisingly, those two feedback paths do not remain consistent. MCSDK has a generic Speed &amp; Position Feedback componentspeed_pos_fdbk.h, while the existing implementation is specifically the State Observer + PLL component sto_pll_speed_pos_fdbk.c+1 . This suggests that overwriting angle variables inside the high-frequency task is the wrong abstraction. (This is just an opinion and maybe wrong)</p><h3>Questions</h3><ol start=\"1\"><li>\t<p><strong>Is my encoder sampling timing reasonable?</strong><br />\tIs triggering the AS5048A read approximately 3 µs after TIM1 CH4 a valid way to avoid ADC acquisition and switching noise? Is there a recommended PWM event or ADC-injected-conversion completion point for triggering SPI encoder acquisition on the STM32G474?</p>\t</li>\t<li>\t<p><strong>Must the observer be replaced completely?</strong><br />\tFor absolute-encoder FOC, should I implement a new Speed &amp; Position Feedback component derived from MCSDK’s generic feedback interface and remove the STO-PLL from:</p>\t<ul><li>electrical-angle selection,</li>\t\t<li>startup convergence,</li>\t\t<li>speed calculation/reliability checks, and</li>\t\t<li>fault generation?</li>\t</ul><p>Or does MCSDK provide a supported configuration or existing component for SPI absolute encoders?</p>\t</li>\t<li>\t<p><strong>What is the cleanest integration method?</strong><br />\tIs there a documented way to integrate a custom absolute encoder into MCSDK without modifying generated high-frequency-task code? My current approach -- overwriting angles inside <code>TSK_HighFrequencyTask()</code> -- feels like a hack.</p>\t</li>\t<li>\t<p><strong>Is the outer position-control architecture valid?</strong><br />\tIs a 500 Hz position PID producing a speed reference through <code>MC_ProgramSpeedRampMotor1()</code> appropriate, or should the position controller output an <code>Iq</code>/torque reference instead? Also, does repeatedly calling the speed-ramp API every 2 ms restart or interfere with the ramp state machine?</p>\t</li></ol><p>My MCSDK version is <strong>6.4.2</strong>, generated with <strong>Motor Control Workbench</strong>.</p><p>I would appreciate confirmation of whether the overall architecture is valid and which MCSDK interfaces should be implemented or replaced.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "34",
+  "categoryName": "STM32 MCUs Motor control",
+  "tags": [
+    "STM32 motor control",
+    "FOC",
+    "Motor control"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 67,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "108867",
+    "username": "Ali_Sa",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108867",
+    "username": "Ali_Sa",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-05T22:00:43+00:00",
+  "lastActivityAt": "2026-08-07T10:09:35+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745052,
+  "publishedAt": "2026-08-05T22:00:43+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/integrating-an-as5048a-absolute-spi-encoder-into-stm32-mcsdk-for-sensored-foc-and-position-control-167502",
+  "scraped_replies": []
+}

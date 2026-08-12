@@ -1,0 +1,125 @@
+{
+  "contentType": "question",
+  "id": "167419",
+  "publicId": "167447",
+  "title": "USART issue in loopback mode",
+  "content": "<p>Hi 👋</p><p>I have implemented a simple program to send and receive characters over the USART device which works as expected when I connect my MCU up to minicom via usb as in I can see the characters sent by the program getting printed on the console and I can see the characters I type on minicom in the relevant variable in gdb.</p><p>Next, I tried connecting the TX and RX pins together to have transmission and reception in loopback mode but that doesn’t seem to work. My program (which does both transmission and reception in simple polling mode) simply gets stuck on the RXNE != 1 loop and never exits that indicating that the RX pin either never receives any data <em>or</em> it never detects a start bit so it just remains at the idle state waiting for that. So, I’m wondering what the reason for this might be..could it be that minicom simply sends the right start bit sequence which the Receiver picks-up? Or something else..?</p><p>The program in both cases is <em>exactly</em> the same so the <em>only</em> difference is that in loopback mode the two pins are naturally jumpered.</p><p>Also, within the tight loop the USART_SR register has the following (constant) content:</p><p>0x40011000:    11000000    00000000    00000000    00000000</p><p> </p><p>Any thoughts? I am on an STM32F4 MCU and using the USART1 (if that makes any difference).</p><p> </p><p>Thanks!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 29,
+  "inclusiveVisibleReplyCount": 29,
+  "likes": 0,
+  "votes": 0,
+  "views": 177,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "88380",
+    "username": "sidisyom_s",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "37189",
+    "username": "Pavel A.",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/848a253a-dfe0-ac3e-1818-32d276066844.png"
+  },
+  "createdAt": "2026-08-03T22:30:32+00:00",
+  "lastActivityAt": "2026-08-08T20:31:57+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745164,
+  "publishedAt": "2026-08-03T22:30:32+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/usart-issue-in-loopback-mode-167447",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; My program (which does both transmission and reception in simple polling mode) simply gets stuck on the RXNE != 1 loop</p><p>Show the actual code.</p><p>Do you detect and handle RX overflow (ORE) ?</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your reply.</p><p>Yes, I do - See code below (it’s in Ada but should be fairly straightforward to follow, let me know if not):</p><p> </p><p>procedure Receive (C         : out Character ;<br/>                                USART_Reg : USART_Registers.USART_Reg_Acc) is<br/>   begin<br/>      loop<br/>         exit when USART_Reg.USART_SR.RXNE; --   Line 1<br/>         if USART_Reg.USART_SR.ORE then -- Line 2<br/>            --   ORE reset sequence<br/>            declare<br/>               Unused1 : Boolean;<br/>               Unused2 : HAL.UInt9;<br/>            begin<br/>               Unused1 := USART_Reg.USART_SR.PE;<br/>               Unused2 := USART_Reg.USART_DR.DR;<br/>            end;<br/>         end if;<br/>      end loop;<br/>      C := Character'Val (USART_Reg.USART_DR.DR);<br/>   end Receive;</p><p>Stepping through in gdb the flow effectively alternates between Line 1 and Line 2 without getting into the if so no overflow seems to be happening.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Wow! Thrilled to see someone actually using Ada :)</p><p>Try to move line 1 after the whole block line 2 (check ORE first).</p><p>Also, make sure that USART_Reg.USART_SR is read only once. Copy it to a variable before Line 1 and check that variable.</p><p>Maybe, a better idea: some USARTs in STM2F4 can be configured to ignore RX overflow so ORE is silently ignored. You should then use a protocol that detects block errors and corrects/retries.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I hesitate to mention this because of its obviousness but in this loopback scenario maybe something called Transmit() should be called <em>before</em> Receive()?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>hello 👋 thanks for your reply.</p><p>Yeah, the driver logic is actually doing that (please, see screenshot in previous reply).</p><p>I am also starting the receiver first followed by the transmitter prior to running the transmit/receive flow:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/46164d86-54f0-4ca2-8def-33852f4ebe74.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"sidisyom_s\"><div class=\"content-quote-content\"> <p>I am also starting the receiver first followed by the transmitter prior to running the transmit/receive flow:</p> <figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/46164d86-54f0-4ca2-8def-33852f4ebe74.png\"/></figure><p> </p> </div></content-quote><p>For that to work, your <code>Start_Receiver</code> would need to be non-blocking …</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Alrighty, let’s look closer at the hardware.  How exactly are you creating your loopback?  Schematic and photos (for ​<user-mention data-id=\"35659\">@Andrew Neil</user-mention>  ;-) will possibly be helpful.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I just re-read an earlier reply (thanks, forum, for still collapsing replies - NOT!) and noticed that the OP said he’s jumpering PA9 and PA10 to create the loopback.  If the MCU’s RX signal is still connected to <em>anything</em> it’ll be forced to the idle state by that device and the MCU’s TX won’t be able to overcome it.  </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>hmm..don’t <em>believe</em> the RX pin connected to anything 🤔 it’s just set-up for alternate function, Pull_Up, Speed_50MHz, Push_Pull and it is jumpered to the TX pin via a rather large jumper wire..wonder if that somehow results in a noisy line..</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/92134fce-ebc0-43cf-b142-5a9b7596eae4.jpg\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p> I connect my MCU up to minicom via usb as in I can see the characters sent by the program getting printed on the console and I can see the characters I type on minicom in the relevant variable in gdb</p></blockquote><p>Excellent! Too many people miss this basic first step!</p><p> </p><blockquote><p> I tried connecting the TX and RX pins together to have transmission and reception in loopback mode but that doesn’t seem to work</p></blockquote><p>Suggests a timing problem:  your code can’t cope with receiving <em>immediately after</em> transmitting - or, depending on how you have this structured, can’t cope with receiving <em>during </em>transmission.</p><p> </p><p>A simple test might be to set up something on your minicom host which does a software loopback, with an adjustable delay.</p><p>Then adjust the delay to see where it fails, and where it works...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; Suggests a timing problem:  your code can’t cope with receiving <em>immediately after</em> transmitting - or, depending on how you have this structured, can’t cope with receiving <em>during </em>transmission.</p><p>Loopback should work even in polling mode: wait for TX complete, write a char to DR, then poll for the char ready in RX. Read DR. Repeat.</p><p>As ​<user-mention data-id=\"2057\">@FBL</user-mention> advised, better try plain C and/or ST HAL first. For completeness, check for all possible errors (FE).</p><p>Does the USART work in normal full-duplex mode or unidirectional? Is your USB adapter RS-232 or RS-485?</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>better try plain C and/or ST HAL first. For completeness, check for all possible errors (FE).</p></blockquote><p>Cool, I’ll try and do that 👍</p><blockquote><p>Does the USART work in normal full-duplex mode or unidirectional? Is your USB adapter RS-232 or RS-485?</p></blockquote><p>So, using the asynchronous mode (just the TX/RX pins) which I believe is full-duplex? Also using the RS-232 adapter.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"88380\">@sidisyom_s</user-mention> </p><p>Do you reproduce the issue using our <a href=\"https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/1f6451c3e07728b4c830744de380e56bf5bc0026/Src/stm32f4xx_hal_usart.c\" rel=\"noreferrer noopener\" target=\"_blank\">HAL</a>? If not, that would be a good first step to isolate the problem from your custom driver implementation.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Will try and do that, thanks 👍</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>If you’re using HAL, you can’t use polling for receive because the HAL_UART_Receive routine waits for a size of data to be receive or it times out before returning from the call.</p><p>Calling HAL_UART_Transmit after sends data but the HAL_UART_Receive routine is no longer waiting for data. Instead you need to use interrupt base routines, HAL_UART_Receive_IT or HAL_UART_Receive_DMA, then HAL_UART_Transmit will work. </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>With polling, you can only send 1 character before you need to receive it.</p><p>Loopback mode can work. If you showed the actual code being executed (all of it, not just a line or two here and there) this could be solved in max 5 minutes.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I hesitate to do that because my code is in Ada and that’s why I’ve been focusing on the mcu aspect and the fact that this works on minicom..but if you fancy reading a bit of Ada then the following is the full code (excluding the hal layer of course for brevity) 🙂:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64ee54cc-b0cb-4cb6-af4f-4e37185237c3.png\"/></figure><p>The above is a run against minicom where, if you see on the debugger console a bit further down, ‘Q’ has been received fine which is what I typed on minicom (I just pressed enter a few times hence you see this printed multiple times).</p><p>Transmitting also works as the characters of Message are getting printed fine:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a903f10f-bae8-47a8-a8ef-8616fbaa6547.png\"/></figure><p> </p><p>But the <em>exact</em> same code breaks when I jumper PA9 &amp; PA10 (as in the USART_SR.RXNE bit never goes high so Receive just spins forever)..so something in loopback mode it doesn’t like.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>One last thing - can your debugger or register viewer read the UART DR in background? Then it will steal the received byte.</p><p>Please do the C &amp; ST HAL test first, as we agreed. Do you need help with this?</p><p> </p><p> </p></div>"
+    }
+  ]
+}

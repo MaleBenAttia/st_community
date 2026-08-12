@@ -1,0 +1,67 @@
+{
+  "contentType": "question",
+  "id": "167403",
+  "publicId": "167431",
+  "title": "Bug report EE_NO_PAGE_FOUND in X-CUBE-EEPROM Emulator",
+  "content": "<p>Hello everyone,</p><p>It is more a bug report than a question, but in the last version of X-CUBE-EEPROM, (<a href=\"https://www.st.com/en/embedded-software/x-cube-eeprom.html#section-get-software-table\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">X-CUBE-EEPROM | Product - STMicroelectronics</a>) I found out that value “EE_NO_PAGE_FOUND” is defined twice.</p><p>Once in <em>eeprom_emul.h</em>:</p><pre><code class=\"language-c\">/* No page define */<br />#define EE_NO_PAGE_FOUND        ((uint32_t)0xFFFFFFFFU)</code></pre><p>And once in <em>eeprom_emul_types.h</em>:</p><pre><code class=\"language-c\">/**<br />  * @brief  EE Status enum definition.<br />  */<br />/* Define of the return value */<br />typedef enum {<br />  /* External return codes : ok */<br />  EE_OK = 0U,<br /><br />...<br /><br />  /* Internal return code */<br />  EE_NO_PAGE_FOUND, -&gt; here, second definition<br />  EE_PAGE_NOTERASED,<br /><br />...<br />} EE_Status;</code></pre><p>Is it made on purpose? <br /><br />Best regards</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "EEPROM devices"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 1,
+  "votes": 0,
+  "views": 30,
+  "voteSet": [],
+  "likeSet": [
+    "35659"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "95437",
+    "username": "Jerem",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1684",
+    "username": "Saket_Om",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-03T12:09:32+00:00",
+  "lastActivityAt": "2026-08-07T09:40:53+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745044,
+  "publishedAt": "2026-08-03T12:09:32+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/bug-report-ee-no-page-found-in-x-cube-eeprom-emulator-167431",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Is one of them never used (guessing the one in <em>eeprom_emul.h</em>) ?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I deactivated the definition in EE_Status as it looks never used.<br/>In eeprom_emul.c, the only function returning EE_NO_PAGE_FOUND is the static function FindPage(). The API of eeprom_emul.c returns EE_ERROR_NOERASE_PAGE or EE_ERROR_NOACTIVE_PAGE if FindPage() returns EE_NO_PAGE_FOUND.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"95437\">@Jerem</user-mention> </p><p><span style=\"background-color:#FFFFFF;\"><span style=\"color:#525a63;\">Thank you for bringing this issue to our attention.</span></span></p><p><span style=\"background-color:#FFFFFF;\"><span style=\"color:#525a63;\">I reported this internally.</span></span></p><p><span style=\"background-color:#FFFFFF;\"><span style=\"color:#525a63;\">Internal ticket number<strong>: CDM0064968 </strong><em><u>(This is an internal tracking number and is not accessible or usable by customers).</u></em></span></span></p></div>"
+    }
+  ]
+}

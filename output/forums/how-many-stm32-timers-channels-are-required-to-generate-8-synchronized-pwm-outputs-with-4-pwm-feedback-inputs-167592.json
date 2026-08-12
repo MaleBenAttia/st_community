@@ -1,0 +1,57 @@
+{
+  "contentType": "question",
+  "id": "167560",
+  "publicId": "167592",
+  "title": "How many STM32 timers/channels are required to generate 8 synchronized PWM outputs with 4 PWM feedback inputs?",
+  "content": "<p>Hi STM32 Community,</p><p>I am currently selecting an STM32 MCU for a timing-control application and would like some guidance on the required timer architecture.</p><p>My requirement is:</p><ul><li><strong>Input trigger:</strong> 45 Hz, 50% duty-cycle signal.</li>\t<li>After receiving the trigger, the STM32 should generate <strong>8 PWM outputs</strong> with a configurable delay.</li>\t<li>The required trigger-to-output delay is approximately <strong>0–3 µs</strong>.</li>\t<li>PWM1–PWM4: <strong>45 Hz, 25% duty cycle</strong></li>\t<li>PWM5–PWM8: <strong>45 Hz, 25% duty cycle</strong></li>\t<li>The 8 outputs need to be synchronized according to the timing sequence shown in the attached diagram.</li>\t<li>In addition, I receive <strong>4 feedback PWM inputs</strong>:\t<ul><li>Feedback 1–4: 45 Hz, 25% duty cycle</li>\t\t<li>These feedback signals need to be measured/captured by the STM32.</li>\t</ul></li></ul><p>My main question is:</p><p><strong>What is the recommended STM32 timer architecture for this requirement?</strong></p><p>Specifically:</p><ol><li>How many <strong>timer peripherals</strong> would I need?</li>\t<li>Can I use <strong>two timers with 4 PWM channels each</strong> to generate the 8 PWM outputs?</li>\t<li>Can a third timer with <strong>4 input-capture channels</strong> be used to measure the 4 feedback PWM signals?</li>\t<li>What is the recommended method to achieve the <strong>0–3 µs trigger-to-output delay</strong> using hardware timers rather than software delays?</li>\t<li>Are there any STM32 timer limitations or channel/pin-mapping issues I should consider when selecting the MCU?\t<p>I would appreciate any recommendations regarding the suitable STM32 timer architecture or specific STM32 devices that would be appropriate for this application.</p>\t<p>I have attached the timing diagram for reference.</p>\t</li></ol>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "TIM"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 37,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "108750",
+    "username": "Darvin",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "8205",
+    "username": "TDK",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7577e4b8-db05-6051-ffd8-4370c29016ca.png"
+  },
+  "createdAt": "2026-08-10T13:31:33+00:00",
+  "lastActivityAt": "2026-08-10T14:39:04+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745277,
+  "publishedAt": "2026-08-10T13:31:33+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/how-many-stm32-timers-channels-are-required-to-generate-8-synchronized-pwm-outputs-with-4-pwm-feedback-inputs-167592",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The output signals you list are identical to each other for each of the 4 sets of channels. They don’t need to be separate channels.</p><p>But you’ll need 3 timers.</p><p>Use combined PWM mode to set the 0-3us delay. Note that a 0 us delay is impossible--it takes a few ticks for signals to propagate.</p></div>"
+    }
+  ]
+}

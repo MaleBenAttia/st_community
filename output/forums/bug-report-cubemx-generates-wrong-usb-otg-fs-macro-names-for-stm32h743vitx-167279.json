@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "167253",
+  "publicId": "167279",
+  "title": "[Bug report]CubeMX generates wrong USB OTG FS macro names for STM32H743VITx",
+  "content": "<p>  When enabling USB_OTG_FS peripheral in Device_Only mode for STM32H743VIT6, CubeMX generates usb_otg.c with incorrect HAL macros:</p><div class=\"monaco-scrollable-element rendered-markdown-table-scroll-wrapper\"><table><tbody><tr><td style=\"width:276px;\"><strong>Generated (wrong)</strong></td>\t\t\t<td style=\"width:327.5px;\"><strong>Should be (H7-native)</strong></td>\t\t</tr><tr><td style=\"width:276px;\">GPIO_AF10_OTG1_FS</td>\t\t\t<td style=\"width:327.5px;\">GPIO_AF10_OTG2_FS</td>\t\t</tr><tr><td style=\"width:276px;\">__HAL_RCC_USB_OTG_FS_CLK_ENABLE</td>\t\t\t<td style=\"width:327.5px;\">__HAL_RCC_USB2_OTG_FS_CLK_ENABLE</td>\t\t</tr><tr><td style=\"width:276px;\">__HAL_RCC_USB_OTG_FS_CLK_DISABLE</td>\t\t\t<td style=\"width:327.5px;\">__HAL_RCC_USB2_OTG_FS_CLK_DISABLE</td>\t\t</tr></tbody></table><p> </p><p><strong>Root cause:</strong><br />  On STM32H7, the FS USB peripheral is USB2_OTG_FS, not USB1_OTG_FS. The H7 HAL defines GPIO_AF10_OTG2_FS for the FS port and GPIO_AF10_OTG1_HS for the HS port. CubeMX, however, generates F4/F7-style macro names (e.g. GPIO_AF10_OTG1_FS) which are only valid for MCUs with a single USB OTG peripheral.</p><p><br />  Moreover, GPIO_AF10_OTG1_FS is conditionally defined in stm32h7xx_hal_gpio_ex.h only when USB2_OTG_FS is not defined. Since STM32H743 does define USB2_OTG_FS, the macro is absent at compile time.</p><p><br />  The legacy compatibility aliases in stm32_hal_legacy.h could resolve this, but CubeMX does not include that header in the generated code.</p><p><strong>Note:</strong> This issue occurs regardless of whether ST's USB middleware stack is used or not. I am using a third-party USB library (CherryUSB) and only rely on CubeMX to generate correct HAL-level hardware initialization code (clock, GPIO, NVIC). The generated peripheral init macros should always be valid for the selected target MCU — the choice of USB protocol stack should not affect the correctness of the HAL-level code that CubeMX generates.</p><p> </p><p><strong>Workaround:</strong><br />  Manually add the following defines in the USER CODE section of usb_otg.c:</p><pre><code class=\"language-c\">/* USER CODE BEGIN 0 */<br />#ifndef GPIO_AF10_OTG1_FS<br />#define GPIO_AF10_OTG1_FS  GPIO_AF10_OTG2_FS<br />#endif<br />#ifndef __HAL_RCC_USB_OTG_FS_CLK_ENABLE<br />#define __HAL_RCC_USB_OTG_FS_CLK_ENABLE()  __HAL_RCC_USB2_OTG_FS_CLK_ENABLE()<br />#define __HAL_RCC_USB_OTG_FS_CLK_DISABLE() __HAL_RCC_USB2_OTG_FS_CLK_DISABLE()<br />#endif<br />/* USER CODE END 0 */</code></pre><p><strong>Expected fix:</strong><br />  CubeMX should generate the H7-native macro names when the target MCU has dual USB OTG peripherals (e.g. STM32H743).</p><p><br /><strong>Environment:</strong></p><ul><li>MCU: STM32H743VIT6</li>\t<li>CubeMX: V6.18.0</li>\t<li>STM32H7 series MCU package version: V1.13.0</li>\t<li>Third-party USB stack: CherryUSB (ST's USB middleware not used)</li></ul></div>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeMX",
+    "Bug-report",
+    "STM32H7 series",
+    "USB",
+    "HAL"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 2,
+  "votes": 0,
+  "views": 127,
+  "voteSet": [],
+  "likeSet": [
+    "37189",
+    "96323"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "96323",
+    "username": "PKB404",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/40737ff6-3045-4515-9c93-746f16394eb4.png"
+  },
+  "lastContributor": {
+    "id": "2061",
+    "username": "Ghofrane GSOURI",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/771d9ac6-52bd-3d77-c69d-ec6f705dd8ce.png"
+  },
+  "createdAt": "2026-07-28T09:59:36+00:00",
+  "lastActivityAt": "2026-08-05T09:48:04+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744842,
+  "publishedAt": "2026-07-28T09:59:36+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/bug-report-cubemx-generates-wrong-usb-otg-fs-macro-names-for-stm32h743vitx-167279",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"96323\">@PKB404</user-mention> </p><p>Regarding the first point :CubeMX generates GPIO_AF10_OTG1_FS instead of GPIO_AF10_OTG2_FS for USB_OTG_FS on STM32H743,fully agree with you , I have escalated a ticket <strong> #0064753</strong> to dev team to correct this behavior </p><p>Regarding __HAL_RCC_USB_OTG_FS_CLK_ENABLE and __HAL_RCC_USB_OTG_FS_CLK_DISABLE, stm32_hal_legacy.h is correctly included in the project. As a result, these macros are properly resolved through the legacy compatibility aliases.</p><p>main.h<br/>  -&gt; stm32h7xx_hal.h<br/>    -&gt; stm32h7xx_hal_conf.h<br/>      -&gt; stm32h7xx_hal_cortex.h<br/>        -&gt; stm32h7xx_hal_def.h<br/>          -&gt; Legacy/stm32_hal_legacy.h</p><p>Also</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d9d60ef-7c58-4a9d-abcc-ef2f33f8f502.png\"/></figure><p>THX</p><p>Ghofrane</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> </p><p>  Thank you for confirming the GPIO_AF10_OTG1_FS issue and opening ticket #0064753.</p><p>  Regarding the clock macros — I dug deeper and found the actual root cause. The include order inside <strong>stm32h7xx_hal_def.h </strong>is reversed:</p><pre><code class=\"language-c\">// stm32h7xx_hal_def.h, line 29-30<br/>#include \"Legacy/stm32_hal_legacy.h\"   // processed first, but STM32H7 not defined yet<br/>#include \"stm32h7xx.h\"                 // STM32H7 gets defined here — too late</code></pre><p>  Since <strong>stm32h7xx_hal_def.h</strong> is first pulled in by <strong>stm32h7xx_hal_rcc.h</strong> (<strong>stm32h7xx_hal_conf.h</strong> <strong>line 246</strong>, well before <strong>stm32h7xx_hal_cortex.h</strong> <strong>at line 298</strong>), the legacy header gets processed immediately with STM32H7 still undefined. The #if defined(STM32H7) guard at <strong>stm32_hal_legacy.h</strong> line 3670 silently skips the USB FS clock macros. Once <strong>stm32h7xx.h</strong> defines STM32H7 on the very next line, the legacy header's include guard has already locked it out.</p><p>   Swapping the two lines fixes it:</p><pre><code class=\"language-c\">#include \"stm32h7xx.h\"                 // define STM32H7 first<br/>#include \"Legacy/stm32_hal_legacy.h\"   // now #if defined(STM32H7) evaluates true</code></pre><p>  This is separate from the GPIO AF bug and is a HAL driver-level issue. Worth a second ticket perhaps?</p><p> </p><p>Best regards</p><p>PKB404</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"96323\">@PKB404</user-mention> </p><p>I am sharing with you the response of our expert in the escalated  ticket<strong> #0064918</strong></p><p>In Cube firmware, stm32h7xx_hal_def.h, the includes are already in the expected order:</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da8e9d1d-cf41-4873-a742-043400ef5ea6.png\"/></figure><p> </p><p>This is also consistent with the GitHub reference:<a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/2ef1c0203b6953acb9751727ba34ce8ee7906783/Inc/stm32h7xx_hal_def.h\" rel=\"noopener noreferrer\" target=\"_blank\">stm32h7xx-hal-driver/Inc/stm32h7xx_hal_def.h at 2ef1c0203b6953acb9751727ba34ce8ee7906783 · STMicroelectronics/stm32h7xx-hal-driver</a></p><p>Thx</p><p>Ghofrane </p></div>"
+    }
+  ]
+}

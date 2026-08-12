@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167277",
+  "publicId": "167302",
+  "title": "VL53L8CX I2C Communication Instability",
+  "content": "<p>**VL53L8CX ranging stops after a few frames (2-4 typical, up to 28 seen once) clean status, no error on three independently-built boards**</p><p>**Setup:** Custom board, VL53L8CX (I2C mode) + STM32G0B1KBU6 host MCU, ULD driver, 4x4 resolution, 10Hz continuous ranging mode, 30ms integration time. </p><p>**Symptom:** `vl53l8cx_init()` and `vl53l8cx_start_ranging()` both succeed. Ranging produces good frames (plausible per-zone status/distance data) for a small number of frames usually 2-4, occasionally more (saw 28 once) then `check_data_ready()` starts returning `VL53L8CX_STATUS_OK` with `data_ready` staying false indefinitely. No error code in the common case. I2C bus itself stays healthy throughout (clean ACKs on every transaction, confirmed via logic analyzer).</p><p>**One-off exception:** on a single occurrence, `check_data_ready()` returned `0x84` instead of `0x00`. I found the earlier thread here (linking below) where a `0x81`/`0xC5`/`0xCA`-style status was identified as a GO2 (internal MCU) error. I want to be upfront that this has only happened once for me — my typical stall is the silent/clean-status kind above, not this. Mentioning it in case it's a related data point, not because I think it's my main bug.</p><p>**What I've ruled out:**<br />- I2C bus faults — no address NACKs, no mid-transaction NACKs anywhere in captures; every byte cleanly ACKed through the stall.<br />- Board-to-board assembly variance (cold solder joints, etc.) — all independently-built boards fail identically, same frame counts, same behavior.<br />- My own recovery/retry logic — reproduced the exact same stall with a bare-bones build that has zero stop/start/reset logic in the main loop, so it isn't my code interrupting an in-flight transaction.</p><p>**Question:** Is there a known cause for the ranging engine going quiet mid-session (clean I2C, no error code) after a handful of good frames? Is there additional diagnostic/status information I can read from the sensor beyond `check_data_ready()`'s return code that would help narrow down what's happening internally at the moment it stalls?</p><p>Happy to provide I2C captures, my init/config sequence, or anything else that would help. </p><p>I’m hoping this is a firmware issue as I am new to cube IDE but please let me know your opinions, thank you in advance.</p><p>[Original thread: https://community.st.com/imaging-sensors-49/i2cdetect-disrupts-vl53l8cx-operation-causing-go2-error-146394]</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "49",
+  "categoryName": "Imaging (sensors)",
+  "tags": [
+    "Time of flight",
+    "I2C"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 70,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108639",
+    "username": "Marshall Pennington",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-07-29T00:04:51+00:00",
+  "lastActivityAt": "2026-08-07T09:18:09+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745033,
+  "publishedAt": "2026-07-29T00:04:51+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/imaging-sensors-49/vl53l8cx-i2c-communication-instability-167302",
+  "scraped_replies": []
+}

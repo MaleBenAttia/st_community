@@ -1,0 +1,97 @@
+{
+  "contentType": "question",
+  "id": "167326",
+  "publicId": "167353",
+  "title": "STM32H723 USB disk",
+  "content": "<p>I need to transfer files from my hardware (STM32H723 based) and a PC, using an USB port, just like an USB disk; my hardware uses a FT234XD USB interface chip (UART connection) and an EEPROM where I save the data.</p><p>Anyone may help me to understand how to do it ?</p><p> </p><p>Thank you</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 5,
+  "inclusiveReplyCount": 16,
+  "inclusiveVisibleReplyCount": 16,
+  "likes": 0,
+  "votes": 0,
+  "views": 187,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "77122",
+    "username": "carloV",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "27597",
+    "username": "unsigned_char_array",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/ef4ef604-3593-4081-af33-07b4db5d0cdf.png"
+  },
+  "createdAt": "2026-07-30T10:11:01+00:00",
+  "lastActivityAt": "2026-07-31T19:42:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744545,
+  "publishedAt": "2026-07-30T10:11:01+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h723-usb-disk-167353",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>How much data are we talking about?<br/> </p><p>You want to transfer the files over UART? There are protocols for this such as  X-Modem.<br/><br/>You can also write your own flashloader and use stm32cubeprogrammer to download data as hex.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I would like to have the device working like an USB disk (FAT,...); the device USB interface is realized using the FT234XD chip (FTDI, USB to a STM32H723 UART port) and the files must be stored in a EEPROM connected with an I2C interface to the STM32H723.</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Why not use USB OTG interface of the STM32H723? That way you can directly connect the STM32 to the PC. You can also use the USB host interface and store the data on a thumb drive.</p><p>If you really want to use a USB serial chip to connect to the PC you need some software to map it to a drive.</p><p>Examples:</p><ul><li><a href=\"https://github.com/winfsp/winfsp\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://github.com/winfsp/winfsp</a></li> <li><a href=\"https://github.com/dokan-dev/dokany\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://github.com/dokan-dev/dokany</a></li></ul><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>my hardware uses a FT234XD USB interface chip (UART connection) </p></blockquote><p>As you say, that’s a UART connection - that will never give you a Mass Storage connection.</p><p>But, as ​<user-mention data-id=\"27597\">@unsigned_char_array</user-mention> said, there are plenty of protocols to allow data transfer over a UART link.</p><p> </p><p>If you want your board to appear to your PC as a Mass Storage device (like a USB stick), then you will have to implement the USB Mass Storage Class <em>Device </em>on the STM32’s USB hardware.</p><p> </p><p>Or do you want to be able to plug a USB stick into your board, so that you can transfer data from your board?</p><p>In that case, you would need to implement a USB Mass Storage Class <em>Host </em>on your board.</p><p> </p><p>There should be USB examples available in CubeMX.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>I want my board to appear to my PC as a Mass Storage device (like an USB stick), but I need to save/read my files into/from an EEPROM connected to an I2C interface of the STM32H723.</p><p>Is there an application or example available ?</p><p> </p><p>Thank you</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"carloV\"><div class=\"content-quote-content\"> <p> </p> <p>I want my board to appear to my PC as a Mass Storage device (like an USB stick), but I need to save/read my files into/from an EEPROM connected to an I2C interface of the STM32H723.</p> </div></content-quote><p>So you will have to implement the USB Mass Storage Class <em>Device </em>on the STM32’s USB hardware.</p><p> </p><blockquote><p>but I need to save/read my files into/from an EEPROM connected to an I2C interface of the STM32H723.</p></blockquote><p>As always, do one step at a time; eg,</p><ol><li>Get the USB Mass Storage Class Device working <em>alone.</em></li> <li>Get your I2C EEPROM working <em>alone.</em></li> <li>Integrate the two.</li></ol><p>You can’t expect there to be a ready-made example for every single possible combination of everything!</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>ok, thank you</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Expect this to be a long and hard journey, from the questions you asked this seems rather new to you.</p><p>The STM32H7 can do that with some external memory, but it’s nothing that you can click to a working product with CubeMX.</p><p>The USB interface itself is far from the simplicity of a UART, the same goes for the external memory interface, and then the SW glue in-between with a file system… not the most simple stuff for a start!</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes...I agree, what do you suggest I do to deal with the problem?</p><p> </p><p>Thank you</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"carloV\"><div class=\"content-quote-content\"> <p>Yes...I agree, what do you suggest I do to deal with the problem?</p> </div></content-quote><p>I think that’s a new question for a new thread.</p><p>The original question of how to make your STM32 look like a USB stick has been answered, so please <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">mark the solution</a> <em>on the post which provided the answer</em> - not this one!</p><p> </p><p>Then start a new thread describing what you’re actually trying to achieve - then people can make suggestions on how to reach that goal.</p><p><a href=\"https://github.com/selfteaching/How-To-Ask-Questions-The-Smart-Way/blob/master/How-To-Ask-Questions-The-Smart-Way.md#describe-the-goal-not-the-step:~:text=reading%20your%20account.-,Describe%20the%20goal%2C%20not%20the%20step,-If%20you%20are\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">Describe the goal, not the step</a></p><p><a href=\"https://xyproblem.info/\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">The XY Problem</a></p><p> </p><p>Give a link here to the new thread.</p><p>In the new thread, you can give a link back here, for reference, if you feel it helps.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>my hardware uses a FT234XD USB interface chip (UART connection) </p></blockquote><p>That means you’ll never get a USB Mass Storage connection. FT23x could only work as a USB CDC device, like a virtual COM.</p><p> </p><p>So you have two options to choose from:</p><ol><li>YOU STILL WANNA A USB DISK.  Then you should take FT23x as nonsense and build a USB Full-speed connection directly with H723. Reference to ST’s USB firmware examples like MassStorage &amp; portable file systems like exFAT you’ll be sure to implement an applicable solution, though much effort needed which may be quite challenging for a newbie, like you. or you may</li> <li>YOU WANNA MAKE IT EASIER.  Then you just study communication protocols like XMODEM and upload your raw data through a USB Virtual COM. You can build your soft on your upper-computer to hand-shake with your device, receive your raw data and do further data-processing tasks. Put emphasis on your ultimate objective, not a time-consuming building-while-learning...</li></ol></div>"
+    }
+  ]
+}

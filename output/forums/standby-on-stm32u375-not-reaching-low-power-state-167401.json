@@ -1,0 +1,99 @@
+{
+  "contentType": "question",
+  "id": "167373",
+  "publicId": "167401",
+  "title": "standby on stm32u375 not reaching low power state",
+  "content": "<p>I have no problem reaching a low power state with stop3.  All the Pull Up/Down registers are configured correctly.  However, simply changing the low power mode from STOP3 to STANDBY results in a 1.5mA current sink.  What could this be?  The debugger support is off in both cases.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Power"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 9,
+  "inclusiveReplyCount": 11,
+  "inclusiveVisibleReplyCount": 11,
+  "likes": 1,
+  "votes": 0,
+  "views": 165,
+  "voteSet": [],
+  "likeSet": [
+    "108700"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "34438",
+    "username": "Geoffrey1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/b8a4fdc4-ff4a-b6cb-6109-a61c320aae91.png"
+  },
+  "lastContributor": {
+    "id": "34438",
+    "username": "Geoffrey1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/b8a4fdc4-ff4a-b6cb-6109-a61c320aae91.png"
+  },
+  "createdAt": "2026-08-01T21:26:26+00:00",
+  "lastActivityAt": "2026-08-11T11:57:17+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745378,
+  "publishedAt": "2026-08-01T21:26:26+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/standby-on-stm32u375-not-reaching-low-power-state-167401",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Try show more info primary current in STOP3? And i see you bare metal in next thread, Use LL examles <a href=\"https://github.com/STMicroelectronics/STM32CubeU3/blob/main/Projects/NUCLEO-U385RG-Q/Examples_LL/RTC/RTC_ExitStandbyWithWakeUpTimer_Init/Src/main.c\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">STM32CubeU3/Projects/NUCLEO-U385RG-Q/Examples_LL/RTC/RTC_ExitStandbyWithWakeUpTimer_Init/Src/main.c at main · STMicroelectronics/STM32CubeU3 · GitHub</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><section><p>A 1.5 mA current in STANDBY usually means the MCU isn't entering true standby. Check wake-up sources, RTC, external peripherals, and verify your standby entry code. Sharing the MCU model and code will help identify the exact cause.</p></section></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>It’s an stm32u375.  I can see (with test pins) that it’s entering this code and I can see, via the Pull up/down that it’s definitely not transitioning to standby, but it’s definitely waiting in the wfi</p><p> </p><p>Here’s the entry code (stm32u375). <br/><br/> </p><pre><code class=\"language-c\"> tagDevicesDisableWakeupSources();<br/>  tagPowerClearWakeFlags();<br/>  DBGMCU-&gt;CR = 0;<br/>  MODIFY_REG(PWR-&gt;CR1, PWR_CR1_LPMS, 4U);<br/><br/>  //tagPowerSelectStop3();<br/><br/>  SET_BIT(SCB-&gt;SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));<br/><br/>  __DSB();<br/>  __WFI();</code></pre><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Maybe when your read reference manual (2800 pages) and next appnotes and docs, you can write bare code, but in real life dont ask here about your bare code miss. And after only maybe read basics, you get info , that 375 and 385 is same except encrytion engine.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>That's a rather rude response.  You assume I haven't read the reference manual, I have, that I haven't read st hal, I have, or that I'm somehow unqualified to write \"bare code\", I'm not.   As usual, the st documentation leaves edge cases as an exercise to the reader.</p><p> </p><p>I started with a basic question, why would stop3 work, and standby not.  Btw, I've used standby on the stm32l432 for years .  There is nothing evident in the st code or documentation that points to an obvious got you.  I only posted code in response to previous feedback.</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Test example <a href=\"https://github.com/STMicroelectronics/STM32CubeU3/blob/main/Projects/NUCLEO-U385RG-Q/Examples_LL/RTC/RTC_ExitStandbyWithWakeUpTimer_Init/Src/main.c\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeU3/blob/main/Projects/NUCLEO-U385RG-Q/Examples_LL/RTC/RTC_ExitStandbyWithWakeUpTimer_Init/Src/main.c</a></p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I'm still looking for insight.  Given code that successfully enters stop3, but fails to enter standby,  what are possible issues to explore,  simply throwing example code my direction doesn't provide any insight since the method is the same - cleat wakeup flags, clear pending interrupts, set lpms, set the deep sleep bit,  wfi.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>And their examples are broken anyway… You won't get real solutions or even a decent insight from ST's support or other especially gifted ones. Instead read this topic very carefully:</p><p><oembed url=\"https://community.st.com/stm32-mcus-embedded-software-32/how-to-enter-standby-or-shutdown-mode-on-stm32-22788\"></oembed></p><p>And as you can see by the dates in that and other topics - no, they will not fix neither the documentation, nor the code. The only thing they care is closing the topics and ignoring the issues.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Piranha,  thanks for your reply.  Sadly no joy.  I can tell that the stm32u375 is executing and staying in wfi, but at huge power. Since the pull up and pull down work properly in stop3,  I have to conclude there is an undocumented bug/feature in this part.  I've abandoned this effort and am using stop3 by emulating standby with a reset flag in the backup registers and system reset.  A separate issue made stop3 direct use untenable because flash write fails after stop3. A pity that sr documentation is so sloppy.  They really need to hire writers who understand computer architecture and can read internal specs.  I say this as one who co-led the joint st/hp effort that created the st2xx family of vliw processors.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"40077\">@Piranha</user-mention> mentioned it in his article he linked to above, and also you mention it in the OP, but did you verify that DBGMCU_CR.DBG_STANDBY = 1 and how?</p><p>[EDIT] OK I see you write DBGMCU_CR to zero explicitly; I’d insert a bunch of NOPs and perform a readback, if there’s a chance that it was nonzero previously. [/EDIT]</p><p>You may also want to try to exercise the ST example on the Nucleo board and if that does work, try to find the difference(s).</p><p>Also, you may want to experiment with a minimal example, avoiding any other code and allowing it to post in its entirety.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I finally isolated the issue -- it had to do with the interaction between the spi device and the the standby hardware.  Even though spi was disabled.  The final incantation that pushed things into working:</p><p> </p><p>RCC-&gt;APB2RSTR |= RCC_APB2RSTR_SPI1RST;</p><p>RCC-&gt;APB2RSTR &amp;= ~RCC_APB2RSTR_SPI1RST;</p><p> </p><p>It would be super helpful if st actually documented the standby functionality properly -- for example enumerating the things that could prevent standby.   I do think it’s a bug that the default behavior is to noiselessly enter a high-power state.</p></div>"
+    }
+  ]
+}

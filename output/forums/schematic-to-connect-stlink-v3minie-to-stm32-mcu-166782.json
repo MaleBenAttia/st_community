@@ -1,0 +1,74 @@
+{
+  "contentType": "question",
+  "id": "166758",
+  "publicId": "166782",
+  "title": "Schematic to connect STLink-V3MINIE to STM32 MCU",
+  "content": "<p>Hi,</p><p>after starting with Nucleo-L432KC development board I need to switch to a variant with more I/Os, and thus I’m creating a stand-alone development board with STM32L462CET in LQFP48 package.</p><p>I purchased a STLink-V3MINIE for programming/debugging but, like others, was confused on how to properly connect the STLink to the MCU. Since various answers are given in lots of threads I <u>summarized </u>in a simplified sketch what I consider as correct.</p><p>Please have a look on attached schematic and configuration of MCU done in CubeMX. To keep it as simple as possible I removed everything but the MCU, the STDC14 connector of the V3MINIE and just an LED to apply the minimum blink-example.</p><p>Please, focus on the connection of STDC14 connector and BOOT0. I think, with this, it is possible to download the blink-software and run the debugger. Am I correct?</p><p>Regards</p><p>Sebastian</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/569ab6cf-128b-485a-8ee5-6add6183888b.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3fabd2b4-0bd0-484b-abf1-98bfb5b64afd.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "26",
+  "categoryName": "STM32 MCUs Boards and hardware tools",
+  "tags": [
+    "ST-Link",
+    "STM32L4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 183,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "101190",
+    "username": "DSebastian",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "101190",
+    "username": "DSebastian",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-08T18:10:01+00:00",
+  "lastActivityAt": "2026-07-10T14:50:31+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742744,
+  "publishedAt": "2026-07-08T18:10:01+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/schematic-to-connect-stlink-v3minie-to-stm32-mcu-166782",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Not connecting NRST to a <em>proper</em> circuit (i.e., not just a pushbutton and a cap - <em>and where’s the pull-up</em>?) on the MCU side is always a mistake.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hm,</p><p>yes, it looks strange, but actually it follows reference design given in AN4555 (provided for LQFP144 package), and no contradiction to datasheet of the MCU (see attached figures). R_PU is specified as typical 40k.</p><p>I can make the NRST pin accessible for the breakout board, but there are no further details given how the pull-up shall be modified.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a32f5c3a-4bb2-42f1-9dd3-4ce3eb06b611.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3bcfa7e5-e195-4c15-92a8-53767bc8e091.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, this is correct and will let you program the chip. Power needs supplied externally, seems like that’s what you’re doing.</p><p>If R1, R2, R3 aren’t installed, those lines won’t work. Schematic is unclear if these are DNI components or 0 ohm resistors. Seem like DNI. But you don’t need them to program. NRST can be nice to have connected if you’re using low power modes.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Ok, schematic about R1, R2, and R3 is a little misleading. I was trying to point out that such are resistors are not needed while overlooking that the symbol actually says DNI leaving the connection to STDC14 connector open.</p><p>So it shall be like this (yes, external power supply):</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/005fe7a9-3b29-4397-a58a-364c75857db2.png\"/></figure><p> </p><p>The hint with regards to NRST and low power modes I didn’t understand. Can you rephrase, please?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"DSebastian\"><div class=\"content-quote-content\"> <p>The hint with regards to NRST and low power modes I didn’t understand. Can you rephrase, please?</p> </div></content-quote><p>If the CPU is asleep and/or you reconfigure the SWD pins, then you won’t be able to connect via SWD.</p><p>Being able to assert NRST will get you out of this.</p></div>"
+    }
+  ]
+}

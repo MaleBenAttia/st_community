@@ -1,0 +1,23 @@
+{
+    "forum": [
+        {
+            "id": "167483",
+            "publicId": "167512",
+            "title": "textconvert is O(n²) in the number of translations — one-line fix",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/textconvert-is-o-n-in-the-number-of-translations-one-line-fix-167512",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX",
+                "TouchGFX Generator"
+            ],
+            "published_at": "2026-08-06T11:57:26+00:00",
+            "views": 37,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello Jimmii\n\nThank you for this discovery. I agree with your comments on the code.\n\nI have merged your changed today.\n\nIt will be included in the next release.\n\nThank you for your contribution.\n\nBest Regards\n\nFlemming",
+            "content_text": "**Environment**: TouchGFX 4.26.0, Windows, Ruby 3.0 (bundled MinGW env). Text database: texts.xml is 13.7 MB - 20 languages x 8,255 text entries = 165,100 translations. \"remap\": \"yes\" in application.config, binary translations and binary fonts both enabled for one of the passes.\n\n**Symptom**: make texts took ~181s cold on a developer machine, ~2min on our build server. Adding timing markers around each phase of Generator#run put 146s of it inside StringCollector#run.\n\n**Cause**: the fold that collects the translations, in framework/tools/textconvert/lib/string\\_collector.rb:\n\n```\n\nall_strings = Array.new(languages.count, Array.new)\n\ntext_entries.each do |text_entry|\n\ntext_entry.translations.each_with_index do |translation, lang_index|\n\nall_strings[remap_global ? 0 : lang_index] += [translation]\n\nend\n\nend\n\n```\n\n`a += [x]` allocates a new array and copies the whole accumulated contents on every iteration, so this is O(n^2) in the number of translations. With global remapping every language folds into slot 0, so n is the \\*combined\\* translation count across all languages - 165,100 here. Measured: 105s of a 120s run spent in this loop alone.\n\n**Fix - append in place:**\n\n```\n\nall_strings = Array.new(languages.count) { Array.new }\n\ntext_entries.each do |text_entry|\n\ntext_entry.translations.each_with_index do |translation, lang_index|\n\nall_strings[remap_global ? 0 : lang_index] << translation\n\nend\n\nend\n\n```\n\nNote the constructor change is required, not cosmetic: Array.new(n, Array.new) puts \\*the same\\* array object into all n slots. That latent bug is invisible today only because `+=` rebinds the slot instead of mutating the shared array - switching to `<<` without also changing the constructor would fold all languages together regardless of remap\\_global.\n\n**Result**: Cold make texts 181s -> 48s locally; our build server's asset-generation step went from ~2min to 53s.\n\n**Verification**: all 209 generated files under generated/texts and generated/fonts (Language\\*.cpp, Texts.cpp, TypedTextDatabase.\\*, Font\\_\\*.cpp, Table\\_\\*.cpp, Kerning\\_\\*.cpp, UnicodeList\\*.txt, headers) are byte-identical before and after, with remap: yes and binary translations/fonts unchanged. The fix only changes how the list is built, not its contents or its order.\n\nSince the cost is quadratic in translation count, it's invisible on small databases and only bites larger multi-language ones - ours is 13.7 MB / 20 languages.\n\nWould be great to see this in a future release so we don't have to re-apply it on every upgrade.",
+            "images": [],
+            "author": "jimmii"
+        }
+    ]
+}

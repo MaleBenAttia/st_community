@@ -1,0 +1,70 @@
+{
+  "contentType": "question",
+  "id": "166789",
+  "publicId": "166810",
+  "title": "Application with home-made bootloader: Application won't run automatically after upload",
+  "content": "<p>This is really a minor one. More an inconvenience than an actual problem. But it would be nice to get it solved, and to gain some understanding of what actually happens.</p><p>I have a few different applications for various STM32 families, with a homemade bootloader added to it. The bootloaders are placed from address 0x08000000, and the applications begin at a higher address. Typically 0x08010000. The bootloaders and applications run fine. Bootloaders can start the applications, and applications can invoke the bootloaders. No problem there.</p><p>The only issue I have is when uploading a new application from STM32CubeProgrammer, through the ST-LINK V3. I typically do this when debugging. But when I do it, even if the “Run after programming” checkbox is checked, the microcontroller isn’t started correctly after upload. When I debug this issue, the microcontroller seems to be stuck in an endless loop in the application. (Not the bootloader.)</p><p>In the code I’m currently working on, this is the place where it gets stuck:</p><pre><code class=\"language-c\">0801c444 &lt;HAL_GetTick&gt;:<br />  *       implementations in user file.<br />  * @retval tick value<br />  */<br />__weak uint32_t HAL_GetTick(void)<br />{<br />  return uwTick;<br /> 801c444:\t4b01      \tldr\tr3, [pc, #4]\t@ (801c44c &lt;HAL_GetTick+0x8&gt;)<br /> 801c446:\t6818      \tldr\tr0, [r3, #0]<br />}<br /> 801c448:\t4770      \tbx\tlr<br /> 801c44a:\tbf00      \tnop<br /> 801c44c:\t200013f0 \t.word\t0x200013f0<br /><br />0801c450 &lt;HAL_Delay&gt;:<br />  *       implementations in user file.<br />  * @param Delay  specifies the delay time length, in milliseconds.<br />  * @retval None<br />  */<br />__weak void HAL_Delay(uint32_t Delay)<br />{<br /> 801c450:\tb538      \tpush\t{r3, r4, r5, lr}<br /> 801c452:\t4604      \tmov\tr4, r0<br />  uint32_t tickstart = HAL_GetTick();<br /> 801c454:\tf7ff fff6 \tbl\t801c444 &lt;HAL_GetTick&gt;<br />  uint32_t wait = Delay;<br /><br />  /* Add a period to guaranty minimum wait */<br />  if (wait &lt; HAL_MAX_DELAY)<br /> 801c458:\t1c63      \tadds\tr3, r4, #1<br />  {<br />    wait += (uint32_t)uwTickFreq;<br /> 801c45a:\tbf1c      \titt\tne<br /> 801c45c:\t4b05      \tldrne\tr3, [pc, #20]\t@ (801c474 &lt;HAL_Delay+0x24&gt;)<br /> 801c45e:\t781b      \tldrbne\tr3, [r3, #0]<br />  uint32_t tickstart = HAL_GetTick();<br /> 801c460:\t4605      \tmov\tr5, r0<br />    wait += (uint32_t)uwTickFreq;<br /> 801c462:\tbf18      \tit\tne<br /> 801c464:\t18e4      \taddne\tr4, r4, r3<br />  }<br /><br />  while ((HAL_GetTick() - tickstart) &lt; wait)<br /> 801c466:\tf7ff ffed \tbl\t801c444 &lt;HAL_GetTick&gt;<br /> 801c46a:\t1b43      \tsubs\tr3, r0, r5<br /> 801c46c:\t42a3      \tcmp\tr3, r4<br /> 801c46e:\td3fa      \tbcc.n\t801c466 &lt;HAL_Delay+0x16&gt;<br />  {<br />  }<br />}</code></pre><p>It keeps repeating the <strong>while</strong> loop (instructions 0x0801C466 - 0x0801C46E), branching to HAL_GetTick along the way. I have no idea why it does this.</p><p>If I have STM32CubeProgrammer reset and run the microcontroller (CPU tab → Hardware Reset + Run), it starts up as expected, exactly as after power-on. So after uploading the application I need to close all the pop-up windows, switch to the CPU tap, and then click Hardware Reset and Run. Yeah, I know it is a minor thing, but I still find it inconvenient.</p><p>I remember seeing something that might be a solution, but now I cannot find it. If I recall correctly, it had something to do with USER_VECT_TAB_ADDRESS found in system_stm32<em>xxx</em>.c, but I am not sure.</p><p>Does anyone recognise this, and know what to do? And perhaps why?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeProgrammer",
+    "Bootloader"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 76,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "57654",
+    "username": "EThom.3",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7117d990-04c3-4d33-99f2-0c8bb8518de9.png"
+  },
+  "lastContributor": {
+    "id": "499",
+    "username": "mƎALLEm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f063c58-40af-4b0d-9381-650ca815d5be.png"
+  },
+  "createdAt": "2026-07-09T12:08:36+00:00",
+  "lastActivityAt": "2026-07-09T19:46:47+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742642,
+  "publishedAt": "2026-07-09T12:08:36+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/application-with-home-made-bootloader-application-won-t-run-automatically-after-upload-166810",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I may have found a solution. Sort of. However, I don’t know if it is a bad one, that may create problems elsewhere.</p><p>In the application file “system_stm32l4xx.c”, I uncommented <span style=\"background-color:#ffffff;\"><span style=\"background-color:#ffffff;color:#000000;\"><strong>#define</strong><span style=\"color:#000000;\"> </span></span></span><span style=\"color:#000000;\"><span style=\"color:#000000;\">USER_VECT_TAB_ADDRESS</span></span>. Then I changed <span style=\"background-color:#ffffff;\"><span style=\"background-color:#ffffff;color:#000000;\">VECT_TAB_BASE_ADDRES</span></span>S from FLASH_BASE to 0x08010000, which is the application start address.</p><p>Now, when STM32CubeProgrammer has finished uploading an application, the microcontroller starts the <em>application</em>. Not the bootloader, which is normally the first piece of code to be run.</p><p>So while it is <em>a</em> solution, it is clearly not the perfect solution.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; So while it is <em>a</em> solution, it is clearly not the perfect solution.</p><p>Having to modify a “library” file is not perfect. If you look at this file a bit longer, intent of its authors would be clear.</p><p><a href=\"https://github.com/STMicroelectronics/cmsis-device-l4/blob/ca0bfa2b8b68dc2994b27fba0a10dfd28d086ee1/Source/Templates/system_stm32l4xx.c#L121\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/cmsis-device-l4/blob/ca0bfa2b8b68dc2994b27fba0a10dfd28d086ee1/Source/Templates/system_stm32l4xx.c#L121</a></p><p>All the needed macros/symbols can be defined in the project preprocessor settings instead of modifying the .c file.</p><p>USER_VECT_TAB_ADDRESS  1</p><p>VECT_TAB_OFFSET  0x10000</p><p>Then this line should compile properly:</p><p><a href=\"https://github.com/STMicroelectronics/cmsis-device-l4/blob/ca0bfa2b8b68dc2994b27fba0a10dfd28d086ee1/Source/Templates/system_stm32l4xx.c#L203\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/cmsis-device-l4/blob/ca0bfa2b8b68dc2994b27fba0a10dfd28d086ee1/Source/Templates/system_stm32l4xx.c#L203</a></p><p> </p><p>&gt;  Not the bootloader, which is normally the first piece of code to be run.</p><p>If the app depends on the bootloader to prepare clocks, memories and so on, but the debugger starts the app directly via its vector address - the app can detect this and call NVIC_SystemReset, to ensure going thru the bootloader. Or, the debugger can be configured to always start from the fixed bootloader address.</p><p>Anyway, the problem is solved and all is good now.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks, Pavel A.</p><p>Interesting. Will have a close look at that.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​Hello <user-mention data-id=\"57654\">@EThom.3</user-mention> ,</p><p>Custom bootloader related questions need to be posted in “STM32 MCUs Embedded software” forum board.</p><p>ST bootloader related questions need to be posted in “STM32 MCUs Products” forum board.</p><p>I move the thread then.</p></div>"
+    }
+  ]
+}

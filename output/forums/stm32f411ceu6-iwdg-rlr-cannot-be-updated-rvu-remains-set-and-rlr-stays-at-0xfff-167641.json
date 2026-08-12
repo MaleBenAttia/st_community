@@ -1,0 +1,61 @@
+{
+  "contentType": "question",
+  "id": "167611",
+  "publicId": "167641",
+  "title": "STM32F411CEU6 IWDG_RLR cannot be updated: RVU remains set and RLR stays at 0xFFF",
+  "content": "<p>Hello, I am working on an STM32F411CEU6 and I am trying to configure the Independent Watchdog (IWDG) directly through registers. I have encountered a problem where IWDG_RLR cannot be updated. My MCU information is: - MCU: STM32F411CEU6 - Device ID: 0x431 - Revision ID: 0x1000 - IDCODE: 0x10006431 - HCLK: 16 MHz - PCLK1: 16 MHz - System clock: default HSI 16 MHz - LSI: enabled and ready I am using the following register-level code: RCC-&gt;CSR |= RCC_CSR_LSION; while (!(RCC-&gt;CSR &amp; RCC_CSR_LSIRDY)); IWDG-&gt;KR = 0x5555; IWDG-&gt;RLR = 250; uint32_t sr1 = IWDG-&gt;SR; while ((IWDG-&gt;SR &amp; IWDG_SR_RVU) &amp;&amp; timeout++ &lt; 1000000); uint32_t sr2 = IWDG-&gt;SR; uint32_t rlr = IWDG-&gt;RLR &amp; 0xFFF; The result is consistently: SR immediately after writing RLR: RVU = 1 SR after waiting for the update: RVU = 1 RLR: 0xFFF In other words, RVU never clears and RLR remains at its reset value of 4095. I have also verified that the IWDG itself is working. Test 1: PR = 0 RLR = 0xFFF The watchdog resets the MCU after approximately 0.5 seconds, which agrees with: 4096 * 4 / 32 kHz ≈ 0.512 s Test 2: PR = 6 RLR remains 0xFFF The watchdog resets the MCU after approximately 30+ seconds, which is consistent with: 4096 * 256 / 32 kHz ≈ 32.8 s Therefore, the LSI and IWDG counter appear to be working correctly. However, RLR cannot be updated. I also checked the STM32F411 errata sheet (ES0287), which mentions an IWDG issue where RVU may remain set if the APB clock is less than twice the IWDG clock. However, in my case: PCLK1 = 16 MHz LSI ≈ 32 kHz so: PCLK1 &gt;&gt; 2 × LSI Therefore, this condition does not seem to apply. I have also tried disconnecting the ST-LINK debugger and powering the board independently, so I don't think debugger freeze is involved. My questions are: 1. Is there any known issue with IWDG_RLR/RVU on STM32F411CEU6 with revision ID 0x1000? 2. Is there any additional condition required before writing IWDG_RLR? 3. Why would RVU remain set indefinitely even though PCLK1 is 16 MHz? 4. Could this indicate a silicon issue or a specific erratum for this revision? Any advice or clarification from ST would be greatly appreciated. Thank you.</p><p>The following values were read directly from the MCU: IDCODE = 0x10006431 DEV_ID = 0x431 REV_ID = 0x1000 SystemCoreClock = 16000000</p><p>Testcode:IWDG-&gt;KR = 0x5555; IWDG-&gt;RLR = 250; sr1 = IWDG-&gt;SR; t = 0; while ((IWDG-&gt;SR &amp; IWDG_SR_RVU) &amp;&amp; t++ &lt; 1000000); delay_ms(50); sr2 = IWDG-&gt;SR; rlr = IWDG-&gt;RLR &amp; 0xFFF;</p><p>Result:H1 = 2 H2 = 2 T = 4095</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 28,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "109018",
+    "username": "wangkang111333",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108960",
+    "username": "george2121",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-12T09:08:25+00:00",
+  "lastActivityAt": "2026-08-12T11:33:15+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745495,
+  "publishedAt": "2026-08-12T09:08:25+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32f411ceu6-iwdg-rlr-cannot-be-updated-rvu-remains-set-and-rlr-stays-at-0xfff-167641",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>After further investigation, the problem has been solved. It turned out to be a <strong>timing/sequence issue</strong>.</p><p>The correct sequence is to <strong>start the IWDG first</strong> (by writing <code>0xCCCC</code> to KR) and <strong>then</strong> update the reload register, similar to how the HAL library handles the initialization flow.</p><p>My original code attempted to write <code>IWDG_RLR</code> before enabling the watchdog, which caused the RVU flag to stay set forever. Once I changed the order – first <code>IWDG-&gt;KR = 0xCCCC</code>, then unlock with <code>0x5555</code>, write <code>RLR</code>, and properly wait for RVU to clear – the reload value was accepted and the RVU flag cleared normally.</p><p>For anyone encountering the same issue, here's the working sequence:</p><p>c</p><pre><em>// Enable LSI and wait for ready</em>RCC-&gt;CSR |= RCC_CSR_LSION;while (!(RCC-&gt;CSR &amp; RCC_CSR_LSIRDY));<em>// Start the IWDG first</em>IWDG-&gt;KR = 0xCCCC;<em>// Then unlock and configure PR / RLR</em>IWDG-&gt;KR = 0x5555;IWDG-&gt;PR  = 6;IWDG-&gt;RLR = 250;while (IWDG-&gt;SR &amp; (IWDG_SR_RVU | IWDG_SR_PVU));<em>// At this point the reload value is updated correctly</em></pre><p>This works reliably on my STM32F411CEU6 (Rev A, REV_ID 0x1000). I believe the hardware expects the watchdog to be in a running state before the reload register can be safely modified; otherwise, the RVU flag can get stuck, especially on this silicon revision.</p><p>Thanks to everyone who helped with suggestions and documentation references.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>It looks like the watchdog itself is operating correctly, so the main issue is the synchronization of the RLR write. Since RVU remains set and RLR stays at 0xFFF, I would double check the exact silicon revision against the STM32F411 errata and reference manual. It may also be worth testing with a longer timeout and verifying that no other code is accessing the IWDG registers during the update. The fact that disconnecting ST LINK does not change the behavior makes debugger freeze less likely.</p></div>"
+    }
+  ]
+}

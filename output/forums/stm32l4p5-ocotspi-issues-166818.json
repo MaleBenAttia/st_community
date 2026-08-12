@@ -1,0 +1,75 @@
+{
+  "contentType": "question",
+  "id": "166801",
+  "publicId": "166818",
+  "title": "STM32L4P5 ocotspi issues",
+  "content": "<p>Hello,</p><p>I have two issues with the octospi controllers of the STM32L4P5.</p><p><u><em><strong>First issue.</strong></em></u></p><p>I can’t get both controller to work simultaneously.</p><p>My target was to use one controller with a QSPI flash (W25Q512JVEIQ) and the second one with an APMemory QSPI PSRAM (APS6404L).<br />I started the project by getting the code to work (it was a port from an STM32L496 project) for the flash.</p><p>After some adjustments, the code works properly in quad spi mode.</p><p>Then I added the second controller and doing that brokes the project.</p><p>The second controller works, but the first one stopped working.</p><p>I run some checks with a logic analyzer and found that ther is no signals on the I/O lines.</p><p>CS# is HIGH and never goes low and there is no clock.</p><p>CS# and clock are properly generated for the second controller.</p><p><u><em><strong>Second issue</strong></em></u></p><p>I can’t get the memory mapped mode to work.</p><p>The mode is p^roperly enabled, I can read data from 0x90000000 without throwing a hard fault, but data is always 0.</p><p>I’m wondering if this could be related to the flash model.</p><p>It does not support QPI mode.</p><p>Is QPI mode required for memeory mapped  mode to work ?</p><p>Here after is my code to enable memory mapped mode:</p><pre><code class=\"language-c\">static void w25qxxx_Enable_memory_mapped(void)<br />{<br />\tOSPI_MemoryMappedTypeDef\t_cfg = {0};<br />\tOSPI_RegularCmdTypeDef\t\t_ospi_rd_command = {0};<br />\tOSPI_RegularCmdTypeDef\t\t_ospi_wr_command = {0};<br />\tHAL_StatusTypeDef\t\t\t_hal_status;<br /><br />\t_cfg.TimeOutActivation = HAL_OSPI_TIMEOUT_COUNTER_DISABLE;<br /><br />\t_ospi_rd_command.OperationType = HAL_OSPI_OPTYPE_READ_CFG;<br />\t_ospi_rd_command.FlashId = HAL_OSPI_FLASH_ID_1;<br />\t_ospi_rd_command.NbData = 1;<br /><br />\tif (system_hardware_config-&gt;flash_read_mode == FLASH_RW_MODE_QUAD)<br />\t{<br />\t\t_ospi_rd_command.Instruction = W25Q_FAST_READ_QUAD_OUT_4B;<br />\t\t_ospi_rd_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;<br />\t\t_ospi_rd_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;<br />\t\t_ospi_rd_command.AddressSize = HAL_OSPI_ADDRESS_32_BITS;<br />\t\t_ospi_rd_command.DataMode = HAL_OSPI_DATA_4_LINES;<br />\t\t_ospi_rd_command.DummyCycles = 8;<br />\t}<br />\telse if (system_hardware_config-&gt;flash_read_mode == FLASH_RW_MODE_DUAL_SINGLE)<br />\t{<br />\t\t_ospi_rd_command.Instruction = W25Q_FAST_READ_DUAL_OUT_4B;\t \t// COMMAND<br />\t\t_ospi_rd_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;<br />\t\t_ospi_rd_command.AddressSize = HAL_OSPI_ADDRESS_32_BITS;<br />\t\t_ospi_rd_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;<br />\t\t_ospi_rd_command.DataMode = HAL_OSPI_DATA_2_LINES;<br />\t\t_ospi_rd_command.DummyCycles = 8;<br />\t}<br />\telse<br />\t{<br />\t\t_ospi_rd_command.Instruction = W25Q_FAST_READ_4B;\t \t// COMMAND<br />\t\t_ospi_rd_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;<br />\t\t_ospi_rd_command.AddressSize = HAL_OSPI_ADDRESS_32_BITS;<br />\t\t_ospi_rd_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;<br />\t\t_ospi_rd_command.DataMode = HAL_OSPI_DATA_1_LINE;<br />\t\t_ospi_rd_command.DummyCycles = 8;<br />\t}<br />\t_ospi_wr_command.OperationType = HAL_OSPI_OPTYPE_WRITE_CFG;<br />\t_ospi_wr_command.FlashId = HAL_OSPI_FLASH_ID_1;<br />\t_ospi_wr_command.NbData = 1;<br /><br />\tif (system_hardware_config-&gt;flash_read_mode == FLASH_RW_MODE_QUAD)<br />\t{<br />\t\t_ospi_wr_command.Instruction = W25Q_PAGE_PROGRAM_QUAD_INP_4B;\t \t// COMMAND<br />\t\t_ospi_wr_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;<br />\t\t_ospi_wr_command.AddressSize = HAL_OSPI_ADDRESS_32_BITS;<br />\t\t_ospi_wr_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;<br />\t\t_ospi_wr_command.DataMode = HAL_OSPI_DATA_4_LINES;<br />\t}<br />\telse<br />\t{<br />\t\t_ospi_wr_command.Instruction = W25Q_PAGE_PROGRAM_4B;\t \t// COMMAND<br />\t\t_ospi_wr_command.InstructionMode = HAL_OSPI_INSTRUCTION_1_LINE;<br />\t\t_ospi_wr_command.AddressSize = HAL_OSPI_ADDRESS_32_BITS;<br />\t\t_ospi_wr_command.AddressMode = HAL_OSPI_ADDRESS_1_LINE;<br />\t\t_ospi_wr_command.DataMode = HAL_OSPI_DATA_1_LINE;<br />\t}<br />\t_hal_status = HAL_OSPI_Command(&amp;hospi1, &amp;_ospi_rd_command, HAL_OSPI_TIMEOUT_DEFAULT_VALUE);<br />\tif (_hal_status != HAL_OK)<br />\t{<br />\t\t_hal_status = HAL_OSPI_GetError(&amp;hospi1);<br />\t\tHAL_OSPI_Abort(&amp;hospi1);<br />\t}<br />\telse<br />\t{<br />\t\t_hal_status = HAL_OSPI_Command(&amp;hospi1, &amp;_ospi_wr_command, HAL_OSPI_TIMEOUT_DEFAULT_VALUE);<br />\t\tif (_hal_status != HAL_OK)<br />\t\t{<br />\t\t\t_hal_status = HAL_OSPI_GetError(&amp;hospi1);<br />\t\t\tHAL_OSPI_Abort(&amp;hospi1);<br />\t\t}<br />\t\telse<br />\t\t{<br />\t\t\t_hal_status = HAL_OSPI_MemoryMapped(&amp;hospi1, &amp;_cfg);<br />\t\t\tif (_hal_status != HAL_OK)<br />\t\t\t{<br />\t\t\t\t_hal_status = HAL_OSPI_GetError(&amp;hospi1);<br />\t\t\t\tHAL_OSPI_Abort(&amp;hospi1);<br />\t\t\t}<br />\t\t}<br />\t}<br />}<br /></code></pre><p>The code was teste in QUAD configuration (<em>FLASH_RW_MODE_QUAD)</em></p><p>Thanks in advance for your help.</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32CubeMX",
+    "OctoSPI",
+    "STM32L4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 96,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "62250",
+    "username": "zeboss49",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "62250",
+    "username": "zeboss49",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-09T14:50:18+00:00",
+  "lastActivityAt": "2026-07-12T17:24:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742793,
+  "publishedAt": "2026-07-09T14:50:18+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32l4p5-ocotspi-issues-166818",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"62250\">@zeboss49</user-mention> ;</p><p> </p><p>Are you using STM32CubeMx to generate project?</p><p>If yes, Please look at  <a href=\"https://community.st.com/stm32-mcus-embedded-software-32/octospi-hal-ospim-config-147064\" rel=\"noopener noreferrer\" target=\"_self\">OCTOSPI: HAL_OSPIM_Config() | Community</a>.</p><p>For the second issue, I recommend you to look a <a href=\"https://www.st.com/content/ccc/resource/technical/document/application_note/group0/91/dd/af/52/e1/d3/48/8e/DM00407776/files/DM00407776.pdf/jcr:content/translations/en.DM00407776.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN5050</a> precisely Table 7. STM32CubeMX - Configuration of OCTOSPI signals and mode and III. Quad-SPI PSRAM in Regular-command protocol example section. This may help you to configure the OCTOSPI1 in Indirect/Memory-mapped mode and to configure the external Quad-SPI PSRAM AP Memory allowing communication in STR Quad-SPI mode.</p><p> </p><p>Thank you.</p><p>KAouthar</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I’m using CubeMX to generate the project.</p><p>I’ll look at the refferenced topic.</p><p>For the second point, your answer lacks an important information about the QUAD SPI mode, are you speaking of the regular QUAD SPI mode or the QPI mode?</p><p>The exemple tells nothing about it as the APMemory chip only supports QPI mode.</p><p>The main differences between regular QUAD SPI mode and QPImode is that in QPImode all the transfers, including the command, is done using four lines.</p><p>If QPI compliant chip is required, I can switch to a GD25B512ME flash chip which is QPI and DTR compliant.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"62250\">@zeboss49</user-mention> ,</p><p> </p><p>Glad to know that the first issue is solved.</p><p>Is the DQS enabled? Please look at <a href=\"https://www.st.com/resource/en/errata_sheet/es0510-stm32l4p5xxq5xx-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">STM32L4P5xx/Q5xx device errata - Errata sheet</a> for OCTOSPI limitations.</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>DQS is enabled in OCTOSPIM, but is not in the OCTOSPI instances.<br/>I did’n’t put the modified code in octospi.c, I rather paste it at the beginning of the main task, avoiding the boring process to have to modify octospi.c each time I re-run CubeMX.</p><p>Didier</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I’ve conducted some test with both OCTOSPI controllers working simultaneously.</p><p>Usiong the same code to activate the memory maped mode (at the except of the hospi item) it appears that ùeùory mapped mode works like a charm with the APMemory APS6404L 8MB QUAD SPI PSRAM CHIP and does niot work with the W25Q512JVEIQ chip.</p><p>From my point of view, the answer to the second point is that a QPI compliant chip is required for memory mapped mode to work.</p><p>I don’t see any obvious reason to this, the read config and write config do provide information whatever the mode is and it should work.</p><p>Regards</p><p>Didier</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+    "forum": [
+        {
+            "id": "166927",
+            "publicId": "166945",
+            "title": "FDCAN HAL API uses a confusing name",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/fdcan-hal-api-uses-a-confusing-name-166945",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "HAL"
+            ],
+            "published_at": "2026-07-14T15:30:53+00:00",
+            "views": 45,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@CTapp.1\n\nThank your feedback. You are absolutely right that the IsFilterMatchingFrame field name can be misleading with respect to the actual meaning of the ANMF bit. This point has been revisited in the newer HAL2 implementation (notably for STM32C5), where the naming/handling has been improved to reduce this ambiguity. However, for the existing STM32G4 HAL, we do not plan to change it, as doing so would introduce a compatibility break for existing user code.",
+            "content_text": "The FDCAN\\_RxHeaderTypeDef typedef (for the STM32G4) includes:\n\n```\n\nuint32_t IsFilterMatchingFrame; /*!< Specifies whether the accepted frame did not match any Rx filter.\n\nAcceptance of non-matching frames may be enabled via\n\nHAL_FDCAN_ConfigGlobalFilter().\n\nThis parameter takes 0 if the frame matched an Rx filter or\n\n1 if it did not match any Rx filter          */\n\n```\n\nFrom the code, this member is loaded with the ANMF bit of an RX FIFO element. The documentation for this shows that ANMF is an abbreviation for “Accepted non-matching frame” - so the comment is correct (‘1’ → did not match a filter). Which means the member name should be something like ‘IsNotFilterMatchingFrame’.\n\nCode completion within CubeIDE does not show the comment:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/018e9b4c-673a-4840-8797-9fae5438319d.png)\n\nwhich means it is easy to get the state wrong if the name is interpreted semantically!\n\nProbably not a lot that can be done about this now, but it’s one to watch out for.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/018e9b4c-673a-4840-8797-9fae5438319d.png"
+            ],
+            "author": "CTapp.1"
+        }
+    ]
+}

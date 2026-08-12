@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166837",
+  "publicId": "166854",
+  "title": "SPI reliability over ~120 cm total (100 cm PCB trace + 2 board-to-board connectors + 20 cm cable) at 100 kHz — real-world experience?",
+  "content": "<p>Hi all,</p><p>I'm designing the control electronics for an automatic egg-candling machine (150 positions). An <strong>STM32F411</strong> drives everything over a single shared SPI bus:</p><ul><li>A <strong>74HC595 daisy-chain</strong> (shift registers → ULN2803A → solenoid valves)</li>\t<li><strong>MCP3208 ADCs</strong> (reading LDR light sensors) on the same SPI bus, CS-selected</li></ul><p>The process is <strong>strictly sequential</strong> (read all sensors first, then actuate valves — never at the same time), so valve-switching noise never coincides with an ADC read, and SPI speed is not time-critical. That's why I want to keep the clock slow.</p><p><strong>Physical signal path (my concern):</strong></p><ul><li>~100 cm total PCB trace</li>\t<li>2 board-to-board connectors (PCB-to-PCB)</li>\t<li>then a <strong>20 cm cable</strong> that enters the target IC (74HC595 / MCP3208)</li>\t<li>Planned SPI clock: <strong>100 kHz</strong>, SPI mode 0, 3.3 V logic</li></ul><p><strong>Mitigations planned:</strong> series termination on SCLK/MOSI/LATCH at the source, ground interleaving in the cable, star grounding (valve PGND separated from SPI/logic GND), local 3.3 V regulation at the far end.</p><p><strong>My own bench test:</strong> I ran an SPI loopback (MOSI→MISO) over a <strong>2 m unshielded cable hanging in free air, no termination</strong>, sweeping the clock. Result: <strong>zero errors from 100 kHz up to 8 MHz</strong>; errors only appeared from 12 MHz upward, and those look like the round-trip propagation delay of the loopback (MISO arriving late vs. the sample edge), not signal degradation. So the fundamental margin looks large.</p><p><strong>Questions:</strong></p><ol><li>Has anyone run SPI reliably over a similar path (~120 cm total: PCB + connectors + cable) at low clock (100 kHz–1 MHz)? \"Just works\" or horror stories?</li>\t<li>With a real <strong>74HC595 chain + MCP3208</strong> as the load (not a loopback), any gotchas over this distance — SCLK integrity, edge rates, reflections at the connectors?</li>\t<li>Is series termination + slow clock enough, or would you add a buffer/re-driver (e.g. a 74HC buffer at the cable entry) for SCLK/LATCH?</li>\t<li>Any recommendation on cable type / grounding scheme?</li></ol>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "142",
+  "categoryName": "Others: STM32 MCUs related",
+  "tags": [
+    "STM32F4 series",
+    "SPI"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 173,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "108142",
+    "username": "ustunn",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "48557",
+    "username": "Ozone",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/4ac27b25-840c-54c7-7e65-d890310d3217.png"
+  },
+  "createdAt": "2026-07-10T14:53:18+00:00",
+  "lastActivityAt": "2026-07-14T11:43:29+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742978,
+  "publishedAt": "2026-07-10T14:53:18+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/others-stm32-mcus-related-142/spi-reliability-over-120-cm-total-100-cm-pcb-trace-2-board-to-board-connectors-20-cm-cable-at-100-khz-real-world-experience-166854",
+  "scraped_replies": []
+}

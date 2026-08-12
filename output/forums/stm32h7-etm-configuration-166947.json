@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166929",
+  "publicId": "166947",
+  "title": "STM32H7 ETM configuration",
+  "content": "<p>I am into configuring a STM32H750VBT6 and I want to configure ETMv4 inside the code of the program and my objective is to detect and capture data on 5 trace pins.<br />I configured all trace pipeline including, CSTF,ETF,ETM,DWT and TPIU. also I considered opening Locks, enabling TRCENA in CoreDebug_:DEMCR and enabling required clock domains in DBGMCU_CR.<br />After all I am just sighting clock signal on TRACECLK pin. I also checked TPIU unit if it successfully outputs test patterns like AA55 and FF00. Test patterns worked properly but when disabling test pattern only clock comes out through the trace pins.<br />I am looking for someone who configured that before to help me prevail it.<br /><br />here are my functions:</p><pre><code class=\"language-c\">#include \"ETMv4.h\"<br />#include \"core_cm7.h\"<br /><br />uint32_t startAddr = 0;<br />uint32_t stopAddr = 0;<br /><br />void Parallel_Trace_configure(){<br />\tTraceGPIO_Configure();<br />\tDisable_ETM();<br />\tTPIU_Configure();<br />\tETF_Configure();<br />\tCSTF_Configure();<br />\tETM_Configure();<br />    SetupStartStopAddr();<br />    DWT_Configure();<br />    Enable_ETM();<br />}<br /><br />void TPIU_Configure(void)<br />{<br /><br />    TPIU-&gt;LAR = CORESIGHT_UNLOCK;<br />    TPIU-&gt;CURPSIZE = 8;   <br />    //TPIU-&gt;CURTPM = (1&lt;&lt;17)|(1&lt;&lt;2);//Test in continuous AA/55 pattern<br />    TPIU-&gt;CURTPM = (1&lt;&lt;17);<br />    TPIU-&gt;FFCR = 0x2;<br />    TPIU-&gt;FSCR = 0x40;<br />    while (TPIU-&gt;FFSR &amp; (1 &lt;&lt; 0)) {<br />        // Wait until FLINPROG (Flush In Progress) bit clears<br />    }<br />}<br />void ETF_Configure(void) {<br />    ETF-&gt;LAR = CORESIGHT_UNLOCK;<br />    ETF-&gt;CTL &amp;= ~(1U &lt;&lt; 0);<br />    while ((ETF-&gt;STS &amp; (1U &lt;&lt; 2)) == 0) {<br />        // Wait for READY == 1<br />    }<br />    ETF-&gt;MODE = 0x2;<br />    ETF-&gt;FFCR = 0;<br />    ETF-&gt;CTL |= (1U &lt;&lt; 0);<br />}<br /><br />void ETM_Configure(void){<br /><br />\tDisable_ETM();<br />    ETM-&gt;CONFIG |= 0x18;<br />    ETM-&gt;STALLCTL |= 0x30c;<br />    ETM-&gt;CCCTL |= 1;<br />    ETM-&gt;TRACEID = 0x3E;<br />    ETM-&gt;VICTL = 0x00000001;<br />    ETM-&gt;VIPCSSCTL = (1U &lt;&lt; 17) | (1U &lt;&lt; 0);<br />    Enable_ETM();<br />}<br /><br />void CSTF_Configure(void){<br />    CSTF-&gt;LAR = CORESIGHT_UNLOCK;         // Unlock Funnel access<br />    CSTF-&gt;CTRL = 0x01;             // Enable Slave Port 0 (ETM traffic)<br />}<br /><br />void TraceGPIO_Configure(void){<br />\tCoreDebug-&gt;DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Equivalent to (1U &lt;&lt; 24)<br />\tRCC-&gt;AHB4ENR |= RCC_AHB4ENR_GPIOEEN;<br />\tGPIOE-&gt;MODER &amp;= ~(GPIO_MODER_MODE2 | GPIO_MODER_MODE3 |<br />\t                  GPIO_MODER_MODE4 | GPIO_MODER_MODE5 | GPIO_MODER_MODE6);<br />\tGPIOE-&gt;MODER |= (2U &lt;&lt; GPIO_MODER_MODE2_Pos) | (2U &lt;&lt; GPIO_MODER_MODE3_Pos) |<br />\t                (2U &lt;&lt; GPIO_MODER_MODE4_Pos) | (2U &lt;&lt; GPIO_MODER_MODE5_Pos) |<br />\t                (2U &lt;&lt; GPIO_MODER_MODE6_Pos);<br />\tGPIOE-&gt;OSPEEDR |= (3U &lt;&lt; GPIO_OSPEEDR_OSPEED2_Pos) | (3U &lt;&lt; GPIO_OSPEEDR_OSPEED3_Pos) |<br />\t                  (3U &lt;&lt; GPIO_OSPEEDR_OSPEED4_Pos) | (3U &lt;&lt; GPIO_OSPEEDR_OSPEED5_Pos) |<br />\t                  (3U &lt;&lt; GPIO_OSPEEDR_OSPEED6_Pos);<br /><br />\tGPIOE-&gt;AFR[0] &amp;= ~((0xFU &lt;&lt; (4 * 2)) | (0xFU &lt;&lt; (4 * 3)) |<br />\t                   (0xFU &lt;&lt; (4 * 4)) | (0xFU &lt;&lt; (4 * 5)) | (0xFU &lt;&lt; (4 * 6)));<br />\tDBGMCU-&gt;CR |= DBGMCU_CR_DBG_TRACECKEN|DBGMCU_CR_DBG_CKD1EN|DBGMCU_CR_DBG_CKD3EN;<br /><br />}<br /><br />void DWT_Configure() {<br />\tCoreDebug-&gt;DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Equivalent to (1U &lt;&lt; 24)<br />\tDWT-&gt;LAR = CORESIGHT_UNLOCK;<br />    DWT-&gt;CTRL = (1&lt;&lt;10)|(1&lt;&lt;0);<br />        DWT-&gt;COMP0 = startAddr;<br />        DWT-&gt;MASK0 = 0;             // Exact address match<br />        DWT-&gt;FUNCTION0 = 8;         // Match on instruction address execution<br />        // 3. Configure DWT Comparator 1 as the STOP trigger<br />#undef COMP1<br />        DWT-&gt;COMP1 = stopAddr;<br />        DWT-&gt;MASK1 = 0;             // Exact address match<br />        DWT-&gt;FUNCTION1 = 8;         // Match on instruction address execution<br />}<br /><br />void Enable_ETM(){<br />\tETM-&gt;PRGCTL |= 1U;<br />\t// Wait for ETM to be active<br />\twhile ((ETM-&gt;STAT &amp; 0x01) != 0);<br />}<br /><br />void Disable_ETM(){<br /><br />\tETM-&gt;LAR = CORESIGHT_UNLOCK;<br />\t// Wait for the ETM to be unlocked by checking the Lock Status Register (LSR)<br />\twhile ((ETM-&gt;LSR &amp; 0x02) != 0); // Bit 1 is the Lock Status bit (0 = Unlocked)<br />\tETM-&gt;PRGCTL &amp;= ~1U;<br /><br />\t// Wait for ETM to be turned off (idle)<br />\twhile ((ETM-&gt;STAT &amp; 0x01) != 1);<br />}<br /><br />__attribute__((noinline)) void StartPoint(void){<br />    __asm(\"nop\");<br />}<br />__attribute__((noinline)) void StopPoint(void){<br />    __asm(\"nop\");<br />}<br /><br />void SetupStartStopAddr()<br />{<br />    // Cast to uint32_t and mask off the Thumb bit (bit 0)<br />    startAddr = (uint32_t)&amp;StartPoint &amp; ~1UL;<br />    stopAddr  = (uint32_t)&amp;StopPoint &amp; ~1UL;<br />}<br /></code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Debug",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 28,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108238",
+    "username": "MrDousti",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108238",
+    "username": "MrDousti",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-14T16:19:12+00:00",
+  "lastActivityAt": "2026-07-14T16:19:12+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-14T16:19:12+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32h7-etm-configuration-166947",
+  "scraped_replies": []
+}

@@ -1,0 +1,25 @@
+{
+    "forum": [
+        {
+            "id": "167075",
+            "publicId": "167096",
+            "title": "STM32H743 ADC3 temperature sensor not reading correctly in latest STMCubeMX 6.18 but was working in earlier STM32CubeMX 6.15",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32h743-adc3-temperature-sensor-not-reading-correctly-in-latest-stmcubemx-6-18-but-was-working-in-earlier-stm32cubemx-6-15-167096",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32H7 series",
+                "ADC"
+            ],
+            "published_at": "2026-07-21T05:59:12+00:00",
+            "views": 84,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "They did fix the error on the H723 but in the process ended up breaking it for the more common H743. Points for trying?\n\n[Is there a typo in temperature and VREF Analog conversion macros defined for STM32H723 HAL? | Community](https://community.st.com/stm32-mcus-embedded-software-32/is-there-a-typo-in-temperature-and-vref-analog-conversion-macros-defined-for-stm32h723-hal-158036)\n\n[Incorrect calculation of \\_\\_LL\\_ADC\\_CALC\\_VREFANALOG\\_VOLTAGE on STM32H723 | Community](https://community.st.com/stm32-mcus-embedded-software-32/incorrect-calculation-of-ll-adc-calc-vrefanalog-voltage-on-stm32h723-159786)\n\nMacro comments are now incorrect as it scales the value to 12 bits, not 16.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b4a74e83-ede0-46b0-bdfa-e00ae306bd70.png)\n\nVery sloppy. Changing it 100% breaks any code that used it before.\n\nI may be missing something but treating the cal value as 12 bit or 16 bits needs to be processor dependent, and this macro clearly is not written to handle that correctly.",
+            "content_text": "We have recently updated to the latest STM32CubeMX 6.17 and then STMCubeMX 6.18 and noticed in both versions that the internal temperature sensor is mis-reading (by something like 100x).\n\nPreviously the project was reading the temperature correctly (STMCubeMX 6.14 or 6.15 not sure exactly).\n\nI have checked that all the ADC3 settings are the same and there are no changes causing by migrating the .IOC project.\n\nI’ve also checked the TSEN and VREFEN are enabled in ADC3\\_CCR. The value is 0x00C00000.\n\nBefore I invest a lot of time rolling back to the old STM32CubeMX version and investigating what changed that broke the ADC3 internal temperature reading I’m hoping that this is known issue with the latest STM32CubeMX?\n\nSTM32CubeMX generated code:\n\n```\n\n/** Common config\n\n*/\n\nhadc3.Instance = ADC3;\n\nhadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;\n\nhadc3.Init.Resolution = ADC_RESOLUTION_12B;\n\nhadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;\n\nhadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;\n\nhadc3.Init.LowPowerAutoWait = DISABLE;\n\nhadc3.Init.ContinuousConvMode = ENABLE;\n\nhadc3.Init.NbrOfConversion = 2;\n\nhadc3.Init.DiscontinuousConvMode = DISABLE;\n\nhadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;\n\nhadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;\n\nhadc3.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;\n\nhadc3.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;\n\nhadc3.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;\n\nhadc3.Init.OversamplingMode = ENABLE;\n\nhadc3.Init.Oversampling.Ratio = 1024;\n\nhadc3.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_10;\n\nhadc3.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;\n\nhadc3.Init.Oversampling.OversamplingStopReset = ADC_REGOVERSAMPLING_CONTINUED_MODE;\n\nif (HAL_ADC_Init(&hadc3) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\nThe latest version 6.18 of STM32CubeMX has changed the generated code slightly so that ADC\\_RESOLUTION\\_12B is done separately. Rolling this change back had no affect on the mis-reading.\n\nInitialization:\n\n```\n\n#define ADC3_BufferSize 2\n\nuint16_t ADC3_Buffer[ADC3_BufferSize];\n\nHAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);\n\nHAL_ADC_Start_DMA(&hadc3, (&ADC3_Buffer), ADC3_BufferSize);\n\nSCB_InvalidateDCache_by_Addr(&ADC3_Buffer, ADC3_BufferSize * sizeof(uint16_t));\n\nGet_CPU_Temp = __HAL_ADC_CALC_TEMPERATURE(__HAL_ADC_CALC_VREFANALOG_VOLTAGE(ADC3_Buffer[1], ADC_RESOLUTION_12B), ADC3_Buffer[0], ADC_RESOLUTION_12B);\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b4a74e83-ede0-46b0-bdfa-e00ae306bd70.png"
+            ],
+            "author": "ifemc"
+        }
+    ]
+}

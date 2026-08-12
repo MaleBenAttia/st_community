@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166682",
+  "publicId": "166707",
+  "title": "Battery Voltage Measurement in STM32WB05",
+  "content": "<p>We took cue from the ADC_Downsampling example from MX to write our Vbat measurement code. </p><p> </p><p>We are getting very small values of raw adc data - somewhere always between 0x160 and 0x200. </p><p> </p><p>We are using a coin cell with 3.3V nominal and are naturally expecting codes in the range of 3000 - 4000 (decimal format). </p><p> </p><p>I have attached our code and the MX configuration here. Can you please help us understand where we are going wrong?</p><p> </p><pre><code class=\"language-c\">int32_t Get_Battery_Voltage_mV(void) {<br />    uint32_t adc_val = 0;<br />    uint32_t vbat_mv = 0;<br /><br />    // 1. Start ADC, poll for conversion, and get value<br /><br />    /* Start ADC group regular conversion */<br />    if (HAL_ADC_Start(&amp;hadc1) != HAL_OK)<br />    {<br />      /* ADC conversion start error */<br />      Error_Handler();<br />    }<br /><br />    /* Wait for ADC conversion completed */<br />    if (HAL_ADC_PollForConversion(&amp;hadc1, 10) != HAL_OK)<br />    {<br />      /* End Of Conversion flag not set on time */<br />      Error_Handler();<br />    }<br /><br />    adc_val = HAL_ADC_GetValue(&amp;hadc1);<br /><br />    HAL_ADC_Stop(&amp;hadc1);<br /><br />    // 2. Convert raw ADC value to millivolts<br />    vbat_mv = (uint32_t)(((uint64_t)adc_val * 3600) / 4096);<br /><br />    return adc_val;<br />}</code></pre><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/634b908d-20bf-429e-b16d-e1623b4be597.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8840ab96-0fd2-4dca-a71a-a72afdd8ba18.png\" /></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f1a1ffd5-4ecb-4b33-99e4-481181e9ecce.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "ADC",
+    "STM32WB0 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 27,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107989",
+    "username": "tushar_abcrl",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107989",
+    "username": "tushar_abcrl",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-06T11:54:18+00:00",
+  "lastActivityAt": "2026-07-06T11:54:18+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-06T11:54:18+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/battery-voltage-measurement-in-stm32wb05-166707",
+  "scraped_replies": []
+}

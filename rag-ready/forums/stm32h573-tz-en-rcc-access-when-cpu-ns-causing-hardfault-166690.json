@@ -1,0 +1,26 @@
+{
+    "forum": [
+        {
+            "id": "166665",
+            "publicId": "166690",
+            "title": "STM32H573 TZ-EN - RCC Access When CPU NS Causing Hardfault",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32h573-tz-en-rcc-access-when-cpu-ns-causing-hardfault-166690",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32CubeMX",
+                "RCC",
+                "STM32H5 series",
+                "STM32 Security",
+                "TrustZone"
+            ],
+            "published_at": "2026-07-06T06:40:58+00:00",
+            "views": 82,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "",
+            "content_text": "Hello,\n\nI have an STM32H573 project with TrustZone enabled. After the CPU goes into non-secure mode and during execution of the HAL\\_Init() function (more specifics below) a hard fault occurs. There is only a hard fault during the execution from a non-secure state. In the secure state (at boot) the HAL\\_Init() function successfully runs.\n\n**Is there a configuration for the RCC not enabled by default that I a missing, allowing it to be accessed by both Secure and Non-Secure CPU states?**\n\nWithin GTZC\\_S TZSC - Privilegeable peripherals I cannot enable it. I see no relevant settings (I have tested a few that might be loosely related but no solved) in RCC.\n\n**In the code below I have used an arrow (<--) to denote exactly where the hard fault occurs (Verified with debugger)**\n\nNon-Secure Entry Code (CubeMX Generated):\n\n```\n\nint main(void)\n\n{\n\n/* USER CODE BEGIN 1 */\n\n/* USER CODE END 1 */\n\n/* MCU Configuration--------------------------------------------------------*/\n\n/* MPU Configuration--------------------------------------------------------*/\n\nMPU_Config();\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n\nHAL_Init(); <-- Hard fault within this function\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* GTZC initialisation */\n\nMX_GTZC_NS_Init();\n\n...\n\n```\n\nHAL\\_Init Code (CubeMX Generated):\n\n```\n\nHAL_StatusTypeDef HAL_Init(void)\n\n{\n\n/* Configure Flash prefetch */\n\n#if (PREFETCH_ENABLE != 0U)\n\n__HAL_FLASH_PREFETCH_BUFFER_ENABLE();\n\n#endif /* PREFETCH_ENABLE */\n\n/* Set Interrupt Group Priority */\n\nHAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);\n\n/* Update the SystemCoreClock global variable */\n\nSystemCoreClock = HAL_RCC_GetSysClockFreq() >> AHBPrescTable[(RCC->CFGR2 & RCC_CFGR2_HPRE) >> RCC_CFGR2_HPRE_Pos]; <-- Hard fault here (Specifically inside the HAL_RCC_GetSysClockFreq() function)\n\n/* Select HCLK as SysTick clock source */\n\nHAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);\n\n/* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */\n\nif (HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)\n\n{\n\nreturn HAL_ERROR;\n\n}\n\n/* Init the low level hardware */\n\nHAL_MspInit();\n\n/* Return function status */\n\nreturn HAL_OK;\n\n}\n\n```\n\nHAL\\_RCC\\_GetSysClockFreq Code (CubeMX Generated):\n\n```\n\nuint32_t HAL_RCC_GetSysClockFreq(void)\n\n{\n\nuint32_t pllsource;\n\nuint32_t pllp;\n\nuint32_t pllm;\n\nuint32_t pllfracen;\n\nuint32_t sysclockfreq;\n\nuint32_t hsivalue;\n\nfloat_t fracn1;\n\nfloat_t pllvco;\n\nif (__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_CSI) <-- Hardfault occurs here\n\n{\n\n/* CSI used as system clock  source */\n\nsysclockfreq = CSI_VALUE;\n\n}\n\nelse if (__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSI)\n\n{\n\n/* HSI used as system clock source */\n\nif (__HAL_RCC_GET_FLAG(RCC_FLAG_HSIDIVF) != 0U)\n\n{\n\nsysclockfreq = (uint32_t)(HSI_VALUE >> (__HAL_RCC_GET_HSI_DIVIDER() >> RCC_CR_HSIDIV_Pos));\n\n}\n\nelse\n\n{\n\nsysclockfreq = (uint32_t) HSI_VALUE;\n\n}\n\n}\n\n```\n\nand even more specifically this is the last instruction in that function before execution jumps to the hardfault\n\n```\n\nldr r3, [pc, #556]\n\n```",
+            "images": [],
+            "author": "cjackson"
+        }
+    ]
+}

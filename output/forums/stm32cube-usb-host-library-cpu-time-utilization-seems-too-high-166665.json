@@ -1,0 +1,71 @@
+{
+  "contentType": "question",
+  "id": "166640",
+  "publicId": "166665",
+  "title": "STM32Cube USB Host Library CPU time utilization seems too high",
+  "content": "<p>My MCU is STM32H753 on custom PCB. It is running at 480 Mhz. </p><p>I use USB USB_OTG_FS it is clocked by RC48.</p><p>On “Middleware and Software packs” I have enabled “FATFS”, “FREERTOS” and “USB_HOST”</p><p>I generated project by using CubeMX 6.17 with “STM32Cube_FW_H7_V1.13.0”.</p><p>For more details see attached pictures with configurations.</p><p> </p><p>I use FreeRTOS function uxTaskGetSystemState to get info about CPU time per task.</p><p>In my project I have FatFS test module that performs some read write tests. </p><p>When I check CPU usage I get this numbers for tasks: </p><ol type=\"1\"><li>“fatfs_test” CPU: 43%</li>\t<li>“USBH_Queue” CPU: 46%</li>\t<li>left 11% are utilized by GUI.</li></ol><p>I ran tests with USB DMA enabled and disabled - there is no difference. </p><p>So, the question is: <strong>Is it OK for “USBH_Queue” task to utilize that much CPU when read/write operations in progress???</strong></p><p> </p><p>For example I have similar test for SD-card, and I get this numbers for tasks: </p><ol type=\"1\"><li>“fatfs_test” CPU: 51%</li>\t<li>“IDLE” CPU: 35%</li>\t<li>GUI and other tasks CPU: 14%</li></ol><content-spoiler><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/037403da-4ef4-426f-9840-260cd7a2b68f.png\" /><figcaption>USB OTG FS pins</figcaption></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b4996ec-b853-4e1d-a1b9-b2e85d57471b.png\" /><figcaption>USB OTG FS parameters</figcaption></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8a2713ca-8b1e-4b60-ac2b-dfa56b67dbf0.png\" /><figcaption>USB OTG FS NVIC Settings</figcaption></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c044a8a0-3fa6-452f-bfa6-ff0ab3221b9d.png\" /><figcaption>USB HOST Parameters settings</figcaption></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/745321c1-ec41-4603-9951-05853a0d13d9.png\" /><figcaption>USB HOST platform settings</figcaption></figure><p> </p></content-spoiler><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeMX",
+    "USB",
+    "STM32Cube MCUs packages"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 62,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107875",
+    "username": "Rostyslav",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107875",
+    "username": "Rostyslav",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-03T15:52:07+00:00",
+  "lastActivityAt": "2026-07-10T13:03:20+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742719,
+  "publishedAt": "2026-07-03T15:52:07+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32cube-usb-host-library-cpu-time-utilization-seems-too-high-166665",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @Rostyslav,</p><p>The behavior can be normal. During USB Mass Storage transfers, the STM32 USB Host stack may spend an amount of CPU time in host processing, so USBH_Queue can look heavily loaded while I/O is active.</p><p>In my understanding, I suggest also checking: </p><ul><li>transfer correctness,</li> <li>sustained throughput,</li> <li>system responsiveness,</li> <li>absence of stalls, timeouts, task starvation.</li></ul><p>Also, STM32 embedded USB DMA is not the main lever for reducing CPU load here; that feature is generally relevant to USB_OTG_HS rather than FS. When internal USB DMA is available, it does not eliminate all CPU involvement. The USB stack and class layer still require software processing.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your reply. I did checked most of that. In general everything is butter smooth. <strong>I just did not expected that much level of CPU usage during data transfers with DMA enabled.</strong> Though my knowledge of USB HOST controller is pretty much absolute zero. CubeMX software with HAL library and other software packs made programmer life so much easier these days. Whole thing setup was just bunch of clicks. Most of code written by me was actual performance test module.</p><p><em>P.S.: I remember how about 15 years ago I had to implement USB MSC for LPC2478 without any software packs, except provided startup file “LPC2400.s” and “LPC23xx.h” header with some peripheral defines. That was nightmare.</em></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107875\">@Rostyslav</user-mention> </p><p>Since transfers are stable and the system remains responsive, there is no evidence of a functional issue. I cannot confirm if the observed CPU load is consistent with the software overhead of USB MSC + FatFS on USB_OTG_FS. However if CPU reduction is important, reduce small chucked data, use larger properly aligned buffers, and avoid unnecessary file system calls (maybe repeated open/close, mount/unmount, or frequent flushes..) <strong>Logging </strong>should also be minimized during performance measurements.</p><p>To check the measurements, please provide a minimal reproducible firmware example. This will allow our experts to assess whether the observed CPU usage is in line with expected behavior. Just for your info, such analysis may be handled with lower urgency than a functional defect.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2057\">@FBL</user-mention> </p><p>I do use relatively large buffers for read/write calls to FatFS (128Kb) placed in SDRAM and they are aligned to 32bytes. Logging is limited to output test performance data once per two seconds. Tasks performance data output happens twice per second (when turned on). Basically test itself is just file opened once, bunch of write calls performed, after that bunch of read calls with consistency checks performed.</p><p>I just ran tests again. For my custom FatFS test thread “fatfs_test“ I set priority to osPriorityRealtime and observed interesting picture:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2eeb3356-4bb8-4774-8225-07b50edc34b0.png\"/><figcaption>Pic.1 USB test. Thread “fatfs_test“ with priority osPriorityRealtime</figcaption></figure><p>What you can see, is that all other threads not getting any CPU ticks (except the one used for debug UART commands processing). The “fatfs_test” thread is taking all of the CPU time it can get. That looks like all that time is waisted somewhere inside “USBH_MSC_Write” and “USBH_MSC_Read” in loop:</p><pre><code class=\"language-c\">  while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)<br/>  {<br/>    if (((phost-&gt;Timer - timeout) &gt; (10000U * length)) || (phost-&gt;device.PortEnabled == 0U))<br/>    {<br/>      return USBH_FAIL;<br/>    }<br/>  }</code></pre><p>It feels like while data transfer is in progress whole thing is just polling USB host controller non-stop, instead of self lock until transfer complete (or error occurs), like it implemented for SD-card. But again, I have zero clue how USB host controller works in STM32. Maybe as is - is the way to go.</p><p> </p><p>See, this is not happening when I run SD-card test:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a9fdd049-6305-485b-bd28-1aa4f6a05083.png\"/><figcaption>Pic.2 SD-card test. Thread “fatfs_test“ with priority osPriorityRealtime</figcaption></figure><p>Both tests (USB and SD-card) are done by same thread “fatfs_test“, it just get different path pointing to different drives.</p><p> </p><p>Due to all the code is done for custom PCB it will be quite time consuming to port it to STM32H753I-EVAL2 that I also have access to, to make it possible someone else to run this code.</p><p> </p><p>Also, as long as task performing calls to FatFS has lowest priority everything else works smooth. So, there is a stable working workaround for me. So, no promise I’ll make that port to provide source code for testing, but I hope I narrowed down where to look for a possible issue.</p></div>"
+    }
+  ]
+}

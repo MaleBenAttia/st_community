@@ -1,0 +1,112 @@
+{
+  "contentType": "question",
+  "id": "166820",
+  "publicId": "166837",
+  "title": "The STM32G431 API of USB double‑buffer transmit‑complete interrupt processing contains a bug.",
+  "content": "<p>After I configure EP1 to the double‑buffered mode, debugging reveals an issue inside stm32g4xx_hal_pcd.c. At line 1761, the endpoint register value is read. After executing <code>PCD_CLEAR_TX_EP_CTR(hpcd-&gt;Instance, epindex);</code> to clear the interrupt flag, the actual register content has already been updated. However at line‑1906, <code>(void)HAL_PCD_EP_DB_Transmit(hpcd, ep, wEPVal);</code> still receives the register value captured before interrupt‑flag clearing. This triggers incorrect conditional judgements inside the <code>HAL_PCD_EP_DB_Transmit()</code> function.</p><p>Probable root‑cause: When transmitting data for the first time under double‑buffered setup, <code>USB_EPStartXfer</code> populates both buffers by default. After Buffer‑0 finishes transmission and triggers an interrupt, the program reads register data at line‑1761 of stm32g4xx_hal_pcd.c. Right after this read operation, Buffer‑1 also completes its transmission and updates the endpoint register. Since <code>HAL_PCD_EP_DB_Transmit</code> uses the stale register value obtained earlier rather than the latest value, abnormal behaviour occurs.</p><p>Besides, are there any sample project for USB double‑buffered RX‑TX operation?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5640654f-f8f1-4b28-85db-2c04af3cb774.jpg\" /><figcaption>captured endpoint register value</figcaption></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe6354c0-5c1b-4130-b8b8-59d1b7b4ceea.jpg\" /><figcaption>The input value is inconsistent with the actual current value.</figcaption></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeMX",
+    "STM32G4 series",
+    "USB",
+    "STM32Cube MCUs packages"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 8,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 137,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108113",
+    "username": "LuoMing",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "106671",
+    "username": "db16122",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-10T08:48:11+00:00",
+  "lastActivityAt": "2026-07-23T07:57:38+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743732,
+  "publishedAt": "2026-07-10T08:48:11+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/the-stm32g431-api-of-usb-double-buffer-transmit-complete-interrupt-processing-contains-a-bug-166837",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108113\">@LuoMing</user-mention> </p><p>Thank you for the detailed analysis and screenshots.</p><p>Can you please provide a <strong>minimal firmware project</strong> that reproduces the issue on my side?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I selected the CDC class inside CubeMX and made modifications based on the generated project. During debugging, I observed that after the second data transmission via the <code>CDC_Transmit_FS</code> API upon each reset cycle, the MCU responds to nearly all IN‑requests from the host. I carried out numerous revisions to fix this issue, which makes it impossible for me to provide a stripped‑down version of my current project.</p><p>I regenerated a CDC‑based project with CubeMX and re‑assigned endpoints: EP1 for CDC‑CMD, EP2 as the IN endpoint and EP3 as the OUT endpoint. EP2 and EP3 are configured in double‑buffered mode.</p><p>During testing: When <code>send_cmd</code> is set to 1 for the first time, the MCU transmits data frames normally and replies with NAK to all subsequent host IN‑requests without triggering the CTR interrupt. However, once <code>send_cmd</code> is set to 1 a second time, the MCU continuously answers host IN‑requests and causes frequent CTR‑interrupt triggering. Could you advise how I can resolve this‑behaviour?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8a7a18e5-b15e-4de0-9226-b9ebfdcbd9fc.jpg\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>It seems the value for EP1R@0x4 00000121 and  EP1R@0x4 000001a1 should be same while it is different 121 and 1a1?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You can view the screenshots of my debugging‑trace here.</p><p>After I start debugging, I fill 65‑byte data into the double‑buffers via the WinUSB_Transmit_FS interface, with 64 bytes for buffer0 and 1 byte for buffer1, then wait for IN requests from the host.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/21e7f618-099a-472c-a188-0c5d2147e592.jpg\"/></figure><p>When the first IN request from the host is received, a transfer‑complete interrupt is triggered, and the EP1 registers are configured with corresponding values. Everything up to this point works exactly as expected.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/603ee4ec-9b7f-4c3f-aa36-5678cc2b68c2.jpg\"/></figure><p>However, if the next IN request sent by the host arrives before executing <code>PCD_CLEAR_TX_EP_CTR(hpcd-&gt;Instance, epindex);</code> or <code>HAL_PCD_EP_DB_Transmit(hpcd, ep, wEPVal);</code>, the value of the EP1 register conflicts with the usbd driver library.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8b843f64-6eb8-4e81-b222-e0475f263331.jpg\"/></figure><p>I’m not sure whether I explained this clearly, or if I have misunderstood the usbd driver‑library.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>In RM0440 page 2023:</p><hr/><p>On receiving the ACK receipt by the host, the USB_EPnR register is updated in the <br/>following way: DTOG_TX bit is toggled, the endpoint is made invalid by setting <br/>STAT_TX=10 (NAK) and bit CTR_TX is set. The application software must first identify the <br/>endpoint, which is requesting microcontroller attention by examining the EP_ID and DIR bits <br/>in the USB_ISTR register. Servicing of the CTR_TX event starts clearing the interrupt bit; <br/>the application software then prepares another buffer full of data to be sent, updates the <br/>COUNTn_TX table location with the number of byte to be transmitted during the next <br/>transfer, and finally sets STAT_TX to ‘11 (VALID) to re-enable transmissions. While the <br/>STAT_TX bits are equal to ‘10 (NAK), any IN request addressed to that endpoint is NAKed, </p><hr/><p>Your second screenshot the STAT_TX are 0x10, is this correct?</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The values for STAT‑TX are correct. you can refer to RM0440 rage 2027.</p><content-spoiler><p><span style=\"color:#000000;\">….Unlike common transactions, and the first one after DBL_BUF setting, STAT bit pair is not affected by the transaction termination and its value remains ‘11 (Valid).However, as the token packet of a new transaction is received, the actual endpoint status is masked as ‘10 (NAK) when a buffer conflict between the USB peripheral and the application software is detected (this condition is identified by DTOG and SW_BUF having the same value, see </span><span style=\"color:#0000ff;\"><em>Table 424 on page 2027</em></span><span style=\"color:#000000;\">).</span></p><p><span style=\"color:#000000;\">….</span></p></content-spoiler><p>You have to run step‑by‑step debugging on both the MCU‑side firmware and PC‑side program so that IN requests get sent one‑by‑one as expected. It will be difficult to reproduce my observed issue if ready‑made CDC‑based software tools are used. Alternatively, you can directly analyze the CTR interrupt routine inside the USB driver library, <code>HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)</code>, and check whether the scenario I described earlier can actually occur.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>In G4 firmware package, one CDC - USB example in there, I don’t think use double buffer.</p><p>(Under G474-evel -application.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You’re right. Therefore I enabled double‑buffer after adjustments. My real‑world application doesn’t use the CDC class at all; I just modified it based on the CDC example project.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0dcc0254-d4cc-4c1b-a050-95e0e056fa00.jpg\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>One suggestion, could you add one flag inside the ISR, for my early experience, STM32G4 interrupt most case can’t jump in ISR., I used one GPIO toggle test ISR.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot for your suggestion.</p><p>The USB‑CTR interrupt works properly. According to my previous screenshots, wEPVal acquisition and the call to PCD_EP_ISR_Handler take place within this interrupt.</p><p>It is fairly clear that the bug originates from the HAL library.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>OK...It seems the issue linked with HAL library.Does the issue look like one of the link below about USB double buffer cases?</p><p><a href=\"https://community.st.com/stm32-mcus-products-25/stm32f302-use-usb-double-buffer-the-transmit-data-will-over-buffer-setting-76800?tid=76800&amp;fid=25\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">STM32F302 use USB double buffer, the transmit data will over buffer setting | Community</a></p><p><a href=\"https://community.st.com/stm32-mcus-products-25/stm32l4-usb-double-buffer-hal-bug-65212?tid=65212&amp;fid=25\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">STM32L4 USB double buffer HAL bug | Community</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Please add one more register in your debug SCB-&gt;ICSR.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for reporting the issue ​<user-mention data-id=\"108113\">@LuoMing</user-mention> </p><p>An internal ticket has been submitted to dedicated team. Internal ticket number CDM0064314 for internal tracking.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You may find 0x23 or 0x24 in vector pending. </p></div>"
+    }
+  ]
+}

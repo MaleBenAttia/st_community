@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "166517",
+  "publicId": "166538",
+  "title": "How to flash a HEX file over UART using a custom bootloader without STM32CubeProgrammer, ST-LINK, or IDE?",
+  "content": "<p>Hi everyone,</p><p>I am learning STM32 bootloader development and I would appreciate some guidance.</p><h3>Hardware</h3><ul><li>\t<p>STM32 Nucleo-G431RB</p>\t</li>\t<li>\t<p>Windows PC</p>\t</li>\t<li>\t<p>USB-to-TTL UART converter</p>\t</li>\t<li>\t<p>UART communication</p>\t</li></ul><h3>Requirement</h3><p>I already have an application HEX file.</p><p>My goal is to update the firmware through UART using a <strong>custom bootloader</strong>.</p><p>I do <strong>not</strong> want to use:</p><ul><li>\t<p>STM32CubeIDE</p>\t</li>\t<li>\t<p>ST-LINK</p>\t</li>\t<li>\t<p>STM32CubeProgrammer</p>\t</li>\t<li>\t<p>Any IDE during firmware update</p>\t</li></ul><p>The complete firmware update should happen only through UART.</p><h3>What I want to achieve</h3><p>PC<br />↓<br />Application (my own program)<br />↓<br />UART (TTL)<br />↓<br />Custom Bootloader<br />↓<br />STM32 Flash Memory<br />↓<br />Jump to Application</p><h3>Questions</h3><ol><li>\t<p>What should be my first step to implement this?</p>\t</li>\t<li>\t<p>Should my PC application send the HEX file directly, or should it first convert it into BIN?</p>\t</li>\t<li>\t<p>Should the bootloader parse Intel HEX records, or is it better to send binary data?</p>\t</li>\t<li>\t<p>What communication protocol is commonly used for custom UART bootloaders?</p>\t<ul><li>\t\t<p>Packet format</p>\t\t</li>\t\t<li>\t\t<p>Start byte</p>\t\t</li>\t\t<li>\t\t<p>Length</p>\t\t</li>\t\t<li>\t\t<p>CRC</p>\t\t</li>\t\t<li>\t\t<p>ACK/NACK</p>\t\t</li>\t</ul></li>\t<li>\t<p>What is the recommended flash memory layout for:</p>\t<ul><li>\t\t<p>Bootloader</p>\t\t</li>\t\t<li>\t\t<p>Application</p>\t\t</li>\t</ul></li>\t<li>\t<p>How should the bootloader erase and program flash safely?</p>\t</li>\t<li>\t<p>How should the bootloader verify that the application is valid before jumping?</p>\t</li>\t<li>\t<p>Is there any official ST example implementing a custom UART bootloader?</p>\t</li>\t<li>\t<p>Are there any recommended application notes or example projects for this implementation?</p>\t</li></ol><p>My objective is to understand the entire firmware update process from scratch rather than simply using STM32CubeProgrammer.</p><p>Any architecture diagrams, sample projects, or best practices would be greatly appreciated.</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32G4 series",
+    "Bootloader",
+    "UART-USART",
+    "Flash"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 57,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "105688",
+    "username": "AnnapoornaMV",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "37189",
+    "username": "Pavel A.",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/848a253a-dfe0-ac3e-1818-32d276066844.png"
+  },
+  "createdAt": "2026-06-30T09:10:24+00:00",
+  "lastActivityAt": "2026-06-30T11:59:50+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 741611,
+  "publishedAt": "2026-06-30T09:10:24+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-flash-a-hex-file-over-uart-using-a-custom-bootloader-without-stm32cubeprogrammer-st-link-or-ide-166538",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>1- Custom bootloader related questions need to be posted in “STM32 MCUs Embedded software” forum board nothing related to the hardware.</p><p>I move this post to the correct forum board.</p><p>2- Please refer to this application note: <a href=\"https://www.st.com/resource/en/application_note/an4657-stm32-inapplication-programming-iap-using-the-usart-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN4657 </a>“STM32 in-application programming (IAP) using the USART”</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105688\">@AnnapoornaMV</user-mention> </p><p>Please refer to the <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/tree/master/Projects/STM32756G_EVAL/Applications/IAP\" rel=\"noreferrer noopener\" target=\"_blank\">example IAP</a> in STM32CubeF7.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Note that sending an <a href=\"https://en.wikipedia.org/wiki/Intel_HEX\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">Intel Hex file</a> is generally A Bad Idea - because you then have to code a fully-compliant Intel Hex decoder.</p><p>Many similar projects have come unstuck due to a poorly-implemented Intel Hex decoder.</p><p>The last thing you want is bugs in your bootloader!</p><p> </p><p>Therefore it’s generally better to use a binary file - which is what the examples mentioned by ​<user-mention data-id=\"499\">@mƎALLEm</user-mention> and ​<user-mention data-id=\"1684\">@Saket_Om</user-mention> do.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; What should be my first step to implement this?</p><p>Make sure that you understand the requirements fully. Check with your boss, customer or other stakeholders. So that when they  recall that a roll-back protection or some kind of “security” is needed, this won’t surprise you.</p><p> </p></div>"
+    }
+  ]
+}

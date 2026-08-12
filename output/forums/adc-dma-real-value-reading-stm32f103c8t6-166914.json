@@ -1,0 +1,66 @@
+{
+  "contentType": "question",
+  "id": "166896",
+  "publicId": "166914",
+  "title": "ADC DMA real value reading STM32F103c8t6",
+  "content": "<p>this is my code ADC real value read and calculation part but ADC real value not real when input dr</p><pre><code class=\"language-c\">void process_adc_averages_and_filter(void)<br /><br />{<br /><br /><br /><br />for (uint8_t ch = 0; ch &lt; ADC_CHANNELS; ch++)<br /><br />{<br /><br />uint32_t sum = 0;<br /><br />for (uint8_t i = 0; i &lt; ADC_SAMPLES; i++)<br /><br />{<br /><br />sum += adc_dma_buf[i * ADC_CHANNELS + ch];<br /><br />}<br /><br />adc_avg[ch] = sum / ADC_SAMPLES;<br /><br /><br /><br />// Apply exponential low-pass filter<br /><br />//float alpha = 0.1f; // Filter strength<br /><br />/// adc_filtered[ch] = (1 - alpha) * adc_filtered[ch] + alpha * adc_avg[ch];<br /><br />// adc_hist[ch] = (adc_hist[ch] * 31 + adc_avg[ch]) / 32;<br /><br />// adc_filtered[ch] = adc_hist[ch];<br /><br />// Fast stable filter<br /><br />// single smooth filter<br /><br />// adc_filtered[ch] = (adc_filtered[ch] * 0.95f) +<br /><br />/// (adc_avg[ch] * 0.05f);<br /><br /><br /><br />adc_filtered[ch] = (adc_filtered[ch] * 31 + adc_avg[ch])/32;<br /><br /><br /><br />}<br /><br />vfb_adc_fixed = (adc_filtered[3] + 2) / 5 * 5;<br /><br />Vref = 160.0f + (adc_filtered[1] * 100.0f / 4095.0f);<br /><br />Gain = 0.5f + (adc_filtered[2] * 30.5f / 4095.0f);<br /><br /><br /><br />Adjust = 0.5f + (adc_filtered[0] * 4.5f / 4095.0f);<br /><br /><br /><br />int32_t difference = (int32_t)vfb_adc_fixed - (int32_t)stable_adc_value;<br /><br />if(difference &gt; NOISE_THRESHOLD || difference &lt; -NOISE_THRESHOLD ){<br /><br />stable_adc_value = vfb_adc_fixed;<br /><br />}<br /><br /><br /><br /><br /><br />Vfb = (stable_adc_value * ADC_REF ) / 4095.0f;<br /><br />Vfb = Vfb * (43.5+10)/10;<br /><br />Vfbl = (Vfb + ((Vfb/10000)/0.047))/1.405;<br /><br />///Voltage = Vfb;<br /><br />// Voltage = (Vfbl * VFB_SCALE);<br /><br />Voltage = stable_adc_value * VFB_SCALE;<br /><br />///Vfb_Filter = 0.95f * Vfb_Filter + 0.05f * Vfb;<br /><br /><br /><br />error = Vref - Voltage;<br /><br /><br /><br />if (fabsf(error) &lt; 0.5f)<br /><br />{<br /><br />error = 0;<br /><br />}<br /><br />// Gain adjustment<br /><br />Kp = Gain * 120.0f;<br /><br />Ki = Gain * 0.25f * Adjust;<br /><br /><br /><br />// Integral<br /><br />integral += error * 0.1f;<br /><br /><br /><br />// Anti-windup<br /><br />if (integral &gt; 300.0f)<br /><br />integral = 300.0f;<br /><br />if (integral &lt; -300.0f)<br /><br />integral = -300.0f;<br /><br /><br /><br />// PI output<br /><br />control = (Kp * error) + (Ki * integral);<br /><br /><br /><br />// Convert PI output to SCR firing delay<br /><br />dim_delay = 4000 - control;<br /><br /><br /><br />int32_t difference_firing_delay = (int32_t)dim_delay - (int32_t)stable_dim_delay;<br /><br />if(difference_firing_delay &gt; NOISE_THRESHOLD_DELAY || difference_firing_delay &lt; -NOISE_THRESHOLD_DELAY ){<br /><br />stable_dim_delay = dim_delay;<br /><br />}<br /><br /><br /><br />// Limit firing angle<br /><br />if (stable_dim_delay &lt; 300)<br /><br />stable_dim_delay = 300;<br /><br /><br /><br />if (stable_dim_delay &gt; 5000)<br /><br />stable_dim_delay = 5000;<br /><br /><br /><br />}</code></pre><p>op to 187V Voltage variable show 202v and when input is 227 voltage shows 210v 🤷🏽<br /> </p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "28",
+  "categoryName": "STM32CubeIDE (MCUs)",
+  "tags": [
+    "DMA",
+    "ADC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 62,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "108204",
+    "username": "Neran88",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108204",
+    "username": "Neran88",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-13T17:40:54+00:00",
+  "lastActivityAt": "2026-07-15T15:25:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743134,
+  "publishedAt": "2026-07-13T17:40:54+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeide-mcus-28/adc-dma-real-value-reading-stm32f103c8t6-166914",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>When adding code, use the Code in the 3 ellipse. This will properly format the code to make it easier to read.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe88b44c-2fe4-4d9e-920e-e7a03b8863ac.png\"/></figure><p>  </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108204\">@Neran88</user-mention> </p><p>For now, it is more probable that the issue comes from your code rather than the ADC itself.<br/>For example, what do the <strong>43.5</strong> and <strong>10</strong> values refer to?<br/>It looks like a <strong>voltage divider</strong>, so they are likely <strong>resistors</strong>.<br/>You should verify that the resistor values are really those values, because resistors have tolerances, typically <strong>±5%</strong> or <strong>±10%</strong>, depending on the part used.<br/>Also, how much is VFB_SCALE, your final voltage depends entirely on VFB_SCALE, which may not match the real divider math.</p><p>If VFB_SCALE is not precisely correct, the displayed value will be wrong.</p><p>I recommend that you tweak your code and fine tune it.</p><p>Compute the voltage directly from the raw averaged ADC value.</p><p>If the voltage becomes correct, then the issue is likely in the filtering logic.<br/>BR<br/>Gyessine</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you</p><p>i think i found the error i changed 10uf smoothing capacitor after voltage divider i think now its working with correct value</p></div>"
+    }
+  ]
+}

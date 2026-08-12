@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167372",
+  "publicId": "167400",
+  "title": "Flash writes fail after exiting stop3 on stm32u375",
+  "content": "<p>I have an application that uses internal flash for logging.  Unfortunately, after exiting stop3 subsequent writes to flash fail.  Here’s my exit code -- the names of the routines should give a general idea.  I don’t really have a clue what changed and the reference manual is notably sparse on details about the various stop/standby/shutdown modes<br /><br /> </p><pre><code class=\"language-c\"><br />  SET_BIT(SCB-&gt;SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));<br /><br />  __DSB();<br />  __WFI();<br />  __ISB();<br /><br />  CLEAR_BIT(SCB-&gt;SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));<br />  PWR-&gt;APCR &amp;= ~PWR_APCR_APC;<br />  palSetLine(LINE_testpin);<br /><br />  chSysLock();<br />  tagPowerRestoreClocksAfterStop3();<br />  tagPowerPostStop3WakeEventI();<br />  chSysUnlock();<br />   // Ensure Flash is awake and not stuck in low-power mode<br />  FLASH-&gt;ACR &amp;= ~(FLASH_ACR_SLEEP_PD); <br />  __DSB();</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "Flash",
+    "STM32U3 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 20,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "34438",
+    "username": "Geoffrey1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/b8a4fdc4-ff4a-b6cb-6109-a61c320aae91.png"
+  },
+  "lastContributor": {
+    "id": "34438",
+    "username": "Geoffrey1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/b8a4fdc4-ff4a-b6cb-6109-a61c320aae91.png"
+  },
+  "createdAt": "2026-08-01T20:54:34+00:00",
+  "lastActivityAt": "2026-08-01T20:54:34+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-01T20:54:34+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/flash-writes-fail-after-exiting-stop3-on-stm32u375-167400",
+  "scraped_replies": []
+}

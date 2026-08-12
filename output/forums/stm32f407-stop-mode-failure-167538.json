@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167508",
+  "publicId": "167538",
+  "title": "STM32F407 STOP MODE FAILURE",
+  "content": "<p>Hi everyone,</p><p>I am facing a bizarre issue with an STM32F407 running a custom PCB. I am trying to put the MCU into STOP mode (Low Power Regulator ON), but it seems to enter deep sleep for a fraction of a second (current drops to almost 0mA) and then immediately wakes up/resets, stabilizing at a constant 9.8mA.</p><p>I am programming via DFU and using a custom bootloader that jumps to the main application at <code>0x08010000</code>.</p><p>Here is what I have already done in my \"Deep Sleep Test\" routine to isolate the issue:</p><ul><li>\t<p><strong>Hardware Isolation:</strong> All external peripherals (W25Q Flash, FRAM, LDOs) are completely disconnected or powered down. The 3.3V line is isolated.</p>\t</li>\t<li>\t<p><strong>GPIOs:</strong> All GPIOs are set to <code>GPIO_MODE_ANALOG</code>, except for specific pull-up/pull-down pins strictly required by the hardware.</p>\t</li>\t<li>\t<p><strong>USB PHY:</strong> I am explicitly disabling the internal USB transceiver using <code>USB_OTG_FS-&gt;GCCFG |= USB_OTG_GCCFG_PWRDWN;</code> and then disabling the clock.</p>\t</li>\t<li>\t<p><strong>Interrupts &amp; SysTick:</strong> I disable <code>SysTick-&gt;CTRL = 0</code>, clear <code>SCB-&gt;ICSR</code>, mask all EXTI lines (<code>EXTI-&gt;IMR = 0</code>), and explicitly disable/clear all NVIC lines using <code>NVIC-&gt;ICER[i] = 0xFFFFFFFF</code> and <code>NVIC-&gt;ICPR[i] = 0xFFFFFFFF</code>.</p>\t</li>\t<li>\t<p><strong>RTC/Watchdog:</strong> I freeze the IWDG in STOP mode using <code>__HAL_DBGMCU_FREEZE_IWDG();</code> and I force a backup domain reset to clear any ghost RTC wakeups.</p>\t</li></ul><p>Despite all this, calling <code>HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);</code> inside a <code>while(1)</code> loop results in a momentary drop to 0mA, followed by an immediate return to 9.8mA.</p><p>My suspicion is that the custom bootloader is leaving some peripheral active or a pending flag that completely bypasses my NVIC disabling, or I am triggering a Brown-Out Reset during the current drop.</p><p>Has anyone experienced this \"instant bounce\" back to 10mA on the F4 series? What hidden registers should I check before calling WFI?</p><p>Thanks in advance for any pointers!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "DMA",
+    "STM32F4 series",
+    "Interrupt"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 22,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108908",
+    "username": "maxtisc",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108908",
+    "username": "maxtisc",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-07T07:45:21+00:00",
+  "lastActivityAt": "2026-08-07T07:45:21+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-07T07:45:21+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32f407-stop-mode-failure-167538",
+  "scraped_replies": []
+}

@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167578",
+  "publicId": "167610",
+  "title": "In consistence btw generated model files and CLI command parameter",
+  "content": "<p>Dear ST Edge AI Support Team,</p><p>We are deploying a YOLO11n person-detection model on the STM32N6 NPU using the relocatable<br />(LRUN) generation flow. While decoding the generated runtime buffer descriptors on-target, we<br />found that the top-level *input* user-IO buffer's channel-position metadata disagrees with its<br />own reported memory shape, and does not change when explicitly requesting a channel-last input<br />layout.</p><p>Configuration</p><p> Target: STM32N6<br /> ST Edge AI Core v4.0.1-20581 7ed50de05<br /> Model: yolo11n_256_quant_pc_uf_od_coco-person-st.tflite (quantized, uint8 input, 256x256x3)<br /> stedgeai cli command (as echoed by network_generate_report.txt):<br />   \"stedgeai generate --model yolo11n_256_quant_pc_uf_od_coco-person-st.tflite --relocatable<br />    split --target stm32n6 --no-inputs-allocation --no-outputs-allocation --optimization<br />    balanced --st-neural-art user_profile@profile-neural-art.json --name network --verbosity 1<br />    --c-api st-ai --inputs-ch-position chlast --workspace ./workspace --output ./outputs\"</p><p>Issue</p><p> The generated network_generate_report.txt confirms `--inputs-ch-position chlast` was received<br /> and correctly resolved at the IR level - the layer table shows the model input as<br /> `[b:1,h:256,w:256,c:3]` (line 9), i.e. NHWC as requested.</p><p> However, the generated runtime buffer descriptor for the same input tensor is<br /> self-contradictory, and this is unchanged whether or not `--inputs-ch-position chlast` is<br /> passed:</p><p> In outputs/network.c, LL_ATON_Input_Buffers_Info_network():</p><p>   static const uint32_t buff_info__mem_shape_F_1_256_256_3[] = { 1, 256, 256, 3 };<br />   ...<br />   .mem_shape = buff_info__mem_shape_F_1_256_256_3,<br />   .mem_ndims = 4,<br />   .chpos     = CHPos_First,   /* &lt;- inconsistent with mem_shape below */</p><p> Per ll_aton_NN_interface.h, `chpos` is documented as \"Position of channels dimension in mem<br /> shape\". `mem_shape = {1, 256, 256, 3}` unambiguously has the channel dimension (3) at index 3<br /> (last), matching the buffer's own byte size (196608 = 256*256*3*1 byte) and the IR table above.<br /> A `chpos` of `CHPos_First` implies the channel dimension is at index 1 (value 256), which is<br /> wrong on its face.</p><p> The same contradiction appears independently in outputs/network_c_info.json, buffer<br /> \"Input_5_out_0\":</p><p>   \"shape\": [1, 256, 256, 3],<br />   \"channel_first\": true,<br />   \"channel_last\": false,</p><p> i.e. the shape field is NHWC while channel_first/channel_last flags say the opposite.</p><p> For comparison, the *output* buffer's equivalent fields are internally consistent<br /> (mem_shape={1,5,1344}, chpos=CHPos_First, with the channel-like dim of 5 genuinely at index 1),<br /> so this appears isolated to the top-level *input* user-IO buffer under this particular<br /> combination of options.</p><p>What we have tried</p><p> Regenerated the model from scratch with `--inputs-ch-position chlast` added - the IR-level<br /> shape resolves correctly (see report line 9), but the emitted chpos/channel_first value for the<br /> input buffer descriptor in network.c and network_c_info.json does not change.<br /> Cross-checked byte size (196608 bytes = 256*256*3) and camera pipeline layout (DCMIPP/ISP always<br /> hands frames over as interleaved NHWC) against both mem_shape and shape - both agree with NHWC,<br /> only chpos/channel_first disagree.<br /> Worked around this on our side by no longer branching on chpos/channel_first for the input<br /> buffer and instead reading mem_shape directly, with a byte-size sanity check<br /> (H*W*C*bytes_per_element == buffer length) as a guard against a genuine future layout change.</p><p>Request</p><p> Can you confirm whether chpos/channel_first for the top-level input buffer is expected to<br /> reflect the buffer's own mem_shape/shape (as documented), or whether there is a known<br /> discrepancy for `--relocatable split --no-inputs-allocation --c-api st-ai` output?<br /> Is `--inputs-ch-position chlast` expected to affect this specific generated field, or only the<br /> model's internal/IR-level layout?<br /> Is there a more authoritative field or API (rather than chpos/channel_first) we should use at<br /> runtime to determine the true memory layout of a `LL_Buffer_InfoTypeDef` user-IO buffer?</p><p>Attachments</p><p> model_files/outputs/network_generate_report.txt (generation log, includes CLI args and IR<br /> layer table)<br /> model_files/outputs/network.c (LL_ATON_Input_Buffers_Info_network / LL_ATON_Output_Buffers_Info_network)<br /> model_files/outputs/network_c_info.json (buffers[] entries for Input_5_out_0 / Transpose_1177_out_0)<br /> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "134",
+  "categoryName": "Edge AI",
+  "tags": [
+    "STM32CubeAI",
+    "STM32N6 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 11,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "98136",
+    "username": "Kamurasi-Jordan-Arthur",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/37962d3c-559a-8de8-c03e-e3cf424fc137.png"
+  },
+  "lastContributor": {
+    "id": "98136",
+    "username": "Kamurasi-Jordan-Arthur",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/37962d3c-559a-8de8-c03e-e3cf424fc137.png"
+  },
+  "createdAt": "2026-08-11T07:58:59+00:00",
+  "lastActivityAt": "2026-08-11T07:58:59+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-11T07:58:59+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/edge-ai-134/in-consistence-btw-generated-model-files-and-cli-command-parameter-167610",
+  "scraped_replies": []
+}

@@ -1,0 +1,67 @@
+{
+  "contentType": "question",
+  "id": "167054",
+  "publicId": "167073",
+  "title": "UART OVERRUN ERROR In STM32G473",
+  "content": "<p>Hi ST Team,</p><p>I’ve been using STM32G473VET3 for my product for the past 2 years.</p><p>Right now I’m testing the code which I’ve freezed an year ago. But it enters uart error callback as soon as it calls HAL_UART_RECEIVE_IT function.(Overrun error continuously even after clearing it, Also no data is sending in that line).</p><p>Hence I’ve generated new code in the cubemx also. In that also same problem arises whenever HAL_UART_RECEIVE_IT is called.</p><p>IDE version : 1.18.1</p><p>MX version : 6.14.0</p><p>G4 package version : V1.3.0</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32G4 series",
+    "UART-USART",
+    "Error"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 59,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108386",
+    "username": "Balaji_Caliber",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "8205",
+    "username": "TDK",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7577e4b8-db05-6051-ffd8-4370c29016ca.png"
+  },
+  "createdAt": "2026-07-20T07:21:01+00:00",
+  "lastActivityAt": "2026-07-20T17:07:43+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743462,
+  "publishedAt": "2026-07-20T07:21:01+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/uart-overrun-error-in-stm32g473-167073",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108386\">@Balaji_Caliber</user-mention> ,</p><p>Thank you for sharing the details.</p><p>Please note that the current STM32CubeG4 package version is 1.6.3. We strongly recommend that you test with this latest version, which you can download from <a href=\"https://www.st.com/en/embedded-software/stm32cubeg4.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">ST.com</a><a href=\"https://www.st.com/en/embedded-software/stm32cubeg4.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">.</a></p><p>To help isolate the issue, please try using the provided <a href=\"https://github.com/STMicroelectronics/STM32CubeG4/tree/140db648b016ba49b05ca790b5b66e3477807839/Projects/NUCLEO-G474RE/Examples/UART/UART_HyperTerminal_IT\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\"><strong><code>UART_HyperTerminal_IT</code></strong> </a>example, adapt the UART pins and port to your specific board, and then test again to compare the behavior.<br/><br/>Br</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Overrun is not about sending but about receiving.</p><p>If you stop program execution in debugger, but some external device keeps sending data to UART, then it will overrun. If you  don’t handle the overrun in the Rx handler (as it shares the same interrupt enable bit as the RXNE interrupt), it will <a href=\"http://www.efton.sk/STM32/gotcha/g23.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">“hang” in that interrupt</a> (i.e. inter it again and again, infinitely).</p><p>I don’t use Cube/HAL. It may or may not handle the overrun, and that handling may or may not depend on Cube/HAL version. But Cube/HAL is open source and you can check if it does and proceed accordingly.</p><p>JW</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Existing code doesn’t stop working. I recommend focusing and sharing the code rather than falling into the “i didn’t change anything, why doesn’t it work?” loop. Stay objective. Use existing working examples. State hardware setup.</p><p>Reasons for ORE are listed in the reference manual. I suggest going through them one by one to determine the cause. Probably data is being sent while you are not yet ready to receive.</p></div>"
+    }
+  ]
+}

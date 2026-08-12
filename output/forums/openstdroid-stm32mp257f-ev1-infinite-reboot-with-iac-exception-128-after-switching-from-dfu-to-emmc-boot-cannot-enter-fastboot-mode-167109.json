@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167088",
+  "publicId": "167109",
+  "title": "[OpenSTDroid ]STM32MP257F-EV1: Infinite reboot with IAC exception 128 after switching from DFU to eMMC boot – cannot enter fastboot mode",
+  "content": "<p style=\"text-align:left;\">Hello <span style=\"background-color:#ffffff;\"><span style=\"color:#2b3346;\">Experts</span></span>,</p><p style=\"text-align:left;\">I am working on the STM32MP257F-EV1 board (MB1936 Var1.0 Rev.C-01) and following the official OpenSTDroid provisioning guide. I have successfully used flash-device(STM32CubeProgrammer v2.22.0 ) to flash the full eMMC starter image via DFU mode (FlashLayout_emmc_cm33tdcid.tsv). After that, I switched the boot mode from DFU to eMMC (M33-TD) and pressed USER2 + RESET to enter fastboot mode, as described in the documentation. However, instead of entering fastboot, the board goes into an infinite reboot loop.</p><p><strong>Observed behavior:</strong></p><ul><li>\t<p>Serial console (minicom) shows the following repeated sequence:</p>\t<pre><code class=\"language-c\">iac exceptions: [159:128]=0x000001<br />IAC exception ID: 128<br />Ooops...<br />[INF] System reset<br />[INF] Reset reason: System reset (SYSRST) (0x94)<br />[INF] init:pmic@33 STPMIC:20 V1.1<br /><br />[INF] welcome to MCUboot: TF-Mv2.1.3-4-g0a94de886<br />[INF] cpu: STM32MP257FAI Rev.?<br />[INF] board: stm32mp257f eval1<br />[INF] board ID: MB1936 Var1.0 Rev.C-01<br />[INF] dts: stm32mp257f-ev1-cm33tdcid-ostl-emmc-bl2.dts<br />[INF] boot device: sdmmc2<br />[INF] mcu sysclk: 400000000<br />[INF] Loading gpt header<br /><br />[INF] Starting bootloader<br />[WRN] This device was provisioned with dummy keys.<br />[WRN] This device is NOT SECURE<br /><br />[INF] PSA Crypto init done, sig_type: EC-P256<br />[INF] Primary   slot: version=0.1.0+0<br />[INF] Image 1 Secondary slot: Image not found<br />[INF] Image 1 RAM loading to 0xe060000 is succeeded.<br />[INF] Image 1 loaded from the primary slot<br />[INF] BL2: image 1, enable DDR-FW<br />[INF] Primary   slot: version=2.1.3+0<br />[INF] Image 0 Secondary slot: Image not found<br />[INF] Image 0 RAM loading to 0x80000000 is succeeded.<br />[INF] Image 0 loaded from the primary slot<br />[INF] Bootloader chainload address offset: 0x180000<br />[INF] Jumping to the first image slot<br />[INF] init:pmic@33 STPMIC:20 V1.1<br />[INF] Enable Macronix quad support<br />[INF] welcome to TF-M: TF-Mv2.1.3-4-g0a94de886<br />[INF] board: stm32mp257f eval1<br />[INF] dts: stm32mp257f-ev1-cm33tdcid-ostl-emmc-s.dts<br />Booting TF-M v2.1.3+0a94de886<br />[WAR] This device was provisioned with dummy keys.<br />[WAR] This device is NOT SECURE<br />[Sec Thread] Secure image initializing!<br />INFO: low power firmware \"v1.0.0\"<br />[    0.000000] SCP-firmware v2.13.0-stm32mp-r3-1-gb77869ed<br />[    0.000000] <br />[    0.000000] [FWK] Module initialization complete!<br />[INF][PS] Encryption alg: 0x5500100<br />[INF][Crypto] Init HW accelerator...<br />[INF][Crypto] Init HW accelerator... complete.<br />Non-Secure system starting...<br />[NS] [INF] watchdog timeout: 120000ms<br /><br />iac exceptions: [159:128]=0x000001<br />IAC exception ID: 128<br />Ooops...<br />[INF] System reset<br />... (loop repeats)</code></pre>\t<p>The <code>flash-device</code> script waits forever for a fastboot device and never proceeds. Its last output before hanging is:</p>\t<pre><code class=\"language-c\">Flashing service completed successfully<br /><br />Change boot mode from DFU to normal boot (emmc), and select fastboot<br />Provisionning remote target through USB fastboot using /home/pp/stm32mp2droid/OSD62V20260526/device/stm/stm32mp2/layout/android_layout.config partition config file<br /><br />[0] Start device provisioning<br /><br /></code></pre>\t<p>When I press USER2 + RESET, the board does <strong>not</strong>​ enter fastboot mode (no <code>fastboot devices</code> on host, serial still shows the reboot loop). <br />\t </p>\t<p><strong>My environment:</strong></p>\t</li>\t<li>\t<p>Host PC: Ubuntu 22.04 inside VMware Workstation</p>\t</li>\t<li>\t<p>STM32CubeProgrammer v2.22.0 </p>\t</li>\t<li>\t<p>Android distribution built from ST's source code: <code>OSD62V20260526</code> (compiled locally)</p>\t</li>\t<li>\t<p>Board: STM32MP257F-EV1 (MB1936)</p>\t</li>\t<li>\t<p>USB cable: same Type‑C port used for DFU and fastboot </p>\t<p><strong>What I have tried so far:</strong></p>\t</li>\t<li>\t<p>Re‑flashed the entire eMMC multiple times using <code>STM32_Programmer_CLI -c port=usb1  -w FlashLayout_emmc_cm33tdcid.tsv</code> – always completes successfully.</p>\t</li>\t<li>\t<p>Also tried the <code>_clear.tsv</code> version followed by the <code>_starter</code> version.</p>\t</li>\t<li>\t<p>Manually erased the first 1 GB of eMMC from U‑Boot (<code>mmc erase 0 0x200000</code>) and verified it is zeroed, then re‑flashed via DFU.</p>\t</li>\t<li>\t<p>Checked udev rules for <code>0483:0afb</code> – they are present and <code>fastboot devices</code> works when the board is actually in fastboot mode (which rarely happens).<br />\t </p>\t<p><strong>Additional context:</strong></p>\t</li>\t<li>\t<p>Before this issue, I had experimented with some fastboot commands like<code>fastboot stage rpmb/rpmbk.bin</code> and <code>fastboot oem run:'mmc rpmb key 0x84000000'</code>. I also attempted <code>fastboot mm dev 1</code>, but it returned <code>unknown command</code> and was skipped. I suspect the RPMB region might now be in an inconsistent state.</p>\t</li>\t<li>\t<p>The board reports <code>This device was provisioned with dummy keys</code> and <code>NOT SECURE</code> – this is the default for the starter package, but perhaps my manual RPMB attempts broke the alignment between eMMC RPMB, TF‑M keys, and OTP.</p>\t<p><strong>My questions:</strong></p>\t</li>\t<li>\t<p>What exactly causes the IAC exception 128 in this context? Is it a mismatch between the TF‑M secure firmware and the non‑secure side (U‑Boot/Linux), specifically related to RPMB authentication? I want to note that I previously flashed the official ST Yocto Linux image to the same eMMC and it booted successfully without any issues. This confirms the eMMC hardware itself is fine, so the problem is likely related to the Android provisioning or RPMB state.</p>\t</li>\t<li>\t<p>Could the RPMB area be corrupted from my previous manual <code>mmc rpmb key</code> attempts? If so, how can I completely reset the RPMB region? Does <code>FlashLayout_emmc_clear.tsv</code> cover the RPMB partition, or do I need additional steps?</p>\t</li>\t<li>\t<p>Is there a reliable way to force the board into fastboot mode despite the crash loop? For example, a specific combination of hardware straps or a different key press timing?</p>\t</li>\t<li>\t<p>Should I try a different boot source (e.g., SD card) to rule out eMMC corruption, or should I attempt to fully reprovision the device using the <code>flash-device</code> script from a clean state?</p>\t</li>\t<li>\t<p>Any guidance would be greatly appreciated. I have attached the full serial log and the exact steps I followed.</p>\t<p>Thank you!<br />\t </p>\t<figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d4bc2cf8-7d18-4479-9a83-c533b18d95b5.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/798b02a3-698a-4d28-bb97-17fb8706504f.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0732f3f1-bdd4-47a7-87b4-9936de37991d.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/44d545f8-f683-4d68-8cdc-e30fcd84bb43.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bc70a2cc-f222-48e4-87bd-4a5038961d25.png\" /></figure><p> </p>\t</li></ul>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "STM32MP25 lines ST boards",
+    "STM32 MPUs products"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 15,
+  "inclusiveVisibleReplyCount": 15,
+  "likes": 0,
+  "votes": 0,
+  "views": 211,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108424",
+    "username": "John Lee",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108424",
+    "username": "John Lee",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-21T11:13:48+00:00",
+  "lastActivityAt": "2026-08-07T10:31:29+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745056,
+  "publishedAt": "2026-07-21T11:13:48+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/openstdroid-stm32mp257f-ev1-infinite-reboot-with-iac-exception-128-after-switching-from-dfu-to-emmc-boot-cannot-enter-fastboot-mode-167109",
+  "scraped_replies": []
+}

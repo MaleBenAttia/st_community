@@ -1,0 +1,103 @@
+{
+  "contentType": "question",
+  "id": "167475",
+  "publicId": "167504",
+  "title": "Some of STM32 IO pin change logic from default logic during reset release",
+  "content": "<p>I am doing a project on STM32F479ZGT6. I set all my pins to HIGH default, open drain, external pull up on STMCubeMX. During power on, the IO pins first follows 3.3V by the external pull up, but then two of the IO pins becomes LOW during reset release, and then after reset is completely released, it turns back to HIGH(default logic set in STMCubeMX). Does STM32 has the ability to change logic opposite from the default logic only for a moment?(which in my case is during reset release) Would be glad to know any possible cause and solution for this case.</p><p>Red: Reset</p><p>Blue &amp;Green: IO pin</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2e306de2-5a5c-4132-b166-a14a292c7704.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32CubeMX",
+    "GPIO-EXTI",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 14,
+  "inclusiveVisibleReplyCount": 14,
+  "likes": 0,
+  "votes": 0,
+  "views": 130,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108869",
+    "username": "adibahqin",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "31371",
+    "username": "Richard Li",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/ad1e13b0-2719-93da-8102-5e58fd28cffa.png"
+  },
+  "createdAt": "2026-08-06T01:15:42+00:00",
+  "lastActivityAt": "2026-08-07T14:10:06+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745093,
+  "publishedAt": "2026-08-06T01:15:42+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/some-of-stm32-io-pin-change-logic-from-default-logic-during-reset-release-167504",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The vast majority of pins are in a high-z state when the chip is in reset. There is no ability to change this behavior.</p><p>If you need a pin to be in a defined state, the only way is to use an external pullup or pulldown resistor.</p><blockquote><p>I set all my pins to HIGH default, open drain, external pull up</p></blockquote><p>“External” pull up is not a setting in STM32CubeMX. The pullup/pulldown settings refer to internal pullup/pulldown resistors.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I beg your pardon. For the STMCubeMX setting, I set it to no internal pull up/pull down and then connect it to external pull up. The connected external pull up should be not making the IO pin to be left floating.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"adibahqin\"><div class=\"content-quote-content\"> <p>I beg your pardon. For the STMCubeMX setting, I set it to no internal pull up/pull down and then connect it to external pull up. The connected external pull up should be not making the IO pin to be left floating.</p> </div></content-quote><p>Ahh, so the problem is the pin is getting pulled low at/during startup. Which pins are these? Are you setting the state to high before you make them an output? Does it happen if you leave the pin as input?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You can try make reset signal more sharp, reduce capacitor at NRST, even use reset IC like TI TPS3703, TPS3899…</p><p>If this doesn’t work, you can play with PDR_ON pin, change different power on reset.</p><p>More than this, you need carefully control power on/off sequency, </p><p>If power sequency no good, your product lifetime may reduce.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Really odd.<br/>You can state WHICH TWO PINS of STM32F479ZGT6, and then let’s check the DS&amp;RM.<br/>Some specific alternate functions related, maybe.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>In reset signal not stable period, (in your case 0.9V - 1.6V) chip status is unknown, This is normal for most chip. </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The chip status is either in reset, or it has started. In either case, the pin should be high provided the initialization is correct. I don’t see how this explains anything.</p><p>It is not normal for pins to toggle during startup.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yeah there is a possibility that during the interval the logic changes, it enters mode other than main program.</p><p>Btw, I think I have found the possible cause, and Ive posted in the reply. </p><p>Not sure if it makes sense, but let me know if you guys have any thoughts about it.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum</p><p>Please see <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></em> for best results.</p><p> </p><p>In particular, as the others have said, you need to state which pins you’re looking at.</p><p>Also, show the schematic.</p><p>Some good, clear photos of your setup may also help.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the advice. I think I have found the cause.</p><p>In my circuit, the 2 GPIO pins are sharing with the same pins used for program updater. The function of the IO pins (normal operation mode) and the program updater LED pins (program updater mode) are selected by receiving input from DIPSW.</p><p>For example, </p><p>DIPSW ON: USB programmer mode, function as USB LED pin</p><p>DIPSW OFF: Normal operation mode, function as IO output(FLLAMP, LOAD) </p><p>After STM32 reset release, it will run program updater first as far as I know.</p><ol><li>Power on</li> <li>CPU reset</li> <li>CPU release</li> <li>Run bootloader</li> <li>Enter program updater mode, to check USB presence. If not, run main program.</li></ol><p>The sudden LOW is the logic programmed in program updater. But because I set the DIPSW to normal operation mode, and no USB detected, it breaks from the program updater code and run the main program. Because the default logic of the IO pin in main program is HIGH, it turns LOW→HIGH as shown in the waveform. So, apparently because the general IO pins and program updater pins are used on the same pin, the default logic of IO pin will change if the default logic for program updater and main program is different.</p><p>So, in order to solve this, set both program updater logic and main program logic to the same logic to prevent irrelevant logic change during startup.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b413ed9d-7a60-4477-a7ff-93f03d4ec078.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>All program should start after reset release, meaning after reset rising to Vhigh * 0,7 , so your scope show these pins low didn’t cause by ant program. </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>In big chip manufactory, our chip validation include test boot time reset, Voltage rising-falling time issue, this may not critical, depends use case, only one glitch, you should use scope look reset-vdd relate time, if reset release before VDD stable, you got more troble.</p><p>Early I noticed power sequency, in datasheet, it noticed, VDDUSB should after VDD.</p><p>In our group, test boot time cost one engineer more than one week.</p></div>"
+    }
+  ]
+}

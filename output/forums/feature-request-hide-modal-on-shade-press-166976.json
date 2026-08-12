@@ -1,0 +1,67 @@
+{
+  "contentType": "question",
+  "id": "166957",
+  "publicId": "166976",
+  "title": "Feature Request: hide modal on shade press",
+  "content": "<p>Request: Add an option to the ModalWindow to hide the modal when the shade is pressed. Also add a switch in the Properties panel in Designer</p><p>This can be implemented as simply as:<br /> </p><pre><code class=\"language-c\">namespace touchgfx<br />{<br /><br />class ModalWindow: public Container<br />{<br />public:<br />    ModalWindow: <br />        // ...<br />        shadePressedCallback(this, &amp;ModalWindow::shadePressedCallbackHandler),<br />        shadeWasPressed(false),<br />        hideOnShadePressed(false)<br />    {<br />        backgroundShade.setClickAction(shadePressedCallback);<br />        windowContainer.setTouchable(true);<br />    }<br /><br />    // ...<br /><br />    // some setter/getter for `hideOnShadePressed`<br /><br />    void shadePressedCallbackHandler(const Box &amp;box, const ClickEvent &amp;event)<br />    {<br />        bool pressed = event.getType() == ClickEvent::PRESSED;<br />        if (hideOnShadePressed &amp;&amp; &amp;box == &amp;backgroundShade &amp;&amp; shadeWasPressed &amp;&amp; !pressed)<br />        {<br />            hide();<br />        }<br />        shadeWasPressed = pressed;<br />    }<br />protected:<br />    // ...<br />    Callback&lt;ModalWindow, const Box&amp;, const ClickEvent&amp;&gt; shadePressedCallback;<br />    bool shadeWasPressed;<br />    bool hideOnShadePressed;<br />};<br /><br />}</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "33",
+  "categoryName": "STM32 MCUs TouchGFX and GUI",
+  "tags": [
+    "TouchGFX",
+    "Feature request",
+    "TouchGFX Designer"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 43,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107645",
+    "username": "Aron Hoogeveen",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "75760",
+    "username": "PeterVang",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-15T13:33:16+00:00",
+  "lastActivityAt": "2026-08-12T07:24:14+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745450,
+  "publishedAt": "2026-07-15T13:33:16+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/feature-request-hide-modal-on-shade-press-166976",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Tested with:</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Or to make it more general and provide a callback that gets executed when the shade is pressed</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Aron,</p><p>Thank you for your suggestion. I will forward your idea to our development team, but I do not think that you should sit and wait for this to be implemented.</p><p>You can create your own custom ModalWindow, by copying the ModalWindow source files, renaming it and adding the functionality you need. The only downside to this is that you then have to manually add and setup this one widget to your screen in user code instead of TouchGFX Designer.</p><p>Best regards,</p><p>Peter</p></div>"
+    }
+  ]
+}

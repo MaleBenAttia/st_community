@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "166690",
+  "publicId": "166715",
+  "title": "STME32WLE SUBGHZSPI Bit stuck at 0",
+  "content": "<p><br />Hello STM Community,</p><p>We are developing a battery-powered iot product using the <strong>STM32WLE5</strong> (single-core variant) with LoRaWAN communication.</p><p> </p><p><strong>Problem Description</strong></p><p>After an under-voltage event, the <strong>SUBGHZSPI </strong>bit gets permanently stuck at 0. The radio becomes completely unresponsive. </p><p><br /><strong>Key observations:</strong></p><ul><li>The issue **persists across full power cycles** (battery removed for minutes, capacitors fully discharged)</li>\t<li>A **software system reset** (`NVIC_SystemReset()`) does NOT fix it</li>\t<li> **Re-flashing the firmware** does NOT fix it</li>\t<li>The only known fix is using STM32CubeProgrammer\t<ul><li>To Reset the bit ( Done in the picture below ). The error is SUBGHSPISD stuck to 0.</li>\t\t<li>Once we set the bit to 1 we can resume normal operation. </li>\t\t<li>\t\t<figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9eaf447d-370a-4b65-9e70-18a3fc421f9e.png\" /></figure><p> </p>\t\t</li>\t</ul></li></ul><p><strong>What we have tried (without success):</strong></p><p>1.RF subsystem reset via RCC_CSR_RFRST</p><pre><code class=\"language-c\">  LL_RCC_RF_EnableReset();<br />   // delay<br />   LL_RCC_RF_DisableReset();<br />   // wait for RFRSTF to clear</code></pre><p> </p><p>2. SUBGHZSPI peripheral reset (APB3 bus):</p><pre><code class=\"language-c\">   __HAL_RCC_SUBGHZSPI_FORCE_RESET();<br />   // delay<br />   __HAL_RCC_SUBGHZSPI_RELEASE_RESET();</code></pre><p> </p><p>3. NSS manipulation:</p><pre><code class=\"language-c\">   LL_PWR_SetSUBGHZSPI_NSSSource(LL_PWR_SUBGHZSPI_NSS_SRC_SW);<br />   LL_PWR_UnselectSUBGHZSPI_NSS();</code></pre><p> </p><p>4. Clearing RFBUSY flags:</p><pre><code class=\"language-c\">   LL_PWR_ClearFlag_RFBUSY();<br /></code></pre><p>  </p><p>5. Re-writing option bytes from firmware + OBL_LAUNCH:</p><pre><code class=\"language-c\">   HAL_FLASHEx_OBGetConfig(&amp;obConfig);<br />   obConfig.OptionType = OPTIONBYTE_USER;<br />   obConfig.UserType = OB_USER_ALL;<br />   HAL_FLASHEx_OBProgram(&amp;obConfig);<br />   HAL_FLASH_OB_Launch(); // triggers system reset</code></pre><p> </p><p>6. Combinations of all the above</p><p>None of these approaches recover the radio from firmware. Only STM32CubeProgrammer's Option Byte \"Apply\" action resolves it.</p><p> </p><p> </p><p><strong>Important constraints</strong></p><ul><li>We are using the STM32WLE5, NOT the dual-core STM32WL55. On the dual-core variant, there is the `FLASH_SFR_SUBGHZSPISD` bit and `OPTIONBYTE_SUBGHZSPI_SECURE_ACCESS` which can control Sub-GHz SPI access. <strong>These do not exist on the single-core WLE5.</strong></li>\t<li>Once we start industrial production fixing the issue using STM32CubeProgrammer will not be a viable option. We need a solution to either prevent this bit to toggle to 0 or to set it to 1 during runtime. </li></ul><p><strong>Questions</strong></p><p>1. Is this a known errata for this issue? <br />2. Is there a HAL function or register sequence that can recover the SUBGHZSPI from this stuck state without external tools?<br />3. What exactly does STM32CubeProgrammer do differently when applying option bytes that a firmware-based `HAL_FLASH_OB_Launch()` does not achieve?<br />4. Has anyone encountered this on the single-core variant and found a working solution?</p><p><strong>Environment</strong><br />- MCU: STM32WLE5 (single-core, Cortex-M4)<br />- Package: STM32WLE5JC<br />- HAL version: STM32WLxx HAL Driver<br />- IDE: Keil MDK (uVision)<br />- Programmer: STM32CubeProgrammer (recovery tool)</p><p> </p><p> </p><p> </p><p> </p><p>Looking forward for this discussion. <br />I know it is not the first time this question gets asked but nothing solved my problem properly. And to be honest by now i expect an official document from STM. </p><p> </p><p> </p><p>Thank you.<br /> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "STM32WL series",
+    "LoRa",
+    "Sub-GHz"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 50,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "66904",
+    "username": "nikolas-zeitler",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "105339",
+    "username": "Filippo_Malleo",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-06T13:56:48+00:00",
+  "lastActivityAt": "2026-07-06T15:25:31+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742241,
+  "publishedAt": "2026-07-06T13:56:48+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/stme32wle-subghzspi-bit-stuck-at-0-166715",
+  "scraped_replies": []
+}

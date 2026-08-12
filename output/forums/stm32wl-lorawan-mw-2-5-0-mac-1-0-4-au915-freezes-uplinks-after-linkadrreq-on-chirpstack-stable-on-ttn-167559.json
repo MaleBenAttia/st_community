@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167528",
+  "publicId": "167559",
+  "title": "STM32WL (LoRaWAN MW 2.5.0 / MAC 1.0.4 / AU915) freezes uplinks after LinkADRReq on ChirpStack — stable on TTN",
+  "content": "<p>Hello everyone,</p><p>I'm developing a LoRaWAN end-device based on the <strong>STM32WL</strong> using the official ST LoRaWAN stack, and I'm facing a reproducible freeze that only happens with <strong>ChirpStack</strong>, not with TTN.</p><p><strong>Environment</strong></p><ul><li>MCU / Board: STM32WL55JC</li>\t<li>Stack: STM32Cube_FW_WL — <code>APPLICATION V1.3.0</code>, <code>MW_LORAWAN V2.5.0</code>, <code>L2_SPEC V1.0.4</code>, <code>RP_SPEC RP002-1.0.1</code></li>\t<li>Region: <strong>AU915</strong> (sub-band 1, channels 0–7 + 64)</li>\t<li>Activation: OTAA, Class A, unconfirmed uplinks every 30 s</li>\t<li>Same hardware and same gateway used in both tests</li></ul><p><strong>Problem</strong> On <strong>ChirpStack</strong>, after the join the device sends only <strong>4–5 uplinks and then freezes permanently</strong>: it stops transmitting and never recovers. Current measurement shows the radio stuck at ~<strong>14 mA</strong> (looks like it stays in RX), while a normal TX peak is ~74 mA.</p><p><strong>Key observation</strong> The freeze always happens right after ChirpStack sends <strong><code>LinkADRReq</code></strong> commands. In my logs, ADR ramps the TX power (PWR 0 → 2 → 5 → 7) on consecutive uplinks, and the device locks up on a frame where both RX1 and RX2 time out. The device answers <code>LinkADRAns</code> correctly (dr_ack / tx_power_ack / ch_mask_ack all true) before locking.</p><p><strong>What I already ruled out</strong></p><ul><li><strong>Not DevNonce:</strong> cleaned on the server, join works fine.</li>\t<li><strong>Not the sensors:</strong> sensor read executes in ~1 ms (confirmed by log).</li>\t<li><strong>Not brownout:</strong> the exact same hardware (including the multimeter in series) ran <strong>4 hours stable on TTN</strong>, sending every 30 s without a single loss.</li>\t<li><strong>Not <code>LmHandlerIsBusy</code> skip:</strong> I added a log in the busy branch and it does not trigger at the freeze.</li></ul><p><strong>Decisive test</strong> When I disable ADR at runtime with <code>LmHandlerSetAdrEnable(false)</code> (device advertises <code>adr: false</code>, so ChirpStack stops sending <code>LinkADRReq</code>), the device runs <strong>46+ consecutive uplinks with no freeze</strong>. Re-enabling ADR brings the freeze back.</p><p><strong>Questions</strong></p><ol><li>Has anyone seen the ST LoRaWAN MW (2.5.0) stack freeze the radio in RX after processing <code>LinkADRReq</code> in US915/AU915?</li>\t<li>Is this a known issue fixed in a newer MW/LoRaMac-node version? If so, which version?</li>\t<li>Is there a ChirpStack-side ADR configuration that avoids triggering this (e.g., ADR pacing, disabling per-uplink <code>LinkADRReq</code>)?</li></ol>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "STM32WL series",
+    "LoRa"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 20,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108923",
+    "username": "Tiago_Fernandes_Silva",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108923",
+    "username": "Tiago_Fernandes_Silva",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-07T17:14:32+00:00",
+  "lastActivityAt": "2026-08-07T17:14:32+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-07T17:14:32+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/stm32wl-lorawan-mw-2-5-0-mac-1-0-4-au915-freezes-uplinks-after-linkadrreq-on-chirpstack-stable-on-ttn-167559",
+  "scraped_replies": []
+}

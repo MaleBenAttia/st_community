@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "166733",
+  "publicId": "166758",
+  "title": "STM32WB55 BLE Stack v1.21.0.3 - Unable to enable LE Privacy (Resolvable Private Address)",
+  "content": "<p>Hi ST Team,</p><p>I am trying to enable <strong>Bluetooth LE Privacy (Resolvable Private Address)</strong> on an <strong>STM32WB55CG</strong>.</p><h3>Environment</h3><ul><li>MCU: STM32WB55CG</li>\t<li>STM32CubeWB Package: <strong>v1.23.0</strong></li>\t<li>BLE Stack: <strong>v1.23.0.3</strong></li>\t<li>FUS: <strong>v1.2.0.0</strong></li></ul><h3>What I changed</h3><p>I changed the address type from:</p><pre> </pre><pre><code>#define CFG_BLE_ADDRESS_TYPE    PUBLIC_ADDR</code></pre><p>to</p><pre> </pre><pre><code>#define CFG_BLE_ADDRESS_TYPE    RESOLVABLE_PRIVATE_ADDR</code></pre><p>The generated code calls:</p><pre> </pre><pre><code>aci_gap_init(<br />    role,<br />    2,<br />    ...<br />);</code></pre><p>and</p><pre> </pre><pre><code>aci_gap_set_discoverable(<br />    ...<br />    RESOLVABLE_PRIVATE_ADDR,<br />    ...<br />);</code></pre><p>Initially, <code>aci_gap_set_authentication_requirement()</code> was also using <code>CFG_BLE_ADDRESS_TYPE</code> as the Identity Address Type. I found an ST forum discussion mentioning this is incorrect, so I changed it to:</p><pre> </pre><pre><code>aci_gap_set_authentication_requirement(<br />    ...<br />    PUBLIC_ADDR<br />);</code></pre><p>However, the behavior did not change.</p><h3>Observed behavior</h3><p>With</p><pre> </pre><pre><code>CFG_BLE_ADDRESS_TYPE = PUBLIC_ADDR</code></pre><ul><li>Pairing succeeds.</li>\t<li>Device works normally.</li></ul><p>With</p><pre> </pre><pre><code>CFG_BLE_ADDRESS_TYPE = RESOLVABLE_PRIVATE_ADDR</code></pre><ul><li>Connection is established.</li>\t<li>Pairing fails.</li>\t<li><code>ACI_GAP_PAIRING_COMPLETE_VSEVT_CODE</code> reports <strong>Status = 1</strong>.</li>\t<li><code>HCI_DISCONNECTION_COMPLETE_EVENT</code> reports <strong>Reason = 0x13 (Remote User Terminated Connection)</strong>.</li></ul><h3>Additional observations</h3><p>I also tried the official <strong>BLE_P2PServer</strong> example from STM32CubeWB v1.23.0.</p><p>Simply changing</p><pre> </pre><pre><code>#define CFG_BLE_ADDRESS_TYPE RESOLVABLE_PRIVATE_ADDR</code></pre><p>causes a compilation error because <code>a_srd_bd_addr</code> is not defined:</p><pre> </pre><pre><code>error: 'a_srd_bd_addr' undeclared</code></pre><p>The example appears to assume every non-public address is a Static Random Address and attempts to call:</p><pre> </pre><pre><code>aci_hal_write_config_data(CONFIG_DATA_RANDOM_ADDRESS_OFFSET, ...)</code></pre><p>which is not applicable for Resolvable Private Addresses.</p><h3>Question</h3><ol><li>What is the correct procedure to enable <strong>Controller LE Privacy / Resolvable Private Address</strong> on STM32WB55 using BLE Stack v1.21.0.3?</li>\t<li>Is there an official example demonstrating LE Privacy on the STM32WB legacy BLE stack?</li>\t<li>Should additional APIs (such as Resolving List management) be used? My project does not expose APIs such as:</li></ol><pre> </pre><pre><code>aci_gap_add_devices_to_resolving_list()</code></pre><p>or</p><pre> </pre><pre><code>aci_gap_add_devices_to_list()</code></pre><p>If there is an application note or reference example for enabling LE Privacy on STM32WB, could you please point me to it?</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "BLE",
+    "STM32WB series",
+    "Wireless"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 65,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "85864",
+    "username": "barathi_0206",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "85864",
+    "username": "barathi_0206",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-08T06:10:26+00:00",
+  "lastActivityAt": "2026-07-09T04:34:39+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742514,
+  "publishedAt": "2026-07-08T06:10:26+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/stm32wb55-ble-stack-v1-21-0-3-unable-to-enable-le-privacy-resolvable-private-address-166758",
+  "scraped_replies": []
+}

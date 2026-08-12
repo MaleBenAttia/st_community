@@ -1,0 +1,80 @@
+{
+  "contentType": "question",
+  "id": "167122",
+  "publicId": "167147",
+  "title": "Program goes into hardfault mode on NUCLEO F767ZI, but not on NUCLEO H7S3L8",
+  "content": "<p>The code I’ve written in main.c for a program on NUCLEO H7S3L8 works perfectly fine, but on NUCLEO F767ZI goes into hardfault mode when reaching line 455 “mfcc_compute(mfcc_left, audio_buffer_16bit_left, mfcc_feature_left);” (more precisely, inside this function, at line 263 “float last = (float)audio_data[0] / (1 &lt;&lt; 15);”). Can someone tell me how to solve the problem? I’ve declared arrays static to not go into stack overflow. Can someone tell me how to solve the problem? (Int_mic_F7 is the project for NUCLEO F767ZI while audio.zip is the project for NUCLEO H7S3L8) </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeMX",
+    "STM32F7 series",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 0,
+  "votes": 0,
+  "views": 73,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "103468",
+    "username": "s319189",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "499",
+    "username": "mƎALLEm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f063c58-40af-4b0d-9381-650ca815d5be.png"
+  },
+  "createdAt": "2026-07-22T11:01:48+00:00",
+  "lastActivityAt": "2026-07-23T07:16:30+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743725,
+  "publishedAt": "2026-07-22T11:01:48+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/program-goes-into-hardfault-mode-on-nucleo-f767zi-but-not-on-nucleo-h7s3l8-167147",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>1- <a href=\"https://community.st.com/stm32-mcus-60/how-to-debug-a-hardfault-on-an-arm-cortex-m-stm32-132895\" rel=\"noreferrer\" target=\"_self\">How to debug a HardFault on an Arm® Cortex®-M STM32</a></p><p>2- Same code running on a STM32 family but not in the another: did you take into account the memory addresses change/architecture between both products? </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><ol type=\"1\"><li>Hardfault analyzer gives as errors “Bus, memory management or usage fault (FORCED)” and “Precise data access violation (PRECISERR)”. If you are an ST Employee, could you please provide a little bit in depth of support, instead of just saying “just look at this link”? Otherwise I’ll leave a negative review of the board where I bought it.</li></ol><ol start=\"2\" type=\"1\"><li>Yes I have taken into account this problem and the code was originally written for a working project on a STM32L476 (<a href=\"https://medium.com/analytics-vidhya/real-time-rnn-speech-noise-suppression-on-a-microcontroller-stm32-e17d8c3eac57\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://medium.com/analytics-vidhya/real-time-rnn-speech-noise-suppression-on-a-microcontroller-stm32-e17d8c3eac57</a>) and I have noticed that only STM32F767ZI has this problem and I don’t have the minimum idea of what more precisely the problem is and how it can be solved.</li></ol><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p> If you are an ST Employee, could you please provide a little bit in depth of support, instead of just saying “just look at this link”?</p></blockquote><p>1- We provide such articles so users can benefit from technical aspects. Why bother ourselves doing this effort?</p><p>2- ST Employee = doesn't mean I should answer all of your your questions and we are not here to do your job. This is not a support channel! This is a community.</p><blockquote><p>Otherwise I’ll leave a negative review of the board where I bought it.</p></blockquote><p>OK no problem go ahead then ..</p><blockquote><p>Yes I have taken into account this problem and the code was originally written for a working project on a STM32L476 (<a href=\"https://medium.com/analytics-vidhya/real-time-rnn-speech-noise-suppression-on-a-microcontroller-stm32-e17d8c3eac57\" rel=\"noopener noreferrer\" target=\"_blank\">https://medium.com/analytics-vidhya/real-time-rnn-speech-noise-suppression-on-a-microcontroller-stm32-e17d8c3eac57</a>)</p></blockquote><p>That’s not a ST deliverable. </p><p>Good luck</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><pre>  <em>/* set Mfcc DPU to controller */</em>  IDPU * p_dpu = MfccTaskGetDpu((MfccTask_t*)spMfccObj);  AppControllerSetPreprocessDPU((AppController_t*)spControllerObj, p_dpu);</pre><p> F767ZI seems dont have DPU inside...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>at what line of code should i insert these two suggested lines?</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>the code is copy from H7S3L8 reference design code. Since the code imply DPU need to make Mfcc work while F767ZI dont have, you may need to skip the mfcc function if you still need to use F767ZI. Is mfcc functino must for you?</p><p><a href=\"https://wiki.st.com/stm32mcu/wiki/AI:FP-AI-MONITOR1_an_introduction_to_the_technology_behind\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">AI:FP-AI-MONITOR1 an introduction to the technology behind - stm32mcu</a>. </p></div>"
+    }
+  ]
+}

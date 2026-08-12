@@ -1,0 +1,79 @@
+{
+  "contentType": "question",
+  "id": "166545",
+  "publicId": "166567",
+  "title": "STM32CubeMX H7 USB CDC bug: usbd_desc.c Get_SerialNum() uninitialized variables cause HardFault on -O1/-O2",
+  "content": "<p>There is a critical code-generation template bug in STM32CubeMX (reproduced in 6.16.1 with STM32CubeH7) when generating USB Device middleware configurations. In the generated usbd_desc.c file, the Get_SerialNum() function is generated with uninitialized local variables that are then used in arithmetic operations.</p><p>This results in <strong>Undefined Behavior (UB)</strong>. It compiles and works under -O0 because the uninitialized stack happens to evaluate to zero, but it causes an immediate, silent <strong>HardFault/BusFault</strong> during USB enumeration on Windows when compiled with -O1 or -O2 optimizations<br /><br />original generated code </p><pre><code class=\"language-c\">static void Get_SerialNum(void)<br />{<br />  uint32_t deviceserial0; // Uninitialized<br />  uint32_t deviceserial1; // Uninitialized<br />  uint32_t deviceserial2; // Uninitialized<br /><br />  // ST's generator template completely misses the lines assigning the registers!<br />  deviceserial0 += deviceserial2; // Undefined Behavior: addition on uninitialized variables<br /><br />  if (deviceserial0 != 0)<br />  {<br />    IntToUnicode(deviceserial0, &amp;USBD_StringSerial[2], 8);<br />    IntToUnicode(deviceserial1, &amp;USBD_StringSerial[18], 4);<br />  }<br />}</code></pre><pre><code class=\"language-c\">//proposed fix or at least working code<br />static void Get_SerialNum(void)<br />{<br />  uint32_t deviceserial0;<br />  uint32_t deviceserial1;<br />  uint32_t deviceserial2;<br /><br />  /* Explicitly read the Unique Device ID (UID) from the hardware */<br />  deviceserial0 = HAL_GetUIDw0();<br />  deviceserial1 = HAL_GetUIDw1();<br />  deviceserial2 = HAL_GetUIDw2();<br /><br />  deviceserial0 += deviceserial2;<br /><br />  if (deviceserial0 != 0)<br />  {<br />    IntToUnicode(deviceserial0, &amp;USBD_StringSerial[2], 8);<br />    IntToUnicode(deviceserial1, &amp;USBD_StringSerial[18], 4);<br />  }<br />}</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeMX",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 65,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "102574",
+    "username": "ICT_TAN",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "2061",
+    "username": "Ghofrane GSOURI",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/771d9ac6-52bd-3d77-c69d-ec6f705dd8ce.png"
+  },
+  "createdAt": "2026-07-01T07:05:35+00:00",
+  "lastActivityAt": "2026-07-01T14:04:32+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 741806,
+  "publishedAt": "2026-07-01T07:05:35+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-h7-usb-cdc-bug-usbd-desc-c-get-serialnum-uninitialized-variables-cause-hardfault-on-o1-o2-166567",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"102574\">@ICT_TAN</user-mention> </p><p> </p><p>Could you please retest this using the latest version of <strong>STM32CubeMX 6.18.0</strong> and confirm whether the issue still occurs?</p><p>Download STM32CubeMX6.18.0  from  <a href=\"https://www.st.com/en/development-tools/stm32cubemx.html\" rel=\"noopener noreferrer\" target=\"_blank\"><u>here</u></a> </p><p>THX</p><p>Ghofrane</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> thanks for the quick reply.<br/>Even with 1.18.0 and STM32Cube FW_H7 V1.13.0 instead of  FW_H7 V1.12.1 the error sadly still persist leaving those variables uninitialised.<br/>Furthermore when migrating from 1.16.1 to 1.18 i now get warned, that the peripheral base clock of 240MHz should now be below or equal to 225Mhz despite showing a tooltip of 240Hz max.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"102574\">@ICT_TAN</user-mention> </p><p>Could you please provide your IOC.</p><p>THX</p><p>Ghofrane</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <br/>sadly i did not get clearance to share the whole file, are there certain sections of relevance/importants here like only USB_DEVICE section eg.<br/><br/>Greetings<br/>Jonathan</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <br/>Though not the original project here is a .ioc of a demo project with just fs and hs enabled.<br/>The generated code still holds the uninitialized variables.<br/>I dug a bit further and usbd_desc_template.c holds the “correct” assignment </p><div><div><span style=\"color:#d4d4d4;\">deviceserial0 = *(</span><span style=\"color:#569cd6;\">uint32_t</span><span style=\"color:#d4d4d4;\"> *)DEVICE_ID1;</span></div><div><span style=\"color:#d4d4d4;\">deviceserial1 = *(</span><span style=\"color:#569cd6;\">uint32_t</span><span style=\"color:#d4d4d4;\"> *)DEVICE_ID2;</span></div><div><span style=\"color:#d4d4d4;\">deviceserial2 = *(</span><span style=\"color:#569cd6;\">uint32_t</span><span style=\"color:#d4d4d4;\"> *)DEVICE_ID3;</span></div></div><p> <br/>Maybe I configured smth wrong def not a straight forward process ^^;</p><p> </p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"102574\">@ICT_TAN</user-mention> </p><p>Your contribution is much appreciated.</p><p>Issue has been escalated to dev team under internal ticker ID<strong> #0063998</strong></p><p>I will keep you posted with updates.</p><p>THX</p><p>Ghofrane</p></div>"
+    }
+  ]
+}

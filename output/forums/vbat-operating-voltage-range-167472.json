@@ -1,0 +1,69 @@
+{
+  "contentType": "question",
+  "id": "167444",
+  "publicId": "167472",
+  "title": "VBAT operating voltage range",
+  "content": "<p>In later revisions of the stm32n657 datasheet the minimum Vbat has been changed from TBD to 3.0V.  Can you shed some light on why 3.0V was chosen?  It looks like everything that Vbat powers should theoretically work below 3V(in particular VSW is good down to 2V).  The reason I’m asking is that if we follow the 3.0V to 3.6V window strictly there is not a good primary cell chemistry that matches that.  Lithium manganese dioxide is too low of a voltage for most of the discharge curve.  Lithium thionyl chloride would work well but a fresh cell will be a little above 3.6V.<br /><br />Is lithium thionyl chloride the intended chemistry?  Chances are it would probably just work since it would be below the absolute max rating.  Does ST have an intended backup supply architecture for Vbat other than applying a cell voltage directly to Vbat?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32N6 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 69,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "92300",
+    "username": "tylerl",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "98558",
+    "username": "LongNguyen99",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-04T18:28:12+00:00",
+  "lastActivityAt": "2026-08-08T17:36:19+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745159,
+  "publishedAt": "2026-08-04T18:28:12+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/vbat-operating-voltage-range-167472",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I tested it with a Lithium Thionyl Chloride ($\\text{Li-SOCl}_2$) battery, and it works fine even at 4.2V or below 3V on some STM32L series</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I should have been more careful with my topic title.  This is specific to the stm32n6.  The operating range is different from the L series, particularly on the low end.  I assume it has something to do with the TAMPER feature but not 100% sure.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I think there's a high chance that the TAMPER feature was triggered. When the CPU clock or voltage drops, TAMPER automatically kicks in if it's enabled. Try disabling the TAMPER feature and debugging under low voltage to see if that helps.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Have you considered using a supercapacitor for VBAT? .Supercaps can operate at 3.0V or 3.2V depending on the chemistry/type. They can easily be recharged from an external supply, and the backup duration/discharge time is quite long.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167607",
+  "publicId": "167637",
+  "title": "Transform library support for binnings 6, 8, 12 and 24 - VL53L9CX",
+  "content": "<p>Section 2.5 of UM3656 says \"For a complete description of the library capabilities, refer to the vl53l9-transform-c documentation.\" The X-CUBE-53L9A1 v1.0.0 package ships <code>Documentation/ media-object/transform-c.chm</code> and <code>media-c.chm</code>, but those document the generic transform framework they do not contain any mention of VL53L9, binning or resolution.<br /><br />In <code>vl53l9-transform-c</code>, <code>_retrieve_output_size()</code> accepts only raw frame sizes 14842 (54x42) and 3844 (24x20); the stream capability tables likewise list only those two resolutions. Calling the pipeline at other binnings is rejected, so 18x14, 12x10, 8x6 and 4x4 produce raw data with no calibrated depth.</p><p>The underlying algorithms appear resolution-generic — <code>vl53l9_algo_extract()</code> takes frame width/height, crop offsets and binning as parameters, the calibration offset map is bicubic-resized to arbitrary width/height, and the radial-to-perpendicular map is computed per width/height/binning.</p><p>Questions:</p><ul><li>Is support for the other binnings planned, or deliberately excluded?</li>\t<li>If we were to extend it ourselves, could you supply the <strong>pre-crop raw frame geometry and crop offsets for each binning</strong>? We can infer the uncropped cases from Table 12 (18x14 -&gt; 3 x 504 B + 126 B = 1638 B, matching exactly; 12x10 -&gt; 780 B, matching), but the cropped cases do not close: 8x6 computes to 312 B against the 416 B. Guessing these offsets risks silently misaligned zones, which we are not willing to ship.</li></ul>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "49",
+  "categoryName": "Imaging (sensors)",
+  "tags": [
+    "Time of flight"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 7,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "109011",
+    "username": "GZOJRO",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "109011",
+    "username": "GZOJRO",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-12T07:20:58+00:00",
+  "lastActivityAt": "2026-08-12T07:20:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-12T07:20:58+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/imaging-sensors-49/transform-library-support-for-binnings-6-8-12-and-24-vl53l9cx-167637",
+  "scraped_replies": []
+}

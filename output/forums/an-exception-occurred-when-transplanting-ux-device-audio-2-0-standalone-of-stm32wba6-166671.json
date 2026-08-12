@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "166646",
+  "publicId": "166671",
+  "title": "An exception occurred when transplanting Ux_Device_Audio_2.0_Standalone of STM32WBA6",
+  "content": "<p>Thank you for taking the time to review my question.</p><p>I migrated the Ux_Device_Audio_2.0_Standalone of STM32WBA6 to STM32H503 and successfully enumerated using USB FS. However, out of 1000 entries into the USBD_AUDIO_PlaybackStreamFrameDone function per second, half are 4 bytes long and half are 384 bytes (audio stream). I monitored the data using USBlyzer and did not see any upload data (EP IN) from STM32H503. I don't know where these 4 bytes come from, and this issue has been bothering me for several days.</p><pre><code class=\"language-c\">VOID USBD_AUDIO_PlaybackStreamFrameDone(UX_DEVICE_CLASS_AUDIO_STREAM *audio_play_stream,<br />                                        ULONG length)<br />{<br />  /* USER CODE BEGIN USBD_AUDIO_PlaybackStreamFrameDone */<br /><br />  UCHAR         *frame_buffer;<br />  ULONG         frame_length;<br />  int32_t       ret;<br /><br />  UNUSED(ret);<br /><br />  /* Get access to first audio input frame.  */<br />  ux_device_class_audio_read_frame_get(audio_play_stream, &amp;frame_buffer, &amp;frame_length);<br /><br /><br />  if (length)<br />  {<br />    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);<br />    printf(\"%d\\n\", length);<br />    if (BufferCtl.wr_ptr &gt; USB_AUDIO_BUF_SIZE - frame_length)<br />    {<br />      /* Not enough space in buffer: copy remaining space available and rollback */<br />      uint32_t partial_copy_len = USB_AUDIO_BUF_SIZE - BufferCtl.wr_ptr;<br /><br />      ux_utility_memory_copy(&amp;BufferCtl.buff[BufferCtl.wr_ptr], frame_buffer, partial_copy_len);<br />      ux_utility_memory_copy(&amp;BufferCtl.buff[0], frame_buffer + partial_copy_len, frame_length - partial_copy_len);<br />      BufferCtl.wr_ptr = frame_length - partial_copy_len;<br />    }<br />    else<br />    {<br />      /* Enough space in buffer: copy data */<br />      ux_utility_memory_copy(&amp;BufferCtl.buff[BufferCtl.wr_ptr], frame_buffer, frame_length);<br />      BufferCtl.wr_ptr += frame_length;<br />    }<br /><br />    /* Check trigger for Audio DMA start (half of buffer full) */<br />    if ((BufferCtl.rd_enable == 0) &amp;&amp; ((BufferCtl.wr_ptr - BufferCtl.rd_ptr) &gt; USB_AUDIO_BUF_SIZE / 2))<br />    {<br />      /* Start Audio DMA */<br />      BufferCtl.rd_enable = 1;<br /><br />      memcpy(&amp;DMABuffer[0], &amp;BufferCtl.buff[0], I2S_AUDIO_BUF_SIZE);<br />      BufferCtl.rd_ptr = I2S_AUDIO_BUF_SIZE;<br /><br />      ret = HAL_I2S_Transmit_DMA(&amp;hi2s1, (uint16_t*)&amp;DMABuffer[0], I2S_AUDIO_BUF_SIZE/4);<br />      if(ret != 0)  printf(\"HAL_I2S_Transmit_DMA fail:%ld\\n\", ret);<br />    }<br />  }<br /><br />  /* Re-free the first audio input frame for transfer.  */<br />  ux_device_class_audio_read_frame_free(audio_play_stream);<br /><br />  ComputeUSBFeedback(audio_play_stream);<br /><br />  /* USER CODE END USBD_AUDIO_PlaybackStreamFrameDone */<br /><br />  return;<br />}</code></pre><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f369f5f5-9a3a-49fe-8b6d-a98acc42bc87.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "Audio",
+    "USB",
+    "STM32H5 series",
+    "USBX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 74,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "107940",
+    "username": "JianNan",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/da762458-6d9e-4fca-8a3a-f4e7afeacfc1.png"
+  },
+  "lastContributor": {
+    "id": "107940",
+    "username": "JianNan",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/da762458-6d9e-4fca-8a3a-f4e7afeacfc1.png"
+  },
+  "createdAt": "2026-07-04T02:47:05+00:00",
+  "lastActivityAt": "2026-07-05T11:12:21+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742092,
+  "publishedAt": "2026-07-04T02:47:05+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/an-exception-occurred-when-transplanting-ux-device-audio-2-0-standalone-of-stm32wba6-166671",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The Ux_Device_Audio_2.0_Standalone of STM32WBA6:</p><p><a href=\"https://github.com/stm32-hotspot/STM32WBA-BLE-USBx-Class-Audio\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">GitHub - stm32-hotspot/STM32WBA-BLE-USBx-Class-Audio: The objective of this project is to provide examples of the implementation of the USB Class Audio using the Azure RTOS USBX stack on the STM32WBA6 MCU. · GitHub</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This looks like an explicit Feedback Endpoint data mismatch or descriptor misconfiguration between the MCU architectures. The alternating 4-byte packages usually occur when the host tracks asynchronous clock drift, but the endpoint reads it within the main audio stream handler loop instead of routing it separately.</p><p>We optimize similar fast callback structures and dynamic execution pipelines on our platform, <strong><a href=\"https://deenelevated.com/\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">Deen Elevated</a></strong>, where eliminating backend latency bottlenecks is critical. Double-check your endpoints and FIFO structure in <code>usbd_conf.c</code> for the H5.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><pre><code class=\"language-c\">HAL_PCDEx_PMAConfig(&amp;hpcd_USB_DRD_FS, 0x81, PCD_SNG_BUF, 0x06C0);</code></pre><p>I configured 0x81 for Feedback, but I didn't see the host issue  Isochronous transfer input request. The 4 bytes seem to come from USBX.</p><p>If 0x81 is not configured for Feedback, the UAC2.0 device cannot be enumerated properly.</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Replaced the Feedback endpoint with another endpoint to solve the problem, not using the same endpoint as the audio stream output.</p></div>"
+    }
+  ]
+}

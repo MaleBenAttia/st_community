@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167069",
+  "publicId": "167090",
+  "title": "Only receiving FF out of the M95M04",
+  "content": "<p>Hello,</p><p>I am trying to use the M95M04 as a SPI slave device from the ADI DS28E18 one-wire bridge. A picture has been uploaded to show the entire hardware setup. My main issue is that whenever I try to send data to the EEprom and then read that data back, I only get FF as a result. When setting write enable or write disable, the MISO line pulls low like would be expected and returns 00. I have used an oscilloscope with a bus decoder to ensure that the correct commands are being sent out of the DS28E18 to the M95M04, and they are. We never see the WIP bit go high, and we have tried many changes in both the hardware and the software. Our current hardware setup is based off of the schematic image I have posted, but there have been some modifications. C1001 has been changed to 10uF X7R, C1002 has been changed to 1uF X7R, and 10k pull-up resistors have been added on the S# and D pins. From the software side, I have attached the code that our software engineer is using. I have tried replacing the EEprom, I have confirmed that the layout on our board is correct, and I have ensured the traces between the DS28E18 and M95M04 are all intact. If someone could please look through our setup and see if there are any obvious flaws that would be fantastic.</p><p>The driver that we are using is linked here: <a href=\"http://github.com/DRNadler/1Wire.git\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">github.com/DRNadler/1Wire.git</a></p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6bc02e17-4fcc-42b3-80f6-ad4d6b8e862f.png\" /></figure><pre><code class=\"language-c\">static int do_jedec_id(void)<br />{<br />    uint8_t seq[64];<br />    uint8_t rx[16];<br />    size_t i = 0;<br />    unsigned short seq_addr;<br />    uint8_t status;<br /><br />    if (init_ds28(1) != 0)<br />        return 1;<br /><br />    if (ds28_prepare_spi() != 0)<br />        return 1;<br /><br />    printf(\"STEP 1: Initial status\\n\");<br /><br />    if (read_eeprom_status_byte(&amp;status) != 0)<br />        return 1;<br /><br />    printf(\"Status = 0x%02X\\n\", status);<br /><br />    printf(\"STEP 2: WREN\\n\");<br /><br />    if (write_enable_only() != 0)<br />        return 1;<br /><br />    if (read_eeprom_status_byte(&amp;status) != 0)<br />        return 1;<br /><br />    printf(\"Status after WREN = 0x%02X\\n\", status);<br /><br />    printf(\"STEP 3: RDID\\n\");<br /><br />    seq[i++] = DS28_SPI_SS_LOW;<br /><br />    seq[i++] = DS28_SPI_WR_RD_BYTE;<br />    seq[i++] = 4U;      /* write length */<br />    seq[i++] = 16U;     /* read length  */<br /><br />    seq[i++] = M95_CMD_RDID;   /* 0x83 */<br />    seq[i++] = 0x00;<br />    seq[i++] = 0x00;<br />    seq[i++] = 0x00;<br /><br />    /*<br />     * Save where read data begins.<br />     * For WR_RD_BYTE the returned bytes overwrite<br />     * the dummy bytes in sequencer memory.<br />     */<br />    seq_addr = (unsigned short)i;<br /><br />    for (int j = 0; j &lt; 16; j++)<br />    {<br />        seq[i++] = 0xFF;<br />    }<br /><br />    seq[i++] = DS28_SPI_SS_HIGH;<br /><br />    dump_bytes_limited(\"RDID SEQ\",<br />                       seq,<br />                       i,<br />                       64);<br /><br />    if (!DS28E18_WriteSequencer(0U, seq, (int)i))<br />    {<br />        fprintf(stderr,<br />                \"DS28E18_WriteSequencer failed\\n\");<br />        return 1;<br />    }<br /><br />    if (!DS28E18_RunSequencer(0U, (unsigned short)i))<br />    {<br />        fprintf(stderr,<br />                \"DS28E18_RunSequencer failed\\n\");<br />        return 1;<br />    }<br /><br />    memset(rx, 0, sizeof(rx));<br /><br />    if (!DS28E18_ReadSequencer(seq_addr,<br />                               rx,<br />                               sizeof(rx)))<br />    {<br />        fprintf(stderr,<br />                \"DS28E18_ReadSequencer failed\\n\");<br />        return 1;<br />    }<br /><br />    dump_bytes_limited(\"RDID RX\",<br />                       rx,<br />                       sizeof(rx),<br />                       64);<br /><br />    if (read_eeprom_status_byte(&amp;status) != 0)<br />        return 1;<br /><br />    printf(\"Status after RDID = 0x%02X\\n\", status);<br /><br />    printf(\"WIP=%u WEL=%u\\n\",<br />       (status &amp; M95_STATUS_WIP_MASK) ? 1U : 0U,<br />       (status &amp; M95_STATUS_WEL_MASK) ? 1U : 0U);<br /><br />    return 0;<br />}</code></pre><p>This code is an example of something that we have that only returns FF from the M95M04</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "57",
+  "categoryName": "Others: hardware and software",
+  "tags": [
+    "EEPROM devices"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 86,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108402",
+    "username": "stevc_26",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108402",
+    "username": "stevc_26",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-20T17:20:08+00:00",
+  "lastActivityAt": "2026-08-04T12:57:39+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744759,
+  "publishedAt": "2026-07-20T17:20:08+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/others-hardware-and-software-57/only-receiving-ff-out-of-the-m95m04-167090",
+  "scraped_replies": []
+}

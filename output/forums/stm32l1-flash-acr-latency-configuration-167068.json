@@ -1,0 +1,73 @@
+{
+  "contentType": "question",
+  "id": "167049",
+  "publicId": "167068",
+  "title": "STM32L1 FLASH ACR Latency Configuration",
+  "content": "<p>Hi,</p><p>I want to configure STM32L152RE board to max speed of 32MHz using HSE 8MHz. As per reference manual, flash latency can be configured only in 64 bit read operations. I want to use 32bit read operation for low power consumption. I am confused on how to use the board in bare metal programming specifically for flash latency part. I am using platform.io and want to initialize the RCC using HSE and PLL. I need guidance for RCC initialization and flash latency configuration portion.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32L1 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 82,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "91692",
+    "username": "AumDhabalia",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "48557",
+    "username": "Ozone",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/4ac27b25-840c-54c7-7e65-d890310d3217.png"
+  },
+  "createdAt": "2026-07-19T15:40:53+00:00",
+  "lastActivityAt": "2026-07-22T05:29:48+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743607,
+  "publishedAt": "2026-07-19T15:40:53+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32l1-flash-acr-latency-configuration-167068",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt;  I want to use 32bit read operation for low power consumption. </em></span></p><p>Unless I got something wrong, there is no such option - not that it would save power anyway.<br/>“Flash read” is basically synonymous with “instruction read”, and the 64-bit or 128-bit Flash read operations fill the cache (a.k.a. ART) which feeds the core instruction pipeline.</p><p>You would need to configure the required number of waitstates for the core clock frequency you choose, before enabling HSE. Those are listed in the datasheet, usually. Setting a too low number will cause the core to most likely crash when enabling the higher clock.</p><p>Halving flash read / instruction read throughput by halving read size would only slow down execution, and result in higher power consumption through longer on times.<br/>Better use sleep modes for lower consumption.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"48557\">@Ozone</user-mention> ,</p><p>The ‘L1 is a very different beast from other STM32, and indeed, it has an option to fetch 32-bit words from FLASH, for slow execution at low clock frequencies, in exchange for presumably lower power consumption, although the DS does not specify, how much exactly.</p><p>​<user-mention data-id=\"91692\">@AumDhabalia</user-mention> ,</p><p>The requirements for FLASH operation are detailed in RM0038 chapter <em>3.3.1 Relation between CPU clock frequency and Flash memory read time</em>, and for 32-bit operation, number of waitstates must be 0, which means, the system clock frequency must be according to the 0WS row of Table 12, i.e. if the internal voltage regulator is set to Range 1, it’s max. 16MHz (for the settings of internal voltage regulator, see <em>5.1.5 Dynamic voltage scaling management</em>)</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; The ‘L1 is a very different beast from other STM32, and indeed, it has an option to fetch 32-bit words from FLASH, …</em></span></p><p>Thanks, interesting to know.<br/>However, it seems this feature was not too successful, as these L1 devices were rather quickly superseded by other MCU families.</p><p>And I still very much doubt that the reduced fetch width improves overall consumption, instead of increasing it through prolonged runtime.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This is described in detail in the two RM chapters I mentioned above. </p><p>I’m not sure if you can find a ready-made example. Try perhaps having a look at some older<a href=\"https://www.st.com/en/embedded-software/stsw-stm32077.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\"> SPL-based</a> ones, maybe in their startup code. I personally have no experience with the ‘L1 family.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><em><span style=\"color:#2980b9;\">&gt; Try perhaps having a look at some older</span><a href=\"https://www.st.com/en/embedded-software/stsw-stm32077.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\"><span style=\"color:#2980b9;\"> SPL-based</span></a><span style=\"color:#2980b9;\"> ones, maybe in their startup code.</span></em></p><p>The L1 family is definitely covered by SPL-based code.<br/>Update of “legacy” MCU example code to Cube was always lacking, not sure if it even exists for L1 devices.<br/>But the SPL packages are still available for download.</p><p>I have a L152 discovery, but found it lacking the performance for many of my projects.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "contentType": "question",
+  "id": "166552",
+  "publicId": "166574",
+  "title": "Silent installation Bundled Java",
+  "content": "<p>I have to deploy the STM32CubeProg in an big network.<br />I’ve tried the silent installation, and I’m stuck with:<br />Error: unable to find or load main class com.st.app.Main<br />Caused by: java.lang.NoClassDefFoundError: javafx/application/Application\"<br /><br />There is as solution in<br /><a href=\"https://community.st.com/stm32cubeprogrammer-mcus-30/bundled-java-runtime-missing-or-corrupted-16258\" target=\"_self\" rel=\"noreferrer nofollow ugc\">bundled-java-runtime-missing-or-corrupted</a><br /><em>Im replaced installer to C:\\Program Files\\Java and rename folder \"jre _1.8***\" to simple \"jre\" and it works for me. Hope it will help you too.  </em><br /><br />This is not really the solution, or? Is there a clean way for a silent Installation?<br /><br />The version is:<br />2.22.0</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "30",
+  "categoryName": "STM32CubeProgrammer (MCUs)",
+  "tags": [
+    "STM32CubeProgrammer"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 64,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "5106",
+    "username": "steffen",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/777de99d-81eb-6b8c-a3af-c07c048cf48b.png"
+  },
+  "lastContributor": {
+    "id": "103657",
+    "username": "ddemers_lmpg",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-01T08:52:20+00:00",
+  "lastActivityAt": "2026-07-08T16:00:17+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742494,
+  "publishedAt": "2026-07-01T08:52:20+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeprogrammer-mcus-30/silent-installation-bundled-java-166574",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p> </p><p>I’ve recently deploy a silent install script for my users and might be able to help. </p><p>At what step does the message “ Error: unable to find or load main class com.st.app.Main“ happen ? During the installation or once its installed and you try to launch it ?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks fopr your reply.<br/> <br/>I’ve  installed the STM32CubeProgrammer per GUI.<br/>Than I changed to folder:<br/>C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin</p><p>and execute:<br/> java -jar .\\STM32CubeProgrammer.exe<br/>and<br/> java -jar .\\STM32CubeProgrammer.exe -console<br/>Than, I get the arror above</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p><strong>Execute Stm32CubeProgrammer with jar </strong></p><p>Stm32CubeProgrammer has jre in its install folder. By using a generic java, first you expect the computer to have java already installed (which might not be the case on your computers). But the biggest problem is that the java version installed on the computer might differ and cause issue from the one expected by Stm32CubeProgrammer .</p><p>So to fix to open the app with a CMD is to use the java from STM32CubeProgrammer which is in:<br/> “C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\jre\\bin\\java”</p><p>So if your cmd is in “C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin” you can use this command:</p><p>.\\jre\\bin\\java -jar .\\STM32CubeProgrammer.exe</p><p> </p><p>If you want execute it from anywhere:</p><p>\"C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\jre\\bin\\java\" -jar \"C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32CubeProgrammer.exe\"</p><p> </p><h3>Silent Install</h3><p>Now I have no idea what any of what you described have to do with silent install. I think you might be confuse with section “1.2.7 Installing STM32CubeProgrammer from command line” from the manual</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e69de93-46c1-49ea-b33c-6f43ae0cbafe.png\"/></figure><p> </p><p>The first step is to unzip the installer “SetupSTM32CubeProgrammer_win64.exe” (the one you used to install with the GUI). I do it with 7zip. It will be much clearer then:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa7f4a8e-e5bb-42d0-8041-8bbf2d179bb2.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34c9ace2-1a83-4245-8fa9-7ea45d68cc44.png\"/></figure><p> </p><p>So as you can see the “SetupSTM32CubeProgrammer_win64” is just a zip archive with the installer and a jre included to actually install it.</p><p>From there you can extract the archive, open a CMD in the folder and execute:</p><p>.\\jre\\bin\\java -jar .\\SetupSTM32CubeProgrammer-2.22.0.exe -console</p><p> </p><p>Hope this help,</p><p>-Danick</p><p>ps: more details would have been welcomed.</p></div>"
+    }
+  ]
+}

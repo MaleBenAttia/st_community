@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "167095",
+  "publicId": "167120",
+  "title": "USART3 not transmitting data on NUCLEO F767ZI",
+  "content": "<p>I’ve set pin PD8 and PD9 for USART3 and I’ve checked the baud rate that is 115200, but usart3 does not transmit data to serial monitor yet. How can I solve the problem?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeMX",
+    "STM32F7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 54,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "103468",
+    "username": "s319189",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "103468",
+    "username": "s319189",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-21T19:04:12+00:00",
+  "lastActivityAt": "2026-07-22T10:46:46+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743651,
+  "publishedAt": "2026-07-21T19:04:12+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/usart3-not-transmitting-data-on-nucleo-f767zi-167120",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Did you check with scope if there is data being transmitted?</p><p> </p><p>You don’t check the HAL status so how do you know if it was a good send?</p><pre><code class=\"language-c\">HAL_StatusTypeDef hal_status = HAL_OK;<br/><br/><br/>hal_status = HAL_UART_Transmit_DMA(...);<br/>if(hal_status != HAL_OK)<br/>{<br/> // do something<br/>}</code></pre><p>From there you can check what hal_status returns, HAL_OK, HAL_BUSY or HAL_ERROR</p><p> </p><p>For a quick check, just use HAL_UART_Transmit to see if it’s a HW or UART configuration setup issue.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I tried running the program in debug mode and you were right! Placing hal_status I got the suspect that program crashed somewhere and indeed it went into hardfault mode, thanks!</p></div>"
+    }
+  ]
+}

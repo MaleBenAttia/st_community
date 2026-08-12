@@ -1,0 +1,78 @@
+{
+  "contentType": "question",
+  "id": "166978",
+  "publicId": "166998",
+  "title": "STM32L412 ADC clock source in synchronous clock mode",
+  "content": "<p>I'm trying to figure out which clock source the STM32L412 ADC uses in synchronous mode. The documentation doesn't seem to be consistent.</p><p>Most diagrams show <strong>SYSCLK</strong>, while the text says <strong>HCLK (AHB clock)</strong>.</p><p>It looks to me like RM0394 Figure 13 and DS12469 Figure 5 are incomplete because they don't show the AHB bus as an ADC clock input. Am I missing something, or is this a documentation error?<br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/100f561c-72e3-423f-abbc-fefab2c36ffd.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/90b1639e-63b6-4e47-ad57-0f20345d7417.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fbac457c-9b52-4517-a2f8-c20d4463b9c0.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/005d220f-e17f-498e-83f9-20fb46f82743.png\" /></figure><p> </p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/29a5f02c-b464-4ce6-b5b3-ebd3b78d62b1.png\" /></figure>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Documentation",
+    "STM32L4 series",
+    "ADC",
+    "Clock-configuration"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 1,
+  "votes": 0,
+  "views": 96,
+  "voteSet": [],
+  "likeSet": [
+    "108300"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108300",
+    "username": "Humbel-IMT",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108300",
+    "username": "Humbel-IMT",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-16T10:22:15+00:00",
+  "lastActivityAt": "2026-07-22T07:12:46+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743613,
+  "publishedAt": "2026-07-16T10:22:15+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32l412-adc-clock-source-in-synchronous-clock-mode-166998",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108300\">@Humbel-IMT</user-mention> </p><p>the STM32L41 and STM32L412 are a specific case among other STM32L4 products.</p><p>They have only one clock source for ADC, which is SYSCLK. However, all other STM32L4 products can have two clock sources: the system clock or the PLLSAI1 output.</p><p>For this reason, the note \"(a)\" above PLLSAI output in the reference manual states: \"a. Except STM32L41xxx/42xxx devices.\"</p><p>In DS12469, which is specific to STM32L412 states SYSCLK.</p><p>It is hoped that this explanation answers the question.</p><p>BR<br/>Gyessine</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Gyessine,</p><p>Thx for the reply.</p><p>What bothers me about that section of the reference manual is that, in my opinion, it does not clearly explain the difference between synchronous and asynchronous mode. Furthermore, it refers to the \"system clock\" in the first sentence and later to the AHB clock, which is HCLK, not SYSCLK.</p><p>I assume the truth is closer to what ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> is suggesting. What do you think?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108300\">@Humbel-IMT</user-mention> <br/>I have escalated it internally for analysis and eventual fix.</p><p>Thank you for your contribution.<br/>An internal ticket was submitted for further investigation. Internal ticket number: CDM0064435(This is an internal tracking number and is not accessible or usable by customers).<br/>BR<br/>Gyessine</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I’d say, it’s in this way:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f83f0f4f-448c-49d2-9d69-9eb35b075b1c.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>That's exactly what I concluded from everything I've read so far. It would have been nice if the AHB bus had been routed or marked like the SYSCLK is for the DFSDM1. Just a text label would have been enough, no long lines needed.</p><p>Thx for the response 🙂</p></div>"
+    }
+  ]
+}

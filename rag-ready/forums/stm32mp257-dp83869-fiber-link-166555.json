@@ -1,0 +1,22 @@
+{
+    "forum": [
+        {
+            "id": "166534",
+            "publicId": "166555",
+            "title": "STM32MP257 & DP83869 fiber link",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257-dp83869-fiber-link-166555",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-06-30T15:35:09+00:00",
+            "views": 47,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "",
+            "content_text": "Hello,\n\nI am using a STM32MP257 (Karo SOM), RGMII connected to a DP83869 (100Mbps fiber mode).\n\nThis is working well until I start the LVDS screen on my board.\n\n* The screen is powered with 2 regulators :\n\n* Backlight (16V/360mA, dedicated boost)\n\n* Logic (2.7V/500mA, dedicated buck)\n\nThe DP83869 is powered with 3 regulators :\n\n* 1.1V (dedicated buck)\n\n* 2.5V (dedicated LDO)\n\n* 3.3V (shared buck also powering the MP2 SOM)\n\nBelow is the behavior in different configurations:\n\n* Screen unplugged => fiber link OK\n\n* Screen plugged => fiber link KO\n\n+ hot-unplugging the screen makes the link working instantly\n\n* Screen unplugged, flat cable present, with 100ohm R at the end of the LVDS signals => OK\n\n* Screen unplugged,\n\n+ With no current on the BL / logic DC/DC converter => OK\n\n+ Sinking 300mA on the BL => KO\n\n- Removing the sink current makes the link working instantly\n\n+ Sinking 300mA on the logic => KO\n\n- Removing the sink current makes the link working instantly\n\nProbing power rails with a scope show clean signals, in loaded and unloaded conditions.\n\nThe PHY clocks (CLOo, TX/RX CLK) are always clean 25MHz signals.\n\nThe feeling I have is that without screen, the link is \"working by chance\" and a slight noise emited by the screen regulators (when loaded) are making the link to fall. There is probably something wrong on the RGMII timings but I don't know how to check/set that.\n\nOther points :\n\n\\*Where is hidden the GPIO slew rate data of STM32MP2? Nothing on datasheet, nothing in the user manual. Actually the device tree is configuring the MDC slew rate faster than the MDIO (<3> vs <0>).\n\n\\* The DP83869 outputs a nIRQ line, requiring a 2.2k RPU (soldered). When the link is up and idle, this line is 0. When reading the MDIO IRQ registed, there is a pending IRQ (\"link has changed\").\n\n\\*\\* Reading the flag should clear the IRQ line but it is still stuck at 0\n\n\\*\\* The MP2 is configured with IRQ falling edge and should read the register, I shouldn't be able to read anything other than 0 in the IRQ register\n\nAny help appreciated :)\n\nThanks",
+            "images": [],
+            "author": "tarzan2"
+        }
+    ]
+}

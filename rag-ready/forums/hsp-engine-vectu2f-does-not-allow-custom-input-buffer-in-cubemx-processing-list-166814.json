@@ -1,0 +1,27 @@
+{
+    "forum": [
+        {
+            "id": "166792",
+            "publicId": "166814",
+            "title": "HSP_Engine VectU2F does not allow custom input buffer in CubeMX Processing List.",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/hsp-engine-vectu2f-does-not-allow-custom-input-buffer-in-cubemx-processing-list-166814",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "STM32U3 series"
+            ],
+            "published_at": "2026-07-09T13:19:58+00:00",
+            "views": 88,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@AQB\n\nThe first issue is confirmed and let me thank you for bringing this behavior to our attention.\n\nAn internal ticket has been reported to the dedicated team (Ticket Number: CDM0064513).\n\nI will let you know as soon as the issue is fixed.\n\nFor the second point, pScruint32\\_t type is by default uint32\\_t and pDst type is by default float32\\_t.\n\nIn your case, you need to create a new Buffer [ Test ; C Type: float32\\_t ], then select in Processing List select pDst to Test then you can change the new buffer C Type.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54098bc6-7c3e-470a-af0a-ff6b58392c88.png)\n\nThanks.\n\nMahmoud",
+            "content_text": "When adding the VectU2F function to a processing list, it defaults to creating three buffers: pDst (float32\\_t), pSrc (float32\\_t), and pSrcuint32\\_t (uint32\\_t), instead of just pDst and pSrcuint32\\_t.\n\nThere seems to be no way to select a different uint32\\_t input in the GUI. There is a field pSrcuint32\\_t, but this only allows me to select a float32\\_t buffer. I believe the type checking in the GUI for this buffer is incorrectly set to float32\\_t instead of uint32\\_t, and as a result it both creates the extra unused float32\\_t buffer (pSrc), and won’t let me change the actual pSrcuint32\\_t buffer it uses. This is supported by the VectItoF function which correctly checks that pSrcInt32\\_t is an Int32\\_t, and creates only two buffers. This results in extra memory used in the BRAM section, and means I can only ever have one buffer that converts uint32\\_t into float32\\_t. I suspect I will be forced to bypass the GUI to create this processing list as a result. (As an aside, the function naming in the Vector Support Function category is much longer and inconsistent with the function naming from other categories.)\n\nSTM32u3C5ZITxQ - NUCLEO-U3C5ZI-Q\n\nCubeMX version 6.18.0\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aadadbac-c9eb-4d90-a030-7e648fc633bc.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd0285f2-91c0-4c4c-8780-26bd03f36ee5.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd0285f2-91c0-4c4c-8780-26bd03f36ee5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aadadbac-c9eb-4d90-a030-7e648fc633bc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54098bc6-7c3e-470a-af0a-ff6b58392c88.png"
+            ],
+            "author": "AQB"
+        }
+    ]
+}

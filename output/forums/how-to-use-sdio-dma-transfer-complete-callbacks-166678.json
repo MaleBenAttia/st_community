@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "166653",
+  "publicId": "166678",
+  "title": "How to use SDIO + DMA transfer-complete callbacks?",
+  "content": "<p>I’m using SDIO + DMA on an STM32F407 and I need a “transfer complete” callback for SD writes/reads. </p><p>What is the correct way to attach a user callback for SDIO + DMA completion when using the CubeMX‑generated SD/FATFS drivers?</p><p>Thank you!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "SDIO-SDMMC",
+    "DMA",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 62,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "78385",
+    "username": "omaroski",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1827",
+    "username": "MOBEJ",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/64b0c3a5-4c24-a514-94bd-1f712ba7d6d7.png"
+  },
+  "createdAt": "2026-07-05T09:35:34+00:00",
+  "lastActivityAt": "2026-07-06T10:24:40+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742149,
+  "publishedAt": "2026-07-05T09:35:34+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-use-sdio-dma-transfer-complete-callbacks-166678",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"78385\">@omaroski</user-mention> </p><p>The SD driver declares the transfer-complete callbacks as <strong>weak functions</strong>, so they can be <strong>overridden by the user application</strong>.<br/>To attach your own handling for SDIO + DMA read/write completion, simply implement these same callback functions in your application code:</p><pre><code class=\"language-c\">void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)<br/><br/>{<br/><br/>}<br/><br/><br/><br/>void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)<br/><br/>{<br/><br/>}</code></pre><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @omaroski,</p><p>In CubeMX, configure SDIO in 1-bit mode, pull up all SDIO GPIO pins except CLK, add two DMA channels (Rx + Tx), and enable the SDIO global interrupt in the NVIC tab .</p><p>Then, redefine these weak HAL callbacks anywhere in your application:</p><p>void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd) { }<br/>void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd) { }<br/>void HAL_SD_ErrorCallback (SD_HandleTypeDef *hsd) {  }</p><p>In the Tx callback, wait for <code>HAL_SD_GetCardState() == HAL_SD_CARD_TRANSFER</code> before reusing the buffer, as the card may still be internally programming after the DMA transfer completes.</p><p>For a complete working reference, check the <a href=\"https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Applications/FatFs/FatFs_uSD_DMA_RTOS\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">FatFs_uSD_DMA_RTOS </a>example from the official STM32CubeH7 repository it covers exactly this pattern.<br/><br/>Br</p></div>"
+    }
+  ]
+}

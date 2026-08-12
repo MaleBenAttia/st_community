@@ -1,0 +1,56 @@
+{
+  "contentType": "question",
+  "id": "166665",
+  "publicId": "166690",
+  "title": "STM32H573 TZ-EN - RCC Access When CPU NS Causing Hardfault",
+  "content": "<p>Hello,</p><p> </p><p>I have an STM32H573 project with TrustZone enabled. After the CPU goes into non-secure mode and during execution of the HAL_Init() function (more specifics below) a hard fault occurs. There is only a hard fault during the execution from a non-secure state. In the secure state (at boot) the HAL_Init() function successfully runs.</p><p> </p><p><strong>Is there a configuration for the RCC not enabled by default that I a missing, allowing it to be accessed by both Secure and Non-Secure CPU states?</strong></p><p>Within GTZC_S TZSC - Privilegeable peripherals I cannot enable it. I see no relevant settings (I have tested a few that might be loosely related but no solved) in RCC.</p><p> </p><p><strong>In the code below I have used an arrow (&lt;--) to denote exactly where the hard fault occurs (Verified with debugger)</strong></p><p>Non-Secure Entry Code (CubeMX Generated):</p><pre><code class=\"language-c\">int main(void)<br />{<br /><br />  /* USER CODE BEGIN 1 */<br /><br />  /* USER CODE END 1 */<br /><br />  /* MCU Configuration--------------------------------------------------------*/<br /><br />  /* MPU Configuration--------------------------------------------------------*/<br />  MPU_Config();<br /><br />  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */<br />  HAL_Init(); &lt;-- Hard fault within this function<br /><br />  /* USER CODE BEGIN Init */<br /><br />  /* USER CODE END Init */<br /><br />  /* GTZC initialisation */<br />  MX_GTZC_NS_Init();<br />...</code></pre><p>HAL_Init Code (CubeMX Generated):</p><pre><code class=\"language-c\">HAL_StatusTypeDef HAL_Init(void)<br />{<br />  /* Configure Flash prefetch */<br />#if (PREFETCH_ENABLE != 0U)<br />  __HAL_FLASH_PREFETCH_BUFFER_ENABLE();<br />#endif /* PREFETCH_ENABLE */<br /><br />  /* Set Interrupt Group Priority */<br />  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);<br /><br />  /* Update the SystemCoreClock global variable */<br />  SystemCoreClock = HAL_RCC_GetSysClockFreq() &gt;&gt; AHBPrescTable[(RCC-&gt;CFGR2 &amp; RCC_CFGR2_HPRE) &gt;&gt; RCC_CFGR2_HPRE_Pos]; &lt;-- Hard fault here (Specifically inside the HAL_RCC_GetSysClockFreq() function)<br /><br />  /* Select HCLK as SysTick clock source */<br />  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);<br /><br />  /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */<br />  if (HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)<br />  {<br />    return HAL_ERROR;<br />  }<br /><br />  /* Init the low level hardware */<br />  HAL_MspInit();<br /><br />  /* Return function status */<br />  return HAL_OK;<br />}</code></pre><p>HAL_RCC_GetSysClockFreq Code (CubeMX Generated):</p><pre><code class=\"language-c\">uint32_t HAL_RCC_GetSysClockFreq(void)<br />{<br />  uint32_t pllsource;<br />  uint32_t pllp;<br />  uint32_t pllm;<br />  uint32_t pllfracen;<br />  uint32_t sysclockfreq;<br />  uint32_t hsivalue;<br />  float_t fracn1;<br />  float_t pllvco;<br /><br />  if (__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_CSI) &lt;-- Hardfault occurs here<br />  {<br />    /* CSI used as system clock  source */<br />    sysclockfreq = CSI_VALUE;<br />  }<br />  else if (__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSI)<br />  {<br />    /* HSI used as system clock source */<br />    if (__HAL_RCC_GET_FLAG(RCC_FLAG_HSIDIVF) != 0U)<br />    {<br />      sysclockfreq = (uint32_t)(HSI_VALUE &gt;&gt; (__HAL_RCC_GET_HSI_DIVIDER() &gt;&gt; RCC_CR_HSIDIV_Pos));<br />    }<br />    else<br />    {<br />      sysclockfreq = (uint32_t) HSI_VALUE;<br />    }<br />  }</code></pre><p>and even more specifically this is the last instruction in that function before execution jumps to the hardfault</p><pre><code class=\"language-c\">ldr r3, [pc, #556]</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "36",
+  "categoryName": "STM32 MCUs Security",
+  "tags": [
+    "STM32CubeMX",
+    "RCC",
+    "STM32H5 series",
+    "STM32 Security",
+    "TrustZone"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 82,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "107566",
+    "username": "cjackson",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107566",
+    "username": "cjackson",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-06T06:40:58+00:00",
+  "lastActivityAt": "2026-07-09T00:26:22+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742506,
+  "publishedAt": "2026-07-06T06:40:58+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-security-36/stm32h573-tz-en-rcc-access-when-cpu-ns-causing-hardfault-166690",
+  "scraped_replies": []
+}

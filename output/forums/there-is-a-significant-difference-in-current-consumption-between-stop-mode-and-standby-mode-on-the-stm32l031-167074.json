@@ -1,0 +1,57 @@
+{
+  "contentType": "question",
+  "id": "167055",
+  "publicId": "167074",
+  "title": "There is a significant difference in current consumption between STOP mode and STANDBY mode on the STM32L031.",
+  "content": "<p>I built a low-power board using an STM32L031. The code I use to enter STOP mode and STANDBY mode is shown below.</p><p>In STANDBY mode, the board consumes about 2 µA. However, in STOP mode, it consumes about 90 µA, and I am not sure why there is such a large difference.</p><p>The circuit only consists of the STM32L031 and the power supply section. Could there be a problem with my code? Why is the current consumption so much higher in STOP mode than in STANDBY mode?</p><p> </p><pre><code class=\"language-c\">void EnterStopMode(void)<br />{<br />    __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_2);<br /><br />    HAL_NVIC_ClearPendingIRQ(EXTI2_3_IRQn);<br /><br />    HAL_SuspendTick();<br /><br />    HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);<br /><br />    SystemClock_Config();<br /><br />    HAL_ResumeTick();<br />}<br /><br /><br /><br />void EnterStandbyMode(void)<br />{<br />    __HAL_RCC_PWR_CLK_ENABLE();<br /><br />    __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);<br /><br />    HAL_PWR_EnterSTANDBYMode();<br />}</code></pre>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Power"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 27,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "87446",
+    "username": "eunoia",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "88547",
+    "username": "Gyessine",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-20T07:44:50+00:00",
+  "lastActivityAt": "2026-07-20T09:26:29+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743405,
+  "publishedAt": "2026-07-20T07:44:50+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/there-is-a-significant-difference-in-current-consumption-between-stop-mode-and-standby-mode-on-the-stm32l031-167074",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"87446\">@eunoia</user-mention> <br/>It’s mentioned in the readme of the firmware <a href=\"https://github.com/STMicroelectronics/STM32CubeL0/tree/master/Projects/NUCLEO-L031K6/Examples/PWR/PWR_STOP\" rel=\"noreferrer noopener\" target=\"_blank\">example</a> that you should disconnect PA12 pin from GND, when removed I managed to get few microamperes as consumption<br/>I think I also should mention that I got the 85ua consumption (very close to yours) when i didn’t disconnect PA12 from GND pin<br/>so are you sure that your PA12 pin is not connected to ground<br/>I mean the experiments favours this hypothesis.<br/>BR<br/>Gyessine</p></div>"
+    }
+  ]
+}

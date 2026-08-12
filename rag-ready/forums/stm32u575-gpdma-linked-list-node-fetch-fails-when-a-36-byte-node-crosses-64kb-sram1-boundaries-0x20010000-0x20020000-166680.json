@@ -1,0 +1,24 @@
+{
+    "forum": [
+        {
+            "id": "166655",
+            "publicId": "166680",
+            "title": "[STM32U575][GPDMA] Linked-list node fetch fails when a 36-byte node crosses 64KB SRAM1 boundaries (0x20010000, 0x20020000)",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u575-gpdma-linked-list-node-fetch-fails-when-a-36-byte-node-crosses-64kb-sram1-boundaries-0x20010000-0x20020000-166680",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "RAM",
+                "STM32U5 series",
+                "GPDMA"
+            ],
+            "published_at": "2026-07-05T16:52:36+00:00",
+            "views": 56,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@mikesmith100 ,\n\nThis is actually mentioned in the RM0456 for the **STM32U575, in the `GPDMA_CxLLR`** description (page 762).\n\nThe manual says the **entire linked-list data structure must stay within the 64-Kbyte space defined by `GPDMA_CxLBAR`**. So, if a node crosses that boundary, the GPDMA can fail with **DTEF**.\n\nSo, it looks like this is a **known GPDMA linked-list limitation**, not really a SRAM1 issue.\n\nBest,\n\nDHIF Khaled",
+            "content_text": "Hello:\n\nObservation (empirical, multiple boundaries confirmed):\n\nWhen placing DMA linked list nodes (36 bytes each = 9 words) sequentially in SRAM1,\n\nif a single node spans certain addresses, the GPDMA channel enters DTEF state\n\nwhen fetching that node.\n\nConfirmed problematic boundaries in SRAM1 (192KB, 0x20000000 - 0x2002FFFF):\n\n- 0x20010000 : crossing FAILS\n\n- 0x20020000 : crossing FAILS\n\nBoth boundaries appear at 64KB intervals within SRAM1, which suggests\n\nthat SRAM1 may be internally organized as multiple 64KB blocks/banks.\n\nTest cases:\n\nTest 1: Node array starting at 0x20011A54 (natural placement)\n\n- Nodes 1-1633: within bank containing 0x20010000-0x2001FFFF → OK\n\n- Node 1634: spans 0x2001FFF8 - 0x2002001C → FAILS (crosses 0x20020000)\n\nTest 2: Node array starting at (0x20010000 - 44)\n\n- The first node spans 0x2000FFD4 - 0x2000FFF8 (OK)\n\n- The second node spans 0x2000FFF8 - 0x2001001C → FAILS (crosses 0x20010000)\n\nTest 3: Node array starting at (0x20010000 - 36)\n\n- The first node ends exactly at 0x20010000\n\n- No node crosses the boundary → OK\n\nRoot cause (inferred):\n\nGPDMA appears to fetch each 36-byte linked list node as a single burst,\n\nand this burst cannot cross what appears to be a 64KB internal SRAM1\n\nboundary.\n\nWorkaround:\n\nPlace the entire linked list node array within a single 64KB region\n\nby using explicit address placement:\n\nstatic DMA\\_NodeTypeDef g\\_dmaNodes[N] @ 0x20010000;\n\nQuestions to STMicro:\n\n1. Is SRAM1 internally organized as multiple 64KB banks/blocks?\n\n2. Is this crossing limitation of GPDMA documented anywhere?\n\n3. Should HAL\\_DMAEx\\_List\\_BuildNode validate node placement?\n\n4. Are there other similar boundaries elsewhere (SRAM2, SRAM3)?\n\n5. If this behavior is not currently documented in ES0499, could it be considered for inclusion in a future revision of the errata sheet?\n\nI have checked ES0499 (latest revision available on st.com as of July 2026) and could not find any documented entry describing this behavior. I have also reviewed related community threads (e.g., #141509 'GPDMA with linked list for big buffers') which mention the 64KB limitation but do not specifically address linked-list **node fetch** crossing internal SRAM1 boundaries.",
+            "images": [],
+            "author": "mikesmith100"
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167516",
+  "publicId": "167546",
+  "title": "How to put LPBAM link list variables in SRAM4 alone",
+  "content": "<p>While using LPBAM in U5 series, it can only access to the SRAM4, but the official course of LPBAM just gives a solution of changing the address of RAM to SRAM4 in ld file. But this makes us can only use 16k SRAM4, not enough for many applications. </p><p>And the cubeMX code is not setting in SRAM4 as default, is there any setting that I missed to set those?</p><p>I have a solution in code but not a very perfect one.</p><p>Put these to .ld file before  “_sidata = LOADADDR(.data)”, this will put all variables of LPBAM in SRAM4:</p><blockquote><pre><code class=\"language-c\"> .lpbam_sram4 :<br />{<br />  . = ALIGN(4);<br />__lpbam_sram4_start = .;<br />  ./LPBAM*.o(.data .data* .bss .bss* COMMON)<br />  . = ALIGN(4);<br />  __lpbam_sram4_end = .;<br />} &gt; SRAM4</code></pre></blockquote><p>the ./LPBAM* is used to match the LPBAM application folder.</p><p> </p><p>And I found another problem, for the SRAM4 is not initiated in startup. so we need to put those before main(){}, to initiate the SRAM4 variables, or there will be errors:</p><pre><code class=\"language-c\">/* USER CODE BEGIN PV */<br /><br />extern uint8_t __lpbam_sram4_start;<br />extern uint8_t __lpbam_sram4_end;<br /><br />/* USER CODE END PV */<br /><br />/* USER CODE BEGIN 0 */<br /><br />static void sram4_preinit(void)<br />{<br />    uint32_t size = (uint32_t)&amp;__lpbam_sram4_end - (uint32_t)&amp;__lpbam_sram4_start;<br />    if(size &gt; 0U)<br />    {<br />        memset(&amp;__lpbam_sram4_start, 0, size);<br />    }<br />}<br /><br />__attribute__((section(\".preinit_array\"))) void (*preinit_ptr)(void) = sram4_preinit;<br /><br /><br />/* USER CODE END 0 */</code></pre><p>I think my solution is not the best one, it adds more steps to code planting and don’t know if there is risk. Is there any better solution? does ST provide any official solution to this problem?  </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeMX",
+    "STM32U5 series",
+    "LPBAM"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 21,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108493",
+    "username": "oldplaychild",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108493",
+    "username": "oldplaychild",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-07T10:46:19+00:00",
+  "lastActivityAt": "2026-08-07T10:46:19+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-07T10:46:19+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/how-to-put-lpbam-link-list-variables-in-sram4-alone-167546",
+  "scraped_replies": []
+}

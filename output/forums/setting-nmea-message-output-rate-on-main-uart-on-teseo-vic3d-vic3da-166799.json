@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "166779",
+  "publicId": "166799",
+  "title": "Setting NMEA Message Output Rate On Main UART on Teseo - VIC3D/VIC3DA",
+  "content": "<p>Hello, </p><p>I need help configuring the Teseo VIC3DA/VIC3D GPS module.</p><p>Here’s the background: I’m using the Teseo VIC3D/VIC3DA in one of our current products to replace the module we’re currently using, which has become obsolete (Telit SL869). We cannot modify our software, as it has already been approved by the customer. The idea, therefore, was to use the Teseo VIC3D/VIC3DA as a replacement, which would allow us to keep the LCC-24 enclosure while still being able to configure it before integration and save its configuration to NVM memory.</p><p>From a hardware perspective, we are not using the dead reckoning feature at this time.</p><p>We are using the following pins:</p><p>- PPS (pin 3)<br />- Main UART (pins 20, 21)<br />- VCC_RF, VBATT, VCC (pins 9, 22, 23) connected together to 3.3 [V]<br />- RF_IN (pin 11) with a DC-blocking capacitor because we’re using an active antenna.<br />- All GND pins (pins 10, 12, 13, 24) are connected.</p><p>Since the following pins are not used on our end, they are left unconnected:</p><p>- WakeUp (pin 1)<br />- Reserved (pin 2)<br />- WHEELTICK (pin 4)<br />- UART1-RX (pin 5)<br />- UART1-TX (pin 6)<br />- Reserved (pin 7)<br />- nReset (pin 8)<br />- AntOFF (pin 14)<br />- FWD (pin 15)<br />- Reserved (pin 16)<br />- Reserved (pin 17)<br />- I2C_SDA (pin 18)<br />-  I2C_SCL (pin 19)</p><p> </p><p>From a software perspective, I configured the module to have a baud rate of 9,600 baud, saved the configuration to NVM, and then performed a system reset. It works.</p><p> </p><p>But when it comes to NMEA messages, I'd like to configure them so that I only receive GPGGA and GPRMC messages on the main UART at a rate of 1 [Hz].</p><p> </p><p>So I used the message list 0 configuration command to enable only the GPGGA and GPRMC messages with a rate of 10, because by default it seems to me that I’m receiving GPGGA and GPRMC messages every 100 ms:</p><p>$PSTMCFGMSGL,0,10,00000042,00000000*7A</p><p>After that, I ran $PSTMSAVEPAR*58 and $PSTMSRR*49 to save the configuration to NVM.</p><p> </p><p>To verify the configuration, I ran:</p><p>$PSTMGETPAR,1201*21<br />$PSTMGETPAR,1228*2A</p><p>Which returned:</p><p>$PSTMSETPAR,1201,0x00000042*57<br />$PSTMSETPAR,1228,0x00000000*5A</p><p> </p><p>However, I’m still getting an extra GPVTG message sent, which shouldn’t be the case given my bit masks. And the transmission rate isn’t equal to 1 [Hz].</p><p> </p><p>Here are some other commands I also sent to check other parts of the configuration, in case that helps:</p><p>$PSTMGETPAR,1227*25<br />$PSTMGETPAR,1200*20</p><p>This gave me: </p><p>$PSTMSETPAR,1227,0xc40103cd*07<br />$PSTMSETPAR,1200,0x0941964c*04<br /><br />I didn’t find how to fix the rate of emission of NMEA messages to 1 [Hz], I thought it was with the rate in the messagelist command and I didn’t know how it is possible to still have GPVTG message.</p><p> </p><p>Here is what I got on my UART :<br /><br />$GPGGA,090041.200,5028.21237,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*62<br />$GPVTG,0.0,T,,M,0.0,N,0.0,K,A*0D<br />$GPRMC,090041.400,A,5028.21237,N,00427.99206,E,0.0,0.0,090726,,,A*63<br />$GPGGA,090041.400,5028.21237,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*64<br />$GPVTG,0.0,T,,M,0.0,N,0.0,K,A*0D<br />$GPRMC,090041.600,A,5028.21237,N,00427.99206,E,0.0,0.0,090726,,,A*61<br />$GPGGA,090041.600,5028.21237,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*66<br />$GPVTG,0.0,T,,M,0.0,N,0.0,K,A*0D<br />$GPRMC,090041.800,A,5028.21238,N,00427.99206,E,0.0,0.0,090726,,,A*60<br />$GPGGA,090041.800,5028.21238,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*67<br />$GPVTG,0.0,T,,M,0.0,N,0.0,K,A*0D<br />$GPRMC,090042.000,A,5028.21238,N,00427.99206,E,0.0,0.0,090726,,,A*6B<br />$GPGGA,090042.000,5028.21238,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*6C<br />$GPVTG,0.0,T,,M,0.0,N,0.0,K,A*0D<br />$GPRMC,090042.200,A,5028.21238,N,00427.99206,E,0.0,0.0,090726,,,A*69<br />$GPGGA,090042.200,5028.21238,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*6E<br />$GPVTG,0.0,T,,M,0.0,N,0.1,K,A*0C<br />$GPRMC,090042.400,A,5028.21238,N,00427.99206,E,0.0,0.0,090726,,,A*6F<br />$GPGGA,090042.400,5028.21238,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*68<br />$GPVTG,0.0,T,,M,0.0,N,0.1,K,A*0C<br />$GPRMC,090042.500,A,5028.21238,N,00427.99206,E,0.0,0.0,090726,,,A*6E<br />$GPGGA,090042.500,5028.21238,N,00427.99206,E,1,16,0.8,180.79,M,47.4,M,,*69</p><p> </p><p>Can you help me please ?</p><p>Kind regards,</p><p> </p><p>Mathéo</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "120",
+  "categoryName": "GNSS positioning",
+  "tags": [
+    "UART-USART",
+    "GPS",
+    "Positioning"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 57,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108097",
+    "username": "MatheoHennard",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108097",
+    "username": "MatheoHennard",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-09T08:36:50+00:00",
+  "lastActivityAt": "2026-07-09T13:51:08+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742598,
+  "publishedAt": "2026-07-09T08:36:50+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/gnss-positioning-120/setting-nmea-message-output-rate-on-main-uart-on-teseo-vic3d-vic3da-166799",
+  "scraped_replies": []
+}

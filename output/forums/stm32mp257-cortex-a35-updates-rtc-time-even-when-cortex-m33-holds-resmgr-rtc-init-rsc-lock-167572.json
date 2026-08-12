@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167541",
+  "publicId": "167572",
+  "title": "STM32MP257: Cortex-A35 updates RTC time even when Cortex-M33 holds RESMGR_RTC_INIT_RSC lock",
+  "content": "<p>Hello,</p><p>I'm working with an STM32MP257 and encountering unexpected behavior regarding RTC resource isolation between the Cortex-M33 (bare metal/HAL) and Cortex-A35 (OpenSTLinux).</p><p>I performed a simple test where my Cortex-M33 requests the initialization resource using the Resource Manager and holds it while reading the time registers:<br /><br />ResMgr_Status_t st = ResMgr_Request(RESMGR_RESOURCE_RIF_RTC, RESMGR_RTC_INIT_RSC);<br />if (st == RESMGR_STATUS_ACCESS_OK)<br />{<br />// Reading registers directly while holding the lock<br />uint32_t tr = RTC-&gt;TR; uint32_t dr = RTC-&gt;DR;<br />// ... intentionally omitting ResMgr_Release to test the lock ...<br />}<br /> </p><p>While the M33 is actively holding this <code>RESMGR_RTC_INIT_RSC</code> lock, I execute the following command from the Linux shell on the A35 core:</p><p><code>hwclock --set --date=\"2026-07-18 12:34:56\" --utc</code></p><p>To my surprise, <strong>the time is successfully changed</strong>.</p><p>My question is: why does this happen? Does the OpenSTLinux RTC driver (<code>rtc-stm32.c</code>) completely bypass the RIF synchronization mechanism and force its way into the <code>INIT</code> mode to overwrite the <code>TR</code> and <code>DR</code> registers? If the <code>INIT_RSC</code> lock is meant to synchronize access to the RTC initialization phase, why is Linux allowed to ignore it?</p><p>Is there a proper hardware way (e.g., via TF-A / OP-TEE Device Tree) to enforce true RIF isolation so that Linux cannot overwrite the time while the M33 holds the lock?</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "STM32MP25 lines"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 10,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108942",
+    "username": "sylwekkominek",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108942",
+    "username": "sylwekkominek",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-08T22:22:44+00:00",
+  "lastActivityAt": "2026-08-08T22:22:44+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-08T22:22:44+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257-cortex-a35-updates-rtc-time-even-when-cortex-m33-holds-resmgr-rtc-init-rsc-lock-167572",
+  "scraped_replies": []
+}

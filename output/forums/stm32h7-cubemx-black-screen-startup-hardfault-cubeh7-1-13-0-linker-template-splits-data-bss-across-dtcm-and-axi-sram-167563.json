@@ -1,0 +1,55 @@
+{
+  "contentType": "question",
+  "id": "167532",
+  "publicId": "167563",
+  "title": "[STM32H7 / CubeMX] Black screen + startup HardFault: CubeH7 1.13.0 linker template splits .data/.bss across DTCM and AXI SRAM",
+  "content": "<p>&gt; Keywords (for search): STM32H7, H743, HardFault, black screen, startup crash, linker script, .ld, TLS, .tdata, .tbss, CubeMX, X-CUBE-AI, CubeIDE, GCC, arm-none-eabi</p><p>## Symptom (check if this matches you)</p><p>- Power-on: LCD **backlight on but screen stays black**; firmware seems to never start.<br />- Debugger stops in `HardFault_Handler`; `CFSR = 0x400` (**IMPRECISERR**, imprecise bus error).<br />- Backtrace stops in `Reset_Handler` (startup), **before `main()`**.<br />- Often appears **right after regenerating with CubeMX** (e.g. after adding X-CUBE-AI).</p><p>## How I traced it</p><p>1. `CFSR = 0x400` → imprecise bus error = a write to an invalid address.<br />2. `bt` → crashes in the startup `.bss` zero-fill loop (`str r3, [r2]`).<br />3. Build map shows the four startup symbols are **not in the same memory region**:<br />```<br />_sdata = 0x24000000   (RAM / AXI SRAM)<br />_edata = 0x20000000   (DTCM - BELOW _sdata!)<br />_sbss  = 0x20000000   (DTCM)<br />_ebss  = 0x240002FC   (RAM / AXI SRAM)<br />```<br />→ the `.bss` zero-fill walks from DTCM (0x20000000) up to AXI SRAM, **crossing the<br />unmapped gap 0x20020000..0x23FFFFFF** → bus error → HardFault → black screen.</p><p>## Root cause</p><p>**The STM32CubeH7 firmware package 1.13.0 linker template** (applied by CubeMX)<br />generates `STM32H743xx_FLASH.ld` with **TLS sections (`.tdata`/`.tbss`)** and<br />defines `_edata` / `_sbss` **inside those TLS sections** instead of inside<br />`.data` / `.bss`.</p><p>- On H7: `.data/.bss` are placed in **AXI SRAM (0x24000000)**, while `.tdata/.tbss`<br />  are placed in **DTCM (0x20000000)** → the symbols span two **non-contiguous**<br />  memory regions → crash at startup.<br />- **NOT caused by X-CUBE-AI**: non-AI projects (STM32F103, STM32G431) have the same<br />  TLS sections in their `.ld`.<br />- **NOT caused by the CubeMX version**: the `.ld` template content comes from the<br />  firmware pack; CubeMX just applies it.<br />- **Single-RAM MCUs (F1/F4/G0/G4) are unaffected** (all sections land in one RAM);<br />  only multi-RAM parts like STM32H7 crash.</p><p>## Quick check (30 seconds)</p><p>```powershell<br /># 1. Does the .ld contain injected TLS sections?<br />Select-String -Path \"STM32H743xx_FLASH.ld\" -Pattern \"\\.tdata|\\.tbss\"</p><p># 2. Are the 4 symbols in the same region?<br />Select-String -Path \"build/Debug/*.map\" -Pattern \"_sdata =|_edata =|_sbss =|_ebss =\"<br />```<br />If you see `.tdata/.tbss`, or the four symbols span different regions → that's it.</p><p>## Workaround (verified working)</p><p>Remove the injected TLS sections and put `.data`/`.bss` in one region (DTCMRAM<br />here; RAM works too, as long as it is a single region):</p><p>```ld<br />.data :<br />{<br />  . = ALIGN(4);<br />  _sdata = .;<br />  *(.data) *(.data*) *(.RamFunc) *(.RamFunc*)<br />  . = ALIGN(4);<br />  _edata = .;<br />} &gt;DTCMRAM AT&gt; FLASH</p><p>.bss :<br />{<br />  _sbss = .;<br />  __bss_start__ = _sbss;<br />  *(.bss) *(.bss*) *(COMMON)<br />  . = ALIGN(4);<br />  _ebss = .;<br />  __bss_end__ = _ebss;<br />} &gt;DTCMRAM<br />```</p><p>After the fix the map shows all four symbols inside DTCM and the firmware boots.</p><p>## Attachment</p><p>`ST_bug_repro.zip` (see report folder) contains:<br />- Broken and fixed `.ld`<br />- Broken and fixed `.map`<br />- Two full buildable projects: `h7` (broken) and `h743` (fixed)<br />- Formal report `ST_BUG_REPORT.md`</p><p>## TL;DR for anyone hitting this</p><p>&gt; If your H7 was regenerated with CubeMX (CubeH7 1.13.0) and suddenly shows a black<br />&gt; screen / startup HardFault, **check your `.ld` for `.tdata/.tbss` first** — it is<br />&gt; almost certainly this linker template issue, not your code. Delete the TLS<br />&gt; sections and keep `.data/.bss` in one region.<br /> </p><p>See the attachment for details.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeMX",
+    "Bug-report",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 25,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108928",
+    "username": "233lzx",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108928",
+    "username": "233lzx",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-08T06:51:05+00:00",
+  "lastActivityAt": "2026-08-08T06:51:05+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-08T06:51:05+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/stm32h7-cubemx-black-screen-startup-hardfault-cubeh7-1-13-0-linker-template-splits-data-bss-across-dtcm-and-axi-sram-167563",
+  "scraped_replies": []
+}

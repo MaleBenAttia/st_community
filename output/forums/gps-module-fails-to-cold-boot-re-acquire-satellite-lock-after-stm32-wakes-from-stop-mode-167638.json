@@ -1,0 +1,65 @@
+{
+  "contentType": "question",
+  "id": "167608",
+  "publicId": "167638",
+  "title": "GPS module fails to cold-boot / re-acquire satellite lock after STM32 wakes from STOP mode",
+  "content": "<p>Hello,<br />We are developing a battery-operated GPS asset tracker. To conserve power, the STM32 enters STOP mode every 10 minutes and wakes up via RTC alarm to fetch the current location.<br /><strong>Problem:</strong><br />After waking up from STOP mode and toggling the power/enable pin of the GPS module, the GNSS chip takes over 60–90 seconds to re-acquire a 3D fix (Cold Start), which drains the battery significantly. Even when backup power (VBACKUP pin) is maintained to save ephemeris data, warm start is not triggering reliably.<br /><strong>Setup:</strong><br />MCU: STM32L4 Low-Power series<br />Power Management: WFI / STOP 2 mode<br />Is there a best practice for managing GPIO states and UART lines before entering STOP mode to prevent current leakage into the GPS module's RX/TX pins?<br />Best regards.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 29,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "109013",
+    "username": "muxtech",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/bbb54d47-a328-40b3-8074-17d8720db570.png"
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-08-12T07:57:53+00:00",
+  "lastActivityAt": "2026-08-12T08:57:09+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745472,
+  "publishedAt": "2026-08-12T07:57:53+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/gps-module-fails-to-cold-boot-re-acquire-satellite-lock-after-stm32-wakes-from-stop-mode-167638",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"109013\">@muxtech</user-mention> </p><p> </p><blockquote><p>Is there a best practice for managing GPIO states and UART lines before entering STOP mode to prevent current leakage into the GPS module's RX/TX pins?</p></blockquote><p> </p><p>Typical practice is to configure<strong> pins as analog</strong> to avoid unnecessary current.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"Saket_Om\"><div class=\"content-quote-content\"> <p>Typical practice is to configure<strong> pins as analog</strong> to avoid unnecessary current.</p> </div></content-quote><p>Indeed; eg, see Application Note <strong>AN4899</strong>, <em>Guidelines for GPIO hardware settings and low-power consumption on STM32 MCUs</em>:</p><p><a href=\"https://www.st.com/resource/en/application_note/an4899-guidelines-for-gpio-hardware-settings-and-lowpower-consumption-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.st.com/resource/en/application_note/an4899-guidelines-for-gpio-hardware-settings-and-lowpower-consumption-on-stm32-mcus-stmicroelectronics.pdf</a></p><p><a href=\"https://www.st.com/resource/en/application_note/an4899-stm32-microcontroller-gpio-hardware-settings-and-lowpower-consumption-stmicroelectronics.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.st.com/resource/en/application_note/an4899-stm32-microcontroller-gpio-hardware-settings-and-lowpower-consumption-stmicroelectronics.pdf</a></p><p> </p><p>​<user-mention data-id=\"109013\">@muxtech</user-mention> However, this effectively leaves the connections to the GNSS “floating” - which it may not like; eg,</p><oembed url=\"https://community.st.com/others-stm32-mcus-related-142/stm32f030-current-rises-after-putting-ti-cc1125-to-sleep-and-entering-standby-165620?postid=746556#post746556\"></oembed><p> </p><p>So, again, this becomes a question about the GNSS device.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This sounds like more of a question about the GNSS module than the STM32.</p><p>You haven’t said what GNSS module you’re using.</p><p> </p><blockquote><p>Even when backup power (VBACKUP pin) is maintained to save ephemeris data, warm start is not triggering reliably.</p></blockquote><p>You need to give more details:</p><p><oembed url=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\"></oembed></p><p> </p><p><strong><u>PS</u>:</strong></p><p>You’ve tagged this as STM32<u><strong>F</strong></u>4, but the post text says STM32<u><strong>L</strong></u>4 - so which is it?</p><p>Please give the full part number.</p></div>"
+    }
+  ]
+}

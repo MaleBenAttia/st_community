@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167163",
+  "publicId": "167189",
+  "title": "Azure RTOS USBX CDC ACM: COM port enumerates successfully, but class is never activated (_ux_device_class_cdc_acm_activate() not called)",
+  "content": "<p>Hi everyone,</p><p>I'm working on <strong>Azure RTOS USBX CDC ACM</strong> on an <strong>STM32F429ZIT6</strong>. The USB device is detected successfully by Windows, and a COM port is created, but I'm unable to transmit or receive any data.</p><h3>Environment</h3><ul><li>MCU: STM32F429ZIT6</li>\t<li>STM32CubeIDE: 1.19</li>\t<li>STM32CubeF4: 1.28.3</li>\t<li>Azure RTOS USBX (X-CUBE-AZRTOS-F4)</li></ul><h3>Problem</h3><p>The USB device enumerates successfully:</p><ul><li>Device Manager detects the USB CDC device.</li>\t<li>A COM port is created.</li>\t<li> No data transfer occurs.</li>\t<li> <code>_ux_device_class_cdc_acm_activate()</code> is never called.</li>\t<li>The CDC ACM class never becomes active.</li></ul><p>While debugging, I found that execution reaches:</p><pre> </pre><pre><code>UINT _ux_device_stack_interface_start(UX_SLAVE_INTERFACE *interface)</code></pre><p>where the following assignment is made:</p><pre> </pre><pre><code>class_command.ux_slave_class_command_class =<br />    interface-&gt;ux_slave_interface_descriptor.bInterfaceClass;</code></pre><p>Later, USBX calls:</p><pre> </pre><pre><code>_ux_device_class_cdc_acm_entry(&amp;class_command);</code></pre><p>During the <code>UX_SLAVE_CLASS_COMMAND_QUERY</code> request, the following check is performed:</p><pre> </pre><pre><code>if (command-&gt;ux_slave_class_command_class == UX_SLAVE_CLASS_CDC_ACM_CLASS)<br />    return UX_SUCCESS;<br />else<br />    return UX_NO_CLASS_MATCH;</code></pre><p>However, in my USBX version:</p><pre> </pre><pre><code>#define UX_SLAVE_CLASS_CDC_ACM_CLASS    10</code></pre><p>which corresponds to <strong>0x0A (CDC Data Interface)</strong>.</p><p>According to the USB descriptor, the interface passed into <code>_ux_device_stack_interface_start()</code> has:</p><pre> </pre><pre><code>bInterfaceNumber = 0<br />bInterfaceClass  = 0x02</code></pre><p>Therefore, the comparison becomes:</p><pre> </pre><pre><code>0x02 == 0x0A</code></pre><p>which fails, returning <code>UX_NO_CLASS_MATCH</code>.</p><p>As a result:</p><ul><li><code>_ux_device_class_cdc_acm_activate()</code> is never called.</li>\t<li>The interface is never associated with the CDC ACM class.</li>\t<li>Read/write APIs never work.</li></ul>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "AzureRTOS",
+    "USB",
+    "USBX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 18,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108503",
+    "username": "ssp",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108503",
+    "username": "ssp",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-23T14:09:05+00:00",
+  "lastActivityAt": "2026-07-23T14:09:05+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-23T14:09:05+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/azure-rtos-usbx-cdc-acm-com-port-enumerates-successfully-but-class-is-never-activated-ux-device-class-cdc-acm-activate-not-called-167189",
+  "scraped_replies": []
+}

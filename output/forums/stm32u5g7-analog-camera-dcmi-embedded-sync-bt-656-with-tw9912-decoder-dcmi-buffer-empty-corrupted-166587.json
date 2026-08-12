@@ -1,0 +1,65 @@
+{
+  "contentType": "question",
+  "id": "166565",
+  "publicId": "166587",
+  "title": "STM32U5G7, analog camera, DCMI Embedded Sync (BT.656) with TW9912 decoder, DCMI Buffer Empty/Corrupted",
+  "content": "<p>Hi everyone,</p><p>I am working on an STM32U5G7VJTx project where I am trying to capture analog composite video using a TW9912 video decoder and display it on an RGB TFT using LTDC.</p><ul><li> Hardware</li></ul><p>* MCU: STM32U5G7VJTx<br />* Video Decoder: TW9912<br />* Input: Composite Video (NTSC)<br />* Display: RGB TFT driven by LTDC<br />* Interface between TW9912 and STM32: 8-bit BT.656 with Embedded Sync</p><ul><li> Software Flow</li></ul><p>My current flow is:</p><p>TW9912 (configured through I2C)<br />→ DCMI (Embedded Sync / BT.656)<br />→ GPDMA<br />→ SRAM buffer (YCbCr422)<br />→ CPU converts YCbCr422 to RGB565<br />→ LTDC framebuffer<br />→ TFT display</p><ul><li> Current Problem</li></ul><p>The TFT powers up correctly.</p><p>Most of the time the display is completely green.</p><p>Sometimes I briefly see something that resembles the camera image but in black and white sometime or in the random colour, but it is heavily distorted and not recognizable.</p><ul><li> What I Have Already Checked</li></ul><p>* TW9912 is configured for BT.656 output with embedded synchronization.<br />* DCMI is configured in Embedded Sync mode.<br />* The Embedded Sync codes were updated from all zeros to the proper BT.656 values.<br />* DMA starts successfully.<br />* Cache invalidate is performed before reading the DCMI capture buffer , and after invalidate clearing the cache too.<br />* LTDC framebuffer address is updated after RGB conversion.<br />* YCbCr422 is converted to RGB565 before display.</p><ul><li> Things I Am Not Sure About</li></ul><p>1. The DCMI Error IRQ continues to occur.<br />2. The capture buffer (`dcmi_buffer_A`) often appears to contain only zeros when I inspect it in the debugger , i think its the dcmi capture issue but not sure  .<br />3. Sometimes I briefly get a distorted image instead of a green screen , or sometime random distored black and white image.<br />4. I am unsure whether this is a DCMI synchronization issue, a TW9912 output issue, a DMA issue, or an LTDC configuration issue.</p><ul><li> Questions</li></ul><p>1. What are the most common reasons for DCMI to not detect the right value beofre filling the buffer ?<br />2. If the capture buffer contains only zeros, what are the possible causes?<br />3. Could this indicate that DCMI never detects the BT.656 SAV/EAV codes?<br />4. Is there a recommended method to verify that the TW9912 is actually outputting valid BT.656 data before debugging the DCMI configuration?<br />5. Are there any STM32U5 DCMI examples using BT.656 embedded synchronization?</p><p>Any suggestions on how to systematically debug this pipeline would be greatly appreciated.</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "DMA2D",
+    "DCMI",
+    "LCD-LTDC",
+    "DMA",
+    "STM32U5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 50,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "107884",
+    "username": "spartan",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107884",
+    "username": "spartan",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-01T12:18:04+00:00",
+  "lastActivityAt": "2026-07-16T04:52:20+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743178,
+  "publishedAt": "2026-07-01T12:18:04+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32u5g7-analog-camera-dcmi-embedded-sync-bt-656-with-tw9912-decoder-dcmi-buffer-empty-corrupted-166587",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107884\">@spartan</user-mention> and welcome to the community;</p><p> </p><p>According to <a href=\"https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">RM0456</a> section “Embedded data synchronization mode”, the embedded synchronization codes are supported only in 8-bit parallel data width capture (in the DCMI_CR register, the EDM[1:0] bits must be cleared). For other data widths, this mode generates unpredictable results and must not be used.</p><p> </p><p>Could you please check a data width?</p><p>The DCMI supports the ITU 656 mode. I recommend you to look at the example shared in <a href=\"https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">RM0456</a>.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe3f7fcf-0313-471f-8fe1-c98247c00a06.png\"/></figure><p>Maybe <a href=\"https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/STM32U575I-EV/Examples/DCMI/DCMI_ContinousCap_EmbeddedSynchMode\" rel=\"noopener noreferrer\" target=\"_blank\">DCMI_ContinousCap_EmbeddedSynchMode</a> can help you.</p><p>Thank you.</p><p>Kaouthar</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>thank you for you help</p><p> </p></div>"
+    }
+  ]
+}

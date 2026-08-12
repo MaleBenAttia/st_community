@@ -1,0 +1,70 @@
+{
+  "contentType": "question",
+  "id": "167267",
+  "publicId": "167292",
+  "title": "STM32U375KGU6 D+ pull up",
+  "content": "<p>On STM32U375KGU6 pull up on D+ does not work when calling function HAL_PCD_Start, USB hardware works because if I start chip with BOOT0 pin to “VDD” it boots in DFU bootloader. What did I miss?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "USB",
+    "STM32U3 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 63,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "48396",
+    "username": "MZina.1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/ac215342-9c36-7f4b-52de-aa21c26fdad4.png"
+  },
+  "lastContributor": {
+    "id": "48396",
+    "username": "MZina.1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/ac215342-9c36-7f4b-52de-aa21c26fdad4.png"
+  },
+  "createdAt": "2026-07-28T13:26:34+00:00",
+  "lastActivityAt": "2026-07-29T08:28:52+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744229,
+  "publishedAt": "2026-07-28T13:26:34+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/stm32u375kgu6-d-pull-up-167292",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><div class=\"flex max-w-full flex-col gap-4 grow\"><div class=\"min-h-8 text-message relative flex w-full flex-col items-end gap-2 text-start break-words whitespace-normal outline-none keyboard-focused:focus-ring [.text-message+&amp;]:mt-1\"><div class=\"flex w-full flex-col gap-1 empty:hidden\"><div class=\"markdown prose dark:prose-invert wrap-break-word w-full light markdown-new-styling\"><p>The DFU bootloader working confirms the USB pins and hardware path, but it does not prove your application has enabled the USB power domain.</p><p>On STM32U3, the USB transceiver is isolated after reset. Ensure VDDUSB is present and enable it before initializing USB:</p><div class=\"relative w-full mt-4 mb-1\"><div><div class=\"contents\"><div class=\"border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl\"><div class=\"relative h-full w-full border-radius-3xl bg-(--code-block-surface) corner-superellipse/1.1 overflow-clip rounded-3xl [--code-block-surface:var(--bg-elevated-secondary)] dark:[--code-block-surface:var(--composer-surface-primary)] lxnfua_clipPathFallback\"><div class=\"relative\"><div class=\"h-full min-h-0 min-w-0\"><div class=\"h-full min-h-0 min-w-0\"><div><div class=\"relative\"><div><div class=\"relative z-0 flex max-w-full\"><div class=\"q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr\"><div class=\"cm-scroller\"><pre><code>HAL_PWREx_EnableVddUSB();</code></pre></div></div></div></div></div></div></div></div></div></div></div></div></div></div><p>Also verify:</p><ul><li>The 48 MHz USB kernel clock is enabled and selected.</li> <li>D−/D+ are configured with the correct alternate function.</li> <li>USB device middleware/class initialization runs before <code>HAL_PCD_Start()</code>.</li> <li>VBUS sensing matches your hardware configuration.</li></ul><p>I would compare the power and clock initialization against a minimal CubeMX-generated USB device project. ST specifically notes that the <code>USV</code> bit must be set to remove USB-domain isolation once VDDUSB is valid: <a href=\"https://www.st.com/resource/en/application_note/an6011-getting-started-with-stm32u3-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">STM32U3 hardware-development note</a>.</p><p>This <a href=\"https://www.pcbway.com/blog/PCB_Design_Tutorial/Tutorial__How_to_Design_Your_Own_Custom_STM32_Microcontroller_Board.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">custom STM32 board-design tutorial</a> is also useful for reviewing the USB connector, MCU power and supporting circuitry. However, the STM32U375-specific requirement is enabling the VDDUSB domain and clearing its isolation through the <code>USV</code> bit.</p></div></div></div></div></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Seems like problem is with CubeMX, if you select option “Generate peripheral initialization as pair of ‘c./h.’ files” it does not generate call to HAL_PWREx_EnableVddUSB, but when this option is not enabled call is generated, should we report bug in CodeMX?</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"48396\">@MZina.1</user-mention> </p><p>First, Thank you for the question!<br/>Second, there is no need to add pull up resistor as it is already embedded as explained in the reference manual.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/44013fd3-9928-4f7a-b1a7-bcc5921fd91d.png\"/></figure><p>Second, did you follow the example provided <a href=\"https://github.com/STMicroelectronics/STM32CubeU3/blob/fa20411953c5a7c9af4eceac30f18cbb09c1a551/Projects/STM32U366E-DK/Applications/USBX/Ux_Device_HID/Core/Src/stm32u3xx_hal_msp.c#L116\" rel=\"noreferrer noopener\" target=\"_blank\">here</a>, in the initialization you should see the generated code as in the example. Otherwise, attach your ioc to reproduce and report the issue.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>As I said, problem is with CubeMX v6.18.0 generated code, if you enable “Generate peripheral initialization as pair of ‘c./h.’ files” HAL_PWREx_EnableVddUSB is not called and USB peripheral is off.</p></div>"
+    }
+  ]
+}

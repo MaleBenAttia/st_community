@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167262",
+  "publicId": "167287",
+  "title": "MP2 gpioset/gpioget are either not or badly working",
+  "content": "<p>Hello,</p><p>I’m using an Karo SOM module (MP257) on a custom board with SFP module.</p><p>The SFP module is powered with the main 3.3V regulator. It has a TX_DISABLE input (0=ON, 1=OFF). This input :</p><ul><li>Is TTL</li>\t<li>Has an internal pull-up R (around 10k)</li>\t<li>Has an external pull-down R (10k)</li>\t<li>In connected to PE2</li></ul><p>This makes a voltage divider : without driving the TX_DISABLE line, the voltage is something like 3.3V / 2 (1.8V to be precise)</p><p>Some simple tests to confirm that :</p><ul><li>SFP module unplugged =&gt; voltage is driven only by the pull down R =&gt; 0V</li>\t<li>A source meter on the TX_DISABLE confirms the presence and value of the internal RPU.</li></ul><p> </p><p>Now let’s play with the MP2. Is this processor able to blink a led ? Don’t laugh, nothing could be further from the truth.</p><p> </p><p>After linux boot :</p><p> </p><p>gpioinfo shows PE2 is input. It should logically be driven by the driver, but for an obscure reason, this is not the case. At least we can do things manually…</p><p> </p><p>Set it to 0 ?</p><p>gpioset -b disabled -d push-pull PE2=0</p><p>=&gt; Voltage is still 1.8V</p><p> </p><p>Ok, bad. Try to 1 ?</p><p>gpioset -b disabled -d push-pull PE2=1</p><p>=&gt; Voltage is still 1.8V</p><p> </p><p>ok, very bad. Add a bias R to the R divider ?</p><p>gpioset -b pull-down -d push-pull PE2=0<br />=&gt; Voltage is still 1.8V</p><p> </p><p>I’m checking the voltage with gpioset running.</p><p> </p><p>Remove the external RPD : line is 3.3V, ok, but gpioget returns “inactive”. Same for another line (PE5), on 2 different boards. It's pretty unlikely that both PCBs have the same soldering issue. Probing directly on the SOM module pins show the same voltage : if the issue is hardware, it’s on the SOM module itself (at BGA level).</p><p> </p><p>Finally, replacing the external 10k RPD by a 100ohm RPD pulls the line at 0V =&gt; SFP module is on =&gt; fiber link is set up. This is functionally working, but it would be nice to be able to drive a gpio…</p><p> </p><p>At this point I can’t be 100% sure the problem is hw or sw.</p><p> </p><p>I have 3 other simple outputs GPIO. Working fine, but showing the gpio driver is poorly implemented or, worse, poorly designed.</p><p>For example :</p><p>gpioset PD6=0 </p><ul><li>Set PD6 = 0, working fine. This function is blocking. </li>\t<li>After exiting this function, PD6 is still 0.</li>\t<li>gpioinfo : PD6 = active, ok</li>\t<li>gpioget PD6 = active. But the port is now 0. <strong>Reading the port make it going back to 0</strong>.</li>\t<li>gpioget PD6 = active =&gt; <strong>still active although the last command clearly reset it !</strong></li></ul><p>Reading an output port sometime make sense. The driver forbids that. This is basically what we can do 30 years ago using a PIC16*84 with a single step instruction… But impossible with a MP2 and a full featured OS.</p><p>Then, please, remove the --active-low options. Digital 0 is 0, 1 is 1. Hardware and software engineer can deel with inverted logic, adding a level of abstraction just make the things more ambiguous.</p><p><span style=\"color:#999999;\">Finally, WTF (sorry !) the gpioset is blocking, since the GPIO keeps it direction and value once exited ?</span></p><p>ok, I’ve just read this on gpioset --help :</p><p><em>“The line output state is maintained until the process exits, but after that is not guaranteed.”</em></p><p>=&gt; Not guaranteed ? Something is writing random values at random time on random free ports ? And gpioget still reads the original value ?</p><p> </p><p>So, let’s redo it cleanly with a background task :</p><p> </p><p>gpioset -d open-drain PD6=1 &amp;</p><p>gpioget PD6</p><p>gpioget: unable to request lines: Device or resource busy</p><p> </p><p>A good gpio driver shouldn’t behave that way.</p><p> </p><p>Any help appreciated :)</p><p>Any update of the gpio driver appreciated, too.</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "STM32MP25 lines"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 53,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "17945",
+    "username": "tarzan2",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/fc6e5d3f-4d24-85e2-b4a4-bf42495d8f93.png"
+  },
+  "lastContributor": {
+    "id": "642",
+    "username": "PatrickF",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/df93c40d-8d74-9c5d-0a84-067cc78f498d.png"
+  },
+  "createdAt": "2026-07-28T12:15:41+00:00",
+  "lastActivityAt": "2026-07-29T12:29:59+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744265,
+  "publishedAt": "2026-07-28T12:15:41+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/mp2-gpioset-gpioget-are-either-not-or-badly-working-167287",
+  "scraped_replies": []
+}

@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166605",
+  "publicId": "166629",
+  "title": "I2C no clock",
+  "content": "<p>NUCLEOWB55RG</p><p> </p><p>I set I2C3 in MX. I have 2 x temp sensors &amp; 2 x accelerometers in the bus.</p><pre><code class=\"language-c\">/* Snippets of code to show how I2C3 is set up &amp; used */<br /><br />#include \"main.h\"<br /><br />#include \"adt7410.h\"<br />#include \"adxl345.h\"<br /><br />I2C_HandleTypeDef hi2c3;<br /><br />ADT7410 temp_0;<br />ADT7410 temp_1;<br />ADXL345 acc_0;<br />ADXL345 acc_1;<br /><br />static void MX_GPIO_Init(void);<br />static void MX_I2C3_Init(void);<br /><br />int main(void)<br />{<br />  HAL_Init();<br />  MX_GPIO_Init();<br />  MX_I2C3_Init();<br /><br />  /* ADT7410 set up */<br />  /* temp_0 at 0x48<br />   * temp_1 at 0x49 */<br />  temp_0.adti2c = &amp;hi2c3; \t\t\t\t\t\t  // I2C Handler<br />  ADT7410_Init(&amp;temp_0, 0x48); \t\t\t\t\t  // I2C address depends of A0 and A1 pins<br />  ADT7410_Reset(&amp;temp_0); \t\t\t\t\t\t  // Optional<br />  ADT7410_SetResolution(&amp;temp_0, ADT7410_16BITS); // Put the device in 16 bits resolution<br />  temp_1.adti2c = &amp;hi2c3; \t\t\t\t\t\t  // I2C Handler<br />  ADT7410_Init(&amp;temp_1, 0x49); \t\t\t\t\t  // I2C address depends of A0 and A1 pins<br />  ADT7410_Reset(&amp;temp_1); \t\t\t\t\t\t  // Optional<br />  ADT7410_SetResolution(&amp;temp_1, ADT7410_16BITS); // Put the device in 16 bits resolution<br /><br />  /* ADXL345 set up<br />   * acc_0 at 0x1D, write 0x3A, read 0x3B<br />   * acc_1 at 0x53, write 0xA6, read 0xA7<br />   */<br />  acc_0.adxl345i2c = &amp;hi2c3;\t\t\t\t\t// I2C handler - might have to change this<br />  acc_1.adxl345i2c = &amp;hi2c3;\t\t\t\t\t// ~CS needs to be tied to Vdd for I2C comms<br />  ADXL345_Init(&amp;acc_0, 0x1D, 0x3A, 0x3B);\t\t// ALT_ADDRESS tied to Vdd<br />  ADXL345_Init(&amp;acc_1, 0x53, 0xA6, 0xA7);\t\t// ALT_ADDRESS tied to GND<br /><br />/* Init code for STM32_WPAN */<br />  MX_APPE_Init();<br /><br />  while (1)<br />  {<br />    MX_APPE_Process();<br /><br />  }<br /><br />}<br /><br />static void MX_I2C3_Init(void)<br />{<br /><br />  /* USER CODE BEGIN I2C3_Init 0 */<br /><br />  /* USER CODE END I2C3_Init 0 */<br /><br />  /* USER CODE BEGIN I2C3_Init 1 */<br /><br />  /* USER CODE END I2C3_Init 1 */<br />  hi2c3.Instance = I2C3;<br />  hi2c3.Init.Timing = 0x0060112F;<br />  hi2c3.Init.OwnAddress1 = 0;<br />  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;<br />  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;<br />  hi2c3.Init.OwnAddress2 = 0;<br />  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;<br />  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;<br />  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;<br />  if (HAL_I2C_Init(&amp;hi2c3) != HAL_OK)<br />  {<br />    Error_Handler();<br />  }<br /><br />  /** Configure Analogue filter<br />  */<br />  if (HAL_I2CEx_ConfigAnalogFilter(&amp;hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)<br />  {<br />    Error_Handler();<br />  }<br /><br />  /** Configure Digital filter<br />  */<br />  if (HAL_I2CEx_ConfigDigitalFilter(&amp;hi2c3, 0) != HAL_OK)<br />  {<br />    Error_Handler();<br />  }<br />  /* USER CODE BEGIN I2C3_Init 2 */<br /><br />  /* USER CODE END I2C3_Init 2 */<br /><br />}<br /><br /></code></pre><p>The BLE part is transmitting the sensor values back every second but they are all 0. When I check I2C3_SCL with a scope its just flat, same with I2C3_SDA, nothing on the line at all.<br /><br />I tried with I2C1 and I cant even connect to the board via BLE. I have swapped out 3 boards now, same result. Unhooked all the sensors, still nothing on SCL &amp; SDA.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "I2C",
+    "STM32WB series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 145,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "84519",
+    "username": "NicRoberts",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-07-02T12:36:30+00:00",
+  "lastActivityAt": "2026-07-08T14:28:19+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742478,
+  "publishedAt": "2026-07-02T12:36:30+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/i2c-no-clock-166629",
+  "scraped_replies": []
+}

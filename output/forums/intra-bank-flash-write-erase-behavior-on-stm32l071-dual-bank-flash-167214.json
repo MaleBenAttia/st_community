@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "167188",
+  "publicId": "167214",
+  "title": "intra-bank Flash write/erase behavior on STM32L071 (dual-bank Flash)",
+  "content": "<p>Dear ST Support Team,</p><p>I am developing a custom bootloader for the STM32L071CBY6TR (128 Kbyte, dual-bank Flash) and I have a question regarding the exact behavior of the Flash controller that I could not fully clarify from RM0367.</p><p>Context:<br />- My bootloader occupies the first 32 Kbytes (0x08000000 - 0x08007FFF), entirely within Bank 1.<br />- My application occupies 96 Kbytes starting at 0x08008000, which means it spans across the Bank1/Bank2 boundary at 0x08010000: the last 32 Kbytes of Bank 1, and roughly 64 Kbytes of Bank 2.</p><p>RM0367 states that read operations from one bank can be performed while write or erase operations are performed on the other bank (cross-bank read-while-write). However, I could not find documentation describing the behavior when a write/erase operation is performed on one bank while code execution (instruction fetch) continues from a *different page within the same bank* — which is exactly my bootloader's situation when it needs to erase/program the tail portion of Bank 1 that holds part of the application, while the bootloader code itself keeps running from the beginning of that same bank.</p><p>My specific questions are:</p><p>1. When erasing/programming a page in Bank 1, does the CPU stall (wait state) if it tries to fetch an instruction from a different, non-erased page within the same Bank 1 — similar to the documented single-bank stall behavior — or is this operation simply not permitted/undefined?</p><p>2. Is there an application note (e.g., an IAP/bootloader-specific AN) that documents this intra-bank scenario explicitly for the STM32L071/L072/L073 devices?</p><p>Thank you very much for your clarification.</p><p>Best regards,<br />Thomas Kopp</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32L0 series",
+    "Bootloader",
+    "Flash"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 82,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "37451",
+    "username": "TKopp.67",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f3538ca-9226-fc18-a3fe-9fcbe799fa85.png"
+  },
+  "lastContributor": {
+    "id": "108755",
+    "username": "Nathri",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-24T10:38:32+00:00",
+  "lastActivityAt": "2026-07-31T23:23:56+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744550,
+  "publishedAt": "2026-07-24T10:38:32+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/intra-bank-flash-write-erase-behavior-on-stm32l071-dual-bank-flash-167214",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"37451\">@TKopp.67</user-mention> ,</p><p> </p><blockquote><p>1. When erasing/programming a page in Bank 1, does the CPU stall (wait state) if it tries to fetch an instruction from a different, non-erased page within the same Bank 1 — similar to the documented single-bank stall behavior — or is this operation simply not permitted/undefined?</p></blockquote><p>According to your question and the reference manual, the answer is described in Section 3.3.3, \"Reading the NVM.\"</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f9ecd5d6-4777-4882-a0ab-5fac8dd4ff8f.png\"/></figure><p>From this, we understand that the only possible use case with two banks is to perform read operations on one bank while write or erase operations are carried out on the other bank. In your case, it is not possible to do both operations on the same bank at the same time.<br/>Therefore, as a solution, we recommend placing your application code in the second bank. Also, why did you choose this application code partitioning between the two banks?</p><p>Best regards,</p><p>Hamdi</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Try moving your erase/program routine to RAM. </p><p>Running from RAM avoids the two-Flash-operations issue entirely.</p><p>**********</p><p>For IAR/Keil use __ramfunc,</p><p>for GCC use __attribute__((section(\".ramfunc\"))).</p><p>**********</p><p>Saw this workaround on STM32C0 too. Just an option if you need it.</p></div>"
+    }
+  ]
+}

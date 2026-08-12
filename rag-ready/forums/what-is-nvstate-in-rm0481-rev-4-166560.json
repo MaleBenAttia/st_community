@@ -1,0 +1,23 @@
+{
+    "forum": [
+        {
+            "id": "166539",
+            "publicId": "166560",
+            "title": "What is NVSTATE in RM0481 rev 4?",
+            "url": "https://community.st.com/stm32-mcus-security-36/what-is-nvstate-in-rm0481-rev-4-166560",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "Documentation",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-06-30T19:44:32+00:00",
+            "views": 118,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "",
+            "content_text": "In RM0481 rev 4 April 2025 I find the following text:\n\n> 7.6.8 Write protection\n\n>\n\n> A write-protected group of sectors cannot be erased nor programmed. As a result, a bank\n\n> erase cannot be performed if one group of sectors is write-protected, unless a NVSTATE\n\n> transition to OPEN is triggered (erasing the whole user flash memory).\n\n**It is not clear what NVSTATE is in this context. Is this a left-over from documentation of a different MCU?**\n\nI don’t think it is PRODUCT\\_STATE. Because to my understanding you can have a PRODUCT\\_STATE > OPEN and not enable TrustZone and then write to FLASH\\_WRP1R\\_PRG to turn off write protection - you should be able to do a bank erase on bank 1. You can set initial values with an OB but I can’t see any documentation that this also makes changing FLASH\\_WRP1R\\_PRG illegal and the relevant OBs are not protected by PRODUCT\\_STATE the same way as e.g. SECWM and HDP.\n\nSame reasoning for flash bank 2.\n\nAnd if you enable TrustZone, it is stated that FLASH\\_WRP[1, 2]R\\_PRG is non-secure. So as long as you don’t set part of the flash to secure watermarked, bank erase should work.\n\nAlso note that a AFAIK a regression of PRODUCT\\_STATE do not restore the WRP OBs to their default state.\n\nThe only other place NVSTATE is mentioned in RM0481 is in *Table 507 TAMP interconnection*:\n\n> tamp\\_itamp6     JTAG/SWD access when NVSTATE ? OPEN\n\n**Here, “NVSATE” should be “PRODUCT\\_STATE”?**\n\nBest regards, Jesper",
+            "images": [],
+            "author": "JesperEC"
+        }
+    ]
+}

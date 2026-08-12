@@ -1,0 +1,73 @@
+{
+  "contentType": "question",
+  "id": "166855",
+  "publicId": "166872",
+  "title": "DMA Handle in IP Structure\" field for SAI4 DMA request stuck/grayed-out (unable to select), causes red cross / build errors on STM32MP257F-DK",
+  "content": "<p>I'm configuring <strong>SAI4 (Block A)</strong> to receive I2S audio from an external microphone (Knowles SPH0645), using <strong>HPDMA3</strong> for continuous circular DMA transfer, targeting the <strong>Cortex-M33 (Cube)</strong> context.</p><p>Configuration so far:</p><ul><li>SAI4 → SAI A → Mode: Master, I2S/PCM Protocol, Audio Mode: Master Receive, Data Size: 24 bits, Mono</li>\t<li>HPDMA3 Channel (currently CH2) → Request: <strong>SAI4_A</strong></li>\t<li>Circular Mode: Enable</li>\t<li>Direction: Peripheral To Memory</li>\t<li>Priority: High</li></ul><p><strong>Problem:</strong><br />The field <strong>\"DMA Handle in IP Structure\"</strong> under Request Configuration shows a red ⊗ error icon, with the value stuck as a placeholder. When I try to click the dropdown to select a proper handle (e.g. <code>DMA_Handle1</code>, <code>DMA_Handle2</code>), the available options appear <strong>grayed out / not selectable</strong> — I cannot click or choose any of them. This leaves the field marked invalid (red cross), which propagates up to the HPDMA3 channel, CH tab, and Features tab all showing red crosses.</p><p>I confirmed:</p><ul><li>SAI4's runtime context is properly checked (currently testing M33NS)</li>\t<li>The Request field correctly shows SAI4_A (not SAI4_B)</li>\t<li>Other channels' Request Configuration (e.g., I2C2_TX on a different channel) auto-populate their DMA Handle correctly (e.g. <code>hdmatx</code>), but SAI4's does not offer any selectable handle.</li></ul><p><strong>What I've already tried:</strong></p><ul><li>Single-click and double-click on the field</li>\t<li>Clicking a different field first, then returning to this one</li>\t<li>Resetting HPDMA3 configuration and reconfiguring from scratch</li>\t<li>Switching between different free channels (Channel 1, Channel 2)</li>\t<li>Confirmed RIF/CID ownership for SAI4 and HPDMA3 both point to the same context</li></ul><p>None of these resolved the grayed-out dropdown.</p><p><strong>Question:</strong><br />Is this a known CubeMX bug for SAI + HPDMA3 configuration on STM32MP2? Is there a specific order of steps required (e.g., must NVIC/GIC settings be configured first, or must the SAI DMA request only be added via a specific \"Add\" button rather than editing an existing channel) to properly populate the DMA Handle dropdown? Any guidance appreciated — happy to attach my .ioc file if useful.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b938928c-a637-4837-a2d1-45df8f6d574a.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7a0bc6f1-447e-46df-ac36-1cb96d891b10.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeMX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 112,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "105698",
+    "username": "rutiklunagariya6",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "105698",
+    "username": "rutiklunagariya6",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-12T13:57:23+00:00",
+  "lastActivityAt": "2026-07-27T13:08:43+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744050,
+  "publishedAt": "2026-07-12T13:57:23+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/dma-handle-in-ip-structure-field-for-sai4-dma-request-stuck-grayed-out-unable-to-select-causes-red-cross-build-errors-on-stm32mp257f-dk-166872",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105698\">@rutiklunagariya6</user-mention> </p><p>Thanks for posting in STCommunity,</p><p>Could you please add an IOC file that illustrates the issue in order to investigate the issue?</p><p>KR, Souhaib</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Souhaib,</p><p>Thank you for the quick response. Please find attached the <code>.ioc</code> file that reproduces the issue.</p><p>Let me know if you need any additional information.</p><p>Thanks,<br/>Rutik</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Souhaib,</p><p>Just following up — I attached the <code>.ioc</code> file as requested a few days ago. Have you had a chance to look into it yet?</p><p>To summarize the issue again briefly: the <strong>\"DMA Handle in IP Structure\"</strong> field for the SAI4_A DMA request (under HPDMA3) remains invalid/red, and its dropdown options are grayed out regardless of which channel I assign it to. As a result, generating code produces a project where the DMA handle for SAI4 is never actually declared or linked (<code>__HAL_LINKDMA</code> is missing, and no <code>DMA_HandleTypeDef</code> is generated for this channel), causing build errors in <code>stm32mp2xx_it.c</code>.</p><p>so any update or workaround would be very helpful. </p><p>Thank you for your time.</p><p>Best regards,<br/>Rutik</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105698\">@rutiklunagariya6</user-mention> </p><p>Your detailed explanations provided are much appreciated.</p><p>This issue has been escalated to dedicated team for further investigation<em>: Internal ticket number: CDM0064338 </em><em>(This is an internal tracking number and is not accessible or usable by customers.)</em></p><p>I'll let you know if there's any updates available.</p><p>BR, Souhaib</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Souhaib,</p><p>Thank you for the update and for escalating this (ticket CDM0064338).</p><p>I wanted to flag that this issue is currently <strong>blocking my university thesis work</strong> — the SAI4 + HPDMA3 audio recording setup is a core part of my project, and I haven't been able to find a reliable workaround through CubeMX configuration alone.</p><p>Is there any estimated timeframe for when this might be resolved, even roughly? If a fix is still some time away, could you advise on a recommended workaround in the meantime — for example, manually configuring the DMA handle/linkage in code rather than through the CubeMX UI, or an example project from ST that demonstrates a working SAI+HPDMA3 setup on STM32MP2 that I could reference?</p><p>Any guidance would really help me keep moving forward while the underlying CubeMX issue gets fixed.</p><p>Thank you again for your help and for escalating this.</p><p>Best regards,<br/>Rutik</p><p> </p></div>"
+    }
+  ]
+}

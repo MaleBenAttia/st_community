@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167186",
+  "publicId": "167212",
+  "title": "STM32WL55 Power issue",
+  "content": "<p>I am working on STM32WL55 dual core in which the current consumption is as not as expected as according to the datasheet. It is hardcoded for high power only. and the current consumption is coming for +17dBm and +14dBm as expected which is 58mA and 45mA approax but when switching to the +20dBm and +22dBm it is getting capped at 68mA only. It is not going above 68mA at any way. I have hardcoded it to 22dBm but it is still getting capped to 68mA only. I want to do changes in the code in such a way that the current consumption changes. what are the possible reasons of it and what are the functions where the code modification can help in changing the current consumption. Is there that ST has capped it to +18dBm or +17dBM  and will never work above it?<br /><br /> </p><pre><code class=\"language-c\">void SUBGRF_SetTxParams( uint8_t paSelect, int8_t power, RadioRampTimes_t rampTime )<br /><br />{<br /><br />uint8_t buf[2];<br /><br />int32_t max_power;<br /><br /><br /><br />if (paSelect == RFO_LP)<br /><br />{<br /><br />max_power = RBI_GetRFOMaxPowerConfig(RBI_RFO_LP_MAXPOWER);<br /><br />if (power &gt; max_power)<br /><br />{<br /><br />power = max_power;<br /><br />}<br /><br />if (max_power == 14)<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x04, 0x00, 0x01, 0x01);<br /><br />power = 0x0E - (max_power - power);<br /><br />}<br /><br />else if (max_power == 10)<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x01, 0x00, 0x01, 0x01);<br /><br />power = 0x0D - (max_power - power);<br /><br />}<br /><br />else /*default 15dBm*/<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x07, 0x00, 0x01, 0x01);<br /><br />power = 0x0E - (max_power - power);<br /><br />}<br /><br />if (power &lt; -17)<br /><br />{<br /><br />power = -17;<br /><br />}<br /><br />SUBGRF_WriteRegister(REG_OCP, 0x18); /* current max is 80 mA for the whole device*/<br /><br />}<br /><br />else /* rfo_hp*/<br /><br />{<br /><br />/* WORKAROUND - Better Resistance of the RFO High Power Tx to Antenna Mismatch, see STM32WL Erratasheet*/<br /><br />SUBGRF_WriteRegister(REG_TX_CLAMP, SUBGRF_ReadRegister(REG_TX_CLAMP) | (0x0F &lt;&lt; 1));<br /><br />/* WORKAROUND END*/<br /><br />max_power = RBI_GetRFOMaxPowerConfig(RBI_RFO_HP_MAXPOWER);<br /><br />if (power &gt; max_power)<br /><br />{<br /><br />power = max_power;<br /><br />}<br /><br />if (max_power == 20)<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x03, 0x05, 0x00, 0x01);<br /><br />power = 0x16 - (max_power - power);<br /><br />}<br /><br />else if (max_power == 17)<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x02, 0x03, 0x00, 0x01);<br /><br />power = 0x16 - (max_power - power);<br /><br />}<br /><br />else if (max_power == 14)<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x02, 0x02, 0x00, 0x01);<br /><br />power = 0x0E - (max_power - power);<br /><br />}<br /><br />else /*22dBm*/<br /><br />{<br /><br />SUBGRF_SetPaConfig(0x04, 0x07, 0x00, 0x01);<br /><br />power = 0x16 - (max_power - power);<br /><br />}<br /><br />if (power &lt; -9)<br /><br />{<br /><br />power = -9;<br /><br />}<br /><br />SUBGRF_WriteRegister(REG_OCP, 0x38); /*current max 160mA for the whole device*/<br /><br />}<br /><br />buf[0] = power;<br /><br />buf[1] = (uint8_t)rampTime;<br /><br />SUBGRF_WriteCommand(RADIO_SET_TXPARAMS, buf, 2);<br /><br />}<br /><br /><br /><br />static void RadioInit( RadioEvents_t *events )<br /><br />{<br /><br />RadioEvents = events;<br /><br /><br /><br />SubgRf.RxContinuous = false;<br /><br />SubgRf.TxTimeout = 0;<br /><br />SubgRf.RxTimeout = 0;<br /><br />/*See STM32WL Errata: RadioSetRxDutyCycle*/<br /><br />SubgRf.RxDcPreambleDetectTimeout = 0;<br /><br />#if( RADIO_LR_FHSS_IS_ON == 1 )<br /><br />SubgRf.lr_fhss.is_lr_fhss_on = false;<br /><br />#endif /* RADIO_LR_FHSS_IS_ON == 1 */<br /><br />SUBGRF_Init( RadioOnDioIrq );<br /><br />/*SubgRf.publicNetwork set to false*/<br /><br />SubgRf.PublicNetwork.Current = false;<br /><br />SubgRf.PublicNetwork.Previous = false;<br /><br /><br /><br />RADIO_IRQ_PROCESS_INIT();<br /><br /><br /><br />SUBGRF_SetRegulatorMode( );<br /><br /><br /><br />SUBGRF_SetBufferBaseAddress( 0x00, 0x00 );<br /><br />SUBGRF_SetTxParams( RFO_HP, 0, RADIO_RAMP_200_US );<br /><br />SUBGRF_SetDioIrqParams( IRQ_RADIO_ALL, IRQ_RADIO_ALL, IRQ_RADIO_NONE, IRQ_RADIO_NONE );<br /><br /><br /><br />RadioSleep();<br /><br />// Initialize driver timeout timers<br /><br />TimerInit( &amp;TxTimeoutTimer, RadioOnTxTimeoutIrq );<br /><br />TimerInit( &amp;RxTimeoutTimer, RadioOnRxTimeoutIrq );<br /><br />TimerStop( &amp;TxTimeoutTimer );<br /><br />TimerStop( &amp;RxTimeoutTimer );<br /><br />}</code></pre><p>What are the possibilities in the code for the above situation</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61e9de6f-7fbf-4c11-b5b0-6def596b643d.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "Power",
+    "STM32WL series",
+    "LoRa"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 77,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "101548",
+    "username": "Somya",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "101548",
+    "username": "Somya",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-24T10:29:10+00:00",
+  "lastActivityAt": "2026-07-25T05:52:35+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743938,
+  "publishedAt": "2026-07-24T10:29:10+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/stm32wl55-power-issue-167212",
+  "scraped_replies": []
+}

@@ -1,0 +1,56 @@
+{
+  "contentType": "question",
+  "id": "166704",
+  "publicId": "166729",
+  "title": "Setup HAL UART Interrupts in a Trustzone environment without CubeMX",
+  "content": "<p>Hi ST,<br /><br />I’ve run into a whole lot of issues adding interrupt-based UART to your OEMiRoT w/ Trustzone example on a NUCLEO-U385RG-Q.<br /><br />As you may know this example is not compatible with CubeMX, and it’s not clear which steps are needed to manually incorporate UART4 so that it activates an interrupt on receipt of input when running in the Non-Secure region of code. The idea is to only access the Secure region when needing to utilise certain sensitive variables, called from within a Non-Secure function.<br /><br />Let’s take this opportunity to establish a <strong>step-by-step</strong> guide for someone who isn’t (yet) an embedded professional, please excuse my ignorance if this already exists, I’d be just as happy to be directed there. My settings so far are:<br /><br />1. Secure/Inc/partition_stm32u385xx.h: Initialise UART4_IRQn as Non-Secure<br />#define NVIC_INIT_ITNS2    1<br />#define NVIC_INIT_ITNS2_VAL      0x00000001<br /><br />2. Secure/Src/main.c: Define UART4 pins (CN7 1 &amp; 2, or PC10 &amp; 11) as NonSecure<br />HAL_GPIO_ConfigPinAttributes(GPIOC, GPIO_PIN_10|GPIO_PIN_11, GPIO_PIN_NSEC);<br /><br />3. NonSecure/Src/stm32u3xx_it.c: Define interrupt handler (+ function definition in the related header file)</p><p>void UART4_IRQHandler(void) {<br />  HAL_UART_IRQHandler(&amp;huart4);<br />}<br /><br />4. NonSecure/Src/main.c: Add Interrupt enable and priority inside MX_UART4_Init</p><p>  HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);</p><p>  HAL_NVIC_EnableIRQ(UART4_IRQn);<br /><br />5. NonSecure/Src/main.c: Add UART RX Interrupt callback</p><p>void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){ <br />HAL_UART_Receive_IT(&amp;huart4, &amp;uart_rx_byte, 1);<br />}<br /><br />Is there anything here I <strong>don’t </strong>need to do? And the more obvious question - what am I missing?<br /><br />For future reference - how is a ‘successful’ user currently accessing this kind of information without needing your forum? I have 4 seperate user manuals consisting of the nucleo user manual (MB1841), the STM32U3 user manual (RM0487), the programmers manual (PM0264) and the TrustZone application note (AN5347) and neither of them contain a clear guide to implementing this basic(?) functionality.<br /><br />Thanks for your help!</p><p><br /> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "36",
+  "categoryName": "STM32 MCUs Security",
+  "tags": [
+    "Interrupt",
+    "UART-USART",
+    "TrustZone",
+    "STM32U3 series",
+    "HAL"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 60,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "105193",
+    "username": "AdsBot",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "105193",
+    "username": "AdsBot",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-07T01:24:32+00:00",
+  "lastActivityAt": "2026-07-12T23:03:14+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742795,
+  "publishedAt": "2026-07-07T01:24:32+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-security-36/setup-hal-uart-interrupts-in-a-trustzone-environment-without-cubemx-166729",
+  "scraped_replies": []
+}

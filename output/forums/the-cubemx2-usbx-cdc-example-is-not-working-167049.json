@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167030",
+  "publicId": "167049",
+  "title": "The CubeMX2 USBX CDC Example is not working",
+  "content": "<p>I previously got CDC via USBX and FreeRTOS working on a custom C542 design, using the examples since CubeMX2 did not support the USBX middleware at that time.<br />I am now trying to port that code to the C562 since I need more memory. This does not work at the moment since I used CubeMX2 for the USBX configuration and setup.</p><p>So I thought, lets have a look into the examples and see what I am doing wrong.</p><p>Unfortunately that did not work, or rather the USBX-CDC-FreeRTOS example for the Nucleo-C562RE board using the CMake toolchain does not work.</p><p>I got \"example_usbx_device_cdc_acm_uart_freertos\" from \"https://dev.st.com/stm32-example-library\" for the CMake toolchain.<br />I extracted the ZIP and imported the project in the latest CubeIDE (version 2.2.0; Silicon MAC) and build the project in \"release\" and \"debug\" config without errors.</p><p>However, both version do not setup the USB stack correctly. The user-LED stays on, so everything should run without errors.</p><p>If I look at the USB communication with a Total Phase Beagle USB 480 analyzer, I see nothing (see attachment). </p><p>The USB connection is reseted after I press the reset button, then there is a \"Full-speed\" mark and then the connection is suspended.<br />The same happens, when I plug in the cable after the board reset.</p><p>I have only one C562 board, so I can not try another board, however the board is new, so it is unlikely that the board is damaged.</p><p> </p><h3>CubeMX2 Issues</h3><p>I opened the ioc2 file with CubeMX2 (version 1.1.0) with the latest packs (2.1.0; Silicon MAC).<br />The was an error-indicator in the project config, which turned out to be an empty \"HAL Timebase Timer Selection\". I changed that to the only availabe/configured timer TIM6 and regenerated the project files.</p><p>Then CubeMX2 found a hole bunch of files changed on the disk, so maybe the \"*.ioc2\" or \"exported-files.json\" file is not up to date?<br />There where so many files changed, that the \"Show Differences\" (???) dialogue was overflowing, meaning that I almost could not click \"ok\" without resizing the window. </p><p>Anyway, the code is now regenerated. However, the code does no longer compile because of missing defines used in the background task function (e.g. NOTIFICATION_VALUE_UNKNOWN), previously defined in \"./generated/middleware/usbx/mx_usbx_app.h\".<br />After adding the enum, compilation has no more errors, but 136 warnings about \"#define USBD_INCLUDE_USER_DESC_CONFIG_FILE\" being redefined on the command line.</p><p>Now, the firmware ends up in a HardFault after calling \"status = ux_dcd_stm32_initialize(0, (ULONG)p_usb_device);\" (in \"app_ux_device_thread_entry(void *argument)\").<br />Probably because the newly generated version of the function does not call \"mx_example_pcd_init();\" beforehand. </p><p>After adding this, the code runs, as before.<br />The USB CDC device is still not available.</p><p> </p><h3>In Summary:</h3><ul><li>example_usbx_device_cdc_acm_uart_freertos is broken</li>\t<li> the examples CubeMX2 configuration is not valid</li>\t<li>CubeMX2 does not generate the same code as distributed in the example, breaking the code</li>\t<li>CubeMX2 can become unusable during project code regeneration if many files where changed outside of CubeMX2 because the \"Show Differences\" dialogue overflows and has now scroll bars.</li></ul>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "151",
+  "categoryName": "STM32CubeMX2 (MCUs)",
+  "tags": [
+    "Demos and examples"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 128,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "106730",
+    "username": "User_MV",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "98681",
+    "username": "T_Hamdi",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7222a7aa-eea9-76ab-16bc-1643f1e2bb0b.png"
+  },
+  "createdAt": "2026-07-17T16:15:42+00:00",
+  "lastActivityAt": "2026-07-21T10:32:02+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743537,
+  "publishedAt": "2026-07-17T16:15:42+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx2-mcus-151/the-cubemx2-usbx-cdc-example-is-not-working-167049",
+  "scraped_replies": []
+}

@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "166534",
+  "publicId": "166555",
+  "title": "STM32MP257 & DP83869 fiber link",
+  "content": "<p>Hello,</p><p>I am using a STM32MP257 (Karo SOM), RGMII connected to a DP83869 (100Mbps fiber mode).</p><p>This is working well until I start the LVDS screen on my board.</p><ul><li>The screen is powered with 2 regulators : </li>\t<li>Backlight (16V/360mA, dedicated boost)</li>\t<li>Logic (2.7V/500mA, dedicated buck)</li></ul><p>The DP83869 is powered with 3 regulators :</p><ul><li>1.1V (dedicated buck)</li>\t<li>2.5V (dedicated LDO)</li>\t<li>3.3V (shared buck also powering the MP2 SOM)</li></ul><p>Below is the behavior in different configurations:</p><ul><li><span style=\"color:#1abc9c;\">Screen unplugged =&gt; fiber link OK</span></li>\t<li><span style=\"color:#c0392b;\">Screen plugged =&gt; fiber link KO</span>\t<ul><li><span style=\"color:#1abc9c;\">hot-unplugging the screen makes the link working instantly</span></li>\t</ul></li>\t<li><span style=\"color:#1abc9c;\">Screen unplugged, flat cable present, with 100ohm R at the end of the LVDS signals =&gt; OK</span></li>\t<li>Screen unplugged, \t<ul><li><span style=\"color:#1abc9c;\">With no current on the BL / logic DC/DC converter =&gt; OK</span></li>\t\t<li><span style=\"color:#c0392b;\">Sinking 300mA on the BL =&gt; KO</span>\t\t<ul><li><span style=\"color:#1abc9c;\">Removing the sink current makes the link working instantly</span></li>\t\t</ul></li>\t\t<li><span style=\"color:#c0392b;\">Sinking 300mA on the logic =&gt; KO</span>\t\t<ul><li><span style=\"color:#1abc9c;\">Removing the sink current makes the link working instantly</span></li>\t\t</ul></li>\t</ul></li></ul><p>Probing power rails with a scope show clean signals, in loaded and unloaded conditions.</p><p>The PHY clocks (CLOo, TX/RX CLK) are always clean 25MHz signals.</p><p>The feeling I have is that without screen, the link is \"working by chance\" and a slight noise emited by the screen regulators (when loaded) are making the link to fall. There is probably something wrong on the RGMII timings but I don't know how to check/set that.</p><p>Other points : </p><p>*Where is hidden the GPIO slew rate data of STM32MP2? Nothing on datasheet, nothing in the user manual. Actually the device tree is configuring the MDC slew rate faster than the MDIO (&lt;3&gt; vs &lt;0&gt;).</p><p>* The DP83869 outputs a nIRQ line, requiring a 2.2k RPU (soldered). When the link is up and idle, this line is 0. When reading the MDIO IRQ registed, there is a pending IRQ (\"link has changed\").<br />** Reading the flag should clear the IRQ line but it is still stuck at 0<br />** The MP2 is configured with IRQ falling edge and should read the register, I shouldn't be able to read anything other than 0 in the IRQ register</p><p>Any help appreciated :)<br />Thanks</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "STM32MP25 lines"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 47,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "17945",
+    "username": "tarzan2",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/fc6e5d3f-4d24-85e2-b4a4-bf42495d8f93.png"
+  },
+  "lastContributor": {
+    "id": "642",
+    "username": "PatrickF",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/df93c40d-8d74-9c5d-0a84-067cc78f498d.png"
+  },
+  "createdAt": "2026-06-30T15:35:09+00:00",
+  "lastActivityAt": "2026-07-01T08:42:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 741717,
+  "publishedAt": "2026-06-30T15:35:09+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257-dp83869-fiber-link-166555",
+  "scraped_replies": []
+}

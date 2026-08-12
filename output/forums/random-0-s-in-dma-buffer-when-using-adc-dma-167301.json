@@ -1,0 +1,75 @@
+{
+  "contentType": "question",
+  "id": "167276",
+  "publicId": "167301",
+  "title": "Random 0's in DMA buffer when using ADC + DMA",
+  "content": "<p>Hello,</p><p>I’m using the ADC with DMA for my application where I read the values from a Pot. The DMA is configured to generate interrupts when the DMA buffer is half full and completely full. The readings obtained seem to be correct apart from the fact that there seems to be random 0’s in the buffer. I’m not sure why this happens. Below are the relevant portions of my code:</p><pre><code class=\"language-c\">    vInit()<br />    {<br /><br />      /* USER CODE BEGIN ADC1_Init 0 */<br /><br />      /* USER CODE END ADC1_Init 0 */<br /><br />      LL_ADC_InitTypeDef ADC_InitStruct = {0};<br />      LL_ADC_REG_InitTypeDef ADC_REG_InitStruct = {0};<br />      LL_ADC_CommonInitTypeDef ADC_CommonInitStruct = {0};<br /><br />      LL_GPIO_InitTypeDef GPIO_InitStruct = {0};<br /><br />      LL_RCC_SetADCClockSource(SPEED_CONTROL_POT_ADC_CLOCK_SOURCE);<br /><br />      /* Peripheral clock enable */<br />      LL_AHB2_GRP1_EnableClock(SPEED_CONTROL_POT_ADC_PERIPH_CLOCK);<br /><br />      LL_AHB2_GRP1_EnableClock(SPEED_CONTROL_POT_GPIO_PERIPH_CLOCK);<br />      /**ADC1 GPIO Configuration<br />    \t PA0   ------&gt; ADC1_IN1<br />    \t  */<br />      GPIO_InitStruct.Pin = SPEED_CONTROL_POT_ADC_GPIO_PIN;<br />      GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;<br />      GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;<br />      LL_GPIO_Init(SPEED_CONTROL_POT_ADC_GPIO_PORT, &amp;GPIO_InitStruct);<br /><br />      /* ADC1 DMA Init */<br />      vAdcInitDmaInterrupt_m();<br /><br />      /* ADC1 Init */<br />      LL_DMA_SetPeriphRequest(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMAMUX_REQ_ADC1);<br /><br />      LL_DMA_SetDataTransferDirection(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);<br /><br />      LL_DMA_SetChannelPriorityLevel(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_PRIORITY_LOW);<br /><br />      LL_DMA_SetMode(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_MODE_CIRCULAR);<br /><br />      LL_DMA_SetPeriphIncMode(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_PERIPH_NOINCREMENT);<br /><br />      LL_DMA_SetMemoryIncMode(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_MEMORY_INCREMENT);<br /><br />      LL_DMA_SetPeriphSize(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_PDATAALIGN_HALFWORD);<br /><br />      LL_DMA_SetMemorySize(SPEED_CONTROL_POT_ADC_DMA_MODULE, SPEED_CONTROL_POT_ADC_DMA_CHANNEL, LL_DMA_MDATAALIGN_HALFWORD);<br /><br />      LL_DMA_SetDataLength(SPEED_CONTROL_POT_ADC_DMA_MODULE,<br />    \t\t               SPEED_CONTROL_POT_ADC_DMA_CHANNEL,<br />\t\t\t\t\t\t   SPEED_CONTROL_POT_ADC_DMA_BUFFER_LENGTH);<br /><br />      LL_DMA_EnableIT_HT(SPEED_CONTROL_POT_ADC_DMA_MODULE,SPEED_CONTROL_POT_ADC_DMA_CHANNEL);<br /><br />      LL_DMA_EnableIT_TC(SPEED_CONTROL_POT_ADC_DMA_MODULE,SPEED_CONTROL_POT_ADC_DMA_CHANNEL);<br /><br />      //Register the ISR<br />      //Register interrupt here<br /><br />      LL_DMA_ConfigAddresses(SPEED_CONTROL_POT_ADC_DMA_MODULE,<br />    \t\t                 SPEED_CONTROL_POT_ADC_DMA_CHANNEL,<br />\t\t\t\t\t\t\t LL_ADC_DMA_GetRegAddr(SPEED_CONTROL_POT_ADC_MODULE,        LL_ADC_DMA_REG_REGULAR_DATA),<br />\t\t\t\t\t\t\t (INT32U)pu16AdcBuffer_m,<br />\t\t\t\t\t\t\t LL_DMA_DIRECTION_PERIPH_TO_MEMORY);<br /><br />      LL_DMA_EnableChannel(SPEED_CONTROL_POT_ADC_DMA_MODULE,SPEED_CONTROL_POT_ADC_DMA_CHANNEL);<br /><br /><br />      /* USER CODE BEGIN ADC1_Init 1 */<br /><br />      /* USER CODE END ADC1_Init 1 */<br /><br />      /** Common config<br />      */<br />      ADC_InitStruct.Resolution = SPEED_CONTROL_POT_ADC_RESOLUTION;<br />      ADC_InitStruct.DataAlignment = SPEED_CONTROL_POT_ADC_DATA_ALIGN;<br />      ADC_InitStruct.LowPowerMode = LL_ADC_LP_MODE_NONE;<br />      LL_ADC_Init(SPEED_CONTROL_POT_ADC_MODULE, &amp;ADC_InitStruct);<br />      ADC_REG_InitStruct.TriggerSource = SPEED_CONTROL_POT_ADC_TRGO_SOURCE;<br />      ADC_REG_InitStruct.SequencerLength = LL_ADC_REG_SEQ_SCAN_DISABLE;<br />      ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;<br />      ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_SINGLE;<br />      ADC_REG_InitStruct.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED;<br />      ADC_REG_InitStruct.Overrun = LL_ADC_REG_OVR_DATA_PRESERVED;<br />      LL_ADC_REG_Init(SPEED_CONTROL_POT_ADC_MODULE, &amp;ADC_REG_InitStruct);<br />      LL_ADC_SetGainCompensation(SPEED_CONTROL_POT_ADC_MODULE, 0);<br />      LL_ADC_SetOverSamplingScope(SPEED_CONTROL_POT_ADC_MODULE, LL_ADC_OVS_DISABLE);<br />      ADC_CommonInitStruct.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;<br />      ADC_CommonInitStruct.Multimode = LL_ADC_MULTI_INDEPENDENT;<br />      LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(SPEED_CONTROL_POT_ADC_MODULE), &amp;ADC_CommonInitStruct);<br />      LL_ADC_REG_SetTriggerEdge(ADC1, LL_ADC_REG_TRIG_EXT_RISING);<br /><br />      /* Disable ADC deep power down (enabled by default after reset state) */<br />      LL_ADC_DisableDeepPowerDown(SPEED_CONTROL_POT_ADC_MODULE);<br />      /* Enable ADC internal voltage regulator */<br />      LL_ADC_EnableInternalRegulator(SPEED_CONTROL_POT_ADC_MODULE);<br />      /* Delay for ADC internal voltage regulator stabilization. */<br />      /* Compute number of CPU cycles to wait for, from delay in us. */<br />      /* Note: Variable divided by 2 to compensate partially */<br />      /* CPU processing cycles (depends on compilation optimization). */<br />      /* Note: If system core clock frequency is below 200kHz, wait time */<br />      /* is only a few CPU processing cycles. */<br />      uint32_t wait_loop_index;<br />      wait_loop_index = ((LL_ADC_DELAY_INTERNAL_REGUL_STAB_US * (SystemCoreClock / (100000 * 2))) / 10);<br />      while(wait_loop_index != 0)<br />      {<br />    \twait_loop_index--;<br />      }<br /><br />      /** Configure Regular Channel<br />      */<br /><br /><br />      LL_ADC_REG_SetSequencerRanks(SPEED_CONTROL_POT_ADC_MODULE, LL_ADC_REG_RANK_1, SPEED_CONTROL_POT_ADC_CHANNEL);<br />      LL_ADC_SetChannelSamplingTime(SPEED_CONTROL_POT_ADC_MODULE, SPEED_CONTROL_POT_ADC_CHANNEL, LL_ADC_SAMPLINGTIME_2CYCLES_5);<br />      LL_ADC_SetChannelSingleDiff(SPEED_CONTROL_POT_ADC_MODULE, SPEED_CONTROL_POT_ADC_CHANNEL, LL_ADC_SINGLE_ENDED);<br />      /* USER CODE BEGIN ADC1_Init 2 */<br />      vAdcCalibrate_m();<br />      LL_ADC_Enable(SPEED_CONTROL_POT_ADC_MODULE);<br />      while(TRUE != LL_ADC_IsActiveFlag_ADRDY(SPEED_CONTROL_POT_ADC_MODULE));<br />      LL_ADC_ClearFlag_ADRDY(SPEED_CONTROL_POT_ADC_MODULE);<br /><br />      //Initialize the timer used to trigger the conversion<br />      vAdcInitTimer_m();<br /><br />      /* USER CODE END ADC1_Init 2 */<br /><br />    }<br /><br />    vEnableAdc()<br />    {<br />    \tLL_TIM_EnableCounter(SPEED_CONTROL_POT_TIMER_MODULE);<br />    \tLL_ADC_REG_StartConversion(SPEED_CONTROL_POT_ADC_MODULE);<br />    }<br /><br />    vAdcInitDmaInterrupt_m()<br />    {<br />      /* Init with LL driver */<br />      /* DMA controller clock enable */<br />      LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMAMUX1);<br />      LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);<br /><br />      /* DMA interrupt init */<br />      /* DMA1_Channel1_IRQn interrupt configuration */<br />      NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),3, 0));<br />      NVIC_EnableIRQ(DMA1_Channel1_IRQn);<br />    }<br /><br />    vAdcInitTimer_m()<br />    {<br />      /* USER CODE BEGIN TIM3_Init 0 */<br /><br />      /* USER CODE END TIM3_Init 0 */<br /><br />      LL_TIM_InitTypeDef TIM_InitStruct = {0};<br /><br />      /* Peripheral clock enable */<br />      LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);<br /><br />      /* USER CODE BEGIN TIM3_Init 1 */<br /><br />      /* USER CODE END TIM3_Init 1 */<br />      TIM_InitStruct.Prescaler = SPEED_CONTROL_POT_TIMER_PRESCALER;<br />      TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;<br />      TIM_InitStruct.Autoreload = SPEED_CONTROL_POT_TIMER_AUTO_RELOAD;<br />      TIM_InitStruct.ClockDivision = SPEED_CONTROL_POT_TIMER_CLK_DIVISION_FACTOR;<br />      LL_TIM_Init(SPEED_CONTROL_POT_TIMER_MODULE, &amp;TIM_InitStruct);<br />      LL_TIM_DisableARRPreload(SPEED_CONTROL_POT_TIMER_MODULE);<br />      LL_TIM_SetClockSource(SPEED_CONTROL_POT_TIMER_MODULE, LL_TIM_CLOCKSOURCE_INTERNAL);<br />      LL_TIM_SetTriggerOutput(SPEED_CONTROL_POT_TIMER_MODULE, LL_TIM_TRGO_UPDATE);<br />      LL_TIM_SetUpdateSource(SPEED_CONTROL_POT_TIMER_MODULE,LL_TIM_UPDATESOURCE_COUNTER);<br />      LL_TIM_DisableMasterSlaveMode(SPEED_CONTROL_POT_TIMER_MODULE);<br />      /* USER CODE BEGIN TIM3_Init 2 */<br /><br />      /* USER CODE END TIM3_Init 2 */<br />    }<br /><br />    vAdcCalibrate_m()<br />    {<br />      LL_ADC_StartCalibration(SPEED_CONTROL_POT_ADC_MODULE,LL_ADC_SINGLE_ENDED);<br />      while(LL_ADC_IsCalibrationOnGoing(SPEED_CONTROL_POT_ADC_MODULE));<br />    }</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32G4 series",
+    "DMA",
+    "ADC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 0,
+  "votes": 0,
+  "views": 72,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108637",
+    "username": "STMUser08",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "8205",
+    "username": "TDK",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7577e4b8-db05-6051-ffd8-4370c29016ca.png"
+  },
+  "createdAt": "2026-07-28T22:56:57+00:00",
+  "lastActivityAt": "2026-07-30T14:44:26+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744433,
+  "publishedAt": "2026-07-28T22:56:57+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/random-0-s-in-dma-buffer-when-using-adc-dma-167301",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Nowhere in the posted code do you read the data in the buffer. I don’t even see code that starts ADC conversions.</p><p>Where’s the code that reads the ADC data and where exactly do you see zeroes?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The code that starts the ADC conversion is on line 129.</p><p>I read the ADC data when the “buffer half full” and “full” interrupts occur. My ADC DMA buffer is of size 128, split in to 2 halves for this purpose. </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>The code that starts the ADC conversion is on line 129.</p></blockquote><p>That may be, but vEnableAdc isn’t called anywhere in the posted code. The IRQ handlers are also missing.</p><p>The bug is in your code and unless you show enough of it, we can only guess. Posting a minimal working example is the best strategy for getting your question answer effectively.</p><blockquote><p>The 0 seems to occur at the very first position of the second half of the buffer. </p></blockquote><p>Based on what? How are you viewing the data? Show screenshots, or a log, or whatever is leading you to believe there’s a 0 there. We have no idea.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"8205\">@TDK</user-mention> I think I might have figured it out. I read the buffer values inside a function that lies within a forever while loop. Inside this function, I do check if a “Buffer half full” or “Buffer Full” interrupt has occurred. I seem to have been reading from the buffer when neither of these interrupts had occurred. I guess this could be a reason as to why I kept “seeing zeros” (image above) in the buffer.  </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I can’t help without seeing the code with the bug in it.</p></div>"
+    }
+  ]
+}

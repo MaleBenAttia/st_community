@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "166984",
+  "publicId": "167004",
+  "title": "Bug: Removing custom container causes \"Object reference not set to an instance of an object\"",
+  "content": "<p>TouchGFX Designer: 4.26.0</p><p>I cannot share the project to reproduce the bug unfortunately.</p><p>I removed several custom containers in the Container tab. In several places in the Screens tab a yellow dot appeared for some now incomplete screen interactions (expected behavior). However, when generating sources/saving the project I got the following error</p><pre><code class=\"language-markdown\">```txt<br />2026-07-16 14:45:05,342 [1] ERROR TouchGFXDesigner.App: Object reference not set to an instance of an object.<br />System.NullReferenceException: Object reference not set to an instance of an object.<br />   at TouchGFXDomainModel.LoadSave.Serial.ToSerial.Convert(TriggerCustom t)<br />   at TouchGFXDomainModel.LoadSave.Serial.ToSerial.Convert(Interaction i)<br />   at System.Linq.Enumerable.IListSelectIterator`2.ToList()<br />   at TouchGFXDomainModel.LoadSave.Serial.ToSerial.Convert(Screen s)<br />   at System.Linq.Enumerable.IListSelectIterator`2.ToList()<br />   at TouchGFXDomainModel.LoadSave.Serial.ToSerial.Convert(Application a)<br />   at TouchGFXDomainModel.LoadSave.Serial.ToSerial.Convert(Model m)<br />   at TouchGFXDomainModel.LoadSave.LoadSave.SaveDotTouchgfx(String filename, Model model)<br />   at TouchGFXDomainModel.LoadSave.LoadSave.Save(String filename, Model model)<br />   at TouchGFXApplication.MonitorCommands.SaveCommand.Execute()<br />   at TouchGFXApplication.TouchGFXApplication.Save()<br />   at TouchGFXDesigner.Main.Project.ProjectCommands.Save(Object obj)<br />   at TouchGFXDesigner.Main.Project.ProjectCommands.PreCommandSteps()<br />   at TouchGFXDesigner.Main.Project.ProjectCommands.GenerateCode(Object obj)<br />   at ComponentViewModels.DelegateCommand.Execute(Object parameter)<br />   at System.Windows.Controls.Button.OnClick()<br />   at System.Windows.Controls.Primitives.ButtonBase.OnMouseLeftButtonUp(MouseButtonEventArgs e)<br />   at System.Windows.RoutedEventArgs.InvokeHandler(Delegate handler, Object target)<br />   at System.Windows.EventRoute.InvokeHandlersImpl(Object source, RoutedEventArgs args, Boolean reRaised)<br />   at System.Windows.UIElement.ReRaiseEventAs(DependencyObject sender, RoutedEventArgs args, RoutedEvent newEvent)<br />   at System.Windows.RoutedEventArgs.InvokeHandler(Delegate handler, Object target)<br />   at System.Windows.EventRoute.InvokeHandlersImpl(Object source, RoutedEventArgs args, Boolean reRaised)<br />   at System.Windows.UIElement.RaiseEventImpl(DependencyObject sender, RoutedEventArgs args)<br />   at System.Windows.UIElement.RaiseTrustedEvent(RoutedEventArgs args)<br />   at System.Windows.Input.InputManager.ProcessStagingArea()<br />   at System.Windows.Interop.HwndMouseInputProvider.ReportInput(IntPtr hwnd, InputMode mode, Int32 timestamp, RawMouseActions actions, Int32 x, Int32 y, Int32 wheel)<br />   at System.Windows.Interop.HwndMouseInputProvider.FilterMessage(IntPtr hwnd, WindowMessage msg, IntPtr wParam, IntPtr lParam, Boolean&amp; handled)<br />   at System.Windows.Interop.HwndSource.InputFilterMessage(IntPtr hwnd, Int32 msg, IntPtr wParam, IntPtr lParam, Boolean&amp; handled)<br />   at MS.Win32.HwndSubclass.DispatcherCallbackOperation(Object o)<br />   at System.Windows.Threading.ExceptionWrapper.InternalRealCall(Delegate callback, Object args, Int32 numArgs)<br />   at System.Windows.Threading.ExceptionWrapper.TryCatchWhen(Object source, Delegate callback, Object args, Int32 numArgs, Delegate catchHandler)<br />```</code></pre><p>This was caused by another incomplete interaction not showing up as invalid. It happened during several occasians when removing custom containers, but it did not always generate an error upon generating sources and/or saving the project. E.g. I had multiple interactions that were leftover from deleting a custom container which resulted in the .touchgfx json with interactions defined as <code>TriggerCustom </code>without a <code>TriggerComponent</code>. I fixed those programmatically using the following python code:<br /> </p><pre><code class=\"language-python\">import json<br /><br />jsonTree = json.loads(jsonString)<br />screens = jsonTree['Application']['Screens']<br /><br />for screen in screens:<br />    interactions = screen['Interactions']<br />    for interaction in reversed(interactions):  # reverse looping otherwise removing elements breaks the loop<br />        trigger = interaction['Trigger']<br />        if trigger['Type'] == 'TriggerCustom' and 'TriggerComponent' not in trigger.keys():<br />            print('Deleting interaction \"' + interaction['InteractionName'] + '\" from screen \"' + screen['Name'] + '\"')<br />            interactions.remove(interaction)</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "33",
+  "categoryName": "STM32 MCUs TouchGFX and GUI",
+  "tags": [
+    "Bug-report",
+    "TouchGFX",
+    "TouchGFX Designer"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 32,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107645",
+    "username": "Aron Hoogeveen",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107645",
+    "username": "Aron Hoogeveen",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-16T13:16:34+00:00",
+  "lastActivityAt": "2026-08-03T13:18:55+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744653,
+  "publishedAt": "2026-07-16T13:16:34+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/bug-removing-custom-container-causes-object-reference-not-set-to-an-instance-of-an-object-167004",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107645\">@Aron Hoogeveen</user-mention>.</p><p>Thank you for sharing your workaround!</p><p>I tried to reproduce the issue, but without success.<br/>I created a custom container with a trigger, inserted the custom container into a screen, and set up an interaction triggered by the custom container trigger. However, when I deleted the custom container entirely or removed it from the screen, the interaction trigger simply became empty. I did not encounter any errors when generating code.</p><p>Could you try reproducing the issue in a simple project that you can share? Alternatively, could you provide the steps to reproduce it?</p><p>That said, even in the scenario I observed, I completely agree that it would be more visible if there were a warning indicating that the interaction is now incomplete.</p><p>Best regards,<br/>Johan</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I the near future I do not have enough sparetime to try to reproduce the issue, so unfortunately this bug report will stay without an example project.</p></div>"
+    }
+  ]
+}

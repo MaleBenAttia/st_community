@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167068",
+  "publicId": "167089",
+  "title": "Troubleshooting run on STM32U545",
+  "content": "<p>Hello ST team,</p><p> </p><p>I am trying to run an ONNX model on a NUCLEO-U545RE-Q board using STM32Cube AI Studio</p><p> </p><p>I first tried with a model of about 281.75 KiB weights, and the generated project failed at build/link stage with an undefined UART symbol.</p><p> </p><p>To check whether the issue was related to memory size, I also tried a smaller model:</p><p> </p><p>- Model: model_seqlen20.onnx</p><p>- Input: f32(1x20x25)</p><p>- Output: f32(1x1)</p><p>- Parameters: 32,129</p><p>- Weights: 128,516 B / 125.50 KiB</p><p>- Activations: 2,256 B / 2.20 KiB</p><p>- Total AI flash reported: 130,190 B</p><p>- Target: stm32u5</p><p>- Board: NUCLEO-U545RE-Q</p><p>- Firmware package: STM32Cube_FW_U5_V1.9.0</p><p>- ST Edge AI Core: v4.0.1-20581</p><p>- Toolchain: STM32CubeIDE</p><p> </p><p>The model generation step completes successfully. The reported memory footprint is small enough for the board.</p><p> </p><p>However, during the Run flow, STM32Cube AI Studio the build fails with:</p><p> </p><p>undefined reference to `UartHandle`</p><p> </p><p>The errors are:</p><p> </p><p>Middlewares/ST/AI/Misc/Src/aiTestUtility.c:</p><p>- _put_c_driver: undefined reference to `UartHandle`</p><p>- ioRawWriteBuffer: undefined reference to `UartHandle`</p><p>- ioRawReadBuffer: undefined reference to `UartHandle`</p><p> </p><p>The final error is:</p><p> </p><p>collect2.exe: error: ld returned 1 exit status</p><p>make: *** [makefile:69: run-1.elf] Error 1</p><p> </p><p>This seems unrelated to model size, because the smaller model also fails in the same UART-related step.</p><p> </p><p>It looks like the generated validation project expects a UART handle named `UartHandle`, but the generated CubeMX/CubeIDE project does not define it or does not initialize the board communication interface needed by the validation middleware.</p><p> </p><p>Could you please confirm whether automatic Run/validation on NUCLEO-U545RE-Q is supported with STM32CubeAI Studio and ST Edge AI Core v4.0.1?</p><p> </p><p>Is there a specific communication setting I need to select in the tool, or is this a known issue in the generated project template for NUCLEO-U545RE-Q?</p><p> </p><p>I am attaching:</p><p>- the full generation/build log</p><p>- the ONNX model used for this smaller test</p><p> </p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "134",
+  "categoryName": "Edge AI",
+  "tags": [
+    "UART-USART",
+    "STM32U5 series",
+    "STM32Cube AI Studio"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 21,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108400",
+    "username": "frig",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108400",
+    "username": "frig",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-20T15:34:02+00:00",
+  "lastActivityAt": "2026-07-21T09:06:39+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743518,
+  "publishedAt": "2026-07-20T15:34:02+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/edge-ai-134/troubleshooting-run-on-stm32u545-167089",
+  "scraped_replies": []
+}

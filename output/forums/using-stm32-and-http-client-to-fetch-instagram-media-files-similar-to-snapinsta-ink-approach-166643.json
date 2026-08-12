@@ -1,0 +1,62 @@
+{
+  "contentType": "question",
+  "id": "166619",
+  "publicId": "166643",
+  "title": "Using STM32 and HTTP Client to Fetch Instagram Media Files Similar to Snapinsta.ink Approach",
+  "content": "<p>I am working on an STM32 based IoT project where I want to fetch original quality media files from public Instagram post URLs and display them on a connected TFT screen. The concept is similar to how browser based tools like snapinsta.ink work where a public post URL is parsed to extract the direct media file URL which is then fetched as raw image data. My current implementation uses the STM32 HAL HTTP client library to send a GET request to the public post URL and parse the JSON response to extract the highest resolution media node before downloading the file to external flash storage. The main challenge I am running into is that the response payload size exceeds the STM32 heap allocation when trying to buffer the full response in memory before parsing. Has anyone implemented a similar HTTP response streaming and parsing workflow on STM32 and found a reliable way to handle large JSON payloads without loading the entire response into SRAM.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "Ethernet",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 76,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107802",
+    "username": "snapinstaink",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "37189",
+    "username": "Pavel A.",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/848a253a-dfe0-ac3e-1818-32d276066844.png"
+  },
+  "createdAt": "2026-07-03T04:57:00+00:00",
+  "lastActivityAt": "2026-07-03T19:48:18+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742057,
+  "publishedAt": "2026-07-03T04:57:00+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/using-stm32-and-http-client-to-fetch-instagram-media-files-similar-to-snapinsta-ink-approach-166643",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>You can take a look at this reference project for Nucleo-F429ZI that shows how to handle a large HTTP payload by storing it in flash instead.</p><p><a href=\"https://github.com/mongoose-examples/nucleo-f429zi-large-http-upload\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/mongoose-examples/nucleo-f429zi-large-http-upload</a></p><p>This example uses the <a href=\"https://github.com/cesanta/mongoose\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">Mongoose Networking Library</a>. It’s a good fit for scenarios like this one, because it uses a simple event-driven API, meaning it triggers events as data arrives on the network (e.g. you get specific events for connections, entire HTTP frames, individual data chunks, etc.). So, this would allow you to catch the payload chunk by chunk and write it directly to storage instead.</p><p>While this example runs a HTTP server that receives a large POST and uploads the body directly to the internal flash, the same concept applies to an HTTP client receiving a large GET response. Mongoose is well documented <a href=\"https://mongoose.ws/docs/getting-started/introduction/\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">here </a> and there are a lot of specific examples <a href=\"https://github.com/cesanta/mongoose/tree/master/tutorials\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">here</a>.</p><p>You can just use the Mongoose networking/event-handler component as a reference, and simply replace the internal flash writing functions with your own logic to store the data in your external persistent memory.</p><p>Heads up: I am part of the Mongoose development team. Hope this helps you get your project working!</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>What is the size of the json response?</p><p>Yes, parsing a stream is possible, just ask your favorite AI assistant to code it :)</p></div>"
+    }
+  ]
+}

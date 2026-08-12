@@ -1,0 +1,62 @@
+{
+  "contentType": "question",
+  "id": "167096",
+  "publicId": "167121",
+  "title": "Detect start of RTC calibration 32 sec window",
+  "content": "<p>I have a very nice study using RTC smooth calibration, with the RTC steered by a GNSS receiver one second pulse and a software PI controller that redetermines the calibration every 32 seconds, kind of a PLL. I am using a STM32F746G Disco evaluation board for development. Phase comparison is by hardware (1 second RTC alarm output and 2 channel input capture on a 10 MHz timer).</p><p>For optimizing the PI controller i would like deterministic results, but i don’t know what happens when i set a new smooth calibration value during an ongoing 32 second period.</p><p>Does that initiate a new 32 second RTC smooth calibration period with the requested number of adjustments?</p><p>Is a certain one of the 32 seconds better for setting the new calibration value? Which one?</p><p>I  could analyze the 32 phase measurements in my PI controller time interval to see how many calibration steps actually happened, but maybe there are some simple rules.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32F7 series",
+    "RTC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 34,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "19706",
+    "username": "DTeuc.1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/a187e0b7-04c8-fb09-03e4-9ec87464636d.png"
+  },
+  "lastContributor": {
+    "id": "19706",
+    "username": "DTeuc.1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/a187e0b7-04c8-fb09-03e4-9ec87464636d.png"
+  },
+  "createdAt": "2026-07-21T22:32:31+00:00",
+  "lastActivityAt": "2026-07-22T01:50:13+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743603,
+  "publishedAt": "2026-07-21T22:32:31+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/detect-start-of-rtc-calibration-32-sec-window-167121",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The CALR values are applied continuously. The end of one 32s period is the start of the next. Changing CALR mid-cycle doesn’t reset or start anything. The details on which exact clocks are masked is not given so determining the start of the cycle would be of no help anyway, not that you could change it at an exact moment anyway.</p><p>There’s no correct or best time to make the update to CALR. It is applied continuously. Change it when it is incorrect. Note that you technically must poll RECALPF first but it should always be clear at reasonable update rates. After being updated, the next 32 s (and beyond) will have the updates applied and can be used to calibrate.</p><p>Because CALR is on a 32s cycle, you shouldn’t update more often than that. Update CALR, then wait for 33 edges on the 1s sync pulse to make your measurement/adjustment.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks! While looking for the RECALPF flag in the reference manual i found the answer: New CALR values take effect after three predivider A cycles. Since i am running the RTC in 8 * 4096 configuration, the new settings take effect within less than a msec.</p><p>I also checked the measured phase offsets. The next 32 seconds after setting the smooth calibration to n always show the expected phase step pattern: As the LSE crystal is about -25 ppm off, i see 32-n steps of -25 usec and n steps of 5,5 usec (-25 usec + 30.5 usec adjustment step).</p></div>"
+    }
+  ]
+}

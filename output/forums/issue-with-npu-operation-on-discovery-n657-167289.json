@@ -1,0 +1,56 @@
+{
+  "contentType": "question",
+  "id": "167264",
+  "publicId": "167289",
+  "title": "issue with NPU operation on Discovery N657",
+  "content": "<h1>STM32N657 / STEdgeAI 4.0.1 - Non-deterministic inference results with a minimal STAI wrapper</h1><p>Hello,</p><p>I am currently evaluating <strong>STEdgeAI 4.0.1</strong> on an <strong>STM32N657</strong> before integrating AI support into my RTOS (<strong>uKOS-X</strong>).</p><p>My objective is <strong>not</strong> to use the generated CubeMX application. Instead, I want to build a <strong>small self-contained library</strong> that encapsulates all ST Edge AI resources and exposes only a minimal API to the application.</p><p>The wrapper API is intentionally very small:</p><pre><code>gan_npu_status_t npu_init(void);<br />gan_npu_status_t npu_putInput(const void *input);<br />gan_npu_status_t npu_inference(void);<br />gan_npu_status_t npu_getOutput(void *output);<br /></code></pre><p>The application never accesses any STAI object directly.</p><p>This is only a <strong>first validation step</strong>, therefore I intentionally use <strong>synchronous execution (STAI_MODE_SYNC)</strong> and <strong>polling only</strong>. Interrupt-driven execution will be implemented later.</p><h2>Configuration</h2><ul><li>\t<p>STM32N657</p>\t</li>\t<li>\t<p>STEdgeAI 4.0.1</p>\t</li>\t<li>\t<p>Neural-ART generated network</p>\t</li>\t<li>\t<p>Single network instance</p>\t</li>\t<li>\t<p>ST-generated sources left completely unchanged</p>\t</li>\t<li>\t<p>Custom wrapper only</p>\t</li>\t<li>\t<p>HyperRAM used for activations</p>\t</li>\t<li>\t<p>OctoFlash used for weights</p>\t</li>\t<li>\t<p>D-Cache disabled</p>\t</li>\t<li>\t<p>Same network instance reused for successive inferences</p>\t</li>\t<li>\t<p>No asynchronous execution</p>\t</li>\t<li>\t<p>No RTOS interaction during inference</p>\t</li></ul><p>The wrapper simply performs:</p><pre><code>stai_runtime_init();<br />stai_network_init();<br /><br />...<br /><br />memcpy(input_buffer, user_input, input_size);<br /><br />stai_network_run(network, STAI_MODE_SYNC);<br /><br />memcpy(user_output, output_buffer, output_size);<br /></code></pre><p>No additional processing is performed.</p><h2>Problem</h2><p>Running exactly the same inference twice with exactly the same input does <strong>not</strong> produce identical results.</p><p>Example:</p><pre><code>Inference #1<br />Output[0] = 0x55<br /><br />Inference #2<br />Output[0] = 0x61<br /></code></pre><p>The complete output buffer differs.</p><p>The difference already exists <strong>inside the STAI internal output buffer</strong>, before my wrapper copies the data back to the application.</p><h2>Debugging performed</h2><p>The following points have been verified.</p><h3>Input buffer</h3><p>The internal STAI input pointer remains identical between runs.</p><p>Example:</p><pre><code>Address : 0x91000000<br /></code></pre><p>The first byte is identical.</p><p>A checksum computed over the complete input tensor is identical before every inference.</p><p>Therefore the network always receives exactly the same input data.</p><h3>Output buffer</h3><p>The internal STAI output pointer also remains identical.</p><p>Example:</p><pre><code>Address : 0x91002000<br /></code></pre><p>However, its contents differ after each inference although the input is unchanged.</p><h3>Wrapper</h3><p>The wrapper was carefully verified.</p><p>There is now exactly one call to:</p><pre><code>stai_network_run(network, STAI_MODE_SYNC);<br /></code></pre><p>per inference.</p><h3>Weights</h3><p><code>stai_network_get_weights()</code> returns valid pointers.</p><p>The generated network does not use user-provided weight buffers.</p><h3>Input/output management</h3><p>The generated code reports:</p><ul><li>\t<p>no user input allocation required</p>\t</li>\t<li>\t<p>no user output allocation required</p>\t</li></ul><p>Therefore the wrapper simply obtains the internal pointers using:</p><pre><code>stai_network_get_inputs()<br />stai_network_get_outputs()<br /></code></pre><p>and copies the user buffers into them.</p><h3>HyperRAM</h3><p>As an experiment, the complete HyperRAM activation area was cleared before every inference.</p><p>This did not change the behaviour.</p><h3>API usage</h3><p>The wrapper follows the API sequence shown in the ST examples:</p><ul><li>\t<p>runtime init</p>\t</li>\t<li>\t<p>network init</p>\t</li>\t<li>\t<p>get input pointer</p>\t</li>\t<li>\t<p>copy input</p>\t</li>\t<li>\t<p>synchronous run</p>\t</li>\t<li>\t<p>copy output</p>\t</li></ul><p>No undocumented API is used.</p><h2>Question</h2><p>At this point I have demonstrated that:</p><ul><li>\t<p>identical input is presented to the network;</p>\t</li>\t<li>\t<p>identical internal input address is used;</p>\t</li>\t<li>\t<p>identical internal output address is used;</p>\t</li>\t<li>\t<p><code>stai_network_run()</code> returns <code>STAI_SUCCESS</code>;</p>\t</li>\t<li>\t<p>the output already differs inside the STAI internal output buffer.</p>\t</li></ul><p>Has anyone observed similar non-deterministic behaviour with STEdgeAI 4.0.1 on STM32N657?</p><p>Is there any known configuration requirement (NPU, HyperRAM, XSPI, MPU, RIF, CACHEAXI, etc.) that could produce this behaviour while still returning <code>STAI_SUCCESS</code>?</p><p>Any suggestions would be greatly appreciated.</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "134",
+  "categoryName": "Edge AI",
+  "tags": [
+    "STM32N6 series",
+    "Neural-ART Accelerator",
+    "X Cube AI"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 1,
+  "votes": 0,
+  "views": 57,
+  "voteSet": [],
+  "likeSet": [
+    "2125"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "36029",
+    "username": "Franzi.Edo",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/10a8b98a-384b-a296-1911-61cd1bd96b36.png"
+  },
+  "lastContributor": {
+    "id": "36029",
+    "username": "Franzi.Edo",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/10a8b98a-384b-a296-1911-61cd1bd96b36.png"
+  },
+  "createdAt": "2026-07-28T13:06:20+00:00",
+  "lastActivityAt": "2026-08-05T13:30:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744865,
+  "publishedAt": "2026-07-28T13:06:20+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/edge-ai-134/issue-with-npu-operation-on-discovery-n657-167289",
+  "scraped_replies": []
+}

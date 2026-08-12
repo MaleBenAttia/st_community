@@ -1,0 +1,69 @@
+{
+  "contentType": "question",
+  "id": "167349",
+  "publicId": "167376",
+  "title": "Distinguishing H5 processor type from firmware",
+  "content": "<p>We are using a mix of stm32 - G473, H503, H523, H563, H573.</p><p>For each of these, we have a bootloader that locks the chip security (to Closed for full regression with password on the H5s).</p><p>If we inadvertently put the wrong bootloader on a board, some combinations will brick the board - specifically, loading 523 or 563 bootloaders onto 503 or 573 boards goes to the closed state without a useful password in place.</p><p>I would like to programmatically check that each bootloader is running on its expected target before setting security. I see the IDCODE register contains 0x484 for STM32H562/563/573, or 0x478 for STM32H523/533. Unfortunately this distinguishes the 523/563 which is not such a problem for us, but not the 563/573 which is our problem.</p><p>Ideally, I would like a (different) function for each of our micros that will run correctly on the expected micro but return an error (or possibly hard fault) on anything else.</p><p>Thanks</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32H5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 58,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "100287",
+    "username": "JimJW",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "17162",
+    "username": "waclawek.jan",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/43c60519-a334-d573-5e4a-aca0ba6642b5.png"
+  },
+  "createdAt": "2026-07-31T09:44:13+00:00",
+  "lastActivityAt": "2026-08-04T13:50:30+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744766,
+  "publishedAt": "2026-07-31T09:44:13+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/distinguishing-h5-processor-type-from-firmware-167376",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The ‘H563 and ‘H573 are physically identical chips; they differ only in the fact that in the ‘H563 the crypto functions are disabled.</p><p>You might perhaps be able to distinguish them by trying to set RCC_AHB2ENR.AESEN - in ‘H563 it probably won’t get set. Try.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I have exactly the same issue, need to identify H563 vs H573. I tried a few methods and none of them really work.</p><ul><li>HASH block exists in both chips and fully accessible, cannot use for detection.</li> <li>H563 allows you to toggle RCC bit related to AES the same way as in H573.</li> <li>AES control register is also accessible and I can toggle bits.</li></ul><p>Here is an example code:</p><pre><code class=\"language-c\">// WARNING! THIS IS NOT WORKING AS EXPECTED! DETECTION FAILS!<br/><br/>// Manually define register masks and offsets omitted from the H563 target headers<br/>#define HARDWARE_RCC_AHB2ENR_AESEN     (1UL &lt;&lt; 16)<br/>#define HARDWARE_AES_BASE              (0x420C0000UL) // Base peripheral boundary for AES<br/>#define HARDWARE_AES_CR                (*(volatile uint32_t *)(HARDWARE_AES_BASE + 0x00UL))<br/><br/>/**<br/>  * @brief  Dynamically detect if the physical chip is an H573 or H563<br/>  *         by writing to the downstream peripheral config register.<br/>  * @retval true if physical silicon is STM32H573, false if STM32H563<br/>*/<br/>bool is_stm32h573(void)<br/>{<br/>    // 1. Force enable the AES clock gating bit inside the RCC block<br/>    uint32_t original_rcc = RCC-&gt;AHB2ENR;<br/>    RCC-&gt;AHB2ENR |= HARDWARE_RCC_AHB2ENR_AESEN;<br/><br/>    // Force a bus synchronization delay<br/>    __IO uint32_t bus_delay = RCC-&gt;AHB2ENR;<br/>    (void)bus_delay;<br/><br/>    // 2. Read the initial peripheral configuration register state<br/>    uint32_t original_aes_cr = HARDWARE_AES_CR;<br/><br/>    // 3. Attempt a scratchpad write to an execution control bit (e.g. EN bit 0)<br/>    HARDWARE_AES_CR = 0x00000001UL;<br/><br/>    // Force data synchronization barrier<br/>    __DSB();<br/><br/>    // 4. Read back the register to verify if the logic retained the change<br/>    uint32_t verification_aes_cr = HARDWARE_AES_CR;<br/><br/>    // 5. Restore peripheral and clock routing states back to normal<br/>    HARDWARE_AES_CR = original_aes_cr;<br/>    RCC-&gt;AHB2ENR = original_rcc;<br/><br/>    // If the functional register bit flipped, downstream logic exists (H573)<br/>    if (verification_aes_cr &amp; 0x00000001UL) {<br/>        return true;  // Chip is STM32H573<br/>    }<br/><br/>    return false; // Chip is STM32H563<br/>}<br/></code></pre><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>OK, this one works :-). Basically, I am trying to run full encryption cycle and check the results. On H563, the completion flag never gets set. This code probably can be shortened/simplified, but it is good enough for me…</p><pre><code class=\"language-c\">// Since we compile this for H563 target, the H573 registers are not defined in the headers.<br/>// Manual Base Address Definitions (From STM32H5 Reference Manual RM0481)<br/>#define H563_AES_BASE               (0x420C0000UL)<br/><br/>// Structural Register Offset Layout<br/>typedef struct {<br/>    __IO uint32_t CR;    // Control Register             (Offset 0x00)<br/>    __IO uint32_t SR;    // Status Register              (Offset 0x04)<br/>    __IO uint32_t DINR;  // Data Input Register          (Offset 0x08)<br/>    __IO uint32_t DOUTR; // Data Output Register         (Offset 0x0C)<br/>    __IO uint32_t KEYR0; // Key Register 0               (Offset 0x10)<br/>    __IO uint32_t KEYR1; // Key Register 1               (Offset 0x14)<br/>    __IO uint32_t KEYR2; // Key Register 2               (Offset 0x18)<br/>    __IO uint32_t KEYR3; // Key Register 3               (Offset 0x1C)<br/>} H563_AES_TypeDef;<br/><br/>#define H563_AES                    ((H563_AES_TypeDef *) H563_AES_BASE)<br/><br/>// Manual Register Bitmasks<br/>#define H563_RCC_AHB2ENR_AESEN      (1UL &lt;&lt; 16)  // Bit 16 in RCC-&gt;AHB2ENR<br/>#define H563_AES_CR_EN              (1UL &lt;&lt; 0)   // Peripheral Enable<br/>#define H563_AES_CR_CCFC            (1UL &lt;&lt; 7)   // Computation Complete Flag Clear<br/>#define H563_AES_SR_CCF             (1UL &lt;&lt; 0)   // Computation Complete Flag<br/>#define AES_TIMEOUT\t\t\t\t\t1000UL\t\t // timeout for AES operation<br/><br/>bool isMCU_H573(void)<br/>{<br/><br/>    // Define 128-bit key and plaintext block arrays<br/>    uint32_t key[4]       = {0x00010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F};<br/>    uint32_t plaintext[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};<br/>    uint32_t ciphertext[4]= {0};<br/>    uint32_t TimeOut = AES_TIMEOUT;<br/><br/>    // Enable the AES peripheral clock routing on the AHB2 bus<br/>    RCC-&gt;AHB2ENR |= H563_RCC_AHB2ENR_AESEN;<br/><br/>    // Force a bus synchronization delay before accessing registers<br/>    __IO uint32_t bus_delay = RCC-&gt;AHB2ENR;<br/>    (void)bus_delay;<br/><br/>    // Ensure peripheral is disabled before writing configuration<br/>    H563_AES-&gt;CR &amp;= ~H563_AES_CR_EN;<br/><br/>    // Configure for ECB Mode, 128-bit Key, Encryption, No byte swapping<br/>    H563_AES-&gt;CR = 0;<br/><br/>    // Load the 128-bit key into the target key registers<br/>    H563_AES-&gt;KEYR0 = key[0];<br/>    H563_AES-&gt;KEYR1 = key[1];<br/>    H563_AES-&gt;KEYR2 = key[2];<br/>    H563_AES-&gt;KEYR3 = key[3];<br/><br/>    // Enable the peripheral<br/>    H563_AES-&gt;CR |= H563_AES_CR_EN;<br/><br/>    // Write input data. The 4th consecutive write triggers processing.<br/>    H563_AES-&gt;DINR = plaintext[0];<br/>    H563_AES-&gt;DINR = plaintext[1];<br/>    H563_AES-&gt;DINR = plaintext[2];<br/>    H563_AES-&gt;DINR = plaintext[3];<br/><br/>    // Poll the Computation Complete Flag (CCF)<br/>    while (!(H563_AES-&gt;SR &amp; H563_AES_SR_CCF) &amp;&amp; (TimeOut != 0)) {<br/>        // wait for the flag, with timeout. Adjust AES_TIMEOUT value based on real performance of H573 in your setup. I did not bother, it is in us anyway :-)<br/>    \tTimeOut--;<br/>    }<br/><br/>    // Clear the Computation Complete Flag for subsequent cycles<br/>    H563_AES-&gt;CR |= H563_AES_CR_CCFC;<br/><br/>    if (TimeOut == 0)<br/>    {<br/>    \t// no results from AES, this is H563<br/>    \treturn false;<br/>    }<br/>    else<br/>    {<br/>\t\t// Read out the processed ciphertext block<br/>\t\tciphertext[0] = H563_AES-&gt;DOUTR;<br/>\t\tciphertext[1] = H563_AES-&gt;DOUTR;<br/>\t\tciphertext[2] = H563_AES-&gt;DOUTR;<br/>\t\tciphertext[3] = H563_AES-&gt;DOUTR;<br/><br/>\t\t// expected result is:\t0x8A4433B4 0x4D961A0E 0x8FD38E55 0x45852AC1<br/>\t\tif ((ciphertext[0] == 0x8A4433B4) &amp;&amp; (ciphertext[1] == 0x4D961A0E) &amp;&amp; (ciphertext[2] == 0x8FD38E55) &amp;&amp; (ciphertext[3] == 0x45852AC1))<br/>\t\t{<br/>\t\t\treturn true;\t// we have H573 and result is correct<br/>\t\t}<br/>\t\telse<br/>\t\t{<br/>\t\t\treturn false;   // result is not correct, assume H563<br/>\t\t}<br/>    }<br/>}<br/></code></pre><p>😎</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Interesting. Don’t know why, but I was under the impression that the crypto disable is at the clock level. Thanks for letting us know.</p><p>JW</p></div>"
+    }
+  ]
+}

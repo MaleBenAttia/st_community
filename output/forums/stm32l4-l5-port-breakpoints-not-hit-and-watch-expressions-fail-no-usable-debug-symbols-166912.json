@@ -1,0 +1,66 @@
+{
+  "contentType": "question",
+  "id": "166894",
+  "publicId": "166912",
+  "title": "STM32L4 -> L5 port : breakpoints not hit and watch expressions fail (no usable debug symbols)",
+  "content": "<p>──────────────────────────────────────────────</p><p>SUMMARY</p><p>──────────────────────────────────────────────</p><p>While porting an existing STM32L4 project to an STM32L562CE target, source-level</p><p>breakpoints are never hit and adding watch expressions fails with \"No symbol in</p><p>current context\". The target runs normally (no fault), and manual pause resolves</p><p>to a plausible source line, but no symbolic debug capability works. Behaviour is</p><p>identical across both the ST-Link GDB server and the SEGGER J-Link GDB server,</p><p>indicating a target/build-side cause rather than a debug-probe cause.</p><p> </p><p>──────────────────────────────────────────────</p><p>ENVIRONMENT</p><p>──────────────────────────────────────────────</p><p>- Target MCU    : STM32L562CE (Cortex-M33, ARMv8-M), Device ID 0x472, Rev Z, 512 KB</p><p>- Target board   : External custom/eval STM32L5 board (self-powered, 3.3 V)</p><p>- Debug probe    : On-board ST-Link of a NUCLEO-L476RG, used to program the</p><p>           external L5 target via CN4 SWD (CN2 jumpers removed)</p><p>- ST-Link firmware : V2J47M34 (ST-LINK/V2-1)</p><p>- Host OS      : Ubuntu (Linux)</p><p>- IDE        : STM32CubeIDE</p><p>- Programmer    : STM32CubeProgrammer v2.18.0</p><p>- Debug transport  : SWD @ 4000 kHz</p><p>- Logging      : SEGGER RTT (SWD)</p><p> </p><p>──────────────────────────────────────────────</p><p>SYMPTOMS</p><p>──────────────────────────────────────────────</p><p>1. Source-level breakpoints in application code are never hit.</p><p>2. Target does NOT enter Reset_Handler trap or HardFault_Handler — code executes</p><p>  normally, no fault.</p><p>3. Manual \"Pause\" halts the core and shows a correct-looking source line.</p><p>4. Adding a watch expression fails:</p><p>   -var-create: unable to create variable object</p><p>   -data-evaluate-expression count -&gt; No symbol \"count\" in current context.</p><p>5. (Original secondary issue) SEGGER RTT logs do not appear in RTT Viewer.</p><p> </p><p>──────────────────────────────────────────────</p><p>DIAGNOSTICS PERFORMED (and results)</p><p>──────────────────────────────────────────────</p><p>[RULED OUT] Security / protection state</p><p> - TrustZone disabled via STM32CubeProgrammer CLI; verified TZEN = 0x0.</p><p> - RDP = 0xAA (Level 0, no protection).</p><p> - BOOT_LOCK = 0x0, NSBOOTADD0 -&gt; 0x08000000, no write protection active.</p><p> </p><p>[RULED OUT] Device identity / target selection</p><p> - STM32CubeProgrammer auto-detects target correctly: 0x472 / STM32L5xx /</p><p>  Cortex-M33 / 512 KB (confirms SWD link + external target driven correctly).</p><p> - Project target MCU is correctly set to STM32L562CE.</p><p> </p><p>[RULED OUT] Wiring</p><p> - NRST -&gt; CN4 pin 5, VREF -&gt; external board 3.3 V, GND/SWCLK/SWDIO connected.</p><p> - External target self-powered.</p><p> </p><p>[RULED OUT] Debug probe as root cause</p><p> - Switching between SEGGER J-Link GDB server and ST-Link GDB server produces</p><p>  identical behaviour (breakpoints ignored, expressions fail).</p><p> </p><p>I have attached sample project for reference.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "28",
+  "categoryName": "STM32CubeIDE (MCUs)",
+  "tags": [
+    "Debug",
+    "STM32L5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 54,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108199",
+    "username": "Mohinish Naik",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "48557",
+    "username": "Ozone",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/4ac27b25-840c-54c7-7e65-d890310d3217.png"
+  },
+  "createdAt": "2026-07-13T15:22:53+00:00",
+  "lastActivityAt": "2026-07-15T07:16:24+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743067,
+  "publishedAt": "2026-07-13T15:22:53+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeide-mcus-28/stm32l4-l5-port-breakpoints-not-hit-and-watch-expressions-fail-no-usable-debug-symbols-166912",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You are sure you talk about a debug build here, not a release one ?</p><p>If in doubt, you can look at the native output file (usually *.elf).<br/>A debug version will contain all the source file names, symbols and relevant code lines.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I am facing this issue in the Debug build. I checked the contents of the ./Debug/board_bring_up_STM32L562CE.elf file, and it does contain the source file names.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>So probably an issue with the IDE / project setup itself.<br/>Mind you, the debug / release builds are usually initialized by the IDE with “debug build” enabled or disabled, but one can easily change this manually.</p><p>I don’t use Cube, so I can’t really comment on details.</p><p>But perhaps you can explain what “<span style=\"color:#2980b9;\"><em>...porting an existing STM32L4 project to an STM32L562CE target, ...</em></span>” means in this context.<br/>Modifying an existing project is too much of a hassle most of the time, so I usually create a second project for the new target, and copy the sources over (or share them).</p></div>"
+    }
+  ]
+}

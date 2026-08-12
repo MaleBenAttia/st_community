@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "167538",
+  "publicId": "167569",
+  "title": "MPU9250 I2C fails with escalating WHOAMI→no-ACK pattern, only power cycle recovers it",
+  "content": "<p><strong>Setup:</strong> STM32F446RE Nucleo + MPU9250 (I2C1, PB8=SCL/PB9=SDA), breadboard wiring, HAL library, 100kHz standard mode.</p><p><strong>Symptom progression:</strong> Sensor works intermittently. When it fails, I see two distinct failure signatures that seem to escalate:</p><ol><li>First failure mode: <code>HAL_I2C_IsDeviceReady()</code> succeeds (device ACKs its address) but the WHOAMI register read returns the wrong value.</li>\t<li>After a couple of MCU resets without touching hardware: escalates to the device not ACKing its address at all (<code>IsDeviceReady</code> fails outright).</li></ol><p><strong>What I've tried:</strong></p><ul><li>Implemented the STM32 I2C \"clear busy flag erratum\" workaround (ST-documented fix for the analog filter/BUSY-flag lockup bug — the 15-step GPIO bit-bang + SWRST sequence). This did NOT reliably fix it — worked on some boots, failed on others, no clear pattern.</li>\t<li>A full power cycle (not just MCU reset — actual power removal) temporarily restores it to working.</li>\t<li>Reseated all breadboard connections (SDA, SCL, VCC, GND) multiple times — no change in behavior.</li></ul><p><strong>What this rules out (I think):</strong> Since a software/peripheral reset (MCU reset via erratum routine) doesn't consistently recover it, but a full power cycle does, this doesn't look like a pure STM32-peripheral-side busy-flag glitch. It looks more like either (a) the MPU9250 itself is getting into a bad internal state that only its own power-on-reset clears, or (b) a marginal physical connection whose state happens to change with power cycling but not with reseating alone.</p><p><strong>What I haven't yet done:</strong> Haven't scoped SCL/SDA on a logic analyzer specifically at the moment of a WHOAMI-fail or ADDRESS-fail event (only during the erratum routine itself, not during actual failure). Haven't checked VCC stability at the sensor pins during failure. Haven't tried moving the sensor off breadboard entirely (direct soldered wires) to rule out contact resistance.</p><p><strong>Question:</strong> Given a failure signature that degrades from \"wrong data, valid ACK\" to \"no ACK at all\" across resets, and that's only cleared by a full power cycle (not MCU reset, not reseating connections) — what's the most likely root cause, and what's the fastest way to conclusively isolate it (MPU9250 fault vs. bus/power fault vs. breadboard contact)?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeMX",
+    "I2C",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 44,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108940",
+    "username": "SUMSUM0701",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1684",
+    "username": "Saket_Om",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-08T16:30:52+00:00",
+  "lastActivityAt": "2026-08-10T10:29:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745236,
+  "publishedAt": "2026-08-08T16:30:52+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/mpu9250-i2c-fails-with-escalating-whoami-no-ack-pattern-only-power-cycle-recovers-it-167569",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Pullups?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Used 1 kohm external pull up resistors </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>So it’s time for a photo, schematic, and some logic analyzer traces.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108940\">@SUMSUM0701</user-mention> </p><p>Check whether the I²C bus is physically stuck, for example if SDA or SCL is being held low. In that case, the issue is usually not software-related but points to a hardware problem such as missing or incorrect pull-up resistors, poor PCB/contact quality, or a slave device stuck in an active state and blocking the bus.</p></div>"
+    }
+  ]
+}

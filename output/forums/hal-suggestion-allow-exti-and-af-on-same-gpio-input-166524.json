@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "166503",
+  "publicId": "166524",
+  "title": "HAL Suggestion: Allow EXTI and AF on same GPIO input",
+  "content": "<p>Some applications have the need to use an external interrupt from an GPIO input that is already configured as alternate function. My use case is to use EXTI on a rising edge of SPI_NSS input to detect a terminated SPI transfer on a slave.</p><p>So I need the combination of MODE_AF and EXTI_IT when configuring the GPIO input pin. Unfortunately, HAL does not support this and asserts on IS_GPIO_MODE(__MODE__) for this combination.</p><p>However, STM32 MCUs usually support this combination, so it makes sense to support this in HAL.</p><p>To allow this, I added some definitions in stm32g4xx_hal_gpio.h:</p><pre><code class=\"language-c\">#define  GPIO_MODE_AF_IT_RISING                    (MODE_AF | EXTI_IT | TRIGGER_RISING)                     /*!&lt; Alternate Function with External Interrupt Mode with Rising edge trigger detection          */ <br />#define  GPIO_MODE_AF_IT_FALLING                   (MODE_AF | EXTI_IT | TRIGGER_FALLING)                    /*!&lt; Alternate Function with External Interrupt Mode with Falling edge trigger detection         */ <br />#define  GPIO_MODE_AF_IT_RISING_FALLING            (MODE_AF | EXTI_IT | TRIGGER_RISING | TRIGGER_FALLING)   /*!&lt; Alternate Function with External Interrupt Mode with Rising/Falling edge trigger detection  */</code></pre><p>and updated the </p><pre><code class=\"language-c\">#define IS_GPIO_MODE(__MODE__)</code></pre><p>macro accordingly. No change in stm32g4xx_hal_gpio.c needed.</p><p>I suggest to add this to the STM32 HAL drivers of the MCUs that support this combination.</p><p>Regards, Norbert</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "GPIO-EXTI",
+    "STM32G4 series",
+    "HAL"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 3,
+  "votes": 0,
+  "views": 32,
+  "voteSet": [],
+  "likeSet": [
+    "35659",
+    "37189",
+    "39813"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "63808",
+    "username": "unterberg_rtb",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1684",
+    "username": "Saket_Om",
+    "avatar": ""
+  },
+  "createdAt": "2026-06-30T06:10:16+00:00",
+  "lastActivityAt": "2026-06-30T09:03:22+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 741567,
+  "publishedAt": "2026-06-30T06:10:16+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/hal-suggestion-allow-exti-and-af-on-same-gpio-input-166524",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>Hello ​<user-mention data-id=\"63808\">@unterberg_rtb</user-mention> </p><p><span style=\"background-color:#FFFFFF;\"><span style=\"color:#525a63;\">Thank you for bringing this issue to our attention.</span></span></p><p><span style=\"background-color:#FFFFFF;\"><span style=\"color:#525a63;\">I reported this internally.</span></span></p><p><span style=\"background-color:#FFFFFF;\"><span style=\"color:#525a63;\">Internal ticket number<strong>: CDM0063933 </strong><em><u>(This is an internal tracking number and is not accessible or usable by customers).</u></em></span></span></p></div>"
+    }
+  ]
+}

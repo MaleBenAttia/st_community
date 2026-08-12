@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "166829",
+  "publicId": "166846",
+  "title": "ST87M01: Keeping transparent TCP pipe open during host-managed TLS",
+  "content": "<p></p><p>Hello ,</p><p>I am planning a new NB-IoT design using the ST87M01 module. I am currently using a Nucleo-U545RE-Q host board paired with the EVKITST87M01-2 evaluation kit.</p><p>The application involves downloading weather observation files (TXT and XML formats, each under 100 KB) from a public server over HTTPS. Since the target server requires TLS 1.3, a large HARICA RSA ROOT CA 2021 (RSA-4096) certificate, and specific Cipher Suites not supported natively by the module, I have decided to run the TLS 1.3 stack directly on the STM32U545 host MCU. The ST87M01 will be used purely as a transparent TCP/IP pipe.</p><p>Specifically, the server enforces strict cryptographic handshakes with the following parameters, which I will process on the host MCU:</p><ul><li>TLS 1.2: ECDHE_RSA with curve P-256 and AES_128_GCM</li>\t<li>TLS 1.3: X25519 key exchange and AES_256_GCM</li>\t</ul><p>During early tests, I have noticed that the module frequently transitions from RRC Connected to RRC Idle mode, indicated by the unsolicited notification changing from +CSCON: 1 to +CSCON: 0. Given the high latency inherent to NB-IoT networks and the time required for the MCU to process the TLS handshake over the air, I have some concerns regarding socket stability.</p><p>I have a few questions about how to handle this with my current setup:</p><ol><li>TCP Socket Stability during +CSCON: 0 Transitions:<br />\tWhen the ST87M01 transitions from +CSCON: 1 to +CSCON: 0 (RRC Idle), does the underlying raw TCP socket remain reliably open in the modem's internal stack? Is there a risk that this RRC connection drop triggers a premature closure of the transparent TCP pipe while the MCU is negotiating the TLS session? Are there specific socket timeout parameters I should tune to ensure the pipe stays alive during these state changes?</li>\t<li>Power Management (eDRX / PSM) Interaction:<br />\tHow does the transparent TCP data streaming interact with the module's power-saving states during a host-managed session? If the TLS handshake or the subsequent 100 KB data transfer experiences delays while the module is in RRC Idle (+CSCON: 0), is there a risk that the module attempts to enter a deep sleep mode (like eDRX or PSM) and drops the active network context? What is the recommended configuration to keep the network pipe stable during active host-managed data transfers?</li>\t</ol><p>Any application notes, AT command recommendations, or tips for ensuring a stable raw TCP pipe with host-based TLS on this setup would be highly appreciated.</p><p> </p><p>Thank you in advance.</p><p>-Henry</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "52",
+  "categoryName": "Interface and connectivity ICs",
+  "tags": [
+    "ST87 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 32,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108137",
+    "username": "HenryK",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108137",
+    "username": "HenryK",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-10T12:14:55+00:00",
+  "lastActivityAt": "2026-08-11T09:04:38+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745352,
+  "publishedAt": "2026-07-10T12:14:55+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/interface-and-connectivity-ics-52/st87m01-keeping-transparent-tcp-pipe-open-during-host-managed-tls-166846",
+  "scraped_replies": []
+}

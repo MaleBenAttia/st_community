@@ -1,0 +1,62 @@
+{
+  "contentType": "question",
+  "id": "166862",
+  "publicId": "166879",
+  "title": "STM32L431 I2C Slave Transmit: AddrCallback(Read) -> ErrorCallback(AF) -> ListenCpltCallback, Master receives only 0xFF",
+  "content": "<p>Hello,</p><p>I am using an STM32L431 as an I2C Slave and an RL78/G13 as an I2C Master.<br />I am trying to transmit data from the STM32L431 (Slave) to the Renesas RL78 (Master).</p><p>When the RL78 performs an I2C read operation, the following callback sequence is observed on the STM32:<br /> 1 HAL_I2C_AddrCallback(Direction = Read)<br /> 2 HAL_I2C_ErrorCallback(ErrorCode = 4)<br /> 3 HAL_I2C_ListenCpltCallback()</p><p>Inside the AddrCallback I start the transmission using:<br /> HAL_I2C_Slave_Seq_Transmit_IT(hi2c, tx_buffer, tx_length, I2C_FIRST_AND_LAST_FRAME);<br />The function returns HAL_OK.</p><p>The transmit buffer contains a simple incrementing pattern, length 20 byte:<br /> 01 02 03 04 05</p><p>The STM32 reports that transmission has completed:<br /> XferSize = 20<br /> XferCount = 0</p><p>However, immediately afterwards the ErrorCallback is called with:<br /> TextErrorCode = 4</p><p>According to stm32l4xx_hal_i2c.h this corresponds to:<br /> HAL_I2C_ERROR_AF (Acknowledge failure / NACK).<br />On the RL78 side, the receive buffer does not contain the transmitted data.<br /> Expected: 01 02 03 04 05 ...  Actual:FF FF FF FF FF<br />which does not match the transmit buffer.</p><p>Additional observations:<br /> 1. AddrCallback is entered correctly with TransferDirection = Read.<br /> 2. HAL_I2C_Slave_Seq_Transmit_IT() returns HAL_OK.<br /> 3. Listen mode is restarted after ListenCpltCallback().<br /> 4. RL78 interrupt count indicates that the master expects all bytes to be transferred.</p><p>My main questions are:</p><p>Is the callback sequence<br /> 1 AddrCallback(Read)<br /> 2 -&gt; ErrorCallback(HAL_I2C_ERROR_AF)<br /> 3 -&gt; ListenCpltCallback</p><p>Expected for a normal master read transaction?<br /> 1. Can HAL_I2C_ERROR_AF occur after all bytes have already been transmitted successfully?<br /> 2. Under what conditions would XferCount reach zero while the master still receives only 0xFF?<br /> 3. Is there any known issue or required configuration when using HAL_I2C_Slave_Seq_Transmit_IT() in listen mode on STM32L431?</p><p><br />Any suggestions for debugging this issue would be greatly appreciated.<br />Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32L4 series",
+    "I2C"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 37,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108175",
+    "username": "y.hara",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108175",
+    "username": "y.hara",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-13T00:29:01+00:00",
+  "lastActivityAt": "2026-07-13T22:34:36+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742907,
+  "publishedAt": "2026-07-13T00:29:01+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32l431-i2c-slave-transmit-addrcallback-read-errorcallback-af-listencpltcallback-master-receives-only-0xff-166879",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108175\">@y.hara</user-mention> </p><blockquote><p> 1. Can HAL_I2C_ERROR_AF occur after all bytes have already been transmitted successfully?</p></blockquote><p>No HAL_I2C_ERROR_AF should not occur when all bytes have been transmitted. </p><blockquote><p>2. Under what conditions would XferCount reach zero while the master still receives only 0xFF?</p></blockquote><p>Did you check what happen on the bus using logic analyzer? </p><p>Are you using an external pullup resistor ? </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p></p><p>Saket_Om-san,</p><p>Thank you for your quick reply.</p><p> </p><p>1. I do not have a logic analyzer available at the moment, and being perchased.</p><p>   Therefore, we are investigating mainly by software and debugger.</p><p> </p><p>2. External pull-up 4.7k ohm resistors are mounted on both SDA and SCL lines.</p><p> </p><p>3.  AddrCallback(Read) -&gt; ErrorCallback(HAL_I2C_ERROR_AF) -&gt; ListenCpltCallback occurs every transaction.</p><p>    In HAL_I2C_Slave_Seq_Transmit_IT(), the transfer buffer contains valid test data(increment pattern 1..20), and XferCount </p><p>    reaches zero.</p><p>   However, the RL78 master always receives 0xFF data only.</p><p> </p><p>Could HAL_I2C_Slave_Seq_Transmit_IT() be completed internally while no actual data is driven onto the bus under some conditions?</p><p> </p><p>Thank you,</p></div>"
+    }
+  ]
+}

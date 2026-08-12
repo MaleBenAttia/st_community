@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "167046",
+  "publicId": "167065",
+  "title": "STM32L051 sometime do not exit from stop mode.",
+  "content": "<p><span style=\"color:#3300ff;\"><em>Post edited by ST moderator for the code. </em></span></p><p>Hi,<br />I have a pre-production batch of about 80 STM32L051 custom boards.<br />Under certain circumstances, the microcontroller goes into sleep mode and waits for an IRQ to restart.<br />Of these 80 boards, about 10 randomly, after going into sleep mode, don't restart (until a reset).<br />This is the code I use:</p><pre><code class=\"language-c\">__HAL_GPIO_EXTI_CLEAR_IT( VIB_SENS_MAIN_Pin);<br />__HAL_GPIO_EXTI_CLEAR_IT( VIB_SENS_BACKUP_Pin);<br /><br />NVIC_EnableIRQ( EXTI4_15_IRQn);<br />HAL_COMP_Stop_IT( &amp;hcomp1);<br />HAL_COMP_Stop_IT( &amp;hcomp2);<br /><br />__disable_irq();<br />__HAL_PWR_CLEAR_FLAG( PWR_FLAG_WU);<br />__HAL_GPIO_EXTI_CLEAR_IT( VIB_SENS_MAIN_Pin);<br />__HAL_GPIO_EXTI_CLEAR_IT( VIB_SENS_BACKUP_Pin);<br />__HAL_COMP_COMP1_EXTI_CLEAR_FLAG();<br />__HAL_COMP_COMP2_EXTI_CLEAR_FLAG();<br />delay_us( 5);<br /><br />HAL_SuspendTick();<br />HAL_PWR_EnterSTOPMode( PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);<br /><br />HAL_NVIC_SystemReset();</code></pre><p>What did I do wrong?</p><p>Thanks for the suggestion.</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32L0 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 1,
+  "votes": 0,
+  "views": 54,
+  "voteSet": [],
+  "likeSet": [
+    "108372"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "100933",
+    "username": "Ufoit",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "499",
+    "username": "mƎALLEm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f063c58-40af-4b0d-9381-650ca815d5be.png"
+  },
+  "createdAt": "2026-07-19T09:48:24+00:00",
+  "lastActivityAt": "2026-07-20T08:38:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743396,
+  "publishedAt": "2026-07-19T09:48:24+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32l051-sometime-do-not-exit-from-stop-mode-167065",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Forget about this.<br/>It looks like a hardware design issue that I need to have re-checked.<br/>Thanks.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"100933\">@Ufoit</user-mention> ,</p><p>In next time please use code button to paste a code :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8d2ef152-c802-4e9d-8760-5ff9c30a4a75.png\"/></figure><p>When you started this post, did you see this pop-up?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ada64190-edf9-4db2-8875-aad50a6358b2.png\"/></figure><p>PS: I’ve edited your post.</p></div>"
+    }
+  ]
+}

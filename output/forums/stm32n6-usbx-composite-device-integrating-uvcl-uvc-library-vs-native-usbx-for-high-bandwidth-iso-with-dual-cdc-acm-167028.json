@@ -1,0 +1,71 @@
+{
+  "contentType": "question",
+  "id": "167008",
+  "publicId": "167028",
+  "title": "STM32N6 USBX Composite Device: Integrating uvcl (UVC Library) vs. Native USBX for High-Bandwidth ISO with Dual CDC ACM",
+  "content": "<p>Hello ST Community,</p><p>I am working on an <strong>STM32N6</strong> project where I need to implement a USB composite device containing <strong>three distinct classes</strong>:</p><ol start=\"1\"><li>\t<p>CDC ACM Instance 1</p>\t</li>\t<li>\t<p>CDC ACM Instance 2</p>\t</li>\t<li>\t<p>UVC (USB Video Class)</p>\t</li></ol><p><strong>Current Status &amp; Setup:</strong></p><p>The dual CDC ACM implementation is fully stable and working properly. I generated the basic framework using STM32CubeMX (<code>.ioc</code>), which handles the initial USBX configuration, the first CDC instance, and sets up the composite device configuration. Following that, I manually added the second CDC ACM instance code to the project.</p><p>On top of this working multi-CDC setup, I now want to integrate the Video Class layer. I have enabled the core video class inside the <code>.ioc</code> file and regenerated the code to expand the descriptor framework.</p><p><strong>The Challenge:</strong></p><p>To support high-bandwidth Isochronous (ISO) streaming for the Video class component, I integrated the <strong><code>uvcl</code></strong> (USB Video Class Library) middleware extracted from the ST Edge AI Getting Started <a href=\"https://github.com/STMicroelectronics/x-cube-n6-camera-capture\" target=\"_blank\" rel=\"noreferrer noopener nofollow ugc\">example</a></p><p><strong>The issue started exactly upon adding the <code>uvcl</code> library.</strong> I noticed that its initialization function completely wraps the global USB device controller registration (<code>ux_device_stack_initialize</code>) and grabs the only available configuration descriptor for itself. By letting <code>uvcl</code> take over stack initialization this way, it breaks/overwrites my composite device descriptor layout, and my two working CDC instances stop functioning entirely.</p><p><strong>My Target Stream Configurations:</strong></p><p>The UVC interface needs to support high-bandwidth ISO transfers for <strong>YUV422 at 30 FPS</strong> across these specific resolutions:</p><ul><li>\t<p>224 X 224 @ 30 FPS</p>\t</li>\t<li>\t<p>256 X 256 @ 30 FPS</p>\t</li>\t<li>\t<p>480 X 480 @ 30 FPS</p>\t</li>\t<li>\t<p>640 X 480 @ 30 FPS</p>\t</li>\t<li>\t<p>800 X 480 @ 30 FPS</p>\t</li></ul><p><strong>My Questions:</strong></p><ol start=\"1\"><li>\t<p><strong>Is high-bandwidth ISO transfer possible using native USBX functions alone, without integrating the <code>uvcl</code> library?</strong> Can standard USBX handle multiple transactions per microframe (e.g., <code>wMaxPacketSize</code> set to <code>0x0C00</code> or <code>0x1400</code> for 2x or 3x 1024 bytes) natively via the standard <code>ux_device_class_video_transmit</code> engine?</p>\t</li>\t<li>\t<p>If <code>uvcl</code> is absolutely <em>mandatory</em> for achieving high-bandwidth ISO on the STM32N6, <strong>how can I integrate the library without letting it take over the global USBX initialization?</strong> Is there a recommended way to decouple <code>uvcl</code> from the core stack setup so that it only acts as a payload/streaming engine for the specific UVC class instance inside a pre-existing composite device configuration.</p>\t</li></ol><p>Any advice, patches, or architectural guidance on how to stream these YUV422 resolutions over a composite stack without breaking existing CDC paths would be highly appreciated!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "USB",
+    "STM32N6 series",
+    "USBX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 54,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "105916",
+    "username": "jeslet_joy",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "2057",
+    "username": "FBL",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-17T05:03:20+00:00",
+  "lastActivityAt": "2026-07-29T14:18:36+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744285,
+  "publishedAt": "2026-07-17T05:03:20+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-usbx-composite-device-integrating-uvcl-uvc-library-vs-native-usbx-for-high-bandwidth-iso-with-dual-cdc-acm-167028",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ST Community,</p><p>Is there any update on this issue?</p><p>I am working on an <strong>NUCLEO-N657X0-Q</strong> board using <strong>USBX</strong> to implement a <strong>USB Video Class (UVC)</strong> device.</p><p>Currently, my implementation works correctly when the endpoint maximum packet size is configured as:</p><pre><code>#define USBD_VIDEO_EPIN_HS_MPS    1024<br/></code></pre><p>With this configuration:</p><ul><li> <p>The USB device enumerates successfully.</p> </li> <li> <p>Windows recognizes the UVC device.</p> </li> <li> <p>Video streaming works</p> </li></ul><p>However, I would like to enable <strong>high-bandwidth isochronous transfers (3 transactions per microframe)</strong> to support higher-throughput video streaming, for example:</p><ul><li> <p>224 × 224 @ 30 FPS</p> </li> <li> <p>256 × 256 @ 30 FPS</p> </li> <li> <p>480 × 480 @ 30 FPS</p> </li> <li> <p>640 × 480 @ 30 FPS</p> </li> <li> <p>800 × 480 @ 30 FPS</p> </li></ul><p>To achieve this, I changed the endpoint configuration to:</p><pre><code>#define USBD_VIDEO_EPIN_HS_MPS    3072<br/></code></pre><p>After making <strong>only this change</strong>, the USB device <strong>fails to enumerate</strong>. The host no longer recognizes the device, and the enumeration process does not complete. In other words, the device works correctly with <code>USBD_VIDEO_EPIN_HS_MPS = 1024</code>, but changing it to <code>3072</code> immediately causes enumeration to fail.</p><p>I understand that according to the USB 2.0 specification, the <strong>maximum packet size for a high-speed isochronous endpoint is 1024 bytes</strong>, and higher bandwidth is achieved by using <strong>multiple transactions per microframe (up to three)</strong> rather than increasing the packet size itself.</p><p>Could someone please clarify the correct procedure for enabling <strong>high-bandwidth isochronous endpoints (3 × 1024)</strong> on STM32N6 using <strong>USBX</strong>?</p><ul><li> <p>Is changing <code>USBD_VIDEO_EPIN_HS_MPS</code> sufficient, or are additional descriptor modifications required?</p> </li> <li> <p>Does <code>wMaxPacketSize</code> need to be encoded manually for multiple transactions?</p> </li> <li> <p>Are there any additional USBX, PCD, or FIFO configurations required to successfully enumerate a high-bandwidth isochronous endpoint?</p> </li></ul></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"105916\">@jeslet_joy</user-mention> </p><p>Thank you for your questions, For HS ISO endpoints, the maximum payload per transaction is 1024 bytes.</p><p>You can refer to section 3. Endpoint size and buffering in this article <a href=\"https://community.st.com/stm32-mcus-60/how-to-select-suitable-endpoints-for-your-stm32-usb-application-139700\" rel=\"noopener noreferrer\" target=\"_self\">How to select suitable endpoints for your STM32 USB application | Community</a></p><p>For Higher bandwidth operation cannot be achieved by setting the packet size to 3072. </p><p>You should also verify that Alternate Setting 0 on the UVC Streaming interface is configured as zero bandwidth. This is required so that the device can enumerate without reserving isochronous bandwidth too early. The host then selects a non-zero alternate setting when streaming starts.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2057\">@FBL</user-mention> </p><p>Thank you for the guidance. I have verified my implementation:</p><p>Alternate Setting 0 is already configured as zero bandwidth (bNumEndpoints = 0)</p><p>I reviewed the article \"How to select suitable endpoints for your STM32 USB application\" - it mentions that HS isochronous max packet size is 1024 bytes, but doesn't cover high-bandwidth mode (multiple transactions per microframe).</p><ol type=\"1\"><li>wMaxPacketSize encoding: For 3×1024 bytes/microframe, should wMaxPacketSize be encoded as (2 &lt;&lt; 11) | 1024 = 0x1400?</li> <li>FIFO sizing: What TX FIFO size is required for high-bandwidth isochronous at 3×1024 bytes/microframe on STM32N6?</li> <li>Are there any PCD or USBX-specific settings needed?</li></ol></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @jeslet_joy</p><ol><li>Yes, that is correct, provided that XFERSIZ stays within the controller’s allowed range for periodic IN transfers.</li> <li>MCNT defines how many packets are scheduled in the service interval, so the Tx FIFO sizing must be validated accordingly. The controller must have the full payload available in the FIFO before the IN token is handled; otherwise, the transfer may be incomplete.</li></ol><ol start=\"3\"><li>I raised a ticket about the current implementation of high bandwidth in USBX. For internal reference CDM0064764 </li></ol></div>"
+    }
+  ]
+}

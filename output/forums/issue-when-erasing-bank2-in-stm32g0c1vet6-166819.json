@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "166803",
+  "publicId": "166819",
+  "title": "Issue when erasing BANK2 in STM32G0C1VET6",
+  "content": "<p>Hello,</p><p> </p><p>I wrote a code to erase BANK2 flash memory for STM32G0C1VET6. The thing is that in some cases the erasing part works but in some cases it fails.</p><p>I wrote the code to be ran in BANK1,the production code will use the proper start address and size, for this testing I’m forcing the erasing to happen in BANK2 for pages 0 and 1. As I commented, in some cases the erasing works, but sometimes there is an error returned by HAL_FLASHEx_Erase, which is HAL_TIMEOUT. I added proper refresh to watchdog and also some PREFETCH calls but even with that the issue persist. Attached is an image of the SR register once the HAL_TIMEOUT is returned. If I continue the execution of the code there is a hard fault caused when calling the HAL_FLASH_Lock (image attached). What could be wrong?</p><p>I'm using STM32CubeIDE along with Stlink - V3.</p><p>If the flash is already erased, calling the Erase function could cause the problem?</p><p>Could it be related to some FLASH latency configurations?</p><pre><code class=\"language-c\">bool __attribute__((optimize(\"O0\"))) FlashDrv_EraseApp(const uint32_t e_mem_addr, const uint32_t n_img_len)<br />{<br />    vip_error_code_t flash_drv_error = VIP_E_INVALID_PARAMS;<br /><br />    if((FLASH_DRV_APP_START_ADDRESS == e_mem_addr) &amp;&amp; (FLASH_DRV_APP_SIZE == n_img_len))<br />    {<br />        uint32_t page_error = 0U;<br />        HAL_StatusTypeDef hal_error = HAL_OK;<br />        FLASH_EraseInitTypeDef erase_init;<br /><br />        FLASH-&gt;SR = FLASH_SR_CLEAR; /* Clean any pending errors */<br />        erase_init.TypeErase = FLASH_TYPEERASE_PAGES;<br />        erase_init.Banks   = FLASH_BANK_2;<br />        erase_init.Page    = 0;<br />        erase_init.NbPages = 1U;<br /><br />        if(HAL_OK == HAL_FLASH_Unlock())<br />        {<br />            MX_IWDG_Refresh();<br />            __HAL_FLASH_PREFETCH_BUFFER_DISABLE();<br />            hal_error = HAL_FLASHEx_Erase(&amp;erase_init, &amp;page_error);<br />            __HAL_FLASH_PREFETCH_BUFFER_ENABLE();<br /><br />            if((HAL_OK == hal_error) &amp;&amp; (FLASH_DRV_ERASE_SUCCESS == page_error))<br />            {<br />                MX_IWDG_Refresh();<br />                erase_init.TypeErase = FLASH_TYPEERASE_PAGES;<br />                erase_init.Banks = FLASH_BANK_2;<br />                erase_init.Page = 1U;<br />                erase_init.NbPages = 1U;<br />                MX_IWDG_Refresh();<br />                __HAL_FLASH_PREFETCH_BUFFER_DISABLE();<br />                hal_error = HAL_FLASHEx_Erase(&amp;erase_init, &amp;page_error);<br />                __HAL_FLASH_PREFETCH_BUFFER_ENABLE();<br /><br />                if((HAL_OK == hal_error) &amp;&amp; (FLASH_DRV_ERASE_SUCCESS == page_error))<br />                {<br />                    flash_drv_error = VIP_E_SUCCESS;<br />                }<br />                else<br />                {<br />                    flash_drv_error = VIP_E_FLASH_ERASING_FAILED;<br />                }<br />            }<br />            else<br />            {<br />                flash_drv_error = VIP_E_FLASH_ERASING_FAILED;<br />            }<br /><br />            if(HAL_OK != HAL_FLASH_Lock())<br />            {<br />                flash_drv_error = VIP_E_FLASH_LOCKING_FAILED;<br />            }<br />        }<br />        else<br />        {<br />            flash_drv_error = VIP_E_FLASH_LOCKING_FAILED;<br />        }<br />    }<br /><br />    return ((VIP_E_SUCCESS == flash_drv_error) ? true : false);<br />}</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32G0 series",
+    "Flash"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 84,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108119",
+    "username": "JDambrocio",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "499",
+    "username": "mƎALLEm",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7f063c58-40af-4b0d-9381-650ca815d5be.png"
+  },
+  "createdAt": "2026-07-09T16:22:52+00:00",
+  "lastActivityAt": "2026-07-09T19:54:45+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742644,
+  "publishedAt": "2026-07-09T16:22:52+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/issue-when-erasing-bank2-in-stm32g0c1vet6-166819",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108119\">@JDambrocio</user-mention> and welcome to the ST community,</p><p>You’ve posted that thread in “Automotive MCUs” forum board which is not the right forum according the device you are using.</p><p>That post should be located in “STM32 MCUs Embedded software” forum board.</p><p>I move the post then.</p><p>Good luck.</p></div>"
+    }
+  ]
+}

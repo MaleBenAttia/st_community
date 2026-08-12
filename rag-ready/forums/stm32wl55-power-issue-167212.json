@@ -1,0 +1,26 @@
+{
+    "forum": [
+        {
+            "id": "167186",
+            "publicId": "167212",
+            "title": "STM32WL55 Power issue",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wl55-power-issue-167212",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Power",
+                "STM32WL series",
+                "LoRa"
+            ],
+            "published_at": "2026-07-24T10:29:10+00:00",
+            "views": 77,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "",
+            "content_text": "I am working on STM32WL55 dual core in which the current consumption is as not as expected as according to the datasheet. It is hardcoded for high power only. and the current consumption is coming for +17dBm and +14dBm as expected which is 58mA and 45mA approax but when switching to the +20dBm and +22dBm it is getting capped at 68mA only. It is not going above 68mA at any way. I have hardcoded it to 22dBm but it is still getting capped to 68mA only. I want to do changes in the code in such a way that the current consumption changes. what are the possible reasons of it and what are the functions where the code modification can help in changing the current consumption. Is there that ST has capped it to +18dBm or +17dBM  and will never work above it?\n\n```\n\nvoid SUBGRF_SetTxParams( uint8_t paSelect, int8_t power, RadioRampTimes_t rampTime )\n\n{\n\nuint8_t buf[2];\n\nint32_t max_power;\n\nif (paSelect == RFO_LP)\n\n{\n\nmax_power = RBI_GetRFOMaxPowerConfig(RBI_RFO_LP_MAXPOWER);\n\nif (power > max_power)\n\n{\n\npower = max_power;\n\n}\n\nif (max_power == 14)\n\n{\n\nSUBGRF_SetPaConfig(0x04, 0x00, 0x01, 0x01);\n\npower = 0x0E - (max_power - power);\n\n}\n\nelse if (max_power == 10)\n\n{\n\nSUBGRF_SetPaConfig(0x01, 0x00, 0x01, 0x01);\n\npower = 0x0D - (max_power - power);\n\n}\n\nelse /*default 15dBm*/\n\n{\n\nSUBGRF_SetPaConfig(0x07, 0x00, 0x01, 0x01);\n\npower = 0x0E - (max_power - power);\n\n}\n\nif (power < -17)\n\n{\n\npower = -17;\n\n}\n\nSUBGRF_WriteRegister(REG_OCP, 0x18); /* current max is 80 mA for the whole device*/\n\n}\n\nelse /* rfo_hp*/\n\n{\n\n/* WORKAROUND - Better Resistance of the RFO High Power Tx to Antenna Mismatch, see STM32WL Erratasheet*/\n\nSUBGRF_WriteRegister(REG_TX_CLAMP, SUBGRF_ReadRegister(REG_TX_CLAMP) | (0x0F << 1));\n\n/* WORKAROUND END*/\n\nmax_power = RBI_GetRFOMaxPowerConfig(RBI_RFO_HP_MAXPOWER);\n\nif (power > max_power)\n\n{\n\npower = max_power;\n\n}\n\nif (max_power == 20)\n\n{\n\nSUBGRF_SetPaConfig(0x03, 0x05, 0x00, 0x01);\n\npower = 0x16 - (max_power - power);\n\n}\n\nelse if (max_power == 17)\n\n{\n\nSUBGRF_SetPaConfig(0x02, 0x03, 0x00, 0x01);\n\npower = 0x16 - (max_power - power);\n\n}\n\nelse if (max_power == 14)\n\n{\n\nSUBGRF_SetPaConfig(0x02, 0x02, 0x00, 0x01);\n\npower = 0x0E - (max_power - power);\n\n}\n\nelse /*22dBm*/\n\n{\n\nSUBGRF_SetPaConfig(0x04, 0x07, 0x00, 0x01);\n\npower = 0x16 - (max_power - power);\n\n}\n\nif (power < -9)\n\n{\n\npower = -9;\n\n}\n\nSUBGRF_WriteRegister(REG_OCP, 0x38); /*current max 160mA for the whole device*/\n\n}\n\nbuf[0] = power;\n\nbuf[1] = (uint8_t)rampTime;\n\nSUBGRF_WriteCommand(RADIO_SET_TXPARAMS, buf, 2);\n\n}\n\nstatic void RadioInit( RadioEvents_t *events )\n\n{\n\nRadioEvents = events;\n\nSubgRf.RxContinuous = false;\n\nSubgRf.TxTimeout = 0;\n\nSubgRf.RxTimeout = 0;\n\n/*See STM32WL Errata: RadioSetRxDutyCycle*/\n\nSubgRf.RxDcPreambleDetectTimeout = 0;\n\n#if( RADIO_LR_FHSS_IS_ON == 1 )\n\nSubgRf.lr_fhss.is_lr_fhss_on = false;\n\n#endif /* RADIO_LR_FHSS_IS_ON == 1 */\n\nSUBGRF_Init( RadioOnDioIrq );\n\n/*SubgRf.publicNetwork set to false*/\n\nSubgRf.PublicNetwork.Current = false;\n\nSubgRf.PublicNetwork.Previous = false;\n\nRADIO_IRQ_PROCESS_INIT();\n\nSUBGRF_SetRegulatorMode( );\n\nSUBGRF_SetBufferBaseAddress( 0x00, 0x00 );\n\nSUBGRF_SetTxParams( RFO_HP, 0, RADIO_RAMP_200_US );\n\nSUBGRF_SetDioIrqParams( IRQ_RADIO_ALL, IRQ_RADIO_ALL, IRQ_RADIO_NONE, IRQ_RADIO_NONE );\n\nRadioSleep();\n\n// Initialize driver timeout timers\n\nTimerInit( &TxTimeoutTimer, RadioOnTxTimeoutIrq );\n\nTimerInit( &RxTimeoutTimer, RadioOnRxTimeoutIrq );\n\nTimerStop( &TxTimeoutTimer );\n\nTimerStop( &RxTimeoutTimer );\n\n}\n\n```\n\nWhat are the possibilities in the code for the above situation\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61e9de6f-7fbf-4c11-b5b0-6def596b643d.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61e9de6f-7fbf-4c11-b5b0-6def596b643d.png"
+            ],
+            "author": "Somya"
+        }
+    ]
+}

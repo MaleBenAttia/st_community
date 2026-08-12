@@ -1,0 +1,89 @@
+{
+  "contentType": "question",
+  "id": "166644",
+  "publicId": "166669",
+  "title": "UART DMA collision STM32L4",
+  "content": "<p>I have two concurrent UART DMA RX running in STM32l431.</p><p> </p><p>UART2 is running all the time and UART3 is started when a command is sent and waiting for data.</p><p> </p><p>Both of them works, but when I try to make a new DMA transfer on one of them the other stops which I do not want. Why does this happens?</p><p> </p><p>Here is the initiation:</p><pre><code class=\"language-c\">DMA_HandleTypeDef hdma_rx2;<br />DMA_HandleTypeDef hdma_rx3;<br />DMA_HandleTypeDef hdma_lrx1;<br /><br />DMA_InitTypeDef DMA_InitStructure;<br />void HW_DMA_Init()<br />{<br />\t__HAL_RCC_DMA1_FORCE_RESET();<br />\t__HAL_RCC_DMA1_RELEASE_RESET();<br />\t__HAL_RCC_DMA1_CLK_ENABLE();<br /><br />\t__HAL_RCC_DMA2_FORCE_RESET();<br />\t__HAL_RCC_DMA2_RELEASE_RESET();<br />\t__HAL_RCC_DMA2_CLK_ENABLE();<br /><br />\tcurrentDMABufferWrite = 1;<br />\tcurrentDMABufferRead = 0;<br /><br />\tdmaLen1 = 0;<br />\tdmaLen2 = 0;<br />\tdmaHasData1 = false;<br />\tdmaHasData2 = false;<br /><br />\t /* Configure the DMA handler for reception process */<br />\thdma_rx2.Instance                 = DMA1_Channel6;<br />\thdma_rx2.Init.Direction           = DMA_PERIPH_TO_MEMORY;<br />\thdma_rx2.Init.PeriphInc           = DMA_PINC_DISABLE;<br />\thdma_rx2.Init.MemInc              = DMA_MINC_ENABLE;<br />\thdma_rx2.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;<br />\thdma_rx2.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;<br />\thdma_rx2.Init.Mode                = DMA_CIRCULAR;<br />\thdma_rx2.Init.Priority            = DMA_PRIORITY_HIGH;<br />\thdma_rx2.Init.Request             = DMA_REQUEST_2;<br />\tHAL_DMA_Init(&amp;hdma_rx2);<br /><br />\t/* Associate the initialized DMA handle to the the UART handle */<br />\t__HAL_LINKDMA(&amp;UartHandle2, hdmarx, hdma_rx2);<br />\tHAL_StatusTypeDef err;<br />\terr = HAL_DMA_Start(&amp;hdma_rx2, (uint32_t)&amp;UartHandle2.Instance-&gt;RDR, (uint32_t)dmaData1, DMA1_SIZE);\t//OBS!!! kolla att den alltid kör<br />\tif(err != HAL_OK)<br />\t{<br />\t\tprintf(\"DMA err %d\\n\\r\", err);<br />\t}<br />\tHAL_UART_Receive_DMA(&amp;UartHandle2, (uint8_t *)dmaData1, DMA1_SIZE);<br /><br />\thdma_rx3.Instance                 = DMA1_Channel3;<br />\thdma_rx3.Init.Direction           = DMA_PERIPH_TO_MEMORY;<br />\thdma_rx3.Init.PeriphInc           = DMA_PINC_DISABLE;<br />\thdma_rx3.Init.MemInc              = DMA_MINC_ENABLE;<br />\thdma_rx3.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;<br />\thdma_rx3.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;<br />\thdma_rx3.Init.Mode                = DMA_NORMAL;<br />\thdma_rx3.Init.Priority            = DMA_PRIORITY_MEDIUM;<br />\thdma_rx3.Init.Request             = DMA_REQUEST_2;<br />\tHAL_DMA_Init(&amp;hdma_rx3);<br /><br />\t/* Associate the initialized DMA handle to the the UART handle */<br />\t__HAL_LINKDMA(&amp;UartHandle3, hdmarx, hdma_rx3);<br /><br />\t LL_DMA_SetPeriphRequest(DMA2, LL_DMA_CHANNEL_7, LL_DMA_REQUEST_4);<br />\t LL_DMA_SetDataTransferDirection(DMA2, LL_DMA_CHANNEL_7, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);<br />\t LL_DMA_SetChannelPriorityLevel(DMA2, LL_DMA_CHANNEL_7, LL_DMA_PRIORITY_MEDIUM);<br />\t LL_DMA_SetMode(DMA2, LL_DMA_CHANNEL_7, LL_DMA_MODE_NORMAL);<br />\t LL_DMA_SetPeriphIncMode(DMA2, LL_DMA_CHANNEL_7, LL_DMA_PERIPH_NOINCREMENT);<br />\t LL_DMA_SetMemoryIncMode(DMA2, LL_DMA_CHANNEL_7, LL_DMA_MEMORY_INCREMENT);<br />\t LL_DMA_SetPeriphSize(DMA2, LL_DMA_CHANNEL_7, LL_DMA_PDATAALIGN_BYTE);<br />\t LL_DMA_SetMemorySize(DMA2, LL_DMA_CHANNEL_7, LL_DMA_MDATAALIGN_BYTE);<br /><br />}</code></pre><p> </p><p> </p><p>When I run these functions:</p><p>HW_DMA_DisableUart3Rx();   <br />HW_DMA_NewUart3Rx(response, RESPONE_LENGTH);</p><p> </p><p>UART2 DMA transfer stops.</p><pre><code class=\"language-c\"><br /><br />void HW_DMA_NewUart3Rx(char databuffer[], uint32_t size)<br />{<br />\tHW_DMA_CheckErrorflags();<br />\t//LL_USART_ClearFlag_ORE(USART3);<br />\tHAL_StatusTypeDef err = HAL_DMA_Start(&amp;hdma_rx3, (uint32_t)&amp;UartHandle3.Instance-&gt;RDR, (uint32_t)databuffer, size);\t//OBS!!! kolla att den alltid kör<br />\tif(err != HAL_OK)<br />\t{<br />\t\tprintf(\"DMA err %d\\n\\r\", err);<br />\t}<br /><br />\tif(HAL_UART_Receive_DMA(&amp;UartHandle3, (uint8_t *)databuffer, size) != HAL_OK)<br />\t{<br />\t\tprintf(\"DMA fel\\n\\r\");<br />\t}<br />}<br /><br />void HW_DMA_DisableUart3Rx()<br />{<br />\tHAL_UART_DMAStop(&amp;UartHandle3);<br />\t//DMA_Cmd(DMA1_Stream1, DISABLE);\t//\tDMA_Cmd(DMA1_Channel3, DISABLE);<br />}<br /><br />bool HW_DMA_CheckErrorflags()<br />{<br />\t//if(DMA1-&gt;HIFCR || DMA1-&gt;HISR || DMA1-&gt;LIFCR || DMA1-&gt;LISR)<br />\t//if(DMA_GetFlagStatus(DMA1_Stream5, DMA_IT_TCIF5) ||<br />\t// DMA_GetFlagStatus(DMA1_Stream5, DMA_IT_HTIF5) ||<br />\tif(LL_USART_IsActiveFlag_ORE(USART2) != 0)<br />\t{<br />\t\tLL_USART_ClearFlag_ORE(USART2);<br />\t}<br />\tif(LL_USART_IsActiveFlag_ORE(USART3) != 0)<br />\t{<br />\t\tLL_USART_ClearFlag_ORE(USART3);<br />\t}<br /><br />\tif(LL_USART_IsActiveFlag_ORE(LPUART1) != 0)<br />\t{<br />\t\tLL_USART_ClearFlag_ORE(LPUART1);<br />\t}<br /><br />\tif(\tHAL_DMA_GetError(&amp;hdma_rx2) != 0 || HAL_DMA_GetError(&amp;hdma_rx3) != 0)<br />\t{<br />\t\tprintf(\"DMA fel: %lu, %lu\\n\\r\", HAL_DMA_GetError(&amp;hdma_rx2), HAL_DMA_GetError(&amp;hdma_rx3));<br /><br />\t\tHAL_DMA_Abort(&amp;hdma_rx2);<br />\t\tHAL_DMA_Abort(&amp;hdma_rx3);<br /><br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_TE6);<br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_HT6);<br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_TC6);<br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_GL6);<br /><br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_TE3);<br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_HT3);<br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_TC3);<br />\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_rx2, DMA_FLAG_GL3);<br /><br /><br />\t\tHW_DMA_Init();<br />\t\treturn false;<br />\t}<br />\tif(\tHAL_DMA_GetError(&amp;hdma_lrx1) != 0)<br />\t\t{<br />\t\t\tprintf(\"DMA l1 fel: %lu \\n\\r\", HAL_DMA_GetError(&amp;hdma_lrx1));<br /><br />\t\t\tHAL_DMA_Abort(&amp;hdma_lrx1);<br /><br />\t\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_lrx1, DMA_FLAG_TE7);<br />\t\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_lrx1, DMA_FLAG_HT7);<br />\t\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_lrx1, DMA_FLAG_TC7);<br />\t\t\t__HAL_DMA_CLEAR_FLAG(&amp;hdma_lrx1, DMA_FLAG_GL7);<br /><br />\t\t\tHW_DMA_Init();<br />\t\t\treturn false;<br />\t\t}<br />\treturn true;<br /><br />}</code></pre><p> </p><p> </p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32L4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 10,
+  "inclusiveVisibleReplyCount": 10,
+  "likes": 0,
+  "votes": 0,
+  "views": 188,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "50995",
+    "username": "RFlod.2",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/11c3b3e1-3c2c-2dcc-50e6-944ea7f4ba51.png"
+  },
+  "lastContributor": {
+    "id": "39813",
+    "username": "LCE",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/c6547345-4bfa-4b5a-b6f7-8d606679294e.png"
+  },
+  "createdAt": "2026-07-03T21:12:22+00:00",
+  "lastActivityAt": "2026-08-07T14:49:05+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745101,
+  "publishedAt": "2026-07-03T21:12:22+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/uart-dma-collision-stm32l4-166669",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>There are two issues in your code:</p><p><strong>1.</strong> In <code>HW_DMA_NewUart3Rx</code> you call <code>HAL_DMA_Start</code> followed by <code>HAL_UART_Receive_DMA</code>. The problem is that <code>HAL_DMA_Start</code> sets the DMA state to <code>HAL_DMA_STATE_BUSY</code>, so when <code>HAL_UART_Receive_DMA</code> tries to start the DMA internally, it gets <code>HAL_BUSY</code> and silently fails. Remove the explicit <code>HAL_DMA_Start</code> call — <code>HAL_UART_Receive_DMA</code> handles DMA setup internally.</p><p><strong>2.</strong> In <code>HW_DMA_CheckErrorflags</code>, when any DMA error is detected, it calls <code>HW_DMA_Init</code> which does <code>__HAL_RCC_DMA1_FORCE_RESET()</code>. This resets the entire DMA1 controller including all active channels — so UART2 DMA gets killed even though it had no error. Fix the error recovery to only restart the affected channel, not the whole DMA controller.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"pavich\"><div class=\"content-quote-content\"> <p><code>HAL_UART_Receive_DMA</code> tries to start the DMA internally, it gets <code>HAL_BUSY</code> and silently fails. .</p> </div></content-quote><p>Does it ?</p><p>Wouldn’t it return <code>HAL_BUSY</code>? Or another HAL error?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, I made a mistake. <code>HAL_UART_Receive_DMA</code> does not fail silently — it returns <code>HAL_BUSY</code>. This happens because the previous call to <code>HAL_DMA_Start</code> already set <code>hdma-&gt;State</code> to <code>HAL_DMA_STATE_BUSY</code>, so when <code>HAL_UART_Receive_DMA</code> tries to start the DMA internally, it sees the channel is already BUSY and returns <code>HAL_BUSY</code>.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"50995\">@RFlod.2</user-mention> </p><p>There are a few things in your code that could be triggering this issue.</p><p>For example, in HW_DMA_CheckErrorflags(), why are you aborting both DMA channels when only one shows a problem? It would be more appropriate to abort only the DMA channel that actually caused the issue.</p><p>Also, your DMA configuration looks confusing. You configure rx2 on channel 6 with:</p><p>hdma_rx2.Instance = DMA1_Channel6;</p><p>but later you also configure DMA settings with LL code on channel 7, which does not match the previous setup.</p><p>Another point is this part:</p><p>HAL_DMA_Start(&amp;hdma_rx3, (uint32_t)&amp;UartHandle3.Instance-&gt;RDR, (uint32_t)databuffer, size); HAL_UART_Receive_DMA(&amp;UartHandle3, (uint8_t *)databuffer, size);</p><p>This can be harmful because HAL_UART_Receive_DMA() already configures and starts the DMA transfer, so calling HAL_DMA_Start() first may interfere with the HAL state machine.</p><p>In general, I suggest you optimize the code and simplify the DMA handling. The issue is most likely related to the current DMA state or configuration. Try improving that part and see whether the problem disappears.<br/>BR<br/>Gyessine</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I am now back from vacation.</p><p> </p><p>I removed DMA start as:<br/> </p><pre><code class=\"language-c\">void HW_DMA_NewUart3Rx(char databuffer[], uint32_t size)<br/>{<br/>\tHW_DMA_CheckErrorflags();<br/>\t//LL_USART_ClearFlag_ORE(USART3);<br/>\t/*HAL_StatusTypeDef err = HAL_DMA_Start(&amp;hdma_rx3, (uint32_t)&amp;UartHandle3.Instance-&gt;RDR, (uint32_t)databuffer, size);\t//OBS!!! kolla att den alltid kör<br/>\tif(err != HAL_OK)<br/>\t{<br/>\t\tprintf(\"DMA err %d\\n\\r\", err);<br/>\t}*/<br/><br/>\tif(HAL_UART_Receive_DMA(&amp;UartHandle3, (uint8_t *)databuffer, size) != HAL_OK)<br/>\t{<br/>\t\tprintf(\"DMA fel\\n\\r\");<br/>\t}<br/>}</code></pre><p>but the issue remains:<br/>HW_DMA_DisableUart3Rx();   <br/>HW_DMA_NewUart3Rx(response, RESPONE_LENGTH);</p><p> </p><p>stops both DMA channels</p><p>I am aware that HW_DMA_CheckErrorflags restarts both DMA but this does not affect, since the function is not run when issue appears </p><p> </p><p>Regarding</p><blockquote><p>Also, your DMA configuration looks confusing. You configure rx2 on channel 6 with:</p><p>hdma_rx2.Instance = DMA1_Channel6;</p><p>but later you also configure DMA settings with LL code on channel 7, which does not match the previous setup.</p></blockquote><p>There are different channels for differnt DMA: channel6 for DMA1 and channel 7 for DMA2 and DMA2 is currently not used.</p><p> </p><p>I do think DMA is confusing in STM32 so it is likely that I made something wrong, but I cannot see what.</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Seems like the issue is not the actual DMA transfer, instead it is when parsing both DMA “in parallell”. Will debug that for now.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You set both DMAs to the same request number, that correct?</p><p>hdma_<strong>rx2</strong>.Init.Request = DMA_REQUEST_2;</p><p>…</p><p>hdma_<strong>rx3</strong>.Init.Request = DMA_REQUEST_2;</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>My understanding is that it is correct</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/904f9031-eea6-4e81-a768-3f556a6ac3bc.png\"/></figure><p> But again, ST DMA registers are confusing</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, then it’s correct.</p><p>It’s different from H7, the DMA MUX I looked at last...</p></div>"
+    }
+  ]
+}

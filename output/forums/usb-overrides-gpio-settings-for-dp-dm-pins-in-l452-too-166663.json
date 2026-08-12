@@ -1,0 +1,88 @@
+{
+  "contentType": "question",
+  "id": "166638",
+  "publicId": "166663",
+  "title": "USB overrides GPIO settings for DP/DM pins, in 'L452, too",
+  "content": "<p>It’s <a href=\"https://community.st.com/stm32-mcus-products-25/stm32f4-i2s2-pin-af-multiplexer-issue-s-97402\" rel=\"noreferrer nofollow ugc\" target=\"_self\">long known</a> that in ‘F4, if the USB/OTG’s PHY is switched on, it overrides the GPIO settings of its DP/DM pins.</p><p>Today, I’ve spent some quality time debugging hardware, having been bitten by the same thing on a ‘L452.</p><p>I didn’t expect this, given entirely different USB module.</p><p>Neither of these is documented, of course.</p><p>Maybe it will spare somebody other’s time.</p><p>And maybe ST will document it, one day. It’s only^H^H^H^Hnot even 12 years since that first post, after all.</p><p>JW</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32L4 series",
+    "USB"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 8,
+  "inclusiveReplyCount": 8,
+  "inclusiveVisibleReplyCount": 8,
+  "likes": 1,
+  "votes": 0,
+  "views": 122,
+  "voteSet": [],
+  "likeSet": [
+    "22142"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "17162",
+    "username": "waclawek.jan",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/43c60519-a334-d573-5e4a-aca0ba6642b5.png"
+  },
+  "lastContributor": {
+    "id": "108937",
+    "username": "Ali120",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/bb5d1bed-4b48-45f7-af3b-106a0988fe2a.png"
+  },
+  "createdAt": "2026-07-03T15:02:55+00:00",
+  "lastActivityAt": "2026-08-09T06:10:57+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745172,
+  "publishedAt": "2026-07-03T15:02:55+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/usb-overrides-gpio-settings-for-dp-dm-pins-in-l452-too-166663",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, @waclawek.jan, for reporting this.</p><p>Indeed, the USB OTG HS peripheral can override PB14/PB15, even when those pins are configured with a GPIO alternate function. Disabling USB OTG HS, or explicitly clearing the transceiver power down bit, restores normal operation on these pins in their AF roles.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0e356ec-e9b7-4abe-98bb-2537bd71ea4e.png\"/><figcaption>PWRDWN</figcaption></figure><p>Not sure for USB controller. Can you confirm the concerned bit is PDWN in USB_CNTR? I will try to reproduce. Then we can check internally whether this behavior can be documented in an FAQ or other documentation, and I will get back to you.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2057\">@FBL</user-mention> ,</p><p>On the ‘L452, the USB stack was up and running, but hardware issue (which at the end of the day turned out to be faulty connector, with pins inaccessible for direct probing) prevented it to connect to host. To find out where’s the problem, I connected debugger, stopped execution, in debugger changed GPIOA_MODER bits for PA11 and PA12 from 0b10 for AF to 0b01 for Out, and then toggled manually bits 11 and 12 in GPIOA_ODR. As I couldn’t see any of the respective pins at host toggling, I attributed that foolishly to hardware fault (there’s also a MUX involved, sandwiched between boards thus inaccessible too, so fault of that might’ve been a possibility too). Only later it occurred to me that it might be the same issue as with the ‘F4 OTG, went to the USB peripheral in debugger and changed USB_CNTR from whatever state it was (don’t remember except the two LSBs being 0) to 0x0003. And then suddenly one of the pins started to toggle with GPIOA_ODR (the other was victim of the faulty connector, but after repairing I confirmed that one toggles as expected too).</p><p>This should be easy to reproduce on any ‘L452 board, maybe even just entering the DFU bootloader and then stopping in debugger, so no code needs to be written.</p><p>JW</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p><p> </p><p>Your observation is consistent with the pin sharing behavior on STM32L452: PA11/PA12 are shared with USB FS DP/DM, and when the USB peripheral/transceiver is active, those pins are controlled by the USB analog block rather than by GPIO.</p><p> </p><p>In test, setting <code>USB_CNTR.PDWN</code> so that the USB transceiver enters power down disconnects the USB block from the pads, and GPIO control becomes visible again on PA11/PA12.</p><p>When PDWN ( or /PWRDWN in USB OTG controller) is set accordingly, the USB analog block is intentionally enabled on the shared DP/DM pins, so those pins are no longer driven purely by the GPIO logic. In other words, the USB peripheral has ownership on those pads while it is active.</p><p>This is why GPIO configuration changes on these pins may appear to be ignored until the USB transceiver is powered down or the USB peripheral is disabled.</p><p> </p><p>Compared with OTG use cases, the behavior is often easier to misunderstand because OTG implementations can also involve additional signals such as ID in OTG cases and driving VBUS in host mode, which can make the pin ownership story less obvious. In the USB device only case, the expectation is simpler: <strong>when USB is enabled, the USB block controls the shared DP/DM pins</strong>.</p><p>So I agree this is worth documenting more explicitly in an FAQ.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; So I agree this is worth documenting more explicitly in an FAQ.</p><p>Looking forward to.</p><p>IMO, the <em>pin and ball definitions</em> table in RM should reflect these facts, too. A footnote, perhaps?</p><p>Also, is there a reason of having USB/OTG pins in the AF tables in RM?</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p><p>I have forwarded your feedback to the dedicated team. IMO, an FAQ would be easier to maintain.</p><p><strong>Q: Is there a reason USB/OTG pins appear in the AF tables in the reference manual?</strong></p><p>Yes. USB DP/DM are not used as a normal GPIO alternate function signal; they are driven by a dedicated USB circuit. On some STM32 families, an AF setting may still be required for pin configuration, but the actual USB signaling remains controlled by the different USB hardware circuit</p><p>In practice, the exact pin configuration depends on the family, so the reference manual and datasheet should always be checked for the required settings and for which block owns the shared pins while USB is active. The software configuration remains device specific and functional.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2057\">@FBL</user-mention> ,</p><p>Can you please forward to “dedicated team” my request to speak here for themselves? Thanks.</p><p>So they then can directly comment on my remarks:</p><p>&gt; On some STM32 families, an AF setting may still be required for pin configuration</p><p>Which *some* STM32 families? Please specify in exhaustive detail in all USB-containint STM32’s DS/RM. Or, as @FBL suggested, a dedicated FAQ, preferrably in AN form.</p><p>&gt;  so the reference manual and datasheet should always be checked for the required settings and for which block owns the shared pins while USB is active</p><p>But, the lack of this information is exactly what I’m complaining here about!</p><p>JW</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p><p>Check this <a href=\"https://community.st.com/stm32-mcus-60/faq-why-usb-can-take-control-of-shared-dp-dm-pins-on-stm32-167523\" rel=\"noopener noreferrer\" target=\"_self\">FAQ: Why USB can take control of shared DP/DM pins on STM32 | Community</a></p><p>Your feedback is highly appreciated.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for heads-up, JW. Classic STM32 PHY hardware behavior indeed.</p><p> </p><p>Once the internal USB transceiver powers up (<code>USB_CNTR.PDWN = 0</code> on Device peripheral, or <code>OTG_GCCFG.PWRDWN</code> on OTG), the analog line drivers hard-wire themselves directly to PA11/PA12. The GPIO AF mux matrix gets completely bypassed under the hood regardless of what standard registers report.</p><p> </p><p>Only way back to clean GPIO control is explicitly dropping the transceiver into powerdown state first:</p><p> </p><ul><li> <p><strong>USB Device IP (L452 / F0 / F1 / F3 / G4):</strong> Set <code>USB_CNTR.PDWN</code></p> </li> <li> <p><strong>USB OTG IP (F4 / F7 / H7):</strong> Set <code>OTG_GCCFG.PWRDWN</code></p> </li></ul><h3>Appreciate posting the confirmation for L4 always fun spending hours in the lab chasing what turns out to be un<a href=\"http://roboloxmodapk.com/\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">_</a>errata'd silicon behavior.</h3></div>"
+    }
+  ]
+}

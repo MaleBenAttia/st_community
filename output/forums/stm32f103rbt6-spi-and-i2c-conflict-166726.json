@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "166701",
+  "publicId": "166726",
+  "title": "STM32F103RBT6, SPI and I2C conflict",
+  "content": "<p>Hello,</p><p>At present I trt o interface an SPI based SSD1309 Display and I2C based DS3231 RTC with STM32F103RBT6 using Nucleo board MB1136 F103RB C. For your reference I have attached screenshot of port assignment for those devices. </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/19537891-d626-45f8-88e1-26034631296a.png\" /></figure><blockquote><p> </p><p>void Init_GPIOs(void) {</p><p>/* --- 1. Peripheral Clock Enable --- */</p><p>// Enable clocks for all GPIO ports and AFIO (Alternate Function I/O)</p><p>RCC-&gt;APB2ENR |= (RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN |</p><p>RCC_APB2ENR_IOPCEN | RCC_APB2ENR_IOPDEN |</p><p>RCC_APB2ENR_AFIOEN);</p><p> </p><p>/* --- 2. Pin <u>Remapping</u> &amp; JTAG Management --- */</p><p>// Disable JTAG/SWD <u>remap</u> to reclaim PB3, PB4, and PA15 for GPIO/Alternate Function usage</p><p>AFIO-&gt;MAPR &amp;= ~AFIO_MAPR_SWJ_CFG;</p><p>AFIO-&gt;MAPR |= AFIO_MAPR_SWJ_CFG_JTAGDISABLE;</p><p>// <u>Remap</u> SPI1 to PB3/PB4/PB5 as per hardware design</p><p>AFIO-&gt;MAPR |= AFIO_MAPR_SPI1_REMAP;</p><p> </p><p>/* --- 3. Initialize Display Control Pins (Soft-Step) --- */</p><p>// Configuring critical control pins first ensures the display state is stable</p><p>// before the high-speed SPI clock begins toggling.</p><p>GPIOB-&gt;CRL &amp;= ~(0x000F0000U); GPIOB-&gt;CRL |= (0x00030000U); // PB4: Display Reset (Output)</p><p>GPIOC-&gt;CRH &amp;= ~(0x000F0000U); GPIOC-&gt;CRH |= (0x00030000U); // PC12: Display CS (Output)</p><p>GPIOD-&gt;CRL &amp;= ~(0x00000F00U); GPIOD-&gt;CRL |= (0x00000300U); // PD2: Display DC (Output)</p><p> </p><p>/* --- 4. Initialize SPI Pins (PB3/PB5) --- */</p><p>// Set SPI1 SCK (PB3) and MOSI (PB5) to Alternate Function Output (50MHz)</p><p>GPIOB-&gt;CRL &amp;= ~(0x00F0F000U);</p><p>GPIOB-&gt;CRL |= (0x00B0B000U);</p><p> </p><p>/* --- 5. Port A Configuration (Sensors, RAK, UART1, <u>Tacts</u>, RS485 DE) --- */</p><p>// Configure PA0-PA4 (Sensors) as inputs, PA5 (LED), PA8 (Reset), PA15 (RS485 DE) as outputs.</p><p>// Configure UART1 (PA9/10) for RAK communication.</p><p>GPIOA-&gt;CRL &amp;= ~(0xFFFFFFF0U); GPIOA-&gt;CRL |= (0x38888888U);</p><p>GPIOA-&gt;CRH &amp;= ~(0xFF0F00FFU); GPIOA-&gt;CRH |= (0x34433443U);</p><p>// Explicitly set pull-downs for digital sensors</p><p>GPIOA-&gt;ODR &amp;= ~(0x001FU);</p><p> </p><p>/* --- 6. Port B Configuration (SPI, I2C1, I2C2, AC <u>Sens</u>, LEDs, RTC) --- */</p><p>// PB0 (EEPROM WP), PB1 (AC1), PB6/7 (I2C1), PB8 (RTC RST), PB9 (Tact),</p><p>// PB10/11 (I2C2), PB12/13 (AC <u>Sens</u>), PB14/15 (LEDs).</p><p>GPIOB-&gt;CRL &amp;= ~(0xFF000000U); GPIOB-&gt;CRL |= (0xBB34BB33U);</p><p>GPIOB-&gt;CRH &amp;= ~(0xFFFF000FU); GPIOB-&gt;CRH |= (0xBB3333BBU);</p><p>// Enable internal pull-ups for I2C1 (RTC) lines</p><p>GPIOB-&gt;ODR |= (GPIO_ODR_ODR6 | GPIO_ODR_ODR7);</p><p> </p><p>/* --- 7. Port C Configuration (Analog, LEDs, UART3, CS, Sensors) --- */</p><p>// PC0-PC3 (Analog Sensors), PC4 (Relay), PC5 (AC <u>Meas</u>), PC6-PC9 (Status LEDs),</p><p>// PC10/11 (UART3 RS485), PC13-15 (Digital Sensors).</p><p>GPIOC-&gt;CRL &amp;= ~(0xFF00FFFFU); GPIOC-&gt;CRL |= (0x33040000U);</p><p>GPIOC-&gt;CRH &amp;= ~(0xFFF000FFU); GPIOC-&gt;CRH |= (0x8883B333U);</p><p>// Force PC13-PC15 to pull-down mode for digital sensors</p><p>GPIOC-&gt;ODR &amp;= ~(GPIO_ODR_ODR13 | GPIO_ODR_ODR14 | GPIO_ODR_ODR15);</p><p>}</p></blockquote><p> </p><p>This is my SSD1309 Display Initilization code</p><blockquote><p>void Init_SSD1309Disp(void) {</p><p>// Force reset pin LOW (Active Reset)</p><p>GPIOB-&gt;BRR = SSD1309_DISP_RES_PIN;</p><p>BlockDelay_ms(100);</p><p> </p><p>// Force reset pin HIGH (Active Operating Mode)</p><p>GPIOB-&gt;BSRR = SSD1309_DISP_RES_PIN;</p><p>BlockDelay_ms(100);</p><p> </p><p>// Send standard initialization commands</p><p>Cmd_To_SSD1309(0xAE); Cmd_To_SSD1309(0xD5); Cmd_To_SSD1309(0x80);</p><p>Cmd_To_SSD1309(0xA8); Cmd_To_SSD1309(0x3F); Cmd_To_SSD1309(0xD3);</p><p>Cmd_To_SSD1309(0x00); Cmd_To_SSD1309(0x40); Cmd_To_SSD1309(0x8D);</p><p>Cmd_To_SSD1309(0x14); Cmd_To_SSD1309(0xA1); Cmd_To_SSD1309(0xC8);</p><p>Cmd_To_SSD1309(0xDA); Cmd_To_SSD1309(0x12); Cmd_To_SSD1309(0x81);</p><p>Cmd_To_SSD1309(0x7F); Cmd_To_SSD1309(0x20); Cmd_To_SSD1309(0x02);</p><p>Cmd_To_SSD1309(0xAF);</p><p>}</p></blockquote><p> </p><p>Funtion required for SSD1309</p><blockquote><p>void Cmd_To_SSD1309(uint8_t cmd) {</p><p>GPIOC-&gt;BRR = SSD1309_DISP_CS_PIN;</p><p>GPIOD-&gt;BRR = SSD1309_DISP_DC_PIN;</p><p>Send_SPI_Char(cmd);</p><p>GPIOC-&gt;BSRR = SSD1309_DISP_CS_PIN;</p><p>}</p></blockquote><p> </p><p>Funtion required for SSD1309</p><blockquote><p>void Send_SPI_Char(uint8_t data) {</p><p>/* Wait for the transmit buffer to be empty before loading the data register */</p><p>while (!(SPI1-&gt;SR &amp; SPI_SR_TXE));</p><p> </p><p>/* Load the data byte into the SPI data register */</p><p>SPI1-&gt;DR = data;</p><p> </p><p>/* Block until the internal SPI shift register has finished the transaction */</p><p>while (SPI1-&gt;SR &amp; SPI_SR_BSY);</p><p>}</p></blockquote><p> </p><p>With further functions I am able to make the Display work as I needed.</p><p>Then I tried to impelment I2C for DS3231. </p><blockquote><p>void Init_RTC_I2C(void) {</p><p>// 1. Force pins to Input-Floating to prevent driver conflict</p><p>GPIOB-&gt;CRL &amp;= ~(0xFF000000U);</p><p> </p><p>// 2. Enable Clock</p><p>RCC-&gt;APB1ENR |= RCC_APB1ENR_I2C1EN;</p><p> </p><p>// 3. Configure peripheral (already tested as working without reset)</p><p>I2C1-&gt;CR1 &amp;= ~I2C_CR1_PE;</p><p>I2C1-&gt;CR2 = (I2C1_PCLK1_MHZ &amp; I2C_CR2_FREQ);</p><p>// ... [timing setup] ...</p><p>I2C1-&gt;CR1 |= I2C_CR1_PE;</p><p> </p><p>// 4. Finally, set pins to AF Open-Drain for I2C usage</p><p>GPIOB-&gt;CRL |= 0xFF000000U;</p><p>}</p></blockquote><p> </p><blockquote><p>When Clock is enabled by “RCC-&gt;APB1ENR |= RCC_APB1ENR_I2C1EN;” the SSD1309 is currupted. </p></blockquote><p> </p><p>The sequence I call these functions are as </p><blockquote><p>int main(void) {</p><p>// 1. Core <u>Config</u></p><p>// 1. System <u>Config</u></p><p>Config_48MHz_HSI();</p><p> </p><p>// 2. Setup Pins</p><p>Init_GPIOs();</p><p> </p><p>// 3. Initialize I2C independently</p><p>Init_RTC_I2C();</p><p>BlockDelay_ms(20); // Essential: Give the I2C bus time to stabilize after SWRST</p><p> </p><p>// 4. Initialize other peripherals</p><p>Init_LEDs();</p><p>Init_SPI();</p><p>Init_Timer4_1msISR();</p><p>Init_ADC_DMA();</p><p> </p><p>// 5. Display Initialization (Must be last)</p><p>Init_SSD1309Disp();</p></blockquote><p> </p><p>Am I missing anything fundametally? I have completed my PCB layouting with these port assignment. Now I am bit nervious.</p><p>Please help me to identify the problem.</p><p> </p><p>Thank you,</p><p>With best ragrds,</p><p>Anesh S.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "26",
+  "categoryName": "STM32 MCUs Boards and hardware tools",
+  "tags": [
+    "STM32F1 series",
+    "I2C",
+    "SPI"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 84,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "78281",
+    "username": "Anesh",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/00923af3-8d51-26fe-7a9d-f4dd3fd3d070.png"
+  },
+  "lastContributor": {
+    "id": "78281",
+    "username": "Anesh",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/00923af3-8d51-26fe-7a9d-f4dd3fd3d070.png"
+  },
+  "createdAt": "2026-07-06T20:00:38+00:00",
+  "lastActivityAt": "2026-07-11T22:08:47+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742787,
+  "publishedAt": "2026-07-06T20:00:38+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32f103rbt6-spi-and-i2c-conflict-166726",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Pin PB5 is used by both I2C1 and SPI1 remapped. Thus, the two peripherals cannot be used at the same time if that pin is used. It doesn’t matter that you are not actually using the I2C1_SMBA signal.</p><p> </p><p>This is covered by the note in the datasheet:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/efd8c119-412e-483a-9054-bca8d254cf04.png\"/></figure><p> It’s further covered explicitly in the errata:</p><p><oembed url=\"https://community.st.com/stm32-mcus-products-25/pb5-remap-pin-on-stm32f103c8-53126\"></oembed></p><p> </p><p>Chips after STM32F1 have pin selection on a per-pin basis rather than a per-peripheral basis and do not suffer from the limitation. CubeMX handles this correctly, perhaps lay out the pins in there next time (or move to a more recent chip).</p><p> </p><p>Sorry to be the bearer of bad news.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi TDK,</p><p>Thank you for the quick response. I went through the Errata and understood the problem.</p><p>Now I have remapped the pins needed for my communications and did a beasic testing by F103RB Nucelo board. </p><p>I request you to check and let me know if there is any issue in this assignment.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/59b4e785-95ac-42d0-85f2-84933daf75cf.png\"/></figure><p>Thank you, Best reagrds, Anesh S.</p></div>"
+    }
+  ]
+}

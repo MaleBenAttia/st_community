@@ -1,0 +1,62 @@
+{
+  "contentType": "question",
+  "id": "167393",
+  "publicId": "167421",
+  "title": "ST-Link/V2 nRST Drops to 0V When Connected Through TXB0108 Level Translator",
+  "content": "<p>Hi everyone,</p><p>I'm trying to program an STM32F0 MCU using an ST-Link/V2 through a TXB0108 voltage level translator module.</p><p>My setup is as follows:</p><ul><li>ST-Link/V2 SWCLK, SWDIO, and nRST connected to the A-side of the TXB0108</li>\t<li>STM32F0 SWCLK, SWDIO, and NRST connected to the B-side</li>\t<li>Both sides are powered appropriately according to the voltage translator requirements</li></ul><p>However, when I connect the translator module, I observe that the nRST pin from the ST-Link/V2 drops to 0V. If I disconnect the TXB0108 and connect the ST-Link directly to the MCU, the nRST line remains at the expected VTref level (3.3V).</p><p>I'm trying to understand what could be causing this behavior. Some questions I have:</p><ul><li>Is the TXB0108 suitable for SWD programming signals, especially the nRST line?</li>\t<li>Could the auto-direction sensing of the TXB0108 be interfering with the ST-Link reset signal?</li>\t<li>Are there any known issues with using TXB/TXS translators on SWD interfaces?</li>\t<li>What measurements or checks would you recommend helping isolate the problem?</li></ul><p>Any suggestions or insights would be greatly appreciated.</p><p>Thanks in advance!</p><p>Hari</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "26",
+  "categoryName": "STM32 MCUs Boards and hardware tools",
+  "tags": [
+    "ST-Link",
+    "STM32F0 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 29,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107323",
+    "username": "hari_kumar",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/dc8257bc-b082-4d3d-b906-8c0e27f08be9.png"
+  },
+  "lastContributor": {
+    "id": "1595",
+    "username": "Shirley.Ye",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/5766870e-4105-d09b-e4f1-67355eea87c1.png"
+  },
+  "createdAt": "2026-08-03T07:26:28+00:00",
+  "lastActivityAt": "2026-08-03T09:47:02+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744621,
+  "publishedAt": "2026-08-03T07:26:28+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/st-link-v2-nrst-drops-to-0v-when-connected-through-txb0108-level-translator-167421",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>You have to put a pullup on RST a-side, try 3k3, and a serial resistor on b-side, try 1k .</p><p>Because nrst on stm32 is bidirectional, the CPU can switch it to ground for short time and so you can't keep it at high from outside, or the nrst will work no more as it should.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>the rst pin usually have cap or resistor, the TXB sees a slow edge, since it is a bidirectional level shifter, the auto-direction detection can misinterpret who is driving.</p><p> </p></div>"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "contentType": "question",
+  "id": "166922",
+  "publicId": "166940",
+  "title": "2x octal PSRAM on one XSPI port via EXTENDMEM (128 MB total)",
+  "content": "<p>I need more PSRAM and so went exploring and found RM0486, which seems to show that I can have two PSRAM on one XSPI port (using EXTENDMEM, §28.4.24), but I cant seem to find more than that.</p><ol type=\"1\"><li>Is EXTENDMEM with two octal DDR PSRAMs a silicon-validated configuration on the N6 XSPI, or is it documented-but-untested territory? </li></ol><ol start=\"2\" type=\"1\"><li>RM0486 notes the automatic CS switch when an access \"crosses the middle boundary of the external memory\". Does this work transparently with DTR memory-mapped writes and MDMA/DMA bursts, or are there alignment/burst-length restrictions at the boundary I should design around?</li></ol><ol start=\"3\" type=\"1\"><li>Has anyone run 128 MB total on one N6 XSPI port? The 256 MB address window and DEVSIZE math allow it, but I'd love to hear from someone who has it working on real hardware (or from ST whether an eval/reference design exists with dual PSRAM).</li></ol><ol start=\"4\" type=\"1\"><li>Anything to watch on the RIF/RISAF side for the XSPI1 memory region when all masters run secure?</li></ol><p>Board: custom using the STM32N657X0HxQ.</p><p>Planned setup:</p><ul><li>Two identical AP Memory APS51208N (512 Mbit, x8 Xccela octal DDR PSRAM, 200 MHz) on XSPIM Port 1, sharing the 8-bit data bus, CLK and DQS</li>\t<li>Chip 1 on XSPIM_P1_NCS1 (PO0), chip 2 on XSPIM_P1_NCS2 (PO1)</li>\t<li>EXTENDMEM = 1 (XSPI_DCR1 bit 21, RM0486 §28.4.24) so the two dies appear as one contiguous 128 MB memory-mapped region at 0x90000000, with hardware switching chip-select at the 64 MB boundary</li>\t<li>Use case: memory-mapped read/write + DMA (camera frame buffering), no XiP from PSRAM</li></ul>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Documentation",
+    "STM32N6 series",
+    "XSPI"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 63,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "95285",
+    "username": "edenraf",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "95285",
+    "username": "edenraf",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-14T13:24:23+00:00",
+  "lastActivityAt": "2026-08-07T10:29:34+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745055,
+  "publishedAt": "2026-07-14T13:24:23+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/2x-octal-psram-on-one-xspi-port-via-extendmem-128-mb-total-166940",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"95285\">@edenraf</user-mention> ;</p><p> </p><p>Do you get an issue when two octal DDR PSRAM is configured? if yes please share the issue.</p><p>For the second question, it  works. To avoid a burst crossing the middle of the external memory size because as we need to target the second memory, you need to restart a communication with the other memory and restart the command address phase for that.</p><p>NO ST hardware is available for two octal DDR.</p><p> </p><p>Thank you.</p><p>Kaouthar</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, sorry for the late reply.</p><p>I've now configured it in CubeMX (STM32N657X0HxQ, FSBL context) and want to verify my understanding before committing the PCB layout, since there's no ST reference hardware for two octal DDR PSRAMs.</p><p><strong>Points I need confirmation with:</strong></p><ol type=\"1\"><li>EXTENDMEM is not exposed in the CubeMX GUI:  there's no dual-memory/extended-memory checkbox in the XSPI1 panel. I'm setting it manually in the FSBL after MX_XSPI1_Init(): XSPI1-&gt;DCR1 |= (1U &lt;&lt; 21). Is that the intended way, or is there a CubeMX toggle I'm missing?</li> <li>NCS2 pin — CubeMX only reserves NCS1 from the config panel (its model is single-die). I can manually assign XSPIM_P1_NCS2 to the pin, but it shows as \"unused\" (orange). Is manually muxing the NCS2 pin the correct/expected approach, and will the hardware drive it correctly once EXTENDMEM is set? or does NCS2 require anything beyond the pin AF?</li> <li>DEVSIZE = per-die (512 Mbit), not total (1 Gbit) - can you confirm this is correct for EXTENDMEM mode?</li> <li>I understand EXTENDMEM (DCR1 bit 21) and Dual-memory mode / DMM (CR bit 6) are mutually exclusive, and I'm using EXTENDMEM, not DMM. Correct?</li></ol><p>My configuration: single XSPI1 instance, XSPIM in Direct mode (XSPI1 set to Port1), two APS51208N (512 Mb, x8) octal-DDR PSRAMs sharing Port 1:</p><p>- Mode: Octo SPI, Port1 Octo<br/>- Memory Type: AP Memory<br/>- Memory Size: 512 Mbit i.e. DEVSIZE = the size of one die, per RM0486 §28.4.24 (\"The size of one external memory must be set in the DEVSIZE bitfield\"). The hardware then maps NCS1 to [base : base+2^DEVSIZE-1] and NCS2 to the next 2^DEVSIZE, giving a contiguous 128 MB.<br/>- Chip Select Boundary: 64 MB - to prevent any burst straddling the die seam (the \"restart command/address phase\" you described). I understand the CS switch itself is automatic at the middle boundary.</p><p> </p><p>Thanks for any additional help</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"95285\">@edenraf</user-mention> ;</p><p> </p><p>You're posting new questions, please start a new post for any additional questions instead of adding them to the same conversation.</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>No worries. I have <a href=\"https://community.st.com/stm32-mcus-products-25/stm32n6-xspi-extendmem-two-octal-psram-128-mb-cubemx-has-no-toggle-167544\" rel=\"noreferrer nofollow ugc\" target=\"_self\">created a new post</a>. Hopefully I could get some help there. Thanks</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "contentType": "question",
+  "id": "166537",
+  "publicId": "166558",
+  "title": "How to restore STM32H7 CRC registers to continue CRC calculation",
+  "content": "<p>Is there any doco or app note on how to save/restore a STM32H7 CRC calculation (e.g. breaking up long CRC calculation into separate segments that requires re-initialization of CRC HW between segments)?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "CRC",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 1,
+  "votes": 0,
+  "views": 127,
+  "voteSet": [],
+  "likeSet": [
+    "37189"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "107832",
+    "username": "Propwash",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107832",
+    "username": "Propwash",
+    "avatar": ""
+  },
+  "createdAt": "2026-06-30T17:11:43+00:00",
+  "lastActivityAt": "2026-07-05T18:46:28+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742096,
+  "publishedAt": "2026-06-30T17:11:43+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-restore-stm32h7-crc-registers-to-continue-crc-calculation-166558",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107832\">@Propwash</user-mention> </p><p>To continue a CRC calculation on STM32H7 across segments or after re‑initializing the CRC hardware, you can:</p><p><strong>Before re-initialization / break:</strong></p><ul><li>Read the current CRC result from the CRC_DR register.</li></ul><ul><li>This value represents the intermediate CRC for the data processed so far.</li></ul><p><strong>After re-initialization of the CRC peripheral:</strong></p><ul><li>Write the saved intermediate CRC value into the CRC_INIT register.</li></ul><ul><li>This sets the starting (initial) CRC state for the next segment, effectively resuming the calculation where you left off.</li></ul><p><strong>Process the next data segment:</strong></p><ul><li>Feed the next chunk of data into the CRC peripheral as usual.</li></ul><ul><li>The final CRC result after all segments are processed will be in CRC_DR.</li></ul><p>This save/restore via CRC_DR → CRC_INIT allows you to break a long CRC calculation into segments or survive a CRC peripheral reconfiguration while preserving continuity of the CRC computation.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>@Saket_Om</p><p>After I reset the CRC HW, I tried to set CRC_INIT to the value of the previous CRC_DR and continue but that did not produce the results I expected.</p><p>I created a utility in Nuttx running on Nucleo-H753ZI that reads/write the CRC registers and what follows is that while CRC’ng data consisting of 0x61626364 0x65666768, then resetting the CRC HW, setting initial value to the CRC_DR register value from CRC_DR of just 0x61626364, writing 0x65666768 to CRC_DR (to complete the CRC) and reading back CRC_DR, expecting result to match match (but it doesn’t):</p><p>NuttShell (NSH) NuttX-13.0.0-RC0<br/>nsh&gt; uname -a<br/>NuttX 13.0.0-RC0 76838fa1b2 Jul  2 2026 13:41:40 arm nucleo-h753zi<br/>nsh&gt; pokecrc32 --help                                                           <br/>pokecrc32: usage:                                                               <br/>  -d    Turn on debug                                           <br/>  -f     Force addresses to only be register names                              <br/>  -b    Read/Write a byte                                       <br/>  -h    Read/Write a short                                      <br/>  -l     Read/Write a long                                                                    <br/>  -r &lt;addr&gt;              Read at physical address &lt;addr&gt;                         <br/>  -w &lt;addr&gt; &lt;val&gt;  Write &lt;val&gt; at physical address &lt;addr&gt;                  <br/>Note: &lt;addr&gt; and &lt;val&gt; must be hex(w/o '0x' prefix)                              <br/>      when reading a registers, '~' before register                             <br/>      indicates to flip the bits. On write '~' before                           <br/>      value indicates to flip its bits</p><p>                                        </p><p>Verify CRC clock is enabled (verify CRCEN is set in RCR_AHB4ENR)</p><p>nsh&gt; pokecrc32 -r rcc_ahb4enr<br/>580244e0 /l =&gt; 000800ff</p><p>Hard reset CRC (set/clear CRCRST in RCC_AHB4RSTR)</p><p>nsh&gt; pokecrc32 -w rcc_ahb4rstr 80000 -w rcc_ahb4rstr 0<br/>58024488 /l &lt;= 00080000<br/>58024488 /l &lt;= 00000000</p><p>Reset/initialize CRC_CR to 0xe1(and read back to verify RESET clears):</p><ul><li>Bit reverse output data</li> <li>Bit reversal input data by word</li> <li>32-bit polynomial</li> <li>Set reset bit</li></ul><p>nsh&gt; pokecrc32 -w crc_cr a1 -r crc_cr<br/>58024c08 /l &lt;= 000000a1<br/>58024c08 /l =&gt; 000000a0</p><p><br/>nsh&gt; # Compute CRC of 'abcd' (expect raw 127d32ee; inverted ed82cd11)<br/>nsh&gt; pokecrc32 -w crc_dr 61626364 -l -r crc_dr -r ~crc_dr<br/>58024c00 /l &lt;= 61626364<br/>58024c00 /l =&gt; 127d32ee<br/>58024c00 /l =&gt; 127d32ee(~= ed82cd11)</p><p>Note /usr/bin/crc32 produces matching ed82cd11 for four byte 'abcd'</p><p>nsh&gt; # Append 'efgh' (expect raw 5110d5af; inverted aeef2a50)<br/>nsh&gt; pokecrc32 -w crc_dr 65666768 -l -r crc_dr -r ~crc_dr<br/>58024c00 /l &lt;= 65666768<br/>58024c00 /l =&gt; 5110d5af<br/>58024c00 /l =&gt; 5110d5af(~= aeef2a50)</p><p>Note /usr/bin/crc32 produces matching aeef2a50 for eight byte 'abcdefgh'</p><p>Now Reset CRC HW, Intialize CRC_CR, and set CRC_INIT to result from previous<br/>CRC_DR value for 'abcd'</p><p>nsh&gt; # Hard Reset CRC<br/>nsh&gt; pokecrc32 -w rcc_ahb4rstr 80000 -w rcc_ahb4rstr 0<br/>58024488 /l &lt;= 00080000<br/>58024488 /l &lt;= 00000000<br/>nsh&gt; # Soft Reset CRC<br/>nsh&gt; pokecrc32 -w crc_cr a1 -r crc_cr<br/>58024c08 /l &lt;= 000000a1<br/>58024c08 /l =&gt; 000000a0<br/>nsh&gt; # Set Initial value to CRC result of 'abcd'<br/>nsh&gt; pokecrc32 -w crc_init 127d32ee<br/>58024c10 /l &lt;= 127d32ee</p><p>Now feed in 'efgh' which should produce the same CRC_DR value as<br/>previously:</p><p>nsh&gt; # CRC of 'efgh' (expect raw 5110d5af; inverted aeef2a50)<br/>nsh&gt; pokecrc32 -w crc_dr 65666768 -l -r crc_dr -r ~crc_dr<br/>58024c00 /l &lt;= 65666768<br/>58024c00 /l =&gt; 2abae3f7<br/>58024c00 /l =&gt; 2abae3f7(~= d5451c08)</p><p>Note the resultant CRC does not match the expected aeef2a50.  Any idea why this doesn’t work as expected? Thanks in advance!</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107832\">@Propwash</user-mention> </p><p>did you reinitialize the CRC peripheral with the same parameter?<br/><br/>could you share you code please? </p></div>"
+    }
+  ]
+}

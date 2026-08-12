@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "167481",
+  "publicId": "167510",
+  "title": "STM32H753ZIT6 on Custom PCB: Unable to Program Fresh MCU via UART Bootloader (STM32CubeProgrammer Timeout), Same Method Works on NUCLEO-H753ZI",
+  "content": "<p>Hi everyone,</p><p>I am using an STM32H753ZIT6 on our custom PCB. Before this, I was successfully programming the STM32H753ZI on the NUCLEO-H753ZI board using the UART bootloader (system memory boot mode) with STM32CubeProgrammer and a USB-to-UART TTL converter. I have never used an ST-LINK for programming.</p><p>I followed the same hardware connections and programming procedure on our custom PCB, but STM32CubeProgrammer always returns a timeout error and cannot connect to the MCU.</p><h3>Setup</h3><ul><li>\t<p>MCU: STM32H753ZIT6</p>\t</li>\t<li>\t<p>Software: STM32CubeProgrammer</p>\t</li>\t<li>\t<p>Programming interface: UART bootloader (not ST-LINK)</p>\t</li>\t<li>\t<p>USB-to-UART converter connected to USART1</p>\t</li>\t<li>\t<p>TX of USB-UART → STM32 PB15 (USART1_RX)</p>\t</li>\t<li>\t<p>RX of USB-UART → STM32 PA9 (USART1_TX)</p>\t</li>\t<li>\t<p>Manual boot mode selected (not using RTS/DTR auto boot)</p>\t</li></ul><h3>Programming Procedure</h3><ol><li>\t<p>Hold BOOT0 HIGH.</p>\t</li>\t<li>\t<p>Reset or power-cycle the board.</p>\t</li>\t<li>\t<p>Release RESET while keeping BOOT0 HIGH.</p>\t</li>\t<li>\t<p>Click <strong>Connect</strong> in STM32CubeProgrammer.</p>\t</li></ol><p>This exact procedure works on the NUCLEO-H753ZI but fails on our custom PCB.</p><h3>STM32CubeProgrammer Result</h3><p>The software detects the COM port but eventually reports a timeout error (waiting for acknowledgment), and the connection fails.</p><h3>My Questions</h3><ol><li>\t<p>Is a brand-new STM32H753ZIT6 expected to be programmable directly through the factory UART bootloader on a custom PCB without first using ST-LINK?</p>\t</li>\t<li>\t<p>Are there any hardware requirements that must be met for the factory UART bootloader to work (other than BOOT0, power, reset, UART connections, etc.)?</p>\t</li>\t<li>\t<p>Is there any reason why a fresh MCU would require initial programming through ST-LINK before UART programming can be used?</p>\t</li>\t<li>\t<p>Are there any common custom PCB design mistakes that would cause the UART bootloader to time out even though the same wiring works on the NUCLEO board?</p>\t</li></ol><p>Any suggestions on what to verify would be greatly appreciated.</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "Bootloader",
+    "STM32H7 series",
+    "UART-USART",
+    "Flash"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 45,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108877",
+    "username": "Santosh kmr",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "407",
+    "username": "Amel NASRI",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/ded1dd9e-b1b7-2a44-dbd7-bd1e12d58f31.png"
+  },
+  "createdAt": "2026-08-06T10:30:07+00:00",
+  "lastActivityAt": "2026-08-07T09:33:04+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745040,
+  "publishedAt": "2026-08-06T10:30:07+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32h753zit6-on-custom-pcb-unable-to-program-fresh-mcu-via-uart-bootloader-stm32cubeprogrammer-timeout-same-method-works-on-nucleo-h753zi-167510",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>PA9/PB15 is not a supported UART bootloader pin combination per AN2606. Does this really work on a nucleo?</p><p>Oher peripherals need to be quiet when the bootloader starts. Are you using USB? Schematic would help. See AN2606 for other peripherals that need to be quiet and the bootloader entry process in general.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Try with correct pins , see AN2606 :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a5542293-f257-4d0c-8b96-f5eb3c6468b8.png\"/></figure><p>or</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d0ddb91e-419a-45cc-89e1-b5d36cba48d6.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/defc43ce-2d7d-4b68-b9d7-1a6af75384d9.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1434ef8-36db-444b-ae3f-ee2ee5cf9a8b.png\"/></figure><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>It is working actually where we used USART3 (PB11,PB10) instead of USART1. Thank you for the support</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"108877\">@Santosh kmr</user-mention> glad to see that you found the help you need from our Community.</p><p>Please click on “Best answer” for the reply that helped you to find the solution.</p><p>-Amel</p><p>PS: ​<user-mention data-id=\"8205\">@TDK</user-mention>  &amp; ​<user-mention data-id=\"34409\">@AScha.3</user-mention> I invite you to update your signatures to replace “Accept as Solution” by “Best answer”.</p></div>"
+    }
+  ]
+}

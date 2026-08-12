@@ -1,0 +1,92 @@
+{
+  "contentType": "question",
+  "id": "166732",
+  "publicId": "166757",
+  "title": "I2C2 SCL is always high while SDA is sending data in NUCLEO-G031K8",
+  "content": "<p>Hi experts:</p><p>    I’m working on NUCLEO-G031K8 trying to use its I2C2(I2C1 is OK),I set PA11/PA12 as SCL/SDA, pull-up, OD, when I tried to read data, I found SCL is always high, but SDA has datas, I can’t figure out what’s missing, can you help me with that?</p><p>Bill</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d960fa3-06e1-4f61-b463-b63816f0a23d.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32G0 series",
+    "I2C"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 6,
+  "inclusiveReplyCount": 9,
+  "inclusiveVisibleReplyCount": 9,
+  "likes": 1,
+  "votes": 0,
+  "views": 147,
+  "voteSet": [],
+  "likeSet": [
+    "108128"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "80825",
+    "username": "lbapplem",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "49760",
+    "username": "padawan",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/249c4433-1005-c50d-b1bc-640e67e66c72.png"
+  },
+  "createdAt": "2026-07-08T05:47:26+00:00",
+  "lastActivityAt": "2026-07-15T06:18:27+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743056,
+  "publishedAt": "2026-07-08T05:47:26+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/i2c2-scl-is-always-high-while-sda-is-sending-data-in-nucleo-g031k8-166757",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><ol type=\"1\"><li>Don’t rely on the MCU-internal pull-ups for I2C - use real resistors close to the MCU’s SCL and SDA pins.  4K7 or 10K should be fine for 100kHz or less and normal (on-board) distances.</li> <li>Verify the pin configuration - you certainly don’t need a “very high” rate in the settings.</li> <li>Confirm that the SCL and SDA pins aren’t connected to something else on the Nucleo.</li> <li>Andrew always (with good reason!) wants to see a photo of your setup.</li></ol></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>It looks like you are using a sampling rate that is too slow to see what is on the line. Perhaps use an analog capture. Show wiring. Ensure you are actually monitoring the pin you think you are. Toggle the pin as a GPIO output and view on the scope to verify that it can be toggled and is not shorted high.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I am thinking about the PA11(PA9) .</p><p>is there anything on PA9? Is PA9 an outputpin?</p><p>i can’t get an schematic of this nucleo board.</p><p>But on L412KC we have to remove two jumpers on the board to get it work with </p><p>SPI and I²C</p><p>just my 2 cent</p><p>padawan </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"padawan\"><div class=\"content-quote-content\"> <p>i can’t get an schematic of this nucleo board.</p> </div></content-quote><p>As always, the schematics are on the ‘<strong>CAD Resources</strong>’ tab of the board’s <strong>Product Page</strong>:</p><p><a href=\"https://www.st.com/en/evaluation-tools/nucleo-g031k8.html#cad-resources\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.st.com/en/evaluation-tools/nucleo-g031k8.html#cad-resources</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Neil,</p><p>palm to face.</p><p>i looked at “Dokumentation”.</p><p>Okay in the view of stm its “(E)CAD.</p><p>The schematic schows no link between PA9 and PA11.</p><p>I wonder whats the PA11(PA9) in the GPIO settings…</p><p>padawan</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"80825\">@lbapplem</user-mention> </p><p>Please use the configuration below in your code :</p><pre><code class=\"language-c\">    __HAL_RCC_GPIOA_CLK_ENABLE();<br/>    /**I2C1 GPIO Configuration<br/>    PA11     ------&gt; I2C1_SCL<br/>    PA12     ------&gt; I2C1_SDA<br/>    */<br/>    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;<br/>    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;<br/>    GPIO_InitStruct.Pull = GPIO_PULLUP;<br/>    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;<br/>    GPIO_InitStruct.Alternate = GPIO_AF6_I2C2;<br/>    HAL_GPIO_Init(GPIOA, &amp;GPIO_InitStruct);<br/><br/>    /* Peripheral clock enable */<br/>    __HAL_RCC_I2C2_CLK_ENABLE();</code></pre><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Once again, <em><strong>DON”T USE THE INTERNAL PULLUPS FOR I2C</strong></em>.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>​<user-mention data-id=\"18044\">@David Littell</user-mention> </p><p>Confirm that the SCL and SDA pins aren’t connected to something else on the Nucleo</p></blockquote><p> </p><blockquote><p>​<user-mention data-id=\"8205\">@TDK</user-mention> </p><p>Ensure you are actually monitoring the pin you think you are</p></blockquote><p> </p><p>​<user-mention data-id=\"80825\">@lbapplem</user-mention> Indeed - which was the initial problem here:</p><oembed url=\"https://community.st.com/stm32-mcus-wireless-35/i2c-no-clock-166629?postid=743128#post743128\"></oembed><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ibapplem,</p><p>here me setting:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/77f75c0e-0feb-42e2-aab9-1c0dc9159f41.png\"/></figure><p>Use external pullups! like 3k3 on the lines as David told you.</p><p>padawan</p><p> </p></div>"
+    }
+  ]
+}

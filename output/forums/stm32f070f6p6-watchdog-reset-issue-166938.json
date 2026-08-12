@@ -1,0 +1,77 @@
+{
+  "contentType": "question",
+  "id": "166920",
+  "publicId": "166938",
+  "title": "stm32f070f6p6 Watchdog Reset Issue",
+  "content": "<p>I'm working with an <strong>STM32F070</strong> and trying to verify the Independent Watchdog (IWDG). My expectation is that if the watchdog is not refreshed, the MCU should perform a system reset after the timeout expires.</p><p>The IWDG is configured as follows:</p><ul><li>MCU: <strong>STM32F070</strong></li>\t<li>Clock:\t<ul><li>HSI = ON (System Clock)</li>\t\t<li>LSI = ON (for IWDG)</li>\t</ul></li>\t<li>IWDG configuration:\t<ul><li>Prescaler = <strong>256</strong></li>\t\t<li>Reload = <strong>4095</strong></li>\t\t<li>Window = <strong>4095</strong></li>\t</ul></li>\t<li>The watchdog is initialized using <code>HAL_IWDG_Init()</code>.</li></ul><p>To force a timeout, I intentionally do <strong>not</strong> refresh the watchdog:</p><pre> </pre><pre><code>// IWDG_KICK();<br /><br />while (1)<br />{<br />    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);<br />    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);<br />    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);<br />    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);<br />}</code></pre><p>The full initialization is:</p><pre> </pre><pre><code>hiwdg.Instance = IWDG;<br />hiwdg.Init.Prescaler = IWDG_PRESCALER_256;<br />hiwdg.Init.Reload = 4095;<br />hiwdg.Init.Window = 4095;<br /><br />HAL_IWDG_Init(&amp;hiwdg);</code></pre><p>According to the reference manual, with <code>Prescaler = 256</code> and <code>Reload = 4095</code>, I expect a watchdog timeout of roughly <strong>32 seconds</strong> (assuming LSI ≈ 32 kHz).</p><p><strong>Observed behavior:</strong></p><p>Instead of performing a watchdog reset, the MCU appears to hang. The LEDs stop responding, but the device never restarts. After the expected timeout, execution does not begin again from <code>main()</code>, and the reset flags do not indicate an obvious watchdog reset.</p><p><strong>Questions:</strong></p><ol><li>Is there any known STM32F070 or IWDG configuration issue that can prevent the watchdog from generating a reset?</li>\t<li>Are there option bytes, debug settings, or hardware conditions that can suppress an IWDG reset while allowing the watchdog counter to expire?</li>\t<li>Has anyone observed an STM32F070 entering a stalled state instead of resetting due to an IWDG timeout?</li>\t<li>What is the recommended method to verify that the IWDG reset signal is actually being generated (e.g., checking <code>RCC-&gt;CSR</code>, NRST pin behavior with an oscilloscope, or other diagnostics)?</li></ol><p>For completeness, my <code>SystemClock_Config()</code> enables both HSI and LSI, and <code>HAL_IWDG_Init()</code> returns <code>HAL_OK</code> without errors.</p><p>I'm looking for any suggestions on what to check next or whether there are hardware/debug configurations that could explain this behavior.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "IWDG-WWDG"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 108,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108235",
+    "username": "Harshu5204",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108235",
+    "username": "Harshu5204",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-14T12:52:02+00:00",
+  "lastActivityAt": "2026-07-22T07:02:04+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743612,
+  "publishedAt": "2026-07-14T12:52:02+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f070f6p6-watchdog-reset-issue-166938",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108235\">@Harshu5204</user-mention> </p><p>F070 errata doesn’t indicate a known limitation about IWDG reset unless for low APB freq or in stop mode.</p><p>Would you attach minimum firmware to reproduce the issue? Did you reproduce using our reference board NUCLEO-F070RB? </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2057\">@FBL</user-mention>,</p><p>We are not using Stop mode or any low-power mode in our application, and we are also not using any external components or configuration that would affect the IWDG behavior.</p><p>Please find the attached folder containing the complete firmware source code for our project. This is the code we are using to reproduce the issue.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>On which board? Custom? Verified hardware is without problems? Supply etc. ?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Holding NRST high will cause this. It needs to be treated as open drain in hardware. Otherwise your IWDG settings and activity are probably not what you think they are.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>NRST is set as it it was before floating.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Then that’s your problem. Don’t drive NRST, it prevents the chip resetting.</p></div>"
+    }
+  ]
+}

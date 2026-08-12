@@ -1,0 +1,64 @@
+{
+  "contentType": "question",
+  "id": "167200",
+  "publicId": "167226",
+  "title": "CubeMX workflow for NUCLEO-N657X0-Q FSBL XIP application with ThreadX and NetX Duo",
+  "content": "<p>Hello,</p><p>I am trying to create an FSBL XIP project for the NUCLEO-N657X0-Q with the following structure:</p><ul><li>\t<p>FSBL running from internal SRAM</p>\t</li>\t<li>\t<p>Application executing in place from the external XSPI flash</p>\t</li>\t<li>\t<p>ThreadX and NetX Duo running in the Application context</p>\t</li>\t<li>\t<p>Ethernet using the onboard LAN8742 PHY</p>\t</li>\t<li>\t<p>External Memory Loader project</p>\t</li></ul><p>The STM32CubeN6 firmware package contains two relevant examples:</p><ul><li>\t<p><code>Projects/NUCLEO-N657X0-Q/Templates/Template_FSBL_XIP</code></p>\t</li>\t<li>\t<p><code>Projects/NUCLEO-N657X0-Q/Applications/NetXDuo/Nx_UDP_Echo_Client</code></p>\t</li></ul><p>However, the two examples use different project structures.</p><p><code>Template_FSBL_XIP</code> provides the required FSBL, XIP Application, and External Memory Loader structure, but it does not contain the ThreadX, NetX Duo, and Ethernet application configuration.</p><p><code>Nx_UDP_Echo_Client</code>, on the other hand, contains the required ThreadX, NetX Duo, Ethernet, LAN8742, and UDP configuration, but the complete application is assigned to the FSBL context instead of being built as a separate XIP Application.</p><p>Copying the complete <code>Template_FSBL_XIP</code> project and regenerating it with STM32CubeMX does not appear to provide all the required NUCLEO board headers, BSP files, middleware files, source files, and include paths needed for a complete project.</p><p>For example, some BSP and middleware files appear to be referenced through project-specific paths or additional project settings rather than being fully generated from the <code>.ioc</code> file.</p><p>What is the officially recommended workflow for creating this type of project?</p><p> </p><p>Can the existing <code>Template_FSBL_XIP.ioc</code> be changed from:</p><pre><code>board=custom<br /></code></pre><p>to the NUCLEO-N657X0-Q board configuration, or is the board information only applied when the project is initially created through the Board Selector?</p><p>Is there an official example, application note, or recommended procedure showing how to convert <code>Nx_UDP_Echo_Client</code> into an FSBL-XIP application?</p><p>I would prefer a fully STM32CubeMX-managed project that can be regenerated safely, instead of manually copying source files, middleware folders, BSP files, include paths, build settings, and linker sections between <code>Template_FSBL_XIP</code> and <code>Nx_UDP_Echo_Client</code>.</p><p>Could you please clarify the officially supported STM32CubeMX workflow for this use case?</p><p>Thank you.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeIDE",
+    "STM32CubeMX",
+    "STM32Cube MCUs packages",
+    "STM32N6 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 70,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108544",
+    "username": "FORVIA",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108544",
+    "username": "FORVIA",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-25T06:54:53+00:00",
+  "lastActivityAt": "2026-07-27T12:30:13+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744046,
+  "publishedAt": "2026-07-25T06:54:53+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/cubemx-workflow-for-nucleo-n657x0-q-fsbl-xip-application-with-threadx-and-netx-duo-167226",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108544\">@FORVIA</user-mention> ,</p><p>Thanks for the detailed question.<br/>For this use case, the recommended workflow is the same one described here:</p><ul><li><strong>How to execute code from the external serial NOR using the STM32N6</strong><br/><a rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://community.st.com/stm32-mcus-60/how-to-execute-code-from-the-external-serial-nor-using-the-stm32n6-146779</a></li></ul><p>That article is not a ThreadX/NetX Duo end-to-end app note, but it serves as a starting point for the correct CubeMX workflow for building a fully configurable FSBL + XiP project and regenerating it safely.</p><p>For NUCLEO-N657X0-Q + ThreadX/NetX Duo, the practical approach is:</p><ol><li>Create the FSBL/XiP architecture in CubeMX first (FSBL context, XSPI/XSPIM, EXTMEM_MANAGER, XiP offset/header, external loader flow), as shown in the article.</li> <li>Keep FSBL minimal (clock, memory init, XSPI memory-mapped setup, jump to XiP app).</li> <li>Put ThreadX/NetX Duo/Ethernet (LAN8742, IP stack, sockets/UDP/HTTP, etc.) in the XiP Application project context, not in FSBL.</li> <li>Generate/build FSBL and Application as separate binaries, add headers/signing as required, then program at the proper external flash offsets with external loader enabled.</li> <li>Regenerate from CubeMX and keep custom user code in user sections to preserve maintainability.</li></ol><p>About your specific question:</p><ul><li>Changing an existing template from board=custom to a board profile is generally not the supported migration path for complete board setup.</li></ul><p>Kind regards, </p><p>DHIF Khaled</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @Khaled_DHIF,</p><p>Thank you for your response.</p><p>My question is: Why do you provide the “Template_FSBL_XIP” template for NUCLEO-N657X0-Q when it is ultimately misleading and cannot be used with STM32CubeMX and STM32CubeIDE?</p><p><br/> </p></div>"
+    }
+  ]
+}

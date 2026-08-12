@@ -1,0 +1,70 @@
+{
+  "contentType": "question",
+  "id": "167070",
+  "publicId": "167091",
+  "title": "Bug report GNU tools 14.3.rel1 interrups",
+  "content": "<p>This covers two separate problems.</p><ol type=\"1\"><li>unsafe relocation.\t<ol><li>This is coupled with a “cannot find routine xxx”.  The cannot find xxx is explained by a  changed #ifdef that did not include a routine.  The problem that also cropped up was an “unsafe relocation” which doesn’t seem to mean all that much (I know the explanation) in the way of solving the problem.  This is “fixed” by going back to 13.3.rel1. and changing the #ifdef.</li>\t</ol></li>\t<li>Interrupts not working FreeRTOS latest\t<ol><li>primask register goes to 0x80 when default task is created.</li>\t\t<li>taskEXIT_CRITICAL() does not change that mask</li>\t\t<li>Timer, systick, and any other interrupts remain disabled after the first task.</li>\t\t<li>If no tasks are created, then primask may or may not be properly set, but the interrupts do not work</li>\t\t<li>FREERTOS insists that interrupts should be disabled (read the documents!) and will be re-enabled when the scheduler runs.\t\t<ol><li> with 14.3.rel1 interrupts are not enabled.</li>\t\t</ol></li>\t\t<li>resetting GNU tools to 13.3.rel1 seems to make it all work (and it had been working</li>\t</ol></li></ol><p>It might be something odd in my setup, but now I have an idea of what to look for.</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "28",
+  "categoryName": "STM32CubeIDE (MCUs)",
+  "tags": [
+    "Bug-report",
+    "Interrupt"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 91,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "21452",
+    "username": "Harvey White",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/06b6cd6f-51a1-5a03-a27d-4d22e3720501.png"
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-07-20T18:28:11+00:00",
+  "lastActivityAt": "2026-07-21T09:42:28+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743525,
+  "publishedAt": "2026-07-20T18:28:11+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeide-mcus-28/bug-report-gnu-tools-14-3-rel1-interrups-167091",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>There have been a few threads on the “Unsafe Relocation” error, but I can’t seem to find any using the new forum search.</p><p>Please give the full error log.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"21452\">@Harvey White</user-mention> did you mean, “<em>Dangerous </em>relocation” ?</p><p>eg,</p><oembed url=\"https://community.st.com/stm32cubeide-mcus-28/cubeide-2-1-0-system-stm32wl3x-o-dangerous-relocation-unsupported-relocation-163369\"></oembed><p> </p><p>Others:</p><p><a href=\"https://community.st.com/search?publishedIn%5B0%5D=28&amp;q=dangerous%20relocation&amp;category=Product%20forums%20%3E%20STM32%20MCUs%20Software%20development%20tools%20%3E%20STM32CubeIDE%20%28MCUs%29\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">https://community.st.com/search?publishedIn%5B0%5D=28&amp;q=dangerous%20relocation&amp;category=Product%20forums%20%3E%20STM32%20MCUs%20Software%20development%20tools%20%3E%20STM32CubeIDE%20%28MCUs%29</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I think that’s it.   That part is less important to me because it’s already a defined bug.  It’ll be attended to.</p><p>The interrupt situation is more important to me.  I’ll be working on trying to regularize that.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; primask register goes to 0x80 when default task is created.<br/>&gt; taskEXIT_CRITICAL() does not change that mask</p><p>IIRC the cause can be a FreeRTOS API call before the scheduler is started, or calling an API without _IT in interrupt state.</p><p>Sometimes the former is hard to avoid without tweaks (ex. when using  malloc with the FreeRTOS thread locks). </p><p> </p><p> </p></div>"
+    }
+  ]
+}

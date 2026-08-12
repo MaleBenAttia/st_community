@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167522",
+  "publicId": "167553",
+  "title": "STM32N657: ETH1_PPS internal connection to TIM3 works with fixed PPS but not with Flexible PPS",
+  "content": "<p>Hello,</p><p>I am working with an <strong>STM32N657 on the NUCLEO-N657X0-Q</strong> and I am trying to use the Ethernet PTP PPS signal as a hardware start trigger for TIM3.</p><p>TIM3 is configured as follows:</p><pre> </pre><pre><code>HAL_TIMEx_TISelection(&amp;htim3,<br />                      TIM_TIM3_TI1_ETH1_PPS,<br />                      TIM_CHANNEL_1);<br /><br />sSlaveConfig.SlaveMode = TIM_SLAVEMODE_TRIGGER;<br />sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;<br />sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;<br />sSlaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;<br />sSlaveConfig.TriggerFilter = 0;<br /><br />HAL_TIM_SlaveConfigSynchro(&amp;htim3, &amp;sSlaveConfig);</code></pre><p>TIM3 itself uses an external clock on ETR2 and should only be enabled by the rising edge of <code>ETH1_PPS</code>.</p><p>The internal connection works correctly when I use the normal/fixed PPS mode.</p><p>For example:</p><pre> </pre><pre><code>ETH1-&gt;MACPPSCR = 1U;</code></pre><p>In this case the PPS rising edge reaches TIM3, <code>TIM3-&gt;CR1.CEN</code> becomes set, TIM3 starts counting and the rest of my application starts correctly.</p><p>However, I cannot get the same internal connection to work when using <strong>Flexible PPS</strong>.</p><p>For Flexible PPS0 I tested:</p><pre> </pre><pre><code>ETH1-&gt;MACPPSTTS0R = target_seconds;<br />ETH1-&gt;MACPPSTTN0R = target_nanoseconds;<br /><br />ETH1-&gt;MACPPSI0R = 99999999U;  /* 1 s period */<br />ETH1-&gt;MACPPSW0R = 49999999U;  /* 50 % duty cycle */<br /><br />ETH1-&gt;MACPPSCR = 0x52U;</code></pre><p>where:</p><pre> </pre><pre><code>TRGTMODSEL0 = 2<br />PPSEN0      = 1<br />PPSCMD0     = 2 (start pulse train)</code></pre><p>The Flexible PPS generator itself appears to work correctly:</p><ul><li><code>MACPPSCR</code> changes from <code>0x52</code> to <code>0x50</code>, so the PPS command is accepted and self-cleared.</li>\t<li><code>MACTSSR.TSTARGT0</code> is set when the programmed target time is reached.</li>\t<li><code>MACTSCR = 0x203</code>.</li>\t<li>The Flexible PPS signal can be measured externally on <strong>PF3 / ETH1_PPS_OUT</strong>.</li>\t<li>On PF3 I see exactly the programmed signal: <strong>1 second period, 50 % duty cycle</strong>.</li></ul><p>Nevertheless, TIM3 does not see this Flexible PPS signal through the internal <code>ETH1_PPS -&gt; TIM3_TI1</code> connection.</p><p>After the target time has passed:</p><pre> </pre><pre><code>TIM3-&gt;CR1 = 0<br />TIM3-&gt;CNT = 5119</code></pre><p>so TIM3 is still waiting for its trigger.</p><p>The important observation is therefore:</p><pre> </pre><pre><code>Fixed PPS:<br />ETH1 PPS -&gt; internal TIM3_TI1 -&gt; works<br /><br />Flexible PPS:<br />ETH1 PPS_OUT on PF3 -&gt; works<br />ETH1 PPS -&gt; internal TIM3_TI1 -&gt; does not work</code></pre><p>The Ethernet hardware feature register is:</p><pre> </pre><pre><code>MACHWF2R = 0x42041041</code></pre><p>so Flexible PPS outputs are implemented in the MAC.</p><p>My questions are:</p><ol><li>Is <code>TIM_TIM3_TI1_ETH1_PPS</code> internally connected only to the <strong>fixed PPS generator</strong>, and not to the Flexible PPS0 output?</li>\t<li>Should Flexible PPS0 normally be visible on this internal ETH1_PPS-to-TIM3 connection?</li>\t<li>Is there another mux/register configuration required to route Flexible PPS internally to TIM3?</li>\t<li>Is this a known STM32N6 limitation/erratum, or is this internal PTP routing not yet fully documented in the reference manual?</li></ol><p>As a workaround I could route <code>ETH1_PPS_OUT</code> externally from PF3 to a physical TIM3_CH1 pin, but I would prefer to use the internal connection if Flexible PPS is supposed to be supported.</p><p>Thank you for any clarification.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32N6 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 15,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108544",
+    "username": "FORVIA",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108544",
+    "username": "FORVIA",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-07T13:31:07+00:00",
+  "lastActivityAt": "2026-08-07T13:31:07+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-07T13:31:07+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n657-eth1-pps-internal-connection-to-tim3-works-with-fixed-pps-but-not-with-flexible-pps-167553",
+  "scraped_replies": []
+}

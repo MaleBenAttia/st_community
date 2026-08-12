@@ -1,0 +1,66 @@
+{
+  "contentType": "question",
+  "id": "167523",
+  "publicId": "167554",
+  "title": "STM32U575RIT6Q flash memory interface question",
+  "content": "<p>Hello,</p><p> </p><p>I am wondering what is the memory interface of the embedded 2MB flash? Like is it SPI .etc</p><p> </p><p>Thank you!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32U5 series",
+    "External memory"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 34,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "101270",
+    "username": "yyc",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "34409",
+    "username": "AScha.3",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/60d29077-e89a-e289-a5b6-1836d7f87f90.png"
+  },
+  "createdAt": "2026-08-07T14:27:56+00:00",
+  "lastActivityAt": "2026-08-07T14:47:54+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745100,
+  "publishedAt": "2026-08-07T14:27:56+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32u575rit6q-flash-memory-interface-question-167554",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>There’s a block diagram in the <strong>Datasheet</strong> - it shows that the Flash on the <strong>AHB </strong>bus:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/859bd244-1801-4c5d-9376-acd185e88571.png\"/></figure><p><a href=\"https://www.st.com/resource/en/datasheet/stm32u575ri.pdf#page=21\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.st.com/resource/en/datasheet/stm32u575ri.pdf#page=21</a></p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/51d7b774-ebeb-45cf-9987-9d487be3c413.png\"/></figure><p> </p><p> </p><p><strong><u>PS</u>:</strong></p><p>AHB is part of ARM’s Advanced Microcontroller Bus Architecture (AMBA):</p><p><a href=\"https://en.wikipedia.org/wiki/Advanced_Microcontroller_Bus_Architecture#Advanced_High-performance_Bus_(AHB)\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://en.wikipedia.org/wiki/Advanced_Microcontroller_Bus_Architecture#Advanced_High-performance_Bus_(AHB)</a></p><p><a href=\"https://www.arm.com/architecture/system-architectures/amba\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.arm.com/architecture/system-architectures/amba</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you very much! </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The internal flash memory interface of the <a href=\"https://www.st.com/en/microcontrollers-microprocessors/stm32u575cg.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">STM32U575</a> achieves high-speed performance at up to 160 MHz by utilizing a <strong>128-bit wide flash read bus</strong> paired with the updated <strong>ART Accelerator (Adaptive Real-Time Accelerator)</strong>. [<a href=\"https://robu.in/stm32u5-cortex-m33-mcu-gets-more-performance-advanced-security/\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">1</a>, <a href=\"https://www.scribd.com/document/905722247/en-STM32U5-Memory-FLASH-FLASH\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">2</a>]</p><p></p><p>The Wide 128-Bit Read Line (Parallel Loading)</p><p>Instead of fetching data byte-by-byte, the internal flash interface reads from the memory array in wide parallel lines: [<a href=\"https://www.scribd.com/document/905722247/en-STM32U5-Memory-FLASH-FLASH\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">1</a>, <a href=\"https://community.st.com/stm32-mcus-products-25/single-word-flash-programming-is-not-properly-write-the-memory-and-disturbed-multi-write-131194\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">2</a>]</p><ul><li><strong>Data Bus Width:</strong> Every single flash memory read operation automatically loads a <strong>128-bit wide row</strong> from the flash bank. [<a href=\"https://www.scribd.com/document/905722247/en-STM32U5-Memory-FLASH-FLASH\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">1</a>]</li> <li><strong>Instruction Density:</strong> A single 128-bit read cycle simultaneously extracts <strong>four 32-bit instructions</strong> or <strong>eight 16-bit instructions</strong> into the prefetch/cache registers. [<a href=\"https://community.st.com/stm32-mcus-products-25/predicting-the-art-accelerator-flash-memory-read-operations-on-the-stm32f405rgt-16752\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">1</a>]</li> <li><strong>Hardware Prefetch:</strong> You can enable the prefetch engine via the <code>PRFTEN</code> bit in the Flash Access Control Register (<code>FLASH_ACR</code>). When enabled, the interface proactively fetches the <em>next</em> sequential 128-bit block while the CPU is executing the current one. This minimizes pipeline stalls during sequential code execution. [<a href=\"https://community.st.com/stm32-mcus-products-25/predicting-the-art-accelerator-flash-memory-read-operations-on-the-stm32f405rgt-16752\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">1</a>, <a href=\"https://www.st.com/resource/en/application_note/an5872-introduction-to-the-system-architecture-and-performance-in-the-stm32h5-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">2</a>, <a href=\"https://www.computersciencecafe.com/a116-computer-fundamentals-ib.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">4</a>]</li> </ul><p></p></div>"
+    }
+  ]
+}

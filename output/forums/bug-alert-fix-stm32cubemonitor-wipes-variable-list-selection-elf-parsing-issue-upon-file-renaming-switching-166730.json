@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "166705",
+  "publicId": "166730",
+  "title": "Bug Alert & Fix: STM32CubeMonitor wipes Variable List selection (.elf parsing issue) upon file renaming/switching",
+  "content": "<p>Hi everyone,</p><p>I wanted to share a frustrating issue I encountered in STM32CubeMonitor while working on a complex project (<em>vienna_stm32g474</em>), hoping to save some headaches for fellow developers.</p><p></p><p><strong>The Problem:</strong></p><p>When updating or switching to a new version of the <code>.elf</code> file in the <strong>Edit variables node / Edit exe-config node</strong>, the entire selected variable list (which contained around 30 complex nested structures) gets completely wiped out/deselected. Interestingly, this behavior occurred only in one specific node, while other lists on different flows updated perfectly fine, even though the variables still existed in the new file.</p><p></p><p><strong>The Root Cause:</strong></p><p>After a lot of debugging, we found out that STM32CubeMonitor handles the <code>.elf</code> file path/name as a strict <strong>unique hash key</strong> inside the <code>flows.json</code> architecture.<br />If you rename the file (e.g., creating a backup like <code>project-Copy.elf</code>) or switch paths manually in the UI dropdown, the internal parser treats it as an entirely new project schema. Instead of safely migrating the checkboxes, a silent exception occurs during the UI string-matching process of nested structs, and the internal JSON field <code>\"checked\": true</code> gets stripped off, completely resetting your selection to empty.</p><p></p><p><strong>The Fix / Best Practice:</strong></p><p>To prevent STM32CubeMonitor from ever wiping your variable lists again, follow these two rules:</p><ol><li><strong>Keep the filename and path 100% static:</strong> Never rename your output <code>.elf</code> file or manually switch files via the UI dropdown. Let STM32CubeIDE overwrite the exact same file in the <code>Debug</code> or <code>Release</code> folder upon compilation.</li>\t<li><strong>Automate the update on the background (The permanent fix):</strong> Instead of manually opening the config node and clicking \"Update\", use Node-RED's core automation:\t<ul><li>Drag a <strong><code>watch</code> node</strong> into your flow and point it to your absolute <code>.elf</code> file path.</li>\t\t<li>Drag a <strong><code>link out</code> node</strong> connected to the <code>watch</code> node.</li>\t\t<li>In your other flows/tabs, place a <strong><code>link in</code> node</strong> connected directly to the input pin of your <strong><code>variable list</code> node</strong>.</li>\t\t<li>Wire the links together.</li>\t\t\t</ul></li>\t</ol><p>Now, every time you hit <strong>Build</strong> in STM32CubeIDE, the <code>watch</code> node triggers a background re-parse across all flows simultaneously. The RAM addresses are updated on-the-fly, and your variable selections remain perfectly intact without any manual clicks.</p><p>Hope this helps anyone struggling with disappearing variables in CubeMonitor!</p><p><em>Tested on STM32CubeMonitor v1.12.0 and STM32CubeIDE v2.1.1</em>).</p><p>Best regards,</p><p>k_nedelchev</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "31",
+  "categoryName": "STM32CubeMonitor (MCUs)",
+  "tags": [
+    "STM32CubeMonitor"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 17,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107973",
+    "username": "k_nedelchev",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107973",
+    "username": "k_nedelchev",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-07T05:34:16+00:00",
+  "lastActivityAt": "2026-07-07T05:34:16+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-07T05:34:16+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemonitor-mcus-31/bug-alert-fix-stm32cubemonitor-wipes-variable-list-selection-elf-parsing-issue-upon-file-renaming-switching-166730",
+  "scraped_replies": []
+}

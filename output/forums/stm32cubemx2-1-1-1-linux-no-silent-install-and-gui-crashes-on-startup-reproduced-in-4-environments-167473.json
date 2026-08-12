@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167445",
+  "publicId": "167473",
+  "title": "STM32CubeMX2 1.1.1 (Linux) — no silent install, and GUI crashes on startup (reproduced in 4 environments)",
+  "content": "<p>Hello,</p><p>We're integrating STM32CubeMX2 1.1.1 into a Linux-based development workflow (a VS Code DevContainer running Ubuntu 24.04) for STM32C5xx projects, and have run into two separate blocking issues: the installer has no silent/unattended mode, and once installed, the GUI crashes on startup and never shows a window. Details and everything we've already tried below, in case it saves time on your end.</p><p>======================================================================<br />ISSUE 1 — No silent/unattended install path on Linux</p><p>We need to provision STM32CubeMX2 as part of an automated container image build (no interactive session available at build time). We could not find any way to do this:</p><p>- Your own docs (STM32CubeMX2 1.0.0 install page) only document the interactive GUI wizard for Linux: chmod +x the installer, run it, click through Welcome -&gt; Configuration -&gt; License -&gt; Installation.<br />- We tried every CLI flag we could think of or find, including patterns used by OTHER ST installers (e.g. STM32CubeCLT's st-stm32cubeclt_*.deb.sh -- --target ... --quiet --accept, which is a different installer technology — a self-extracting shell wrapper around a .deb — and does not apply to this installer, which is a Tauri/Rust binary).<br />- Unrecognized flags are silently ignored (no usage/error text is ever printed), which makes it hard to tell whether a flag \"isn't a real flag\" or \"is a real flag that just isn't doing anything yet.\"<br />- --guiless IS a real, recognized flag — passing it avoids a GTK-init panic when no window can be shown — but on its own it does nothing observable: no port opens, no files get written to a target directory, process just idles.<br />- We tried --guiless combined with --target &lt;dir&gt; --quiet --accept (borrowing the CubeCLT installer's flag names, in case they'd been carried over) — still no install, nothing written.</p><p>End result: we could only get STM32CubeMX2 installed by running the full interactive GUI wizard once and manually clicking through it, then vendoring the resulting install directory into our own repo/container image so it doesn't need to be repeated per developer/per container rebuild.</p><p>Question: is there a documented or undocumented silent/unattended install mode (answers file, env var, hidden CLI flag), and if not, is one planned? A tool that's otherwise clearly meant to be usable in headless/CI/container contexts (it has its own cube mx start --detached --port &lt;port&gt; CLI) seems like an odd fit for a GUI-only installer.</p><p>======================================================================<br />ISSUE 2 — GUI crashes on startup, no window ever maps (reproduced in 4 separate environments)</p><p>Once installed, launching the actual STM32CubeMX2 GUI (via cube mx start &lt;project&gt;.ioc2, or directly via the stm32cubemx2 binary) always produces the identical crash, regardless of environment. Console output (same every time):</p><p>[Error] Could not initialize contribution TypeError: Cannot read properties of undefined<br />  (reading 'onChanged')<br />    at g.initializeEventWatchers (.../lib/frontend/bundle.js:92134:...)<br />    ...<br />Opening channel for service path '/services/electron-window'.<br />[Error] Error: No Cube URI found for project path: &lt;working_area&gt;/&lt;uuid&gt;<br />[Error] TypeError: Cannot read properties of undefined (reading 'toLowerCase')<br />[Error] ApplicationProject: Not able to recover hw project information: Error: MCU not found<br />  on this hw project<br />(node:PID) UnhandledPromiseRejectionWarning: Error: Cancelled<br />Backend process exited with code 11   &lt;- seen on some runs, not all</p><p>No window is ever created or mapped (confirmed via xpra screenshot — reports \"no windows are currently shown\" every time), even though the backend process, the pack-manager sync, and the cmsis-scanner service all start up and keep running.</p><p>We tried to isolate the cause across FOUR different environments/configurations, changing one variable at a time, and got the identical crash in every single one:</p><p>1. Native WSL2/WSLg, host-side (the installer's own GUI wizard actually completes fine and works here — same STM32CubeMX2 build — the crash is specifically in the wizard's INSTALLED<br />application, not the installer itself).<br />2. A Linux DevContainer (Docker container, Ubuntu 24.04) with the host's WSLg X11 socket bind-mounted in and DISPLAY forwarded from the host.<br />3. The same DevContainer, fully self-contained instead — no host display depeebuffer (Xvfb) inside the container, served over HTML5 by xpra, with allGTK/WebKit/Electron runtime deps (libgtk-3-0, libwebkit2gtk-4.1-0, libnss3, libnspr4, etc.) installed.<br />4. The same DevContainer, swapping Xvfb for a full Xorg server with the xf86-X/RANDR/RENDER support, confirmed via xpra's own log: \"OpenGL is supported ondisplay :100\") instead of Xvfb's more limited software GL — in case the crash was a GPU-initialization side effect rather than a true logic bug.</p><p>We also specifically ruled out two known \"silent failure\" gotchas we'd found mentioned elsewhere for this tool:<br />- A stale Electron SingletonLock file (in ~/.config/STM32CubeMX2/) from a preocking a new instance from starting — confirmed present, cleared it, deletedthe whole config directory for a fully clean state, crash reproduced identically.<br />- A missing D-Bus session bus (many Failed to connect to the bus warnings app real D-Bus session bus via dbus-launch and exported DBUS_SESSION_BUS_ADDRESSbefore launching — crash reproduced identically.</p><p>So: not a display/GPU backend issue, not a stale lock file, not a missing D-Bus session. The crash appears to be a genuine bug in the frontend's contribution-initialization code<br />(initializeEventWatchers), independent of environment.</p><p>Environment details for our reproduction:<br />- STM32CubeMX2 version: 1.1.1 (Linux x64 installer)<br />- OS: Ubuntu 24.04 (both host-side WSL2/WSLg and inside Docker containers bas<br />- libwebkit2gtk-4.1: 2.52.3-0ubuntu0.24.04.1 ; libgtk-3: 3.24.41-4ubuntu1.3<br />- Project: STM32C562RET6 / NUCLEO-C562RE, .ioc2 project file<br />                                                                                                                                                                              Questions for ST:<br />1. What does initializeEventWatchers watch, and which service is undefined there? That's the most direct clue we have.                                                        2. Is the eventual backend SIGSEGV (exit code 11, seen on some runs) a conseqbution failure, or an independent fault?<br />3. Is 1.1.1 known to regress on Linux specifically, and if so is there a workaround or a fixed build we should use instead?                                                   4. Is there a supported way to get a verbose backend log — the wrapper launchd we had to invoke the inner binary directly to see anything at all?<br />5. Given the tool ships its own headless CLI (cube mx start --detached), is the GUI window expected to be viable at all under a virtual display (Xvfb/Xorg+dummy), or is that configuration simply unsupported/untested on ST's side?</p><p>Happy to provide full console logs, installer.json, or anything else useful o</p><p>Thank you,</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "151",
+  "categoryName": "STM32CubeMX2 (MCUs)",
+  "tags": [
+    "STM32C5 series",
+    "STM32CubeMX2"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 21,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "93203",
+    "username": "mani9989",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1242",
+    "username": "Sara BEN HADJ YAHYA",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/dbb9eaec-dc4c-0880-a433-a41334676135.png"
+  },
+  "createdAt": "2026-08-04T22:00:18+00:00",
+  "lastActivityAt": "2026-08-12T09:43:53+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745484,
+  "publishedAt": "2026-08-04T22:00:18+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx2-mcus-151/stm32cubemx2-1-1-1-linux-no-silent-install-and-gui-crashes-on-startup-reproduced-in-4-environments-167473",
+  "scraped_replies": []
+}

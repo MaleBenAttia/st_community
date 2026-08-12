@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "167218",
+  "publicId": "167244",
+  "title": "Is it safe to strip .weak/MSP weak bodies so a static-lib archive pulls in real IRQ/MSP overrides?",
+  "content": "<p><strong>Setup:</strong><br />I have a CubeMX/CubeIDE-generated STM32G474RET6 project (ThreadX) that I build as a static archive rather than a flashable executable, meant to be linked into a separate top-level consumer application. The consumer supplies <code>main()</code>, calls into this library's init function, and never defines its own vector table, interrupt handlers, or MSP callbacks — this library owns all of that.<br /> </p><p><strong>Problem:</strong></p><p>A static archive only pulls in the <code>.o</code> members something already-linked actually references (need-driven extraction). That interacts badly with two CubeMX-generated weak-symbol patterns:</p><ol><li>\t<p><strong>Vector table vs. <code>stm32g4xx_it.c</code>:</strong> <code>startup_stm32g474retx.s</code> gives every handler a <code>.weak</code>/<code>.thumb_set XXX,Default_Handler</code> fallback, satisfied locally from the always-linked startup object. Since nothing else references handlers like <code>NMI_Handler</code> or a peripheral's <code>IRQHandler</code>, the linker never has a reason to pull <code>stm32g4xx_it.c.o</code> out of the archive — the real handlers in it are silently dropped in favor of <code>Default_Handler</code>. Build and flash both succeed; nothing interrupt-driven actually runs.</p>\t</li>\t<li>\t<p><strong>HAL MSP callbacks:</strong> Same problem, different shape. e.g. <code>stm32g4xx_hal_adc.c</code> both calls <code>HAL_ADC_MspInit()</code> and defines a <code>__weak</code> empty-body fallback for it <em>in the same translation unit</em>. The moment something pulls <code>stm32g4xx_hal_adc.c.o</code> in (e.g. a call to <code>HAL_ADC_Init()</code>), the weak symbol is already satisfied from that same object — so the linker never has a reason to reach into the archive for my own <code>stm32g4xx_hal_msp.c.o</code>, and the real MSP override (clock/GPIO/DMA/NVIC config) is silently dropped too. This applies to any peripheral whose MSP callback is overridden this way — ADC, TIM, I2C, SPI, USART, etc.</p>\t</li></ol><p><strong>What I did:</strong></p><ul><li>In <code>startup_stm32g474retx.s</code>, removed the <code>.weak</code>/<code>.thumb_set XXX,Default_Handler</code> pair for every vector that <code>stm32g4xx_it.c</code> actually implements (left the <code>.word</code> entry in <code>g_pfnVectors</code> untouched). This makes those names genuinely undefined until <code>stm32g4xx_it.c.o</code> is pulled in to resolve them.</li>\t<li>In the relevant <code>Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_*.c</code> files, wrapped the weak MSP fallback <em>body</em> in <code>#if 0</code> (keeping <code>UNUSED(...)</code> outside it) for each <code>HAL_xxx_MspInit</code>/<code>MspDeInit</code> pair that my own <code>stm32g4xx_hal_msp.c</code> actually overrides. This makes the call site an undefined reference until my real <code>stm32g4xx_hal_msp.c.o</code> is extracted.</li></ul><p>Both changes are pure removals of a weak fallback — the strong definitions and the vector table's <code>.word</code> entries are untouched.</p><p><strong>Questions:</strong></p><ol><li>Is this a safe approach, or is there an ST-supported mechanism for forcing specific objects out of a vendor-generated static archive (an official \"anchor\"/<code>KEEP</code>-equivalent pattern) instead of hand-editing the CubeMX-generated startup file and HAL sources?</li>\t<li>Any caveats I should know about re: CubeMX re-generation or a STM32Cube firmware package upgrade silently reintroducing the weak fallback and masking this again with no build error?</li>\t<li>Any correctness concerns specific to ThreadX or the G4's NVIC/vector table setup with this approach that I might be missing?</li></ol><p><br /><br /><br /> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "Interrupt",
+    "STM32Cube MCUs packages"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 54,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "93155",
+    "username": "macar",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/75cb68f4-4642-556e-a61c-80c9de4317cb.png"
+  },
+  "lastContributor": {
+    "id": "37189",
+    "username": "Pavel A.",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/848a253a-dfe0-ac3e-1818-32d276066844.png"
+  },
+  "createdAt": "2026-07-27T09:19:26+00:00",
+  "lastActivityAt": "2026-07-30T22:22:49+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744469,
+  "publishedAt": "2026-07-27T09:19:26+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/is-it-safe-to-strip-weak-msp-weak-bodies-so-a-static-lib-archive-pulls-in-real-irq-msp-overrides-167244",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>There is no special “ST-supported mechanism”, just what is provided with the toolchain (GNU, or IAR if you can afford that). So whatever works with the standard GCC &amp; linker, is good.</p><p>&gt; Any caveats I should know about re: CubeMX re-generation</p><p>CubeMX re-generation usually does not touch the linker scripts (.ld) since they are created. </p><p>Other .c files may be clobbered by re-generation, so use a version control to track all your source files, detect unwanted changes and revert  them.</p><p> </p><p> </p></div>"
+    }
+  ]
+}

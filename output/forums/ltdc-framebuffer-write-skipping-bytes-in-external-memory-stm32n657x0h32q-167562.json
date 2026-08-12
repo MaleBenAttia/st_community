@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "167531",
+  "publicId": "167562",
+  "title": "LTDC Framebuffer Write Skipping Bytes in External Memory – STM32N657X0H32Q",
+  "content": "<h1> </h1><p>Hello ST Community,</p><p>I am working with the <strong>STM32N657X0H32Q</strong> and configuring the <strong>LTDC with external memory</strong>. I am facing an issue with framebuffer writes.</p><p>The <strong>external memory is connected to XSPI Port 1</strong>, and the read and write operations work correctly in <strong>Memory-Mapped mode</strong> at address <strong>0x90000000</strong>. I am able to read from and write to this address without any issues.</p><p>However, when I configure the <strong>LTDC to use the framebuffer at 0x90000000</strong> with a resolution of <strong>800 × 600</strong>, I observe that some bytes are missing or skipped during the framebuffer write operation.</p><p>For example, I observe that approximately <strong>1 KB of data is written, followed by around 300 bytes being skipped</strong>, and this pattern continues.</p><h2>Memory Configuration</h2><pre><code>/* Memories definition */<br />MEMORY<br />{<br />    ROM (xrw) : ORIGIN = 0x34180400, LENGTH = 255K<br />    RAM (xrw) : ORIGIN = 0x341C0000, LENGTH = 256K<br />    SCREEN_BUFFER_SRAM (xrw) : ORIGIN = 0x90000000, LENGTH = 20M<br />}<br /><br />.screen_buffer (NOLOAD) :<br />{<br />    . = ALIGN(4);<br />    _screen_buffer_start = .;<br />    KEEP(*(.screen_buffer))<br />    . = ALIGN(4);<br />    _screen_buffer_end = .;<br />} &gt; SCREEN_BUFFER_SRAM<br /></code></pre><h2>Framebuffer Declaration</h2><pre><code>__attribute__((section(\".screen_buffer\")))<br />uint16_t screen_buffer[800 * 600 * 2];<br /></code></pre><h2>Framebuffer writing</h2><p> </p><pre><code>MX_LTDC_Init();<br /><br />RIMC_MasterConfig_t RIMC_master = {0};<br /><br />RIMC_master.MasterCID = RIF_CID_1;<br />RIMC_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV;<br /><br />HAL_RIF_RIMC_ConfigMasterAttributes(<br />    RIF_MASTER_INDEX_LTDC1,<br />    &amp;RIMC_master<br />);<br /><br />HAL_RIF_RISC_SetSlaveSecureAttributes(<br />    RIF_RISC_PERIPH_INDEX_LTDCL1,<br />    RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV<br />);<br /><br />for (i = 0; i &lt; BUFF_SIZE; i++)<br />{<br />    screen_buffer[i] = 0x07E0;<br />}<br /></code></pre><h2>Questions</h2><p>Could someone please help me understand the following:</p><ol><li>\t<p>Why is the LTDC skipping or missing approximately <strong>300 bytes after writing around 1 KB</strong>?</p>\t</li>\t<li>\t<p>Could this issue be related to the <strong>LTDC burst size, AXI configuration, external memory configuration, or framebuffer pitch/stride</strong>?</p>\t</li>\t<li>\t<p>Are there any specific <strong>LTDC or external memory settings</strong> that I should verify when using <strong>0x90000000</strong> as the framebuffer address.</p>\t</li>\t<li>\t<p>Could this behavior be related to <strong>cache, memory attributes, security/privilege attributes, or memory alignment</strong>?</p>\t</li></ol><p>The external memory read/write operations work correctly when accessed directly in <strong>Memory-Mapped mode</strong>. Therefore, I would like to understand what changes when the <strong>LTDC becomes the master accessing the same framebuffer</strong>.</p><p>I have attached the relevant <strong>LTDC configuration and external memory/Memory-Mapped configuration</strong> for reference.</p><p>Any suggestions or guidance on the registers or configurations that I should check would be greatly appreciated.</p><p>Thanks in advance for your help.</p><p>Best regards,<br /><strong>Siddu M.</strong></p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "33",
+  "categoryName": "STM32 MCUs TouchGFX and GUI",
+  "tags": [
+    "LCD-LTDC",
+    "TouchGFX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 35,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "102258",
+    "username": "siddum",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "67402",
+    "username": "mathiasmarkussen",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-08T06:29:28+00:00",
+  "lastActivityAt": "2026-08-12T11:06:49+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745493,
+  "publishedAt": "2026-08-08T06:29:28+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/ltdc-framebuffer-write-skipping-bytes-in-external-memory-stm32n657x0h32q-167562",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>How do you measure the writing/skipping?</p><p>The porch pixel values on your LTDC are also clocked on the output, but they do not contain any pixel data, could that be the source of your skip?</p></div>"
+    }
+  ]
+}

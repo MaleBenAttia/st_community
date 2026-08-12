@@ -1,0 +1,70 @@
+{
+  "contentType": "question",
+  "id": "167057",
+  "publicId": "167076",
+  "title": "STM32G431 TIM2 (32bit) strange behavior",
+  "content": "<p>Heyho,</p><p>working on a new project with a STM32G431, for now on a Nucleo-32 board.</p><p>I have lots of things running (bare-metal, mostly no HAL), then I needed a timer with a higher resolution than the SysTick (running at 1 ms, looks valid).</p><p>The only 32-bit timer is TIM2, so I set it up to simply count up, no interrupts, only with pre-scaler set to get 1 counter period of 10 us at a clock of 96 MHz. </p><p>The code below is changed to a period of<strong> 1 ms</strong>, for simpler comparison to the 1 ms tick.</p><p>Here’s the setup:</p><pre><code class=\"language-c\">/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */<br />/* TIM2<br /> *\t32 bit timer<br /> *\tinit function<br /> *\t10 us timer -&gt; NO interrupt<br /> */<br />void TimComInit(void)<br />{<br />\t/* peripheral clock enable */<br />\t__IO uint32_t u32TmpReg;<br /><br />\tRCC-&gt;APB1ENR1 |= RCC_APB1ENR1_TIM2EN;<br />\tu32TmpReg = ( RCC-&gt;APB1ENR1 &amp; RCC_APB1ENR1_TIM2EN );<br />\t(void)u32TmpReg;<br /><br />\tTIM2-&gt;CR1\t= 0;<br />\tTIM2-&gt;CR2\t= 0;<br />\tTIM2-&gt;SMCR\t= 0;<br />\tTIM2-&gt;CCER\t= 0;<br />\tTIM2-&gt;CCMR1\t= 0;<br />\tTIM2-&gt;CCMR2\t= 0;<br />\tTIM2-&gt;CCMR3\t= 0;<br />\tTIM2-&gt;DIER\t= 0;<br />\tTIM2-&gt;SR\t= 0;<br />\tTIM2-&gt;EGR\t= 0;<br />\tTIM2-&gt;OR\t= 0;<br /><br />\tTIM2-&gt;PSC\t= (uint32_t)((float)u32CpuClock / 2E3f) - 1UL;<br />\tTIM2-&gt;ARR\t= 0xFFFFFFFF;<br /><br />\t/* timer enable */<br />\tTIM2-&gt;CNT \t= 0;<br />\tTIM2-&gt;CR1 \t|= TIM_CR1_CEN;<br />}<br /><br /></code></pre><p> </p><p>Here’s the strange behavior (which was the same when set up for 10 us):</p><ul><li>after init, the timer runs with full clock speed, ignoring the pre-scaler</li>\t<li>after the first overflow, the pre-scaler is used</li></ul><p>Here’s the UART output (which I confirmed with some timer controlled GPIO, where I actually found this problem, because the TIM2 controlled pulses where super-short after start-up, then okay):</p><pre><code class=\"language-c\">directly after start:<br /><br />T2    276587682    &lt;- TIM2-&gt;CNT<br />TimMs 5762         &lt;- TIM7 also set to 1 ms<br />Tick  5762<br /><br />...<br /><br />T2    476524324<br />TimMs 9927<br />Tick  9927<br /><br />later, after 1st overflow, now OK: difference between T2 and Tick readings is about the same<br /><br />T2    289650<br />TimMs 379129<br />Tick  379129<br /><br />T2    294491<br />TimMs 383969<br />Tick  383969</code></pre><p> </p><p>What am I doing wrong?</p><p>As you can see, this set up code is so simple, only PSC set, then enable. Must something really stooopid…</p><p> </p><p>Thanks in advance! </p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32G4 series",
+    "TIM"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 77,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "39813",
+    "username": "LCE",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/c6547345-4bfa-4b5a-b6f7-8d606679294e.png"
+  },
+  "lastContributor": {
+    "id": "17162",
+    "username": "waclawek.jan",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/43c60519-a334-d573-5e4a-aca0ba6642b5.png"
+  },
+  "createdAt": "2026-07-20T08:43:48+00:00",
+  "lastActivityAt": "2026-07-20T12:18:50+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743432,
+  "publishedAt": "2026-07-20T08:43:48+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32g431-tim2-32bit-strange-behavior-167076",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>When I set CNT = 0xFFFFFFFE before setting the enable bit, then the timer works fine.</p><p>Played around with it by setting CNT to various values and comparing with the SysTick, it’s definitely taking PSC into account only after the first overrun.</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>TIMx_PSC is <a href=\"http://www.efton.sk/STM32/gotcha/g40.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">unconditionally preloaded</a>. This behaviour is documented.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c69f3de3-f1bc-43e8-a932-21c1ad375c0c.png\"/></figure><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> !</p><p>Just found the same by setting it up via CubeMx, and there I found the line:</p><p>TIM2-&gt;EGR     = TIM_EGR_UG;</p><p>Then I checked the RM again.</p><p> </p><p>I never came across this before, is this a feature for “advanced” timers only?</p><p> </p><p>And interesting that this is required even before the timer was ever enabled.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; is this a feature for “advanced” timers only?</p><p>No, this is the same in all timers.</p><p>In 16-bit timers many users simply don’t notice that the first period was shorter. Also, “library” (SPL/Cube/LL/HAL) users won’t notice as the “libraries” tend to add setting TIMx_EGR.UG to timer initialization code.</p><p>JW</p></div>"
+    }
+  ]
+}

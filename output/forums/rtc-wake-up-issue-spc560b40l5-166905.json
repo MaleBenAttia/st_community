@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166887",
+  "publicId": "166905",
+  "title": "RTC Wake-up Issue SPC560B40L5",
+  "content": "<p>Hi,</p><p>I am using an SPC560B40L5 with ChibiOS/AutoDevKit Studio.</p><p>The hardware design is already finalized, so I cannot change the wake-up circuitry. Because of this limitation, I use the RTC to wake the MCU periodically every <strong>200 ms</strong>. After each wake-up, I only check a few GPIOs to determine whether a real wake-up event has occurred. If no event is detected, the MCU immediately enters STOP mode again. No peripherals are reinitialized unless a valid wake-up event is detected.</p><p>The sleep/wake-up sequence works correctly during normal operation. However, I am facing a strange issue after reprogramming the MCU.</p><p>After downloading new firmware (without removing power), the MCU freezes in:</p><pre><code>while (ME.IS.R == 0U)<br />{<br />}</code></pre><p>inside:</p><pre><code>SPCSetRunMode(SPC5_RUNMODE_STOP);</code></pre><p>The board must support in-field reprogramming through the diagnostic interface (without a power cycle), but after programming the MCU usually remains stuck until the power is removed and applied again.</p><p>Interestingly, if I disable the periodic RTC wake-up and instead use only an external wake-up pin, <strong>both problems disappear</strong>:</p><ul><li>The MCU no longer freezes in <code>SPCSetRunMode()</code>.</li>\t<li>Reprogramming works correctly without requiring a power cycle.</li></ul><p>My sleep sequence is:</p><pre><code>prepareForSleep();<br />gotoSleep();</code></pre><p>where <code>prepareForSleep()</code> stops all peripherals (CAN, LIN, ADC, SPI, PWM, watchdog, etc.) and suspends all RTOS tasks.</p><p>The relevant part of <code>gotoSleep()</code> is shown below:</p><pre><code class=\"language-c\">void prepareForSleep(void)<br />{<br />    //stop watchdog<br />    swt_lld_stop(&amp;SWTD1);<br /><br />    //suspend tasks<br />    vTaskSuspend(HandleInput);<br />    vTaskSuspend(HandleCanHighTx);<br />    vTaskSuspend(HandleCanLowTx);<br />    vTaskSuspend(HandleAnti);<br />    vTaskSuspend(HandleEeprom);<br />    vTaskSuspend(HandleRemote);<br />    vTaskSuspend(HandleDiagnostic);<br />    vTaskSuspend(HandleOutput);<br /><br />    //disable inputs<br />    SIU.GPDO[10].R = 0;<br /><br />    //stop pwm<br />    pwm_lld_stop(&amp;PWMD1);<br />    pwm_lld_stop(&amp;PWMD4);<br /><br />    //stop tle<br />    tleStandby(&amp;SPID1);<br />    UJA1078_ENpinSetState(&amp;SPID1,0); //set tle's RST pin to zero -&gt; puts ic in standby mode<br />    //stop uja<br />    UJA1078_EnableCANINT(&amp;SPID1);<br />    UJA1078_GoStandby(&amp;SPID1);<br />    //stop spi1<br />    spi_lld_stop(&amp;SPID1);<br /><br />    //stop adc<br />    adc_lld_stop_conversion(&amp;ADCD1);<br /><br />    vTaskDelay(50);<br />    adc_lld_stop(&amp;ADCD1);<br /><br />    // vTaskDelay(10);<br />    osalThreadDelayMicroseconds(10);<br /><br />    //stop can<br />    can_lld_stop(&amp;CAND1);<br />//    can_lld_stop(&amp;CAND2);<br /><br />    //stop lin<br />    lin_lld_stop(&amp;LD2);<br />    //lin_lld_stop(&amp;LD3);<br /><br />    // stop eeprom<br />    FSL_AbortFunction(&amp;eepromConf);<br /><br />    SIU.GPDO[2].R = 0;<br /><br />    disablePins();<br /><br />}<br /><br />void gotoSleep(void)<br />{<br />    ME.STOP0.B.PDO = 0;<br />    ME.STOP0.B.MVRON = 0;<br />    ME.STOP0.B.DFLAON = 0;<br />    ME.STOP0.B.CFLAON = 0;<br />    ME.STOP0.B.FMPLLON = 0;<br />    ME.STOP0.B.FXOSC0ON = 0;<br />    ME.STOP0.B.FIRCON = 0;<br />    ME.STOP0.B.SYSCLK = 0xF;<br /><br />    ME.LPPC[0].B.STOP0 = 0;<br />    ME.LPPC[1].B.STOP0 = 0;<br /><br />\t// set RTC registers for periodic wake-up<br />    RTC.RTCS.B.RTCF = 1;<br />    RTC.RTCC.B.FRZEN = 1;<br />    RTC.RTCC.B.CLKSEL = 1;<br />    RTC.RTCC.B.RTCVAL = 6;<br />    RTC.RTCC.B.APIEN = 1;<br />    RTC.RTCC.B.RTCIE = 1;<br />    RTC.RTCC.B.DIV32EN = 0;<br />    RTC.RTCC.B.DIV512EN = 0;<br /><br />    gotoSTOP:<br />\tRTC.RTCC.B.CNTEN = 1;<br />//\tRTC.RTCC.R = 0x60069000;<br /><br />\t// enable wake-up on RTC interrupt<br />    WKUP.WIFEER.B.IFEE = 0;<br />    WKUP.WIREER.B.IREE = 0x2;<br />    WKUP.WRER.B.WRE = 0x2;<br />    WKUP.WISR.R = 0xFFFFFFFFU;<br /><br />\t// enable RTC counter<br /><br />\tif (SPCSetRunMode(SPC5_RUNMODE_STOP) == CLOCK_FAILED) <br />\t{<br />\t\tSPC5_CLOCK_FAILURE_HOOK();<br />\t}<br /><br />\tRTC.RTCC.B.CNTEN = 0;<br /><br />//\tosalThreadDelayMilliseconds(200);<br /><br />    // ME.MCTL.R = 0xA0005AF0; // Puts uC in Stop mode<br />    // ME.MCTL.R = 0xA000A50F; // Puts uC in Stop mode<br /><br />    // // waits until stop<br />    // while(ME.GS.B.S_MTRANS != 0){}<br /><br />    SIU.PCR[PIN_NUM_INPUT_ENABLE].B.PA  = 0;  \t// GPIO<br />    SIU.PCR[PIN_NUM_INPUT_ENABLE].B.OBE = 1;  \t// Output enable<br />    SIU.PCR[PIN_NUM_INPUT_ENABLE].B.IBE = 0;  \t// Input disable<br />    SIU.PCR[PIN_NUM_INPUT_ENABLE].B.ODE = 0;  \t// Push-pull<br />    SIU.PCR[PIN_NUM_INPUT_ENABLE].B.SRC = 1;  \t// Medium slew rate<br /><br />    SIU.GPDO[PIN_NUM_INPUT_ENABLE].R = 1;  \t\t// PIN_NUM_INPUT_ENABLE high<br /><br />\tRTC.RTCS.R = 0xFFFFFFFF;<br />\tWKUP.WISR.R = 0xFFFFFFFF;<br /><br />    osalThreadDelayMilliseconds(1);<br /><br />    if(!checkWakeup())<br />    {<br />        SIU.GPDO[PIN_NUM_INPUT_ENABLE].R = 0;<br />        deInitPin(PIN_NUM_INPUT_ENABLE);<br />        goto gotoSTOP;<br />    }<br /><br />\tboardInit();<br />\tclockInit();<br />//    initCanLowSpeed();<br />    initCanHighSpeed();<br />    startUJA(&amp;SPID1, &amp;spi_config_SPI0);<br />    adc_lld_start(&amp;ADCD1, NULL);<br />    swt_lld_start(&amp;SWTD1, &amp;swt0_config);<br /><br />    pal_lld_setpad(PORT_G, VSEN);<br /><br />    UJA1078_ENpinSetState(&amp;SPID1, 0);<br />    tleInit(&amp;SPID1);<br />    digitalInputs.BrakeOilLevelSwitch = 1;<br />    FSL_InitEeprom(&amp;eepromConf, NULL_CALLBACK);<br /><br />    INPUT_ENABLE();<br /><br />    lin_lld_start(&amp;LD2, &amp;lin_config_LIN1);<br />    RPASensor.tick = xTaskGetTickCount();<br />    // RPAsensor_init(&amp;LD2);<br /><br />    pwm_lld_start(&amp;PWMD1, &amp;pwm_config_ROOFLAMP);<br />    pwm_lld_start(&amp;PWMD4, &amp;pwm_config_BUZZER);<br />    pwm_lld_enable_channel(&amp;PWMD4, 5, 50);<br />    // BUZZER(1);<br />    SET_VECO(0);<br /><br />    vTaskResume(HandleInput);<br />    vTaskResume(HandleCanHighTx);<br />    vTaskResume(HandleCanLowTx);<br />    vTaskResume(HandleAnti);<br />    vTaskResume(HandleEeprom);<br />    vTaskResume(HandleRemote);<br />    vTaskResume(HandleDiagnostic);<br />    vTaskResume(HandleOutput);<br />}</code></pre><p>My questions are:</p><ol start=\"1\"><li>Is there any known limitation or erratum regarding periodic RTC wake-up followed by repeated STOP mode entries on the SPC560B40L5?</li>\t<li>Is any additional RTC or WKUP register handling required before re-entering STOP mode?</li>\t<li>Could the periodic RTC wake-up interfere with the ME mode transition mechanism, causing <code>ME.IS</code> never to be updated?</li></ol><p>Any suggestions would be greatly appreciated.</p><p><br />with regard,<br />Milan.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "51",
+  "categoryName": "Automotive MCUs",
+  "tags": [
+    "SPC5 automotive MCUs",
+    "RTC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 17,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108195",
+    "username": "Mc.Milan1995",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108195",
+    "username": "Mc.Milan1995",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-13T12:06:35+00:00",
+  "lastActivityAt": "2026-07-13T12:06:35+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-13T12:06:35+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/automotive-mcus-51/rtc-wake-up-issue-spc560b40l5-166905",
+  "scraped_replies": []
+}

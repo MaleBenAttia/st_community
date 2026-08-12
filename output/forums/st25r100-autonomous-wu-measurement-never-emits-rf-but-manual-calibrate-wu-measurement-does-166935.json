@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "166917",
+  "publicId": "166935",
+  "title": "ST25R100: autonomous WU_MEASUREMENT never emits RF, but manual CALIBRATE_WU_MEASUREMENT does",
+  "content": "<h2>Setup</h2><ul><li>\t<p><strong>Board:</strong> X-NUCLEO-NFC09A1 (ST25R100), brand new, unmodified, no jumpers/solder bridges changed</p>\t</li>\t<li>\t<p><strong>Host:</strong> STM32, custom C++17 driver (register-level, not RFAL)</p>\t</li>\t<li>\t<p><strong>SPI:</strong> confirmed working — bring-up sequence completes, all register reads/writes verified against DS14139 Rev 4</p>\t</li></ul><h2>Symptom</h2><p>The autonomous wake-up measurement cycle (triggered internally by the WUT every <code>wut</code> period) never emits any RF onto RFO1/RFO2, confirmed directly on an oscilloscope. However, the <strong>CALIBRATE_WU_MEASUREMENT</strong> direct command (0x74), issued manually once during bring-up, <strong>reliably emits a real RF burst</strong> every time (5 sub-pulses of ~26 µs each, ~130 µs total).</p><p>This has been reproduced consistently across many test runs, with the following independently confirmed facts:</p><ul><li>\t<p><code>wu_en</code> is set and read back correctly (<code>OPERATION</code> = 0x01).</p>\t</li>\t<li>\t<p>The WU timer itself is confirmed running: with <code>wuti</code> (WU_CONTROL_1 bit 3) set, <code>I_wut</code> fires reliably in <code>IRQ_STATUS_3</code> on schedule, tested at both <code>wut</code> = 77.3 ms and <code>wut</code> = 9.7 ms.</p>\t</li>\t<li>\t<p><code>IRQ_MASK_3</code> correctly unmasks <code>M_wui</code>/<code>M_wuq</code>.</p>\t</li>\t<li>\t<p>The physical IRQ pin → GPIO → ISR chain is confirmed working end-to-end (verified via a heartbeat counter incrementing on every notified <code>IRQ_STATUS_3</code> read).</p>\t</li>\t<li>\t<p><code>WU_I_CALIBRATION</code>/<code>WU_Q_CALIBRATION</code> (0x2E/0x33) read back non-zero, real values (e.g. 0x4C/0xA0) after <code>CALIBRATE_WU_MEASUREMENT</code> — confirming the analog path is functional when driven manually.</p>\t</li>\t<li>\t<p><code>WU_I_ADC</code>/<code>WU_Q_ADC</code>/<code>WU_I_REFERENCE</code>/<code>WU_Q_REFERENCE</code> (0x2C/0x31/0x2D/0x32) remain exactly 0x00 in every autonomous-cycle read, regardless of card presence, both with a card held directly against the antenna and without.</p>\t</li>\t<li>\t<p><code>RX_ANALOG_2</code> <code>afe_gain_td&lt;3:0&gt;</code> set to maximum (0x0 → 26 dB) — no change.</p>\t</li>\t<li>\t<p><code>WU_CONTROL_2</code> measurement pulse length (<code>td_mf</code>/<code>td_mt&lt;1:0&gt;</code>) set to maximum (43.7 µs) — no change.</p>\t</li>\t<li>\t<p><code>ADJUST_REGULATORS</code> issued during bring-up before any WU configuration — no change.</p>\t</li>\t<li>\t<p><code>skip_cal</code> (WU_CONTROL_2 bit 6) tried both set and cleared (i.e. with and without the chip's own automatic first-WUT calibration) — no change.</p>\t</li>\t<li>\t<p><code>GENERAL_CONFIG</code> <code>single</code> bit left at 0 (differential antenna driving), matching the X-NUCLEO-NFC09A1 schematic (RFO1/RFO2 both routed to the matching network).</p>\t</li>\t<li>\t<p><code>IC_IDENTITY</code> (0x3F) reads a plausible, stable, non-zero value on every bring-up — chip is alive and responsive on SPI.</p>\t</li>\t<li>\t<p>Directly probing <code>performIqMeasurement()</code> (IQ_MEASUREMENT, 0x7A) with <code>tx_en</code>/<code>rx_en</code> explicitly forced on beforehand: still 0x00/0x00.</p>\t</li>\t<li>\t<p><code>SENSE_RF</code> (0x7C) result register (Display 3, <code>rf_ind&lt;6:0&gt;</code>): 0x00.</p>\t</li>\t<li>\t<p>Holding <code>tx_en</code>/<code>rx_en</code> on continuously for 60 s with no measurement command involved at all (<code>holdFieldOn()</code>): oscilloscope shows nothing on RFO1/RFO2 for the whole window.</p>\t</li>\t<li>\t<p>Oscilloscope in free-running/high-persistence mode, 5–10 s capture windows, at both <code>wut</code> = 77.3 ms and <code>wut</code> = 9.7 ms: RF is visible only during the initial <code>CALIBRATE_WU_MEASUREMENT</code> burst at bring-up, never during any subsequent autonomous cycle.</p>\t</li></ul><h2>Question</h2><p><code>CALIBRATE_WU_MEASUREMENT</code> and the autonomous <code>WU_MEASUREMENT</code> cycle are documented as sharing the same underlying \"temporarily enable → RF pulse → measure\" mechanism (AN5993). Given the above, they appear to behave very differently on this device: the manual calibration command reliably drives RF (with a fixed ~130 µs / 5×26 µs sweep independent of the configured <code>td_mf</code>/<code>td_mt</code>), while the autonomous per-<code>wut</code> measurement pulse never does, under any tested register configuration.</p><p>Is there a register, bit, or sequencing requirement — not covered in DS14139 Rev 4 or AN5993 — that specifically arms the <em>autonomous</em> measurement pulse, separately from <code>wu_en</code> and the WUT itself? Or is this expected/known behavior under some configuration we may be missing?</p><p>Happy to share full SPI logic-analyzer captures (bring-up sequence + register values) and oscilloscope captures on request.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "54",
+  "categoryName": "ST25 NFC/RFID tags and readers",
+  "tags": [
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 8,
+  "inclusiveReplyCount": 10,
+  "inclusiveVisibleReplyCount": 10,
+  "likes": 0,
+  "votes": 0,
+  "views": 164,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "54615",
+    "username": "Panchev68",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "626",
+    "username": "Grégoire Poulain",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/1b587838-cfd9-0118-9b04-c1ae67f0994b.png"
+  },
+  "createdAt": "2026-07-14T11:33:47+00:00",
+  "lastActivityAt": "2026-08-05T12:29:36+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744862,
+  "publishedAt": "2026-07-14T11:33:47+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r100-autonomous-wu-measurement-never-emits-rf-but-manual-calibrate-wu-measurement-does-166935",
+  "scraped_replies": []
+}

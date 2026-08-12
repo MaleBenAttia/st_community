@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166502",
+  "publicId": "166523",
+  "title": "** SIGSEGV in `ST_LINKInterface::programMemory` during `--incremental` flash with two STLINK-V3 probes connected",
+  "content": "<p><strong>Product:</strong> STM32CubeProgrammer 2.22.0 (Linux x86-64) <strong>Interface:</strong> SWD / STLINK-V3 (dual probes) <strong>Target:</strong> STM32F427 (DEV_ID 0x419)</p><p><strong>Description</strong></p><p>Running <code>--incremental</code> flash against one STLINK-V3 probe while a second STLINK-V3 is physically connected (but not commanded) produces a deterministic SIGSEGV inside <code>ST_LINKInterface::programMemory</code>.</p><p>Call chain at crash:</p><pre><code>DebugInterface::programBufferFlashLoader  (@ 0x206400)<br />  FlashLoaderMng::Loader_WriteRange<br />    ST_LINKInterface::programMemory       ← SIGSEGV @ 0x727b81<br /></code></pre><p><strong>Root cause: use-after-free on <code>Target::loaders</code></strong></p><p><code>Target::loaders</code> is a BSS-global loader table shared across all code in the process. When the second probe is plugged in, the library's internal USB hotplug callback fires, rescans the bus, and rebuilds — freeing — the loader table while the incremental flash write loop holds a pointer into it. There is no lock observed on the table.</p><p>The sequence at the crash site (<code>DebugInterface::programBufferFlashLoader @ 0x206400</code>):</p><pre><code>206631: mov    0x40(%rsp),%rdi       ; load QString internal buffer ptr<br />206636: call   free@plt              ; free buffer #1<br />20664e: call   _ZdlPv@plt            ; operator delete (buffer #2)<br />...<br />2064df: mov    _ZN6Target7loadersE(%rip),%rbx  ; load global loader table ptr<br />206663: mov    (%rbx),%rax           ; deref table base<br />20666f: mov    (%rdi,%rax,8),%rdi    ; index into loader array<br />206690: mov    (%rdi),%rax           ; load vtable ptr  ← UAF: object freed by hotplug<br />206697: call   *0x18(%rax)           ; virtual dispatch → programMemory → SIGSEGV<br /></code></pre><p>Between loading the table pointer and dereferencing the loader object's vtable, the hotplug callback can free and reallocate the table. The stale buffer pointer is subsequently passed to <code>submit_bulk_transfer</code>; the kernel rejects it with <code>EFAULT (errno=14)</code>. The code does not null-check the EFAULT return, and the next dereference crashes.</p><p><strong>Reproduction</strong></p><p>Minimum repro:</p><ol><li>Connect two STLINK-V3 probes to the same host.</li>\t<li>Run <code>--incremental</code> flash against one of them:</li></ol><pre><code>STM32_Programmer_CLI -c port=SWD freq=24000 mode=UR reset=HWrst sn=&lt;SN1&gt; \\<br />    -d firmware.elf incremental -hardRst<br /></code></pre><p>The second probe need not be commanded — its presence on the USB bus is sufficient to trigger hotplug events during the flash operation.</p><p>The crash is deterministic across multiple runs. The libusb <code>errno=14</code> appears in stderr immediately before the signal.</p><p><strong>Alternative trigger:</strong> USB authorization thrashing on any second device (<code>/sys/bus/usb/devices/.../authorized 0→1</code> in a tight loop) while the write is in flight produces the same race.</p><p><strong>Scope: incremental mode only (confirmed)</strong></p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "30",
+  "categoryName": "STM32CubeProgrammer (MCUs)",
+  "tags": [
+    "STM32CubeProgrammer",
+    "ST-Link"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 31,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "68633",
+    "username": "codebuk",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "68633",
+    "username": "codebuk",
+    "avatar": ""
+  },
+  "createdAt": "2026-06-30T04:57:43+00:00",
+  "lastActivityAt": "2026-06-30T04:57:43+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-06-30T04:57:43+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeprogrammer-mcus-30/sigsegv-in-st-linkinterface-programmemory-during-incremental-flash-with-two-stlink-v3-probes-connected-166523",
+  "scraped_replies": []
+}

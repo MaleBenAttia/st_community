@@ -1,0 +1,55 @@
+{
+  "contentType": "question",
+  "id": "167442",
+  "publicId": "167470",
+  "title": "STM32WL5MOC integrated RTC/LSE: consistent ~100-120 ppm drift, confirmed after ruling out software causes",
+  "content": "<p><strong>Summary</strong></p><p>On an STM32WL5MOC-based LoRaWAN end node, we've measured a consistent ~100 ppm RTC drift on the module's integrated LSE (32.768 kHz) crystal — noticeably outside the commonly quoted ~±20 ppm room-temperature tolerance. We isolated this down to the RTC hardware itself through several independent tests before concluding it's a genuine crystal characteristic (or specific to this device/batch) rather than a software or configuration issue. Posting to ask whether ~100 ppm is within expected variance for this SiP's integrated crystal, or worth escalating further.</p><p><strong>Configuration</strong></p><ul><li>MCU: STM32WL5MOC (Cortex-M4 side)</li>\t<li>RTC: <code>RTC_BINARY_MIX</code> mode, <code>PREDIV_A=31</code>, <code>PREDIV_S=1023</code> (10-bit synchronous prescaler)</li>\t<li>RTC clock source: LSE — confirmed selected and ready (<code>RCC_FLAG_LSERDY</code>, <code>__HAL_RCC_GET_RTC_SOURCE()</code>) before proceeding; <code>HAL_RTC_MspInit()</code> itself calls <code>Error_Handler()</code> if LSE isn't ready/selected, so normal boot already implies this passed.</li>\t<li>Application: LoRaWAN Class A end node (US915), periodic uplinks every few minutes, <code>DeviceTimeReq</code>/<code>DeviceTimeAns</code> used for network time sync.</li></ul><p><strong>Configuration</strong></p><ul><li>MCU: STM32WL5MOC (Cortex-M4 side)</li>\t<li>RTC: <code>RTC_BINARY_MIX</code> mode, <code>PREDIV_A=31</code>, <code>PREDIV_S=1023</code> (10-bit synchronous prescaler)</li>\t<li>RTC clock source: LSE — confirmed selected and ready (<code>RCC_FLAG_LSERDY</code>, <code>__HAL_RCC_GET_RTC_SOURCE()</code>) before proceeding; <code>HAL_RTC_MspInit()</code> itself calls <code>Error_Handler()</code> if LSE isn't ready/selected, so normal boot already implies this passed.</li>\t<li>Application: LoRaWAN Class A end node (US915), periodic uplinks every few minutes, <code>DeviceTimeReq</code>/<code>DeviceTimeAns</code> used for network time sync.</li></ul><p><strong>Result</strong></p><p>Consistently ~100-120 ppm (averaging close to 100 ppm) RTC drift on the STM32WL5MOC's integrated LSE crystal, confirmed via three independent methods (multi-day network timestamp analysis, an isolated RTC-only firmware build with everything else stripped out, and on-device <code>DeviceTimeAns</code> interval measurement), with every plausible software-side cause checked and ruled out.</p><p><strong>Question</strong></p><p>Is ~100 ppm within the expected range for this SiP's integrated 32.768 kHz crystal (batch variance, temperature, aging), or would this be worth flagging as a potential hardware/board-level issue? Any guidance on typical tolerance for the STM32WL5MOC's integrated LSE, or additional steps to further isolate crystal vs. board-level causes (e.g., load capacitance mismatch), would be appreciated.</p><p> </p><p>Alex</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "35",
+  "categoryName": "STM32 MCUs Wireless",
+  "tags": [
+    "RCC",
+    "RTC",
+    "STM32WL series",
+    "LoRa"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 7,
+  "inclusiveVisibleReplyCount": 7,
+  "likes": 0,
+  "votes": 0,
+  "views": 67,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "72159",
+    "username": "alexemdesgagne",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "105339",
+    "username": "Filippo_Malleo",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-04T17:46:27+00:00",
+  "lastActivityAt": "2026-08-10T15:16:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745289,
+  "publishedAt": "2026-08-04T17:46:27+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/stm32wl5moc-integrated-rtc-lse-consistent-100-120-ppm-drift-confirmed-after-ruling-out-software-causes-167470",
+  "scraped_replies": []
+}

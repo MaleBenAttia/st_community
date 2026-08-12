@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167547",
+  "publicId": "167578",
+  "title": "X-CUBE-NFC6 manual porting to STM32F4 Nucleo-144: EXTI interrupt never clears",
+  "content": "<p>Hi I didn’t find any topic or help for the porting of the X-cube-NFC06 to a nucleo 144 f439zi. I’m writting down all the setup I used to achieve this porting with succes, maybe that will help someone one day.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c3f051f7-3369-4e7b-8c16-d9bd3e03b1f6.png\" /></figure><p> </p><p><strong>IOC configurations</strong></p><ul><li>SPI: prescaler 16 (5.25MBits/s) / CPHA 2 edge (info from example and can be found in st25r3916b datasheet) do not enable NSS from cubeMX instead configure PD14 as GPIO_OUTPUT and name it SPI1-CS.</li>\t<li>IRQ: rising edge / no pull / don’t forget to activate IRQ from NVIC (exti line3 interrupt)</li></ul><p> *ETH peripheral is using PA7, instead of PA7 I used PB5 as SPI1_MOSI pin. U just have to use a jumper wire to wire up PB5 to D11 (old PA7).<br /><br /><strong>Code modifications</strong></p><p>After generating the code, you should be able to compile without any trouble. If you program the nucleo, you will be facing this :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/79f17a35-d213-426f-be8b-b0e631434980.png\" /></figure><p> </p><p>The program isn’t giving any error but, it’s stuck in a infinite “loop”. If you measure with a multimeter btw GND and ST25R_IRQ pin you will constantly have a high lvl (we don’t want this). Here is a picture from a logic analyzer for more context.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54a965db-f12a-47ea-9546-f5126f155086.png\" /></figure><p><strong> SOLUTION</strong></p><p>go to main.c, <strong>PRESS CTRL </strong>on <u>MX_GPIO_Init</u>() and go to user code section in this function. Copy paste this <strong>(adapt for your ST25R_IRQ PIN if is not PA3 !!!).</strong></p><pre><code class=\"language-c\">  /* USER CODE BEGIN MX_GPIO_Init_2 */<br /><br /><br />  EXTI_ConfigTypeDef EXTI_ConfigStructure;<br /><br />  EXTI_ConfigStructure.Line      = EXTI_LINE_3;<br />  EXTI_ConfigStructure.Mode      = EXTI_MODE_INTERRUPT;<br />  EXTI_ConfigStructure.Trigger   = EXTI_TRIGGER_RISING;<br />  EXTI_ConfigStructure.GPIOSel   = EXTI_GPIOA;<br /><br />  HAL_EXTI_SetConfigLine(&amp;H_EXTI_3, &amp;EXTI_ConfigStructure);<br /><br />  /* USER CODE END MX_GPIO_Init_2 */</code></pre><p>Compile, flash, enjoy.<br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ce635c6-e3cf-46bc-a56b-325e9a7a4950.png\" /></figure><p><strong>What this fix ?</strong></p><p>before this patch, IRQ is triggered but his pending flag never rise down. </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7df047ef-25e1-4e3f-8110-9858e3947b85.png\" /></figure><p>The condition <strong>if (regval != 0x00u) </strong>never happens<strong> </strong>because<strong> hexti-&gt;Line</strong> is pointing the wrong value (0 by default). We have to manualy route the right value to <strong>hexti-&gt;Line </strong>by using<strong> HAL_EXTI_SetConfigLine(&amp;H_EXTI_3, &amp;EXTI_ConfigStructure);</strong></p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "28",
+  "categoryName": "STM32CubeIDE (MCUs)",
+  "tags": [
+    "GPIO-EXTI",
+    "STM32F4 series",
+    "ST25 NFC - RFID Readers – ST25R391x series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 14,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108951",
+    "username": "Azim_Tr61",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108951",
+    "username": "Azim_Tr61",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-09T23:07:15+00:00",
+  "lastActivityAt": "2026-08-09T23:07:15+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-09T23:07:15+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeide-mcus-28/x-cube-nfc6-manual-porting-to-stm32f4-nucleo-144-exti-interrupt-never-clears-167578",
+  "scraped_replies": []
+}

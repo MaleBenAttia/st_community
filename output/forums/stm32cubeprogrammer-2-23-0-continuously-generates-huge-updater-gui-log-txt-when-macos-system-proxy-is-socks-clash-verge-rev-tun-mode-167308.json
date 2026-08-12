@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "167283",
+  "publicId": "167308",
+  "title": "STM32CubeProgrammer 2.23.0 continuously generates huge Updater_Gui_Log.txt when macOS system proxy is SOCKS (Clash Verge Rev TUN mode)",
+  "content": "<h2><strong>Environment</strong></h2><ul><li><strong>STM32CubeProgrammer:</strong> 2.23.0 (latest version at the time of writing)</li>\t<li>The same issue was also present in the previous release and is <strong>still reproducible after updating to 2.23.0</strong>, which is why I am reporting it now.</li>\t<li><strong>Platform:</strong> macOS Tahoe 26.5.1</li>\t<li><strong>Architecture:</strong> Apple Silicon (M4 Pro, arm64)</li>\t<li><strong>System proxy:</strong> Enabled</li>\t<li><strong>Proxy software:</strong> Clash Verge Rev (running continuously in the background)</li>\t<li><strong>TUN mode:</strong> Enabled</li>\t<li>The proxy itself works normally for all other applications.</li></ul><h2><strong>Issue Description</strong></h2><p>I noticed that simply leaving STM32CubeProgrammer running causes the file ~/.STM32CubeProgrammer/Updater_Gui_Log.txt </p><p>to grow continuously at a very high rate. The file increases by hundreds of megabytes within minutes and can easily reach multiple gigabytes if STM32CubeProgrammer is left open. In my case, I have already experienced the log file completely filling my macOS system disk overnight, which caused abnormal system behavior due to the disk running out of free space.</p><h2><strong>Log Output</strong></h2><p>The updater repeatedly writes the following messages:</p><blockquote><p>07/29/2026 3:23:55 PM /Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin<br />07/29/2026 3:24:00 PM /Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin<br />07/29/2026 3:24:00 PM Checking updater<br />07/29/2026 3:24:00 PM Server URL: https://sw-center.st.com/packs/cubeprog_test/Updater/<br />07/29/2026 3:24:00 PM Connecting to HTTPS server...<br />07/29/2026 3:24:00 PM Using System Proxy<br />07/29/2026 3:24:00 PM System Proxy : SOCKS<br />07/29/2026 3:24:00 PM Not a supported proxy type<br />07/29/2026 3:24:00 PM System Proxy : SOCKS<br />07/29/2026 3:24:00 PM Not a supported proxy type<br />07/29/2026 3:24:00 PM System Proxy : SOCKS<br />07/29/2026 3:24:00 PM Not a supported proxy type<br />…</p></blockquote><p>The last two lines are written repeatedly without stopping, causing log file to grow indefinitely.</p><h2><strong>Console Output</strong></h2><p>Launching STM32CubeProgrammer from Terminal only shows:</p><blockquote><p>/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/STM32CubeProgrammer</p><p>Loading PRG Library:<br />/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/libCubeProgrammer_API.dylib</p><p>TrackedData.json file does not exist !</p><p>108 external Loader list</p></blockquote><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1e72cebc-58ca-4e71-9a8d-7ce673dd2331.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a47b340b-8c0f-4978-9921-e63a88720d60.png\" /></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f11062d0-511e-43fe-a4b7-ede446da220e.png\" /></figure><p>In my test, the log file increases with around 1.7MB/s or 106MB/min, which can cause swerve stress in storage.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3fa8477-80ca-42c0-aa0a-17942f0b253c.png\" /></figure><h2><strong>Steps to Reproduce</strong></h2><ol start=\"1\"><li>Install STM32CubeProgrammer 2.23.0 on macOS (Apple Silicon).</li>\t<li>Enable Clash Verge Rev with <strong>TUN Mode</strong> and <strong>System Proxy</strong> enabled.</li>\t<li>Launch STM32CubeProgrammer.</li>\t<li>Leave the application running.</li></ol><p>The file grows continuously until the application is closed. And reset each time the application starts.</p><h2><strong>Workaround</strong></h2><p>A temporary workaround is to manually configure STM32CubeProgrammer to <strong>not use the system proxy</strong> in its proxy settings.</p><p>After disabling the proxy inside STM32CubeProgrammer, the log file no longer grows.</p><p>However, this is only a workaround. The application should not continuously generate an unlimited log file simply because the system proxy type is SOCKS.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "30",
+  "categoryName": "STM32CubeProgrammer (MCUs)",
+  "tags": [
+    "STM32CubeProgrammer"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 14,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "77155",
+    "username": "sirin",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/c54c43ba-8a71-0665-dd75-c45b94e92e29.png"
+  },
+  "lastContributor": {
+    "id": "77155",
+    "username": "sirin",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/c54c43ba-8a71-0665-dd75-c45b94e92e29.png"
+  },
+  "createdAt": "2026-07-29T07:51:04+00:00",
+  "lastActivityAt": "2026-07-29T07:51:04+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-29T07:51:04+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32cubeprogrammer-2-23-0-continuously-generates-huge-updater-gui-log-txt-when-macos-system-proxy-is-socks-clash-verge-rev-tun-mode-167308",
+  "scraped_replies": []
+}

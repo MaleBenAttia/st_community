@@ -1,0 +1,76 @@
+{
+  "contentType": "question",
+  "id": "166846",
+  "publicId": "166863",
+  "title": "Problem with STM32N6 Nucle USB Device CDC ACM",
+  "content": "<p>Hi ST community </p><p>I'm working on a simple application to get USB Device CDC ACM up and running. My goal is to make my STM32N6 Nucleo board detectable by my laptop so that it appears as a Virtual COM Port under Windows Device Manager.</p><p>Here are my STM32CubeIDE settings:</p><p><strong>Step#1:  Clock Configuration.  </strong><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c0e8b1a8-f2be-4e5d-b152-5dc7f02012b7.png\" /></figure><p><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8878d64d-acb6-477f-a4e7-3d93afeb95c8.png\" /></figure><p><br /><strong>Step#2: Set SYS clock : HSE -? DIGBYPASS Clock Source </strong><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45fec976-cf00-4f31-aca2-b84dfcad466f.png\" /></figure><p> </p><p><strong>Step#3:  Select TIM6, check off : Application </strong><br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f1e56b57-4d99-46c2-9901-3866cedb3b89.png\" /></figure><p> </p><p><strong>Step#4:  Select TIM6 as Timebase Source, check off : Application </strong><br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd8bdd02-5be1-4b8d-9ebc-5201030fe524.png\" /></figure><p> </p><p><strong> Step#5:  Select USB1_OTG_HS, and select Internal HS Phy: Device, check off : Application </strong></p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e843c411-37e4-4c94-a066-4858566d0b84.png\" /></figure><p><br /> </p><p><strong>Step#6:  Select Threadx  and check off Core and Mode: Application </strong><br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fb984808-834b-447f-96d4-df5883a82a10.png\" /></figure><p><br /><br /><strong>Step#7:  Select USBx with the following setting :</strong><br />1. Mode: Application mode <br />2. Check off  Core system<br />3. UX Device:  Device CoreStack HS and Controllers HS<br />4. Device Class HS: CDC_ACM <br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bfac23c0-b145-47ea-8558-e1f83e3cf36f.png\" /></figure><p><br /><br />And here is my main.c file :<br /><br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ce143dda-ba8c-4ca0-b17d-fb6b261d419c.png\" /><figcaption><br /><br />​​​</figcaption></figure><p>Here is my project folder structure.</p><p>To program the board, I've set the boot switches to DEV mode and compiled only the application code. I don't build or program the FSBL.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ae51a29c-3fd7-4d88-92ce-7f315e86bf1a.png\" /></figure><p> </p><p>When I connect my board to my laptop, nothing happens. There isn't a new virtual COM port.</p><p>I'd appreciate it if someone could guide me on what I'm missing here.</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32CubeIDE",
+    "USB",
+    "STM32N6 series",
+    "USBX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 118,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "96226",
+    "username": "Saeid",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "96226",
+    "username": "Saeid",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-11T07:48:07+00:00",
+  "lastActivityAt": "2026-07-26T16:46:32+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743992,
+  "publishedAt": "2026-07-11T07:48:07+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/problem-with-stm32n6-nucle-usb-device-cdc-acm-166863",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"96226\">@Saeid</user-mention> <br/>To ensure that the issue is not hardware related, run this firmware <a href=\"https://github.com/STMicroelectronics/STM32CubeN6/tree/main/Projects/NUCLEO-N657X0-Q/Applications/USBX/Ux_Device_CDC_ACM\" rel=\"noreferrer noopener\" target=\"_blank\">example</a> and check whether it works. Do not forget to connect the Nucleo USB port to the PC alongside the STLINK USB port. Two USB cables are required. If the example works, the issue is likely related to the software in your code. It is recommended to use that firmware example as a baseline and compare it with the project to identify any differences. <br/>BR<br/>Gyessine</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"88547\">@Gyessine</user-mention> </p><p>Thank you so much for your prompt response. <br/>I followed your advice and downloaded the example. I opened <strong>.project </strong>file from this path : NUCLEO-N657X0-Q\\Applications\\USBX\\Ux_Device_CDC_ACM<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0eba9a47-fb82-4446-a286-e33ed8f81765.png\"/></figure><p><br/><br/>Here is the imported project inside the stm32cube ide: </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1b34b814-764f-466a-910d-a1d4df74a89c.png\"/></figure><p>When I tried to build the project, I have encountering this error : <br/><br/> </p><p>08:08:48 **** Build of configuration Debug for project Ux_Device_CDC_ACM_FSBL ****</p><p>make -j24 all</p><p><span style=\"color:#c0392b;\">make: *** No rule to make target 'C:/Users/myuser/STM32CubeN6-main/Middlewares/ST/usbx/common/core/src/ux_device_stack_alternate_setting_get.c', needed by 'Middlewares/usbx/UX Device CoreStack/ux_device_stack_alternate_setting_get.o'</span>. Stop.</p><p>\"make -j24 all\" terminated with exit code 2. Build might be incomplete.</p><p>08:08:49 Build Failed. 1 errors, 0 warnings. (took 1s.96ms)<br/><br/>Can you please advise how to fix this error and build the Ux_Device_CDC_ACM ? </p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"88547\">@Gyessine</user-mention> </p><p>I managed to fix the issue and now I can see a USB Serial Device <br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7303f087-e344-4e4d-a0d2-0f76931e98f9.png\"/></figure><p> </p><p>Can you please advise me on the following questions ? </p><ol type=\"1\"><li>The example is implemented in the FSBL. Can I move it entirely to the Application instead?</li> <li>I would like to understand which files I need to modify. Is there any guide or documentation that explains the project structure and which files do I need to modify for Usbx and Threadx ?</li> <li>Why does this example enable USBPD? Can it run without enabling USBPD?</li></ol><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d00c8a43-28fb-4dc0-ac2a-60d12914ae23.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"96226\">@Saeid</user-mention> ​<user-mention data-id=\"88547\">@Gyessine</user-mention> </p><p>1- FSBL remains required because the boot ROM first copies and executes the FSBL, and then the FSBL initializes the system and transfers control to the Application. For instance, this usb example  <a href=\"https://github.com/STMicroelectronics/STM32CubeN6/tree/main/Projects/STM32N6570-DK/Applications/USBX/Ux_Device_Video\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeN6/Projects/STM32N6570-DK/Applications/USBX/Ux_Device_Video at main · STMicroelectronics/STM32CubeN6 · GitHub</a> uses  application context.</p><p>2- A good starting point is the CDC ACM example here: <a href=\"https://github.com/STMicroelectronics/STM32CubeN6/blob/8ab3b6410f9d893ae7ead4a3315215210220cb37/Projects/NUCLEO-N657X0-Q/Applications/USBX/Ux_Device_CDC_ACM/FSBL/USBX/App/ux_device_cdc_acm.c#L269\" rel=\"noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeN6/blob/8ab3b6410f9d893ae7ead4a3315215210220cb37/Projects/NUCLEO-N657X0-Q/Applications/USBX/Ux_Device_CDC_ACM/FSBL/USBX/App/ux_device_cdc_acm.c#L269</a><br/> </p><p>In general you may need to review memory allocation and USBX application source APIs in <a href=\"https://github.com/STMicroelectronics/STM32CubeN6/blob/8ab3b6410f9d893ae7ead4a3315215210220cb37/Projects/NUCLEO-N657X0-Q/Applications/USBX/Ux_Device_CDC_ACM/FSBL/USBX/App/ux_device_cdc_acm.c#L269\" rel=\"noopener noreferrer\" target=\"_blank\">ux_device_cdc_acm.c</a> : usbx_cdc_acm_thread_entry , usbx_cdc_acm_write_thread_entry .. </p><p>If your goal is to understand the project organization, I recommend starting from the CubeN6 example structure, I recommend this article :<a href=\"https://community.st.com/t5/stm32-mcus/how-to-create-an-stm32n6-fsbl-load-and-run/ta-p/768206\" rel=\"noopener noreferrer\" target=\"_self\">https://community.st.com/t5/stm32-mcus/how-to-create-an-stm32n6-fsbl-load-and-run/ta-p/768206</a></p><p>3- In principle, the CDC ACM example can run <strong>without USBPD stack</strong>, as long as the board is properly powered and the USB supply path is correct for your setup (including TCPP protection) .</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks you so much ​<user-mention data-id=\"88547\">@Gyessine</user-mention> for your great explanation </p></div>"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "contentType": "question",
+  "id": "167127",
+  "publicId": "167153",
+  "title": "STM32CubeMX ADC missing 'DISABLE' option for EOC ?",
+  "content": "<p>Hi,</p><p> </p><p>I was making a demo project so needed a really straightforward way to use the ADC of my STM32F446RE.<br />I configured the ADC1 with only channel. Default parameter everywhere except I enabled ‘Continuous Conversion Mode’ as I understood it, all I had to do with it was to start the ADC (HAL_ADC_Start(&amp;hadc1)) and pick the values every time my loop needed it. I was surprised to notice that ‘HAL_ADC_PollForConversion(&amp;hadc1, 100)’ worked only the first call then always yield HAL_TIMEOUT as I was expecting the ‘Continuous Conversion’ mode to allow me to not call HAL_ADC_Start and stop every time.</p><p>After finding the linked post, I found the solution was to change the ADC setting </p><div><div>from <em>hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV </em></div><div>Into <em>hadc1.Init.EOCSelection = DISABLE</em></div><div> </div><div>The thing is this option is not available in STM32CubeMX (V6.17.0) so I have to pick either ADC_EOC_SINGLE_CONV or ADC_EOC_SEQ_CONV.</div><div>I have the behavior I wanted but I wonder if this can be improved in STM32CUBEMX or is there something I don’t understand ?</div><div> </div></div><oembed url=\"https://community.st.com/stm32-mcus-products-25/stm32-nucleo-continuous-adc-mode-only-converts-once-139949\"></oembed><p>Still according to this link this configuration set should be officialy supported as it’s in the exemple file.</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeF4/blob/master/Projects/STM324xG_EVAL/Examples/ADC/ADC_RegularConversion_Interrupt/Src/main.c\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeF4/blob/master/Projects/STM324xG_EVAL/Examples/ADC/ADC_RegularConversion_Interrupt/Src/main.c</a></p><p> </p><p>NOTE: So after writing all of this I noticed that ADC_EOC_SEQ_CONV is also defined as ‘0’ like just like ‘DISABLE’ so it would have work if I picked ‘EOC flag at the end of all conversion’ instead ‘EOC flag at the end of single channel conversion’ but I think it’s missleading </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeMX",
+    "STM32F4 series",
+    "ADC",
+    "Suggestion"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 67,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "108458",
+    "username": "RougeGorge",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108672",
+    "username": "rtrioux",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-22T13:38:04+00:00",
+  "lastActivityAt": "2026-07-29T14:48:27+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744291,
+  "publishedAt": "2026-07-22T13:38:04+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-adc-missing-disable-option-for-eoc-167153",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The Cube/HAL code is often difficult to understand in general. Less the code, but more so the ideas behind it.</p><p>You could leave continuous mode enabled, and directly access the ADCx-&gt;DR register for the result.<br/>If you are ok with the asynchronous accesses and non-equidistant sampling, which is obviously the case.</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108458\">@RougeGorge</user-mention> </p><p>According to RM0090 Rev 22, section 13.13.3 ADC control register 2 (ADC_CR2), DISABLE is not listed explicitly as one of the available options. </p><p><img alt=\"sys_attachment.do?sys_id=abb3d052831a4f502ea7dbb0ecda1e74\" src=\"https://st.service-now.com/sys_attachment.do?sys_id=abb3d052831a4f502ea7dbb0ecda1e74\"/></p><p>However ,in this context, DISABLE corresponds to 0, meaning that the EOC bit is set at the end of each regular conversion sequence.</p><p>So MX is working correctly and a ticket  <strong>#0064697 </strong>has been escalated to the appropriate team to align the example .</p><p>THX</p><p>Ghofrane</p><p>THX</p><p>Ghofrane </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your feedback !</p></div>"
+    }
+  ]
+}

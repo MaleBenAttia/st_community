@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167384",
+  "publicId": "167412",
+  "title": "Ethernet PHY - Software reset don't working",
+  "content": "<p>I have a working RLT8211F at my STM32MP257F board.</p><p>I wonder why only the hardware reset is working PYRSTB (pin 12), but the software reset won't work?</p><p>Should they not do the exactly the same thing?</p><p>My Ethernet PHY is working, but it seems it requires as hardware reset GPIO from the MPU.</p><p>I have tried to modify the code in realtek.c and phy_device.c by adding the function <strong>genphy_soft_reset </strong>to the struct in realtek.c.</p><p> }, {</p><p>  PHY_ID_MATCH_EXACT(0x001cc916),</p><p>  .name = \"RTL8211F Gigabit Ethernet\",</p><p>  .probe = rtl8211f_probe,</p><p>                .soft_reset = genphy_soft_reset, /* &lt;------- this */</p><p>  .config_init = &amp;rtl8211f_config_init,</p><p>  .read_status = rtlgen_read_status,</p><p>  .config_intr = &amp;rtl8211f_config_intr,</p><p>  .handle_interrupt = rtl8211f_handle_interrupt,</p><p>  .set_wol = rtl8211f_set_wol,</p><p>  .get_wol = rtl8211f_get_wol,</p><p>  .suspend = rtl8211f_suspend,</p><p>  .resume = rtl8211f_resume,</p><p>  .read_page = rtl821x_read_page,</p><p>  .write_page = rtl821x_write_page,</p><p>  .flags = PHY_ALWAYS_CALL_SUSPEND,</p><p>  .led_hw_is_supported = rtl8211x_led_hw_is_supported,</p><p>  .led_hw_control_get = rtl8211f_led_hw_control_get,</p><p>  .led_hw_control_set = rtl8211f_led_hw_control_set,</p><p>  .disable_autonomous_eee = rtl8211f_disable_autonomous_eee,</p><p> }, {</p><p> </p><p>So it can do a software reset at the initial beginning. But his did not work at all.</p><p>https://github.com/STMicroelectronics/linux/blob/v6.6-stm32mp/drivers/net/phy/phy_device.c#L1256C1-L1294C28</p><p>int phy_init_hw(struct phy_device *phydev)</p><p>{</p><p> int ret = 0;</p><p> </p><p> /* Deassert the reset signal */</p><p> phy_device_reset(phydev, 0);</p><p> </p><p> if (!phydev-&gt;drv)</p><p>  return 0;</p><p> </p><p> if (phydev-&gt;drv-&gt;soft_reset) {</p><p>  ret = phydev-&gt;drv-&gt;soft_reset(phydev);</p><p>  /* see comment in genphy_soft_reset for an explanation */</p><p>  if (!ret)</p><p>   phydev-&gt;suspended = 0;</p><p> }</p><p> </p><p> if (ret &lt; 0)</p><p>  return ret;</p><p> </p><p> ret = phy_scan_fixups(phydev);</p><p> if (ret &lt; 0)</p><p>  return ret;</p><p> </p><p> if (phydev-&gt;drv-&gt;config_init) {</p><p>  ret = phydev-&gt;drv-&gt;config_init(phydev);</p><p>  if (ret &lt; 0)</p><p>   return ret;</p><p> }</p><p> </p><p> if (phydev-&gt;drv-&gt;config_intr) {</p><p>  ret = phydev-&gt;drv-&gt;config_intr(phydev);</p><p>  if (ret &lt; 0)</p><p>   return ret;</p><p> }</p><p> </p><p> return 0;</p><p>}</p><p>EXPORT_SYMBOL(phy_init_hw);</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "Ethernet",
+    "STM32MP25 lines"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 12,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107546",
+    "username": "Windows",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107546",
+    "username": "Windows",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-02T20:16:37+00:00",
+  "lastActivityAt": "2026-08-02T20:16:37+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-02T20:16:37+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/ethernet-phy-software-reset-don-t-working-167412",
+  "scraped_replies": []
+}

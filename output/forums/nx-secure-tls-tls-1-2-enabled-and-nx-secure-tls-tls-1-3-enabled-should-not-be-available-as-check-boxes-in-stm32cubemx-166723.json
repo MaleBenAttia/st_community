@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "166698",
+  "publicId": "166723",
+  "title": "NX_SECURE_TLS_TLS_1_2_ENABLED and NX_SECURE_TLS_TLS_1_3_ENABLED should not be available as check boxes in STM32CubeMX",
+  "content": "<p>STM32CubeMX 6.18.0</p><p>MCU: STM32H563RIT6</p><p>To my understanding, this uses STM32CubeH5 1.7.0</p><p> </p><p>Start a new project and enable ThreadX and NetX Duo.</p><p>In “NETXDUO Mode and Configuration”, enable “NX Core”, “Crypto” and “TLS”</p><p>In configuration, parameter column “NetXDuo” there are check-boxes for:</p><p><code><u>TLS CORE</u></code></p><p><code>NX_SECURE_TLS_ENABLE_TLS_1_1</code></p><p><code>NX_SECURE_TLS_ENABLE_TLS_1_3</code></p><p><code>NX_SECURE_TLS_TLS_1_2_ENABLED</code></p><p><code>NX_SECURE_TLS_TLS_1_3_ENABLED</code></p><p> </p><p>This is a bug.</p><p>According to <a href=\"https://github.com/eclipse-threadx/rtos-docs/blob/1e36a62618de3771c973196e7648cba50d19cf1f/rtos-docs/netx-duo/netx-duo-secure-tls/chapter2.md#configuration-options\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://github.com/eclipse-threadx/rtos-docs/blob/1e36a62618de3771c973196e7648cba50d19cf1f/rtos-docs/netx-duo/netx-duo-secure-tls/chapter2.md#configuration-options</a> the proper configuration options are</p><blockquote><table><tbody><tr><td><strong>NX_SECURE_TLS_ENABLE_TLS_1_3</strong></td>\t\t\t<td>Defined, this option enables TLSv1.3 mode. TLS 1.3 is the newest version of TLS and is disabled by default.</td>\t\t</tr><tr><td><strong>NX_SECURE_TLS_ENABLE_TLS_1_0</strong></td>\t\t\t<td>Defined, this option enables the legacy TLSv1.0 mode. TLSv1.0 is considered obsolete so it should only be enabled for backward-compatibility with older applications.</td>\t\t</tr><tr><td><strong>NX_SECURE_TLS_ENABLE_TLS_1_1</strong></td>\t\t\t<td>Defined, this option enables the legacy TLSv1.1 mode. TLSv1.1 is considered obsolete so it should only be enabled for backward-compatibility with older applications.</td>\t\t</tr></tbody></table></blockquote><p> </p><p>NX_SECURE_TLS_TLS_1_2_ENABLED and NX_SECURE_TLS_TLS_1_3_ENABLED (and other preprocessor identifiers named *_TLS_TLS_*) are <u>internal to NetXDuo</u> and should not be touched from outside or provided as compiler arguments. They are set in Middlewares/ST/netxduo/nx_secure/inc/nx_secure_tls.h from the NX_SECURE_TLS_ENABLE_TLS_1_1 and NX_SECURE_TLS_ENABLE_TLS_1_3.</p><p>Note that checking NX_SECURE_TLS_TLS_1_2_ENABLED and NX_SECURE_TLS_TLS_1_3_ENABLED doesn’t actually affect the generated code (at least for STM32CubeIDE). Only .mxproject and the .ioc-file are changed.</p><p>But it is confusing for the developers. Especially since the latter options do not actually do anything. So they should be removed from the UI.</p><p>   Best regards, Jesper</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeMX",
+    "Bug-report"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 36,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "81284",
+    "username": "JesperEC",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "2061",
+    "username": "Ghofrane GSOURI",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/771d9ac6-52bd-3d77-c69d-ec6f705dd8ce.png"
+  },
+  "createdAt": "2026-07-06T18:21:12+00:00",
+  "lastActivityAt": "2026-07-07T07:32:50+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742285,
+  "publishedAt": "2026-07-06T18:21:12+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/nx-secure-tls-tls-1-2-enabled-and-nx-secure-tls-tls-1-3-enabled-should-not-be-available-as-check-boxes-in-stm32cubemx-166723",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"81284\">@JesperEC</user-mention> </p><p>Your detailed explanation is much appreciated.</p><p>Issue has been escalated to dev team under internal ticket ID<strong> #0064181  </strong>for further investigation.</p><p>I will keep you posted with updates.</p><p>THX</p><p>Ghofrane</p></div>"
+    }
+  ]
+}

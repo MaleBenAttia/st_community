@@ -1,0 +1,75 @@
+{
+  "contentType": "question",
+  "id": "167458",
+  "publicId": "167486",
+  "title": "STLINK-V3MODS resets target MCU on connection even with T_NRST disconnected",
+  "content": "<p>Hi all,</p><p>I have a custom board with an integrated STLINK-V3MODS, connected to an STM32H755ZIT6 MCU. <code>T_NRST</code> is <strong>not connected</strong> between the STLINK-V3MODS and my MCU.</p><p>My MCU is already powered on and running code normally. When I then connect the STLINK-V3MODS to my PC (via USB), it automatically resets my target MCU.</p><p>Since <code>T_NRST</code> isn't wired at all, I don't understand how the V3MODS is able to reset my target.</p><p>I'm already using the VCP (<code>T_VCP_TX</code>/<code>T_VCP_RX</code>) for logging. The issue is: when I plug in the STLINK-V3MODS to view the logs, it resets my MCU — but I don't want that. I want the MCU to keep running as-is, and just be able to plug in and observe the logs live without interrupting it.</p><p>How can I prevent this reset-on-connect behavior while still being able to use the VCP for logging?</p><p>Thanks!</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32CubeProgrammer",
+    "ST-Link",
+    "STM32H7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 0,
+  "votes": 0,
+  "views": 66,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108848",
+    "username": "zacharyczl",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108848",
+    "username": "zacharyczl",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-05T07:52:38+00:00",
+  "lastActivityAt": "2026-08-06T03:39:28+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744903,
+  "publishedAt": "2026-08-05T07:52:38+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stlink-v3mods-resets-target-mcu-on-connection-even-with-t-nrst-disconnected-167486",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt;I don't understand how the V3MODS is able to reset my target</p><p>The SWD connection can control the core, so software reset or core reset possible, without any nrst wire connected.</p><p>Check in CubeProgrammer : connect mode &gt; hot plug &lt; , should not halt the cpu on connecting.</p><p>+</p><p>Depending on the firmware on the st-link , it could do a reset on power up ; check this .</p><p>Try changing the firmware or its settings; if still reset on usb connect :</p><p>Then you have to power the V3mods always when your target is powered; so connecting to USB dont produce the power-up-reset and you can view SWD or VCP  data without target reset.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>I have changed the firmware type for the STLINK-V3MODS and it does not reset the target anymore upon connecting to the PC.</p><p>Previously → STM8/STM32 Debug + Mass storage + VCP + Bridge<br/>Current → STM8/STM32 Debug + 2VCP + Bridge</p><p>Not sure why this works, though.</p><p>Since SWD can already control the core, is there any real need to have <code>T_NRST</code> wired between the STLINK-V3MODS and the MCU at all? What purpose would that connection actually serve? I already have a physical reset button wired directly to the MCU's <code>NRST</code> pin.</p><p>Thanks!</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8e95cb9-9d18-48c1-b2e4-27f960207138.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>usually you dont need the nrst wired for “normal” use, flash or debug. (I never use nrst.)</p><p>You will only need it, if you stop SWD from working, maybe use the swd/swc pins as I/O pins defined in your program. Or program accidentally disturbs the function of swd/swc.</p><p>Then only chance to get connected to target cpu : on reset  or power up + reset → needs hard wired reset obviously.</p><p>Or you use/set a protected mode, then you might need the physical reset , to start bootloader /update ..etc.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I think, that behavior is just random.</p><p>Because it should (!) do nothing to the target, no matter what you do, nothing used, power up or down.... so it's some kind of bad behavior of the firmware, to send a reset just around, without any command by the user.</p><p>And some version of the firmware doing it correctly, just starting and then waiting for the first command.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Okay thank you!</p></div>"
+    }
+  ]
+}

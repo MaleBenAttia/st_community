@@ -1,0 +1,66 @@
+{
+  "contentType": "question",
+  "id": "166651",
+  "publicId": "166676",
+  "title": "STM32H7B3I-DK  C03– Clarification Regarding R114 Voltage Drop on 5V_VIN Input",
+  "content": "<p> </p><p>Dear STMicroelectronics Support,</p><p>In our application, the STM32H7B3I-DK board is used in a \"shield\" configuration: it is mounted on a carrier/daughter board(<strong>PHOTO 2) </strong>(via the Arduino connectors CN19/CN20/CN10/CN11) which supplies its power. The daughter board therefore injects a 5V voltage directly onto CN19, pin 1 (5V_VIN), without going through a USB supply or through the standard VIN input of the kit.</p><h3>Power configuration</h3><ul><li>5 V is applied to <strong>CN19, pin 1 (5V_VIN)</strong>.</li>\t<li><strong>JP1</strong> is configured in the <strong>5V_VIN</strong> position.</li>\t<li><strong>VIN (CN19, pin 8)</strong> is left unconnected.</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ad76a2e-64ba-40d9-9d64-f0f30d420880.png\" /></figure><h3>Measurements</h3><ul><li>Voltage before <strong>R114 (1 kΩ)</strong>: <strong>5.0 V</strong></li>\t<li>Voltage after <strong>R114</strong>: <strong>1.6 V</strong></li></ul><p>This corresponds to a voltage drop of approximately <strong>3.4 V</strong> across <strong>R114</strong>, which indicates a current of about <strong>3.4 mA</strong> flowing through the resistor.</p><p>I would like to better understand whether this behavior is expected and the purpose of <strong>R114</strong> in this circuit.</p><p>Could you please clarify the following points?</p><ol><li>Is this voltage drop across <strong>R114</strong> normal when powering the board through <strong>5V_VIN</strong>?</li>\t<li>What is the function of <strong>R114</strong> in this design? Is it intended for current limiting, protection, or another purpose?</li>\t<li>Would it be safe to replace <strong>R114 (1 kΩ)</strong> with a <strong>0 Ω resistor</strong> to eliminate this voltage drop, or could this affect the proper operation or protection of the board?</li></ol><p>Thank you in advance for your assistance.</p><p>Kind regards,</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "26",
+  "categoryName": "STM32 MCUs Boards and hardware tools",
+  "tags": [
+    "STM32H7 series",
+    "ST boards"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 85,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "107955",
+    "username": "ARIJ",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "439",
+    "username": "Mike_ST",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/55a337ca-43ee-27c8-c2d8-f12e207f06d8.png"
+  },
+  "createdAt": "2026-07-04T19:31:18+00:00",
+  "lastActivityAt": "2026-07-07T08:42:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742290,
+  "publishedAt": "2026-07-04T19:31:18+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32h7b3i-dk-c03-clarification-regarding-r114-voltage-drop-on-5v-vin-input-166676",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p><em>&gt;&gt; Is this voltage drop across <strong>R114</strong> normal when powering the board through <strong>5V_VIN</strong>?</em></p><p>If you’re trying to  power the boards with that pin, the voltage accross R114 drop is normal accross the 1K.</p><p>Originally this pin is not intented to power the board.</p><p><em>&gt;&gt; What is the function of <strong>R114</strong> in this design? Is it intended for current limiting, protection, or another purpose?</em></p><p>Testing purpose on ST board, pin 1 on this arduino is defined as NC.</p><p>Our latest designs include that note:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c15c0833-747c-494e-a557-6f91aebcddd0.png\"/></figure><p><em>&gt;&gt; Would it be safe to replace <strong>R114 (1 kΩ)</strong> with a <strong>0 Ω resistor</strong> to eliminate this voltage drop, or could this affect the proper operation or protection of the board?</em></p><p>You could try, but maybe there would be a problem with the U3 LDO, I have never tested..</p><p>I would prefer injecting 5V on CN19/Pin 5 while removing JP1.</p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your clarification.</p><p>I have one additional question.</p><p>Would it be possible to power the board directly with <strong>3.3 V</strong> through <strong>CN19 Pin 4 (3V3)</strong> instead of using the 5V pin 5? </p><p>Thank you for your support.</p><p>Best regards,</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>The user manuel explicitly says that these are outputs:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36905ad3-c454-424a-b634-6594b15a2168.png\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dcc010c1-e92f-47e5-9434-77396bd9e900.png\"/></figure><p> </p><p>But, that doesn’t mean I wouldn’t try. For instance If I would inject 3.3V on pin 4, at least would remove SB33 beforehand.</p><p>Maybe there is more to do, I didn’t check further.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89c03c34-f56a-4519-a7e7-12a205a58c02.png\"/></figure><p> </p><p>Anyways, before doing anything, please check the documentation, to fully understand what is possible.</p><p>The user manual is here:</p><p><a href=\"https://www.st.com/resource/en/user_manual/um2569-discovery-kit-with-stm32h7b3li-mcu-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/user_manual/um2569-discovery-kit-with-stm32h7b3li-mcu-stmicroelectronics.pdf</a></p><p>And the schematic here:</p><p><a href=\"https://www.st.com/en/evaluation-tools/stm32h7b3i-dk.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/stm32h7b3i-dk.html#cad-resources</a></p></div>"
+    }
+  ]
+}

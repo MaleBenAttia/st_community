@@ -1,0 +1,61 @@
+{
+  "contentType": "question",
+  "id": "167097",
+  "publicId": "167122",
+  "title": "STM32U595 showing high current consumption in shutdown mode at low temperature",
+  "content": "<p>I have the STM32U595QJI6 installed on a custom PCB sharing its VDD supply line with other components, when the PCB is to go into standby, the command HAL_PWREx_EnterSHUTDOWNMode()  is used to put the STM32U595QJI6 into shutdown mode.<br />The PCBs standby current is as expected, however, when the VDD supply line is at 3.3V, and the STM32U595QJI6 gets colder (locally cooling just the STM32U595QJI6 to 0℃) the standby current starts to increase roughly 3 times higher.</p><p>When the VDD supply line is at 3V, this does not occur, and the standby current decreases as the temperature decreases as expected.<br />When the PCB is running, the running current also decreases when it is cooled to 0℃ as expected, regardless of if the VDD supply line is 3V or 3.3V<br />All the pins are in an analog state, except the PWR_PUCRx and PWR_PDCRx , which are in a default state.</p><p>What could be the cause of this current increase in shutdown mode, under the specific conditions of a 3.3V VDD supply line, and a temperature decrease to 0℃？</p><p>It has been confirmed across multiple PCBs using the same circuitry, so it is not the result of an individual PCB error.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32U5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 61,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107864",
+    "username": "MatthewJP",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "107864",
+    "username": "MatthewJP",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-22T00:24:42+00:00",
+  "lastActivityAt": "2026-07-23T04:58:44+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743716,
+  "publishedAt": "2026-07-22T00:24:42+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32u595-showing-high-current-consumption-in-shutdown-mode-at-low-temperature-167122",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello MatthewJP,</p><p>This behavior is <strong>not expected to be inferred from the GPIO configuration alone</strong>. A threefold increase in the complete PCB standby current does not necessarily mean that the STM32 shutdown current itself has increased by the same amount, particularly because the STM32 shares its VDD rail with other devices.</p><p>The first step is therefore to determine whether the additional current is:</p><ul><li>drawn directly through an STM32 supply pin, or</li> <li>caused indirectly by current flowing between the STM32 and another component through an I/O or secondary supply domain.</li></ul><h3>Points to check</h3><ol><li> <p><strong>Measure the STM32 supply current separately</strong></p> <p>If possible, isolate the MCU VDD supply using a jumper, zero-ohm resistor, or PCB trace and measure only the current entering the STM32 VDD/VDDA domains.</p> <p>Also monitor the current versus temperature and supply voltage rather than measuring only at 3.0 V and 3.3 V. A voltage sweep around the transition may reveal whether a specific internal or external threshold is involved.</p> </li> <li> <p><strong>Check all STM32 power domains</strong></p> <p>Verify the voltage and current paths associated with:</p> <ul><li>VDD</li> <li>VDDA</li> <li>VDDUSB, if applicable</li> <li>VBAT</li> <li>VREF+</li> <li>VCAP pins</li> <li>the internal SMPS-related pins, according to the selected supply configuration</li> </ul><p>No secondary supply should remain at a voltage significantly different from VDD unless this operating condition is explicitly permitted by the datasheet. A current path can otherwise exist through an internal protection structure or analog switch.</p> </li> <li> <p><strong>Check for current injection through pins</strong></p> <p>Configuring GPIOs in analog mode disables the digital input buffer, but it does <strong>not</strong> guarantee that no current can flow through the pad protection circuitry.</p> <p>During shutdown, measure the voltage on every signal connected to another powered component. In particular, check:</p> <ul><li>communication interfaces connected to external devices</li> <li>SWDIO and SWCLK</li> <li>NRST</li> <li>BOOT0</li> <li>wake-up pins</li> <li>oscillator pins</li> <li>USB pins</li> <li>analog inputs</li> <li>any signal connected to a component powered from another rail</li> </ul><p>Each pin voltage must remain within the permitted injection-current conditions relative to VDD and VSS. Disconnecting external peripherals or inserting series resistors can help identify such a path.</p> </li> <li> <p><strong>Explicitly configure the shutdown pin state</strong></p> <p>The statement that the <code>PWR_PUCRx</code> and <code>PWR_PDCRx</code> registers are left at their reset values is important. GPIO configuration immediately before entering shutdown is not necessarily sufficient to define every pad state after the low-power transition.</p> <p>Configure the required pull-up or pull-down state explicitly for pins that must not float in shutdown—especially wake-up, reset, chip-select, enable, interrupt, and externally driven signals. Also verify the actual pin levels with an oscilloscope after shutdown entry.</p> </li> <li> <p><strong>Check that the MCU remains in shutdown</strong></p> <p>A marginal wake-up or reset signal can cause repeated wake-up/reset attempts. The average current can then appear only moderately higher than shutdown current, even though the MCU is periodically active for short intervals.</p> <p>Please check:</p> <ul><li>wake-up flags are cleared before shutdown</li> <li>unused wake-up sources are disabled</li> <li>RTC alarms and wake-up timers are disabled if not required</li> <li>NRST is stable</li> <li>wake-up pins have defined levels</li> <li>no watchdog or external component periodically resets or wakes the MCU</li> </ul><p>Monitor NRST and one available diagnostic pin with an oscilloscope. A GPIO pulse placed early in startup can also reveal unexpected restarts.</p> </li></ol><ol><li> <p><strong>Remove the debugger during the measurement</strong></p> <p>Disconnect ST-LINK/J-Link completely, including SWD and reset connections. Debug low-power settings or probe-driven signals can affect both entry into shutdown and pin leakage.</p> </li></ol><h3>Temperature-related observation</h3><p>The fact that the issue:</p><ul><li>occurs only around 3.3 V,</li> <li>appears when the MCU is cooled,</li> <li>does not occur in run mode, and</li> <li>is reproduced on several boards,</li></ul><p>suggests a <strong>repeatable threshold-dependent condition</strong>, but it is not sufficient to conclude that it is an intrinsic STM32 leakage characteristic. Possible explanations include:</p><ul><li>an externally driven pin crossing an input or protection threshold;</li> <li>a secondary supply-domain mismatch;</li> <li>a floating wake-up/reset signal changing state with temperature;</li> <li>repeated wake-up/reset activity;</li> <li>the board’s 3.3 V regulator or another component changing operating mode when the total load decreases;</li> <li>or, after these causes are excluded, a device-specific low-power behavior requiring investigation.</li></ul><p>Please also verify the exact VDD measured directly at the MCU pins. Some 3.3 V regulators rise above their nominal output at very light load or low temperature.</p><h3>Recommended diagnostic result</h3><p>A useful characterization would include:</p><ul><li>current entering the STM32 VDD pins only;</li> <li>current entering VDDA, VBAT and VDDUSB separately;</li> <li>actual VDD voltage at the device;</li> <li>temperature and voltage at which the increase begins;</li> <li>whether the current shows steps, oscillations, or periodic pulses;</li> <li>the STM32U595 revision ID;</li> <li>the selected internal supply configuration;</li> <li>and a schematic extract showing all MCU power pins and externally connected signals.</li></ul><p>If the increased current remains present with the STM32 supply isolated, all external signals disconnected or held within specification, the debugger removed, and shutdown entry verified, please open an ST support case with these measurements. That would allow the behavior to be checked against the exact silicon revision and characterized under controlled conditions.</p><p> </p><p>Regards,<br/>Stassen</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Greetings Stassen</p><p>Thank you very much for the detailed response. I will attempt to do some of the outlined measurements, although some I will not be able to perform due to requiring the PCB to be altered, as well as many GPIOs being inaccessible in the current PCB design. </p><p>Unfortunately, I am unable to share the details of the PCB layout or the schematic due to this being a public forum. If possible, I would like share information directly with ST personnel if that is an option, as I think seeing the STM32U595QJI6 ICs interface with the external components, as well as the shared VDD rail, is necessary to finding the source of this behavior.  As you say, it is repeatable threshold-dependent condition, but there isn't enough information to conclude that it is an STM32 leakage characteristic by itself.</p><p>An additional detail I can confirm from my testing, is that when VDD is at 3.3V, the current increases incrementally as the IC cools, for example, for every 1°C　dropped, an additional current of roughly 3μA appears on the PCB overall standby current. A drop from 10°C to 0℃ will result in a roughly 30μA increase.</p><p>I will check what I can from the outlined measurements above and respond back with any additional findings.</p><p>Best Regards.</p><p>Matthew</p></div>"
+    }
+  ]
+}

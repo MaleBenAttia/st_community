@@ -1,0 +1,59 @@
+{
+  "contentType": "question",
+  "id": "166783",
+  "publicId": "166803",
+  "title": "ST67W611M1A6UTR with Mission T02 Binary, Fails to connect to Wifi",
+  "content": "<p>I am using the ST67W611M1A6UTR Wi-Fi NCP with an STM32H563ZIT6 MCU on a custom board.</p><p>The ST67W611 is flashed with <code>st67w611m_mission_t02_v2.0.89.bin</code>, and I am running LwIP on the STM32H563ZIT6 host MCU. I am using the <code>ST67W6X_CLI_LWIP</code> example as a reference to implement a custom TCP stack for my board.</p><p>Below is my current initialization and Wi-Fi/TCP connection sequence:</p><pre><code class=\"language-c\">void network_task(void *argument) {<br />  W6X_Status_t ret = 0;<br />  W6X_WiFi_Connect_t connectData = {0};<br />  W6X_WiFi_StaStateType_e state = W6X_WIFI_STATE_STA_OFF;<br /><br />  wifi_init();<br />  network_log_init();<br /><br />  W6X_App_Cb_t App_cb = {0};<br />  App_cb.APP_wifi_cb = APP_wifi_cb;<br />  App_cb.APP_net_cb = NULL;<br />  App_cb.APP_ble_cb = NULL;<br />  App_cb.APP_mqtt_cb = NULL;<br />  App_cb.APP_error_cb = NULL;<br />  W6X_RegisterAppCb(&amp;App_cb);<br /><br />  app_evt_current = xEventGroupCreate();<br /><br />  /* Initialize the ST67W6X Driver */<br />  ret = W6X_Init();<br />  if (ret != W6X_STATUS_OK) {<br />    // TODO: Handle this  error appropriately, maybe log it or retry<br />    // initialization<br />  }<br /><br />  vTaskDelay(pdMS_TO_TICKS(500)); // Delay to ensure the driver is ready<br /><br />  ret = W6X_WiFi_Init();<br />  if (ret != W6X_STATUS_OK) {<br />    // TODO: Handle this  error appropriately, maybe log it or retry<br />    // initialization<br />  }<br /><br />  int32_t lwip_success = MX_LWIP_Init();<br />  if (lwip_success != 0) {<br />  }<br /><br />  vTaskDelay(pdMS_TO_TICKS(500)); // Delay to ensure the driver is ready<br /><br />  W6X_WiFi_Connect_Opts_t wifi_connect_opts = {0};<br />  strncpy((char *)wifi_connect_opts.SSID, TARGET_SSID, W6X_WIFI_MAX_SSID_SIZE);<br />  strncpy((char *)wifi_connect_opts.Password, TARGET_SSID_PASSWD,<br />          W6X_WIFI_MAX_PASSWORD_SIZE);<br />  wifi_connect_opts.Reconnection_interval = 0;<br />  wifi_connect_opts.Reconnection_nb_attempts = 0;<br />  wifi_connect_opts.WPS = 0;<br />  wifi_connect_opts.WEP = 0;<br />  memset(wifi_connect_opts.MAC, 0, sizeof(wifi_connect_opts.MAC));<br />  W6X_Status_t status = W6X_WiFi_Connect(&amp;wifi_connect_opts);<br /><br />  while (1) {<br />    vTaskDelay(pdMS_TO_TICKS(100));<br />  }<br />}<br /></code></pre><p>The issue I am encountering is that both the Wi-Fi driver and the LwIP stack initialize successfully. However, when the application calls <code>W6X_WiFi_Connect()</code>, it crashes during an internal function call before the connection process completes.</p><p>The crash consistently occurs inside <code>W6X_WiFi_Connect()</code>, rather than returning an error status to the application.</p><pre><code class=\"language-c\">  ret = W61_AT_Common_SetExecute(Obj, (uint8_t *)cmd, W61_WIFI_CONNECT_TIMEOUT);<br /></code></pre><p> </p><p>Interestingly, if I comment out the call to <code>net_if_init()</code>, <code>W6X_WiFi_Connect()</code> completes successfully and the module connects to the Wi-Fi network.</p><p>So the crash appears to be related to the interaction between <code>net_if_init()</code> / LwIP network interface setup and the subsequent <code>W6X_WiFi_Connect()</code> call.</p><pre><code class=\"language-c\">  if (net_if_init(&amp;net_if_cb) != 0) {<br />    LogError(\"Failed to init the LwIP network interface\\n\");<br />    return -1;<br />  }<br /></code></pre><p>which is present in MX_LWIP_Init(). <br /> </p><pre><code class=\"language-c\">W6X_Status_t W6X_Netif_Init(W6X_Net_if_cb_t *net_if_cb) {<br />  /* Get the global W61 context pointer */<br />  p_DrvObj = W61_ObjGet();<br />  NULL_ASSERT(p_DrvObj, W6X_Obj_Null_str);<br /><br />  if (p_DrvObj-&gt;NetCtx.Supported != 0) {<br />    NET_LOG_ERROR(\"Netif module not supported\\n\");<br />    return W6X_STATUS_ERROR;<br />  }<br /><br />  if (BusIo_SPI_Bind(SPI_MSG_CTRL_TRAFFIC_NETWORK_STA, 16,<br />                     net_if_cb-&gt;rxd_sta_notify_fn) != 0) {<br />    SYS_LOG_ERROR(\"Bind Network Traffic Station failed\\n\");<br />    return W6X_STATUS_ERROR;<br />  }<br /><br />  if (BusIo_SPI_Bind(SPI_MSG_CTRL_TRAFFIC_NETWORK_AP, 8,<br />                     net_if_cb-&gt;rxd_ap_notify_fn) != 0) {<br />    SYS_LOG_ERROR(\"Bind Network Traffic AP failed\\n\");<br />    return W6X_STATUS_ERROR;<br />  }<br /><br />  p_DrvObj-&gt;Callbacks.Netif_cb.link_sta_up_fn = net_if_cb-&gt;link_sta_up_fn;<br />  p_DrvObj-&gt;Callbacks.Netif_cb.link_sta_down_fn = net_if_cb-&gt;link_sta_down_fn;<br />  p_DrvObj-&gt;Callbacks.Netif_cb.link_ap_up_fn = net_if_cb-&gt;link_ap_up_fn;<br />  p_DrvObj-&gt;Callbacks.Netif_cb.link_ap_down_fn = net_if_cb-&gt;link_ap_down_fn;<br /><br />  return W6X_STATUS_OK;<br />}<br /></code></pre><p>It looks like <code>W6X_Netif_Init()</code> is somehow conflicting with <code>W6X_WiFi_Connect()</code>. After <code>W6X_Netif_Init()</code> is called, the application gets stuck during AT command execution inside <code>W6X_WiFi_Connect()</code>.</p><p>I have not been able to identify the root cause of this conflict between the LwIP network interface initialization and the Wi-Fi connection sequence.</p><p>Any guidance on the correct initialization order, required synchronization, or possible configuration issues would be greatly appreciated, as this is currently blocking my development.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "52",
+  "categoryName": "Interface and connectivity ICs",
+  "tags": [
+    "STM32CubeMX",
+    "STM32H5 series",
+    "STM32CubeMCUPackages (Cube FW)",
+    "Wi-Fi",
+    "LwIP",
+    "ST67W series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 1,
+  "votes": 0,
+  "views": 91,
+  "voteSet": [],
+  "likeSet": [
+    "105881"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "105881",
+    "username": "KushalGandhi108",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1910",
+    "username": "EPASZ.1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7deccf1e-32d7-30da-90a5-40a47c0ccea1.png"
+  },
+  "createdAt": "2026-07-09T09:24:49+00:00",
+  "lastActivityAt": "2026-07-10T11:59:52+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742709,
+  "publishedAt": "2026-07-09T09:24:49+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/interface-and-connectivity-ics-52/st67w611m1a6utr-with-mission-t02-binary-fails-to-connect-to-wifi-166803",
+  "scraped_replies": []
+}

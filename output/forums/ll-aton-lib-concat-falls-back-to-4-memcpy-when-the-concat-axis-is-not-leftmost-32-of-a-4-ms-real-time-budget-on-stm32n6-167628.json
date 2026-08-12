@@ -1,0 +1,57 @@
+{
+  "contentType": "question",
+  "id": "167596",
+  "publicId": "167628",
+  "title": "LL_ATON_LIB_Concat falls back to 4× memcpy when the concat axis is not leftmost — 32% of a 4 ms real-time budget on STM32N6",
+  "content": "<p>LL_ATON_LIB_Concat falls back to 4× memcpy when the concat axis is not leftmost — 32% of a 4 ms real-time budget on STM32N6</p><p>Hardware: NUCLEO-N657X0-Q (STM32N657X0H3Q), Cortex-M55 @ 800 MHz, Neural-ART. Tools: ST Edge AI Core 4.0, STM32Cube_FW_N6 V1.4.0, STM32CubeIDE 2.1.1. Application: real-time audio, hop = 192 samples @ 48 kHz = 4 ms = 3.2 M cycles, hard deadline, underrun must stay 0.</p><p>1. Concat falls back to a byte loop, and it is one third of the budget</p><p>Our graph is a streaming TCN (int8, L=12, C=88, T=48) run per audio hop with two voices, so the tensor layout has the voice axis leftmost: [C][V][T]. The graph contains 12 Concat blocks (channel-wise taps).</p><p>Epoch profiling (LL_ATON_EB_DBG_INFO, DWT cycle counter on the M55) showed those 12 blocks costing 1 019 501 cycles per inference — 32% of our entire 4 ms budget. No compiler option changed the number.</p><p>The cause is in the runtime source: LL_ATON_LIB_Concat takes its fast DMA path only when the concatenation axis is the leftmost <em>significant</em> axis. With V=2 sitting to the left, that test fails and the block is executed by the generic branch — four memcpy calls per block.</p><p>The arithmetic confirms it exactly. The 12 blocks move 145 728 bytes per hop (this equals the compiler's own cost estimate, which counts Concat as one element per cycle):</p><pre><code>1 019 501 cycles / 145 728 bytes = 6.997 cycles per byte</code></pre><p>and that figure is identical across all six different block sizes — the signature of a copy loop, not of a DMA setup cost.</p><p>Workaround, and why it is unsatisfying</p><p>We overrode memcpy with a strong symbol: an MVE implementation issuing four 16-byte loads before the first store, tail handled by predication. The strong symbol displaces the newlib one and reaches all code including ST files we must not modify. Result:</p><pre><code>Concat: 1 019 501 -&gt; 343 459 cycles   (6.997 -&gt; 2.36 cycles/byte)<br />hop (silence): 2 826 500 -&gt; 2 104 000 cycles</code></pre><p>That is a 676 kcycle saving — 21% of the hop budget — recovered by replacing a libc function under the vendor runtime. It works, but overriding memcpy globally is a heavy hammer for an application to swing, and it silently changes behaviour for every ST driver linked into the image.</p><p>What we would ask for</p><ol><li>\t<p>Extend the fast path so it applies when the concat axis is contiguous in memory, regardless of whether it is leftmost.</p>\t</li>\t<li>\t<p>Failing that, document the gating condition in the ST Edge AI docs, so that graph authors know the layout choice has a 30%-of-budget consequence.</p>\t</li>\t<li>\t<p>Optionally: have the runtime use an internal optimized copy instead of libc memcpy, so applications do not have to override a standard function to get reasonable throughput.</p>\t</li></ol><p>Point 2 alone would have saved us several days: nothing in the documentation suggests that the position of an axis changes Concat cost by 3×.</p><p>2. dilations &gt; 1 unsupported in ONNX import — pyramid emulation is ~9× over budget</p><p>Same setup. A causal TCN naturally uses dilated convolutions (1..32 across two stacks). atonn 4.0 rejects dilations &gt; 1 on Conv and emulates dilation with a pyramid of reshapes. On our shape the resulting graph executed in 37.36 ms against a 4 ms hop — about nine times over budget.</p><p>We worked around it by expressing dilation explicitly: Slice taps + channel Concat + 1×1 Conv (we call this the \"gather2\" form). Mathematically the same operations; roughly 10× faster on this target.</p><p>This is presumably a known limitation, but the size of the gap seems worth reporting: the naive export path is not slightly slower, it is unusable, and the working form is not obvious. A note in the documentation — \"express dilation as explicit slices; the pyramid emulation is not intended for real-time\" — would be valuable.</p><p>Reproduction</p><p>Both numbers come from on-target measurement with the DWT cycle counter and per-epoch profiling, not from estimates. I can share the graph shape, the epoch profile dump, and the memcpy implementation if that helps.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "134",
+  "categoryName": "Edge AI",
+  "tags": [
+    "ST Edge AI Core",
+    "STM32N6 series",
+    "Neural-ART Accelerator",
+    "Performance"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 1,
+  "votes": 0,
+  "views": 24,
+  "voteSet": [],
+  "likeSet": [
+    "108700"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108997",
+    "username": "Michael_K",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108997",
+    "username": "Michael_K",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-11T17:12:46+00:00",
+  "lastActivityAt": "2026-08-12T12:07:40+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745497,
+  "publishedAt": "2026-08-11T17:12:46+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/edge-ai-134/ll-aton-lib-concat-falls-back-to-4-memcpy-when-the-concat-axis-is-not-leftmost-32-of-a-4-ms-real-time-budget-on-stm32n6-167628",
+  "scraped_replies": []
+}

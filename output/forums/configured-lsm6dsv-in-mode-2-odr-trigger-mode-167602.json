@@ -1,0 +1,55 @@
+{
+  "contentType": "question",
+  "id": "167570",
+  "publicId": "167602",
+  "title": "Configured LSM6DSV in Mode-2 ODR-Trigger Mode",
+  "content": "<p>Hello Team,</p><p> </p><p>We are using a custom board based on <strong>QCS8550 </strong>processor with <strong>LE r90</strong> release. This release has lsm6dsv driver available as part of the ssc framework of the qualcomm.</p><p> </p><p>Our custom board includes two <strong>LSM6DSVTR </strong>IMU sensors which are interfaced over SSC (sensor core based) I2Cs and we are able to get the data through see_workhorse (i.e. qualcomm's userspace utility for sensors)</p><p> </p><p><strong>Use Case Requirements:</strong> </p><p>There is a requirement from client regarding sampling the data from IMU sensors on the edge of the reference signal which needs to be provided on the INT2 pin of the LSM6DSVTR sensors. Same reference signal also work as sync signal for the camera as well. so we can consider like sampling the data of IMU and capturing the frame over camera should be somewhat simultaneously.</p><p> </p><p><strong>Current Status:</strong></p><p>In the current driver implementation located at:</p><p><em>source/adsp_proc/ssc_drivers/lsm6dsv</em></p><p>From the driver code analysis, we observed that data is currently being received using a FIFO-based mechanism.</p><p>Additionally, it appears that the default driver implementation supports only the INT1 interrupt, while there is no implementation observed for INT2.</p><p> </p><p><strong>Problem Statement: </strong></p><p>So we want to configure the LSM6DSVTR IMU sensors in such a way that it samples the data according the the reference signal provided on the INT2 pin. so kind of configuring the IMU sensor in ODR triggerred mode.</p><p> </p><p>We tried out below steps, but somehow not able to get IMU working in ODR-triggerred mode </p><ul><li>Set STM_LSM6DSV_REG_CTRL1_XL(10h) register to ODR-triggered mode.</li>\t<li>Set STM_LSM6DSV_REG_FIFO_CTRL3(09h) register to select batch data rate of accelerometer and gyroscope in FIFO @ 30 Hz</li>\t<li>Set DEN(51h) register to extend DEN functionality to accelerometer sensor</li>\t<li>Set STM_LSM6DSV_REG_INT1_CTRL(0Dh) register to enable data ready interrupt on INT1 for acc and gyro both.</li>\t<li>Providing reference signal approx. 32Hz on INT2 pin.</li></ul><p> </p><p>Can you please help us with below things?</p><ol><li>We assume ODR triggerred mode can fulfil our requirement of sampling the IMU data and capturing the camera frame based on a reference signal/sync signal simultaneously. Can you please confirm if ODR triggerred mode satisfies our requirement?</li>\t<li>Do you have any latest SSC based driver for LSM6DSVTR? If yes, can you please share that?</li>\t<li>We have design the HW such that IMU works in Mode-1. Let us know if any hardware modifications are required to achieve the mentioned requirement.</li>\t<li>Can you please help us to achieve this functionality via Qualcomm SSC driver framework?</li></ol><p> </p><p>Let us know if any further details are required.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "48",
+  "categoryName": "MEMS (sensors)",
+  "tags": [
+    "Gyroscopes",
+    "Legacy products",
+    "Accelerometers",
+    "MEMS sensors"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 15,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107320",
+    "username": "sagar7046",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108960",
+    "username": "george2121",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-11T03:46:37+00:00",
+  "lastActivityAt": "2026-08-11T04:40:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745333,
+  "publishedAt": "2026-08-11T03:46:37+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/mems-sensors-48/configured-lsm6dsv-in-mode-2-odr-trigger-mode-167602",
+  "scraped_replies": []
+}

@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "166906",
+  "publicId": "166924",
+  "title": "STM32F769 Linux Unhandled exception",
+  "content": "<p> </p><p>I’m working with my stm32f769-DISCOvery board.</p><p>I’m trying to work through a few things that are unfinished/missing with the various buildroot configs on github and the stock one in buildroot.</p><p>On boot, it crashes like this:</p><p>[    1.705669] Unhandled exception: IPSR = 00000006 LR = fffffffd<br /> </p><p>I’m apparently hitting an error with binutils newer than 2.28.1.</p><p>It’s looking like this report, except I have also managed to get fffffff1 instead of fffffffd</p><p><a href=\"https://github.com/fdu/STM32F769I-disco_Buildroot/issues/1#issue-340504566\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/fdu/STM32F769I-disco_Buildroot/issues/1#issue-340504566</a></p><p>This emcraft patch seems to be intended to mitigate the crash:</p><p><a href=\"https://github.com/EmcraftSystems/linux-upstream/commit/2882de1d86bd536c855feee582d44722434c2ac9\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/EmcraftSystems/linux-upstream/commit/2882de1d86bd536c855feee582d44722434c2ac9</a></p><p>In theory, the fix should be upstream as as well, and the 5.15 kernel i’m playing with should be new enough. (I’ll need to validate that I guess)</p><p><a href=\"https://github.com/torvalds/linux/commit/afc9f65e01cd114cb2cedf544d22239116ce0cc6\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/torvalds/linux/commit/afc9f65e01cd114cb2cedf544d22239116ce0cc6</a></p><p> </p><p>Looking at this:</p><p><a href=\"https://github.com/fdu/STM32F769I-disco_Buildroot/issues/1\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/fdu/STM32F769I-disco_Buildroot/issues/1</a></p><p>It seems it is caused by binutils 2.28.1. I’m sure I knew that, I can even find some post of mine that I have no recollection of ;-)</p><p>Anyway, this leads among other things to this LKML thread <a href=\"https://lkml.org/lkml/2018/6/19/917\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://lkml.org/lkml/2018/6/19/917</a> and <a href=\"https://lkml.org/lkml/2018/6/19/927\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://lkml.org/lkml/2018/6/19/927</a></p><p> </p><p>What I’m not understanding is how this is not seen more commonly and what the common strategy is to deal with it. would it not affect most Cortex-M7/Thumb2 processors?</p><p>I see a few people have gone back to 2.28.1 binutils or patched 2.29 or patched parts of the kernel but I’m not sure why, or what, hasn’t been upstreamed.</p><p> </p><p>debug info:</p><p>So, that’s what I put in buildroot. Flash the SD card, boot, and the kernel crashes with this instruction issue, see here:</p><p> </p><p>Starting kernel ...</p><p>[    0.000000] Booting Linux on physical CPU 0x0<br />[    0.000000] Linux version 5.15.202 (demo@localhost.localdomain) (arm-buildroo<br />t-uclinux-uclibcgnueabihf-gcc.br_real (Buildroot 2024.05) 13.3.0, GNU ld (GNU Bi<br />nutils) 2.41) #1 PREEMPT Sun Jul 12 13:40:47 UTC 2026<br />[    0.000000] CPU: ARMv7-M [411fc270] revision 0 (ARMv7M), cr=00000000<br />[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, PIPT instruction cache<br />[    0.000000] OF: fdt: Machine model: STMicroelectronics STM32F769-DISCO board</p><p><br />[snipsnap]</p><p>[    1.705669] <br />[    1.705669] Unhandled exception: IPSR = 00000006 LR = fffffffd<br />[    1.712892] CPU: 0 PID: 40 Comm: rcS Not tainted 5.15.202 #1<br />[    1.718525] Hardware name: STM32 (Device Tree Support)<br />[    1.723648] PC is at 0xc061940a<br />[    1.726771] LR is at 0xc060ebd5<br />[    1.729895] pc : [&lt;c061940a&gt;]    lr : [&lt;c060ebd5&gt;]    psr: 81000000<br />[    1.736145] sp : c0668830  ip : 00000000  fp : 00000004<br />[    1.741353] r10: c066ac28  r9 : ffffffff  r8 : ffffffff<br />[    1.746561] r7 : c066b030  r6 : c066b0d0  r5 : c066b030  r4 : c066ac28<br />[    1.753070] r3 : c066ac48  r2 : 00000020  r1 : 00000020  r0 : c066b028<br />[    1.759581] xPSR: 81000000<br />[    1.762275] CPU: 0 PID: 40 Comm: rcS Not tainted 5.15.202 #1<br />[    1.767914] Hardware name: STM32 (Device Tree Support)<br />[    1.773055] [&lt;c000afa5&gt;] (unwind_backtrace) from [&lt;c000a283&gt;] (show_stack+0xb/0xc)<br />[    1.780597] [&lt;c000a283&gt;] (show_stack) from [&lt;c000a8b3&gt;] (__invalid_entry+0x4b/0x4c)<br /> </p><p> </p><p>I have the following settings in buildroot</p><p><strong>BR2_NORMALIZED_ARCH=\"arm\"<br />BR2_ENDIAN=\"LITTLE\"<br />BR2_GCC_TARGET_ABI=\"aapcs-linux\"<br />BR2_GCC_TARGET_CPU=\"cortex-m7\"<br />BR2_GCC_TARGET_FPU=\"fpv5-sp-d16\"<br />BR2_GCC_TARGET_FLOAT_ABI=\"hard\"<br />BR2_GCC_TARGET_MODE=\"thumb\"<br />BR2_READELF_ARCH_NAME=\"ARM\"<br />BR2_ARM_CPU_MAYBE_HAS_FPU=y<br />BR2_ARM_CPU_HAS_FPU=y<br />BR2_ARM_CPU_MAYBE_HAS_FPV4=y<br />BR2_ARM_CPU_HAS_FPV4=y<br />BR2_ARM_CPU_MAYBE_HAS_FPV5=y<br />BR2_ARM_CPU_HAS_FPV5=y<br />BR2_ARM_CPU_HAS_THUMB2=y<br />BR2_ARM_CPU_ARMV7M=y</strong><br /> </p><p>i last worked on this a month ago, so I don’t recall all details but I went through the configure once more and looked it and all of it seems good. Meaning, from a lot of reading they should be correct. I tried a few attempts as well.</p><p> </p><p> </p><p>btw. it seems to only show if i enable the FPU (but: One thing that I really care about in terms of performance would be to have the FPU enabled in the kernel). I don’t know the assembler backgrounds for it (and can’t learn them currently)</p><p>I’ve just tried again, with no VFP and soft float the kernel is booting. But this macro they patch back (__badr) seems to not be a FPU instruction? (I’m not sure)</p><p> </p><p>I understand the Cortex-M7 has an <em>optional</em> FPU. For all I know, the stm32f769 <em>does have</em> this FPU. I’ve seen example code for it. Further, as far as I understood, other from some M4 models, it has not a single but double-float-able FPU, so it should work for most random stuff thrown at it. As far as I understand it _also_ has the FPV5 extensions which make some extra operations avaliable (I forgot the details as to what, if it’s vector or simd or whatever. It’s something, and for the later M7 versions like this one is, it should be FPV5)</p><p> </p><p>rationale for messing around with this:</p><p>I’d rather take the time to sort this out now and be able to work with a fairly recent buildroot. I wanna be able to contribute QSPI root support and try out XiP, break out the modules so they can be on disk instead of having a too large for the ram kernel image.</p><p>et cetera. many tiny steps, it’s possible to do and so i think it should be done. At the very least I need to make enough space to load the TFT framebuffer drivers and all that. I know basically this is an MCU and I should maybe not be using Linux when there’s more direct ways to the same goal. But it HAS 16MB ram. That’s more than enough to run Unix with GUI. Especially since today we have XiP so the RAM usage will be quite limited. plus, my ressources are limited as well, and sticking with buildroot/linux will pay forward on multiple other projects. When I can afford it again I’ll look at the emcraft package for this board, but right now it ‘s not possible. Also, emcraft didn’t enable the FPU in-kernel, just for userspace.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "142",
+  "categoryName": "Others: STM32 MCUs related",
+  "tags": [
+    "STM32F7 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 97,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "106967",
+    "username": "darkfader",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "106967",
+    "username": "darkfader",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-14T07:26:11+00:00",
+  "lastActivityAt": "2026-07-14T19:57:17+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743046,
+  "publishedAt": "2026-07-14T07:26:11+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/others-stm32-mcus-related-142/stm32f769-linux-unhandled-exception-166924",
+  "scraped_replies": []
+}

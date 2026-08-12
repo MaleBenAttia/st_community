@@ -1,0 +1,74 @@
+{
+  "contentType": "question",
+  "id": "167075",
+  "publicId": "167096",
+  "title": "STM32H743 ADC3 temperature sensor not reading correctly in latest STMCubeMX 6.18 but was working in earlier STM32CubeMX 6.15",
+  "content": "<p>We have recently updated to the latest STM32CubeMX 6.17 and then STMCubeMX 6.18 and noticed in both versions that the internal temperature sensor is mis-reading (by something like 100x).</p><p>Previously the project was reading the temperature correctly (STMCubeMX 6.14 or 6.15 not sure exactly).</p><p>I have checked that all the ADC3 settings are the same and there are no changes causing by migrating the .IOC project.</p><p>I’ve also checked the TSEN and VREFEN are enabled in ADC3_CCR. The value is 0x00C00000.</p><p>Before I invest a lot of time rolling back to the old STM32CubeMX version and investigating what changed that broke the ADC3 internal temperature reading I’m hoping that this is known issue with the latest STM32CubeMX?</p><p>STM32CubeMX generated code:</p><pre><code class=\"language-c\">  /** Common config<br />  */<br />  hadc3.Instance = ADC3;<br />  hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;<br />  hadc3.Init.Resolution = ADC_RESOLUTION_12B;<br />  hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;<br />  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;<br />  hadc3.Init.LowPowerAutoWait = DISABLE;<br />  hadc3.Init.ContinuousConvMode = ENABLE;<br />  hadc3.Init.NbrOfConversion = 2;<br />  hadc3.Init.DiscontinuousConvMode = DISABLE;<br />  hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;<br />  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;<br />  hadc3.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;<br />  hadc3.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;<br />  hadc3.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;<br />  hadc3.Init.OversamplingMode = ENABLE;<br />  hadc3.Init.Oversampling.Ratio = 1024;<br />  hadc3.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_10;<br />  hadc3.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;<br />  hadc3.Init.Oversampling.OversamplingStopReset = ADC_REGOVERSAMPLING_CONTINUED_MODE;<br />  if (HAL_ADC_Init(&amp;hadc3) != HAL_OK)<br />  {<br />    Error_Handler();<br />  }<br /></code></pre><p>The latest version 6.18 of STM32CubeMX has changed the generated code slightly so that ADC_RESOLUTION_12B is done separately. Rolling this change back had no affect on the mis-reading.</p><p>Initialization:</p><pre><code class=\"language-c\">#define ADC3_BufferSize 2<br /><br />uint16_t ADC3_Buffer[ADC3_BufferSize];<br /><br />HAL_ADCEx_Calibration_Start(&amp;hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);<br />HAL_ADC_Start_DMA(&amp;hadc3, (&amp;ADC3_Buffer), ADC3_BufferSize);<br /><br />SCB_InvalidateDCache_by_Addr(&amp;ADC3_Buffer, ADC3_BufferSize * sizeof(uint16_t));<br /><br />Get_CPU_Temp = __HAL_ADC_CALC_TEMPERATURE(__HAL_ADC_CALC_VREFANALOG_VOLTAGE(ADC3_Buffer[1], ADC_RESOLUTION_12B), ADC3_Buffer[0], ADC_RESOLUTION_12B);<br /></code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32H7 series",
+    "ADC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 5,
+  "inclusiveVisibleReplyCount": 5,
+  "likes": 0,
+  "votes": 0,
+  "views": 84,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "85179",
+    "username": "ifemc",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "79374",
+    "username": "JoshuaHoward",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-21T05:59:12+00:00",
+  "lastActivityAt": "2026-08-01T05:48:11+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744554,
+  "publishedAt": "2026-07-21T05:59:12+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/stm32h743-adc3-temperature-sensor-not-reading-correctly-in-latest-stmcubemx-6-18-but-was-working-in-earlier-stm32cubemx-6-15-167096",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"85179\">@ifemc</user-mention> </p><p>I recommend generating the same project with both STM32CubeMX 6.15.0 and 6.18.0, then comparing the generated code using a diff tool such as WinMerge. This will help identify any changes introduced by the newer version, especially in the ADC initialization, channel configuration, oversampling, DMA handling, cache management, and internal temperature sensor/VREF setup. Even if the .ioc file appears unchanged, differences in the generated source code or updated HAL drivers may explain the incorrect temperature reading.</p><p>I will be waiting for your feedback.</p><p>THX</p><p>Ghofrane</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>This was difficult but I have narrowed it down to the following. I have two zip files (before and after) of the generated code:</p><ol><li>firstly with a working temperature sensor - M400-STM32H743XIH IOC before migrate (working).zip</li> <li>secondly with the temperature sensor misreading - M400-STM32H743XIH IOC after migrate (not working).zip</li></ol><p><a href=\"https://ak.emc.co.nz/modweigh/M400-STM32H743XIH%20IOC%20before%20migrate%20(working).zip\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">M400-STM32H743XIH IOC before migrate (working).zip</a></p><p><a href=\"https://ak.emc.co.nz/modweigh/M400-STM32H743XIH%20IOC%20after%20migrate%20(not%20working).zip\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">M400-STM32H743XIH IOC after migrate (not working).zip</a></p><p>Note: I can’t include my application code in these zip files.</p><p>I start with my working project, which was originally created in STM32CubeMX 6.14</p><p>I then upgraded to STMCubeMX 6.18 on my PC.</p><p>I open the .IOC project (created by STM32CubeMX 6.14) with STMCubeMX 6.18 and <strong>do not migrate </strong>by clicking the Continue button when prompted.</p><p>I then click GENERATE CODE.</p><p>I compiled the project and run it in my STM32H743 - which correctly reads the internal temperature (45 deg C).</p><p><strong>The generated files are in M400-STM32H743XIH IOC before migrate (working).zip</strong></p><p>I open the .IOC project again (created by STM32CubeMX 6.14) with STMCubeMX 6.18 and <strong>this time I migrate </strong>the project by clicking the Migrate button when prompted.</p><p>I then click GENERATE CODE.</p><p>I compiled the project and run it in my STM32H743 - which misreads the internal temperature (4990 deg C).</p><p><strong>The generated files are in M400-STM32H743XIH IOC after migrate (not working).zip</strong></p><p>Looking at the differences, the ADC files in particular, I cannot see what is causing this problem.</p><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I narrowed down to the line of code that broke the internal temperature sensor.</p><p>File:</p><p>Drivers\\STM32H7xx_HAL_Driver\\Inc\\stm32h7xx_ll_adc.h</p><p>Line 2429 from STM32CubeMX 6.14 (working):</p><pre><code class=\"language-c\">#define __LL_ADC_CALC_VREFANALOG_VOLTAGE(__VREFINT_ADC_DATA__,\\<br/>                                         __ADC_RESOLUTION__)                   \\<br/>  (((uint32_t)(*VREFINT_CAL_ADDR) * VREFINT_CAL_VREF)                          \\<br/>    / __LL_ADC_CONVERT_DATA_RESOLUTION((__VREFINT_ADC_DATA__),                 \\<br/>                                       (__ADC_RESOLUTION__),                   \\<br/>                                       LL_ADC_RESOLUTION_16B)                  \\<br/>  )</code></pre><p>Line 2429 from STM32CubeMX 6.18 (not working):</p><pre><code class=\"language-c\">#define __LL_ADC_CALC_VREFANALOG_VOLTAGE(__VREFINT_ADC_DATA__,\\<br/>                                         __ADC_RESOLUTION__)                   \\<br/>  (((uint32_t)(*VREFINT_CAL_ADDR) * VREFINT_CAL_VREF)                          \\<br/>    / __LL_ADC_CONVERT_DATA_RESOLUTION((__VREFINT_ADC_DATA__),                 \\<br/>                                       (__ADC_RESOLUTION__),                   \\<br/>                                       LL_ADC_RESOLUTION_12B)                  \\<br/>  )</code></pre><p>The difference is that LL_ADC_RESOLUTION_16B was changed to LL_ADC_RESOLUTION_12B.</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>They did fix the error on the H723 but in the process ended up breaking it for the more common H743. Points for trying?</p><p><a href=\"https://community.st.com/stm32-mcus-embedded-software-32/is-there-a-typo-in-temperature-and-vref-analog-conversion-macros-defined-for-stm32h723-hal-158036\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">Is there a typo in temperature and VREF Analog conversion macros defined for STM32H723 HAL? | Community</a></p><p><a href=\"https://community.st.com/stm32-mcus-embedded-software-32/incorrect-calculation-of-ll-adc-calc-vrefanalog-voltage-on-stm32h723-159786\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">Incorrect calculation of __LL_ADC_CALC_VREFANALOG_VOLTAGE on STM32H723 | Community</a></p><p> </p><p>Macro comments are now incorrect as it scales the value to 12 bits, not 16.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b4a74e83-ede0-46b0-bdfa-e00ae306bd70.png\"/></figure><p> </p><p>Very sloppy. Changing it 100% breaks any code that used it before.</p><p> </p><p>I may be missing something but treating the cal value as 12 bit or 16 bits needs to be processor dependent, and this macro clearly is not written to handle that correctly.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks, I didn’t know about it before.</p></div>"
+    }
+  ]
+}

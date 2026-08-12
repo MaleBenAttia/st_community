@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "167457",
+  "publicId": "167485",
+  "title": "[MCSDK 6.4.1][MC Workbench] Generated motor configuration metadata duplicates parameter values as literals",
+  "content": "<p>[PN]: STM32G431RB, custom motor-control board<br />[VERSION]: MCSDK 6.4.1 Full, STM32CubeMX 6.15.0<br />[TOOL]: Motor Control Workbench code generator / MC firmware<br />[TYPE]: Enhancement request / generated-code consistency issue</p><p>[DETAILS]</p><p>The generated project contains motor and drive parameters in:</p><p>- pmsm_motor_parameters.h<br />- drive_parameters.h<br />- power_stage_parameters.h<br />- parameters_conversion.h</p><p>Most runtime configuration correctly uses these macros or derived macros.</p><p>However, mc_configuration_registers.c duplicates several motor parameters as numeric literals in ApplicationConfig_reg_t and MotorConfig_reg_t, even though this file already includes parameters_conversion.h.</p><p>Examples from one generated project:</p><p>- maxMechanicalSpeed = 15900<br />  duplicates MOTOR_MAX_SPEED_RPM / MAX_APPLICATION_SPEED_RPM</p><p>- nominalCurrent = 0.68<br />  duplicates NOMINAL_CURRENT_A</p><p>- nominalVoltage = 24<br />  duplicates NOMINAL_BUS_VOLTAGE_V</p><p>- polePairs = 1<br />  duplicates POLE_PAIR_NUM</p><p>- ratedFlux = 0.8<br />  duplicates MOTOR_VOLTAGE_CONSTANT</p><p>- rs = 3.16<br />  duplicates RS</p><p>- ls = 0.00025 and ld = 0.00025<br />  duplicate or derive from LS</p><p>- maxCurrent = 0.68<br />  duplicates the configured motor current limit</p><p>These structures are compiled into the firmware and returned through MCP using<br />MC_REG_APPLICATION_CONFIG and MC_REG_MOTOR_CONFIG. Therefore, they are not only<br />code-generation intermediate data; they are user-visible Motor Pilot metadata.</p><p>[CONCERN]</p><p>If generated parameter headers are adjusted by a project-specific post-generation<br />step, variant overlay, or manual customization, the runtime control parameters can<br />change while the MCP/Motor Pilot metadata continues to report the old values.</p><p>Even when all files are regenerated together, the duplicated literals reduce<br />traceability and make generated-code review and consistency verification harder.</p><p>[EXPECTED BEHAVIOR]</p><p>Please consider one of the following:</p><p>1. Initialize ApplicationConfig_reg_t and MotorConfig_reg_t using the same generated<br />   parameter macros used by the runtime configuration.</p><p>2. Generate a single typed motor-configuration object and derive both runtime<br />   configuration and MCP metadata from it.</p><p>3. If literals are required by the generator architecture, add a generation-time<br />   consistency check and document the authoritative source and conversion rules.</p><p>Parameters with different meanings, such as rated motor current, Iq limit and<br />alignment current, should remain independently configurable. The request concerns<br />duplicated representations of the same semantic parameter, not merely equal numeric<br />values with different meanings.</p><p>[HOW TO REPRODUCE]</p><p>1. Create a PMSM FOC project in Motor Control Workbench.<br />2. Configure identifiable motor values for pole pairs, Rs, Ls, nominal current,<br />   nominal voltage and maximum speed.<br />3. Generate the CubeMX and firmware project.<br />4. Compare pmsm_motor_parameters.h / drive_parameters.h with<br />   mc_configuration_registers.c.<br />5. Observe that the latter repeats the same values as numeric literals.<br />6. Check sync_registers.c: the structures are returned for<br />   MC_REG_APPLICATION_CONFIG and MC_REG_MOTOR_CONFIG.</p><p>I can provide a minimal STWB6 project and the generated files if needed.<br />(I already test it at MCSDK 6.4.2, ant it’s same)</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "34",
+  "categoryName": "STM32 MCUs Motor control",
+  "tags": [
+    "STM32 motor control",
+    "MCSDK6",
+    "MC workbench"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 53,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "57050",
+    "username": "Junde",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/25ef41a1-f0d8-608c-31c4-cf45e9b4474c.png"
+  },
+  "lastContributor": {
+    "id": "914",
+    "username": "GMA",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/d1712325-15f1-a2d3-e445-2eadaaf975fe.png"
+  },
+  "createdAt": "2026-08-05T07:45:58+00:00",
+  "lastActivityAt": "2026-08-07T15:32:11+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745106,
+  "publishedAt": "2026-08-05T07:45:58+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/mcsdk-6-4-1-mc-workbench-generated-motor-configuration-metadata-duplicates-parameter-values-as-literals-167485",
+  "scraped_replies": []
+}

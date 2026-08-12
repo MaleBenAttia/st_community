@@ -1,0 +1,78 @@
+{
+  "contentType": "question",
+  "id": "166756",
+  "publicId": "166780",
+  "title": "CubeMX generates wrong FLASH_LATENCY after STM32H7 HAL driver migration",
+  "content": "<p>Hi,</p><p>I have a firmware running on an STM32H753 that was working correctly. After updating the <strong>STM32H7xx_HAL_Driver</strong> (by performing the migration in STM32CubeMX), the MCU gets stuck during the execution of <code>SystemClock_Config()</code>.</p><p>While debugging, I noticed that before the migration CubeMX generated:</p><pre><code>HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_2)<br /></code></pre><p>After the migration, the same function is generated as:</p><pre><code>HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_0)<br /></code></pre><p>If I manually change it back to:</p><pre><code>HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_2)<br /></code></pre><p>the MCU works correctly again. However, every time I regenerate the code from CubeMX, it goes back to <code>FLASH_LATENCY_0</code>.</p><p>I have already tried changing the PLL and clock parameters in the <strong>Clock Configuration</strong> tab of CubeMX and then restoring the original values, to check whether CubeMX was not correctly updating the clock tree calculation, but the generated code still contains <code>FLASH_LATENCY_0</code>.</p><p> </p><p>Is this a bug introduced in the new HAL driver/CubeMX version, or is there something else that I am missing?</p><p>How can I correctly configure CubeMX so that it generates the proper FLASH_LATENCY value automatically, without having to modify the generated code manually after every regeneration?</p><p> </p><p>My hardware configuration:</p><ul><li>\t<p>MCU: <strong>STM32H753VIT</strong></p>\t</li>\t<li>\t<p>External crystal: <strong>24 MHz HSE</strong></p>\t</li></ul><p> </p><p>This is my current <code>SystemClock_Config()</code> function:</p><pre><code>void SystemClock_Config(void)<br />{<br />    RCC_OscInitTypeDef RCC_OscInitStruct = {0};<br />    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};<br /><br />    HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY);<br /><br />    while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}<br /><br />    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;<br />    RCC_OscInitStruct.HSEState = RCC_HSE_ON;<br />    RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;<br />    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;<br /><br />    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;<br />    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;<br />    RCC_OscInitStruct.PLL.PLLM = 4;<br />    RCC_OscInitStruct.PLL.PLLN = 160;<br />    RCC_OscInitStruct.PLL.PLLP = 4;<br />    RCC_OscInitStruct.PLL.PLLQ = 60;<br />    RCC_OscInitStruct.PLL.PLLR = 8;<br />    RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;<br />    RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;<br />    RCC_OscInitStruct.PLL.PLLFRACN = 0;<br /><br />    if (HAL_RCC_OscConfig(&amp;RCC_OscInitStruct) != HAL_OK)<br />    {<br />        Error_Handler();<br />    }<br /><br />    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK<br />                                |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2<br />                                |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;<br /><br />    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;<br />    RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;<br />    RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;<br />    RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV1;<br />    RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;<br />    RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;<br />    RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;<br /><br />    if (HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)<br />    {<br />        Error_Handler();<br />    }<br />}<br /></code></pre><p>Thank you for your help.<br /> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/930fe586-108a-4401-bf10-742332d7328a.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "29",
+  "categoryName": "STM32CubeMX (MCUs)",
+  "tags": [
+    "STM32CubeMX",
+    "STM32H7 series",
+    "Flash",
+    "Clock-configuration"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 1,
+  "votes": 0,
+  "views": 178,
+  "voteSet": [],
+  "likeSet": [
+    "37189"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "33777",
+    "username": "ARagn.1",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/59f3fb34-7dba-70a5-c9d8-d40bafb07c3e.png"
+  },
+  "lastContributor": {
+    "id": "62759",
+    "username": "Souhaib MAZHOUD",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-08T16:23:00+00:00",
+  "lastActivityAt": "2026-07-31T09:33:04+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744493,
+  "publishedAt": "2026-07-08T16:23:00+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx-mcus-29/cubemx-generates-wrong-flash-latency-after-stm32h7-hal-driver-migration-166780",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"33777\">@ARagn.1</user-mention> </p><p>Thank you for reporting this issue,</p><p>This issue has been escalated to dedicated team for further investigation<em>: Internal ticket number: CDM0064049 (This is an internal tracking number and is not accessible or usable by customers.)</em></p><p>BR, Souhaib</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"33777\">@ARagn.1</user-mention> </p><p>As a workaround, can you please follow the steps below to help CubeMX recompute and apply the proper FLASH latency setting:</p><ol><li>Open the Clock Configuration tab in CubeMX.</li> <li>Temporarily decrease SYSCLK value for example 150 MHz.</li> <li>Go to the RCC configuration settings.</li> <li>Set Power Regulator Voltage SCALE to Scale 0.</li> <li>Return to Clock Configuration.</li> <li>Restore your intended clock values, for example:240 MHz/120 MHz</li> <li>Go back again to the RCC configuration.</li> <li>Change Power Regulator Voltage SCALE to Scale 2.</li></ol><p>CubeMX now should refresh the flash wait-state computation, and the FLASH Latency should now be shown as 2WS, which results in the correct generated FLASH_LATENCY_2</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fbe5795b-fbc5-40df-834e-7a8b9ff49bda.png\"/></figure><p>BR, Souhaib</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> Hello ​<user-mention data-id=\"62759\">@Souhaib MAZHOUD</user-mention>,</p><p>Thanks for your help, I followed your procedure but when I restore 240MHz I don’t see anymore the section: “Power Regulator Voltage Scale”.</p><p>Please let me know if there is anything else I can do.</p><p> </p><p>Andrea</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/48b97098-ef12-44de-90b3-3d7630b22efb.png\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b10b4c6f-b003-4d09-a9a9-baf820f1e11a.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23c67931-e8e9-4cd9-aa83-b6fd44e3a03c.png\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4c230f3-4e01-42eb-bc7d-9bfdff09b9e0.png\"/></figure><p> </p><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"33777\">@ARagn.1</user-mention> </p><p>Can you try to set all APB prescalers to /2 instead of /1 as below and check please? </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7d0009ab-e777-4949-af75-d3bd11b1026e.png\"/></figure><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p> Hi ​<user-mention data-id=\"62759\">@Souhaib MAZHOUD</user-mention>,</p><p>if I change APB prescalers from /1 to /2 I get this:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d0de3f68-ab86-4c9a-a9cc-f996ceba7d71.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dae971ef-5f3c-4e16-9a6f-8759edd38b6c.png\"/></figure><p>However if I go back to /1 I get again FLASH_LATENCY_0</p><p>Do you have any other idea?</p><p> </p><p>Thanks,</p><p>Andrea</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "contentType": "question",
+  "id": "166734",
+  "publicId": "166759",
+  "title": "STEVAL-MKI109D + STEVAL-MKI207V1: SPI transaction completes cleanly (HAL_OK) but MISO always reads 0xFF — CS/mode/clock all verified correct",
+  "content": "<p><strong>Board:</strong> STEVAL-MKI109D (STM32H563ZI) + STEVAL-MKI207V1 adapter (ISM330DHCX)<br /><strong>Goal:</strong> Bare-metal custom firmware reading WHO_AM_I over SPI1</p><p>Following up on my earlier thread about GPIO pin mapping [link to old thread] — pin mapping is now resolved (SPI1_NSS on PA15, confirmed via community input; PA4/PA5 are DAC1 Vdd_set/VddIO_set as discussed). Thanks for the help getting there.</p><p>I'm now stuck on a different issue and would appreciate a sanity check. <strong>WHO_AM_I consistently reads 0xFF</strong>, but every layer I can verify from firmware/multimeter checks out correctly:</p><ul><li>CS on PA15 (GPIO output, confirmed via MODER/ODR register dump)</li>\t<li>SPI1 Mode 3 (CPOL=1, CPHA=1) — confirmed via CFG2 register decode</li>\t<li>SCK/MISO/MOSI on PB3/PB4/PB5, AF5 — confirmed via GPIOB MODER/AFRL dump</li>\t<li>VDD/VDDIO measured 3.3V at the DIL24 breakout header (J13/J14 area on JP1/JP2), in spec</li>\t<li><code>HAL_SPI_TransmitReceive</code> returns HAL_OK, ErrorCode=0x0, every call — no timeout, no fault</li>\t<li>Tested at both SPI_BAUDRATEPRESCALER_32 and _256 (extremes) — identical 0xFF result at both, ruling out clock-speed/level-shifter-timing issues</li>\t<li>Swept 9 additional candidate CS pins as a sanity check — all 0xFF</li></ul><p>Given a clean, fault-free SPI transaction that consistently returns 0xFF regardless of clock speed, this looks like MISO simply isn't being driven — but I don't have a scope/logic analyzer to confirm signal activity directly at the DIL24 socket or on the T14/T15 level shifter outputs.</p><p><strong>Specific questions:</strong></p><ol><li>Is there anything specific about the T14/T15 (NTA4151PT1G) level-shifter circuit that requires a particular power-up sequence or reference voltage beyond VDD/VDDIO themselves — e.g. does <code>VddIO2</code> (referenced near T15 in the schematic) need to be independently supplied, and if so, from where?</li>\t<li>Is there a minimum CS-to-first-clock-edge setup time the ISM330DHCX needs that HAL_SPI_TransmitReceive might not guarantee back-to-back?</li>\t<li>Any other MCU-side signal (chip select gating, ready/busy line) specific to this adapter board that a from-scratch bare-metal implementation might be missing, that ProfiMEMS handles internally?</li></ol><p>Happy to share full register dumps / relevant code snippets if useful. Appreciate any pointers — been systematically ruling things out for a while now and this is the one piece I can't verify without a scope.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "48",
+  "categoryName": "MEMS (sensors)",
+  "tags": [
+    "STM32H5 series",
+    "SPI",
+    "MEMS sensors",
+    "USB Type-C and power delivery"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 20,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "105524",
+    "username": "pooja_g",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1608",
+    "username": "Federica Bossi",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/72266775-a352-6a28-5382-90a255104589.png"
+  },
+  "createdAt": "2026-07-08T06:19:43+00:00",
+  "lastActivityAt": "2026-07-08T08:12:34+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742395,
+  "publishedAt": "2026-07-08T06:19:43+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/mems-sensors-48/steval-mki109d-steval-mki207v1-spi-transaction-completes-cleanly-hal-ok-but-miso-always-reads-0xff-cs-mode-clock-all-verified-correct-166759",
+  "scraped_replies": []
+}

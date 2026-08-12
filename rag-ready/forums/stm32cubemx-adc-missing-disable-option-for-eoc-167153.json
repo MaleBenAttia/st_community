@@ -1,0 +1,27 @@
+{
+    "forum": [
+        {
+            "id": "167127",
+            "publicId": "167153",
+            "title": "STM32CubeMX ADC missing 'DISABLE' option for EOC ?",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-adc-missing-disable-option-for-eoc-167153",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "STM32F4 series",
+                "ADC",
+                "Suggestion"
+            ],
+            "published_at": "2026-07-22T13:38:04+00:00",
+            "views": 67,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@RougeGorge\n\nAccording to RM0090 Rev 22, section 13.13.3 ADC control register 2 (ADC\\_CR2), DISABLE is not listed explicitly as one of the available options.\n\n![sys_attachment.do?sys_id=abb3d052831a4f502ea7dbb0ecda1e74](https://st.service-now.com/sys_attachment.do?sys_id=abb3d052831a4f502ea7dbb0ecda1e74)\n\nHowever ,in this context, DISABLE corresponds to 0, meaning that the EOC bit is set at the end of each regular conversion sequence.\n\nSo MX is working correctly and a ticket  **#0064697** has been escalated to the appropriate team to align the example .\n\nTHX\n\nGhofrane\n\nTHX\n\nGhofrane",
+            "content_text": "Hi,\n\nI was making a demo project so needed a really straightforward way to use the ADC of my STM32F446RE.\n\nI configured the ADC1 with only channel. Default parameter everywhere except I enabled ‘Continuous Conversion Mode’ as I understood it, all I had to do with it was to start the ADC (HAL\\_ADC\\_Start(&hadc1)) and pick the values every time my loop needed it. I was surprised to notice that ‘HAL\\_ADC\\_PollForConversion(&hadc1, 100)’ worked only the first call then always yield HAL\\_TIMEOUT as I was expecting the ‘Continuous Conversion’ mode to allow me to not call HAL\\_ADC\\_Start and stop every time.\n\nAfter finding the linked post, I found the solution was to change the ADC setting\n\nfrom *hadc1.Init.EOCSelection = ADC\\_EOC\\_SINGLE\\_CONV*\n\nInto *hadc1.Init.EOCSelection = DISABLE*\n\nThe thing is this option is not available in STM32CubeMX (V6.17.0) so I have to pick either ADC\\_EOC\\_SINGLE\\_CONV or ADC\\_EOC\\_SEQ\\_CONV.\n\nI have the behavior I wanted but I wonder if this can be improved in STM32CUBEMX or is there something I don’t understand ?\n\nStill according to this link this configuration set should be officialy supported as it’s in the exemple file.\n\n<https://github.com/STMicroelectronics/STM32CubeF4/blob/master/Projects/STM324xG_EVAL/Examples/ADC/ADC_RegularConversion_Interrupt/Src/main.c>\n\nNOTE: So after writing all of this I noticed that ADC\\_EOC\\_SEQ\\_CONV is also defined as ‘0’ like just like ‘DISABLE’ so it would have work if I picked ‘EOC flag at the end of all conversion’ instead ‘EOC flag at the end of single channel conversion’ but I think it’s missleading",
+            "images": [
+                "https://st.service-now.com/sys_attachment.do?sys_id=abb3d052831a4f502ea7dbb0ecda1e74"
+            ],
+            "author": "RougeGorge"
+        }
+    ]
+}

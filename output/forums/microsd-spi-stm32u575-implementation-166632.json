@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "166608",
+  "publicId": "166632",
+  "title": "microSD SPI STM32U575 Implementation",
+  "content": "<p>Hiya. I’m working on a project that writes to a microSD card over SPI using an RTOS (ThreadX in this case). I’ve had a bit of trouble implementing it over the weekend since I’ve seen little/no support for SPI on FileX and I’ve had issues porting over FatFs SPI code over to this project. Looking for some help and guidance with this! I’m not experienced with FileX or FatFs, so the solution could be pretty simple.</p><p>With FileX, I can initialise but cannot mount the drive (memory pool allocations has been large enough). I used this custom library for the SPI implementation: </p><oembed url=\"https://community.st.com/stm32-mcus-embedded-software-32/filex-sd-card-using-spi-148554\"></oembed><p>With FatFs, I was also able to initialise but could not mount the drive.</p><p> </p><p>Again, I am pretty new to this stuff, so a series of steps to implement and identify the problems would be greatly appreciated. I can figure out the rest of the code (like writing and reading), I’m just struggling with initialising and mounting.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "SPI",
+    "STM32U5 series",
+    "ThreadX",
+    "FileX"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 65,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "98631",
+    "username": "f3l1xa88077",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "98631",
+    "username": "f3l1xa88077",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-02T15:00:58+00:00",
+  "lastActivityAt": "2026-07-03T03:26:38+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 741989,
+  "publishedAt": "2026-07-02T15:00:58+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/microsd-spi-stm32u575-implementation-166632",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>HI,</p><p>Why not use the sdmmc interface, the standard for SD-card?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I had done this on a previous version and got it working on SDMMC, but because of pin availability I was only able to spare SPI.</p><p> </p><p>Edit: I only need this to work on this version (just needs to function). No need to make it a long-term solution.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Well, I can't tell much about SPI for filex etc, because I never used SD-card without sdmmc.</p><p>So it's more a bad design decision to not use sdmmc on a chip that has it. If doing anything super cheap, it's a different story.</p><p>So again: why waste your time on this bad design, if you know, it's bad and don't want to use it in future?</p><p>Just for fun?</p><p>About pin availability: at first set the pins you need for complex function, like USB or SD, then other pins for... whatever. Not the other way round.</p><p>Just from my experience with SD-card: mount not working at all,  most times indicating a hardware problem, no access to data from device possible. So check signal on clk and data lines, what's really going on there, with a scope.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the insight,</p><p>The reason I’m only using SPI on this specific version is for a debugging tool. The final version will be remote/autonomous, so there is no need for a microSD when when I cannot access it. I opted for the chip to be used on the final version (low-pin count) because if everything worked, a transition between this version and the next would just be a matter of disabling that SPI line. If I selected a completely different chip to free up space for SDMMC, then I’d need to re-work my PCB layout and basically start over for the next version.</p><p>I decided to use SPI for a microSD card because I saw the link in the post using SPI on FileX, and others porting FatFs (where SPI to SD is possible). I’ve just had issues with the implementation.</p><p>Hope this gives some context.</p></div>"
+    }
+  ]
+}

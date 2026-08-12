@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "166670",
+  "publicId": "166695",
+  "title": "Query Regarding FDCAN Message RAM Configuration on STM32H5 with HAL",
+  "content": "<p>Dear ST Team,</p><p>I am using the <strong>STM32H5 Nucleo-64 board (MB1814)</strong> to develop a CAN communication-based application. In my implementation, I am using the <strong>TX Queue</strong> for message transmission and <strong>RX FIFO0</strong> for message reception, both operating through interrupts.</p><p>While reviewing the HAL library, I observed that the Message RAM allocation for the RX FIFOs and TX Queue is defined using static, hardcoded macros, as shown below:</p><pre><code>#define SRAMCAN_FLS_NBR (28U) /* Max. Filter List Standard Number */<br />#define SRAMCAN_FLE_NBR ( 8U) /* Max. Filter List Extended Number */<br />#define SRAMCAN_RF0_NBR ( 3U) /* RX FIFO 0 Elements Number */<br />#define SRAMCAN_RF1_NBR ( 3U) /* RX FIFO 1 Elements Number */<br />#define SRAMCAN_TEF_NBR ( 3U) /* TX Event FIFO Elements Number */<br />#define SRAMCAN_TFQ_NBR ( 3U) /* TX FIFO/Queue Elements Number */</code></pre><p>Since my application uses only <strong>TX Queue</strong> and <strong>RX FIFO0</strong>, I would like to know whether it is possible to reallocate the Message RAM to increase the number of elements for these two resources while setting the sizes of <strong>TX FIFO, Unused filters,</strong> and <strong>RX FIFO1</strong> to zero, as they are not used in my application.</p><p>Could you please advise whether this is supported by the HAL/STM32H5 FDCAN implementation? If so, I would appreciate any recommendations or best practices for configuring the Message RAM efficiently for this use case.</p><p>Thank you for your support. I look forward to your guidance.</p><p>Kind regards,</p><p>Bhavesh Raju</p><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "FDCAN",
+    "STM32H5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 45,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107978",
+    "username": "Bhavesh Raju",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "1684",
+    "username": "Saket_Om",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-06T08:27:49+00:00",
+  "lastActivityAt": "2026-07-06T13:34:54+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742211,
+  "publishedAt": "2026-07-06T08:27:49+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/query-regarding-fdcan-message-ram-configuration-on-stm32h5-with-hal-166695",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107978\">@Bhavesh Raju</user-mention></p><p>On <strong>STM32H5</strong>, the <strong>FDCAN Message RAM allocation is fixed by hardware</strong>, so unused areas such as <strong>RX FIFO1</strong>, unused filters, or other TX resources cannot be reassigned to increase the size of <strong>RX FIFO0</strong> or the <strong>TX Queue</strong>. In other words, even if your application uses only <strong>TX Queue</strong> and <strong>RX FIFO0</strong>, the allocation remains static and is not dynamically configurable through HAL or software. If your application requires larger FIFOs or a more flexible FDCAN Message RAM organization, we recommend considering a device with a more complete FDCAN implementation, such as <strong>STM32H7</strong> or <strong>STM32N6</strong>.</p></div>"
+    }
+  ]
+}

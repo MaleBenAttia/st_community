@@ -1,0 +1,77 @@
+{
+  "contentType": "question",
+  "id": "167191",
+  "publicId": "167217",
+  "title": "FPU: CubeIDE setting overrides register SCB->CPACR",
+  "content": "<p>Heyho,</p><p>just played with / checked the FPU on a G431.</p><p>I found that the CubeIDE setting overrides the enable via register SCB-&gt;CPACR.</p><p>So, if source code sets FPU on, but IDE says FPU off, the FPU is off.</p><p>That a bug or a feature?</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "28",
+  "categoryName": "STM32CubeIDE (MCUs)",
+  "tags": [
+    "STM32G4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 4,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
+  "likes": 0,
+  "votes": 0,
+  "views": 84,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "39813",
+    "username": "LCE",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/c6547345-4bfa-4b5a-b6f7-8d606679294e.png"
+  },
+  "lastContributor": {
+    "id": "39813",
+    "username": "LCE",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/c6547345-4bfa-4b5a-b6f7-8d606679294e.png"
+  },
+  "createdAt": "2026-07-24T14:30:38+00:00",
+  "lastActivityAt": "2026-07-27T06:12:00+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744006,
+  "publishedAt": "2026-07-24T14:30:38+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeide-mcus-28/fpu-cubeide-setting-overrides-register-scb-cpacr-167217",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>So if it’s a question on CubeIDE, that must be asked in STM32CubeIDE.</p><p>I’m moving the post then.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>That’s not how it works. The IDE can set some things up but once the source code is running it controls things. Recheck your assumptions.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, let’s rephrase it:</p><p>something changes it, probably the compiler ?</p></div>"
+    },
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; if source code sets FPU on</p><p>How?</p><p>&gt; but IDE says FPU off, the FPU is off</p><p>How do you know FPU is off?</p><p> </p><p>I don’t use CubeIDE, but my guess would be, that any “FPU on/off” tickbox results in preprocessor symbols being defined/not defined, probably through command-line -Dxxx switch, which are then used in SystemInit()</p><pre><code class=\"language-c\">void SystemInit (void)<br/>{<br/>  /* FPU settings ------------------------------------------------------------*/<br/>  #if (__FPU_PRESENT == 1) &amp;&amp; (__FPU_USED == 1)<br/>    SCB-&gt;CPACR |= ((3UL &lt;&lt; (10*2))|(3UL &lt;&lt; (11*2)));  /* set CP10 and CP11 Full Access */<br/>  #endif</code></pre><p>so if your code changes that before SystemInit is called, it will be overriden.</p><p>Or not. I don’t Cube.</p><p>JW</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Ouch, feeling stooopid once more…</p><p>I copied exactly the above lines including the preprocessor #if, without having checked where the __FPU defines come from. I assumed wrongly that these were set in some *.h file.</p><p>Ouch, ouch, ouch, ...</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>BTW, I checked by setting up a timer running with CPU clock and checked the timer ticks.</p><p>That showed pretty clearly if FPU was on or not, a division taking about 10 times more cycles without the FPU.</p><pre><code class=\"language-c\">case '/':<br/>case ':':<br/>{<br/>\t__disable_irq();<br/>\tTIM6-&gt;CNT = 0;<br/>\tif( flValY != 0.0f ) flResult = flValX / flValY;<br/>\telse u32Error = 1;<br/>\t__ISB();<br/>\tu32TimStop = TimTestGetCnt();<br/>\t__enable_irq();<br/>\tbreak;<br/>}<br/></code></pre><p> </p></div>"
+    }
+  ]
+}

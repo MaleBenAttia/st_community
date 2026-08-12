@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166881",
+  "publicId": "166899",
+  "title": "TESEO-VIC3D PSTMPPSDATA ref_sec issue",
+  "content": "<p>Hi,</p><p>I’m using TESEO-VIC3D for PPS generation for time synchronization and OCXO frequency correction. I wanted to use PSTMPPSDATA NMEA messages in order to read quantization_error parameter and apply it in my program to eliminate the quantization error of PPS signal. Mostly it works well, but I ran into couple of issues:</p><ol type=\"1\"><li>There is a ref_sec parameter in the PSTMPPSDATA message that should refer to a specific second for which the message corresponds. For some seconds, this message is missing, e.g.:</li></ol><p>2026-07-11 17:43:09.564 $PSTMPPSDATA,1,1,1,0,0,0,0.500000,0,633,420,420,633,0,0,0,0,0,11,3,5,18,4,0,0,6.622e-09,65473709.68,48000018.67,4*24<br />2026-07-11 17:43:09.567 $PSTMTRAIMSTATUS,1,0,15,7,5,2,11*54<br />2026-07-11 17:43:09.573 $PSTMTRAIMUSED,1,5,7,21,11,16,9*7C<br />2026-07-11 17:43:09.576 $PSTMTRAIMRES,1,5,-3,-9,6,-3,10*16<br />2026-07-11 17:43:09.580 $PSTMTRAIMREMOVED,1,2,30,4*2F<br />2026-07-11 17:43:10.616 $PSTMTRAIMSTATUS,1,0,15,8,5,2,12*58<br />2026-07-11 17:43:10.620 $PSTMTRAIMUSED,1,5,7,21,11,16,9*7C<br />2026-07-11 17:43:10.623 $PSTMTRAIMRES,1,5,-4,-2,5,-5,6*28<br />2026-07-11 17:43:10.626 $PSTMTRAIMREMOVED,1,2,30,4*2F<br />2026-07-11 17:43:11.575 $PSTMPPSDATA,1,1,1,0,0,0,0.500000,0,633,420,420,633,0,0,0,0,0,13,3,5,18,4,0,0,1.378e-08,65473709.69,48000018.68,4*24<br />2026-07-11 17:43:11.578 $PSTMTRAIMSTATUS,1,0,15,10,5,2,13*60<br />2026-07-11 17:43:11.581 $PSTMTRAIMUSED,1,5,7,21,11,16,9*7C<br />2026-07-11 17:43:11.584 $PSTMTRAIMRES,1,5,-7,0,4,-3,5*00<br />2026-07-11 17:43:11.587 $PSTMTRAIMREMOVED,1,2,30,4*2F</p><p>As you can see, this message is omitted for ref_sec=12 (while PSTMTRAIMSTATUS is sent for the same ref_sec)</p><p> </p><ol start=\"2\" type=\"1\"><li>ref_sec should only be values 0-59, but I observed a jump from ref_sec=41 to ref_sec=239, which shouldn’t be a correct value. It seems like an error of processing signed/unsigned 8bit values in FW. Moreover, when ref_sec finally reaches 255, the next two PSTMPPSDATA messages have both ref_sec=0 (even though they are not sent at the same time), see the attached log (ref_sec_jump.txt):</li></ol><ol start=\"3\" type=\"1\"><li>What is a realiable way to connect ref_sec to a specific PPS pulse? Documentation is not very specific about that.</li>\t<li>pps_valid and synch_valid parameters in PSTMPPSDATA - What exactly do they mean? Documentation does not specify that.</li></ol><p> </p><p>Version of FW in my TESEO module (response to PSTMGETSWVER,255):</p><p>$PSTMVER,GNSSLIB_8.4.19.27.11_ARM*66<br />$GPTXT,DEFAULT VIC CONFIGURATION*24<br />$PSTMVER,OS20LIB_4.4.0_ARM*40<br />$PSTMVER,GPSAPP_2.14.0.11_VIC3DA_ARM*30<br />$PSTMVER,BINIMG_4.6.18.11_VIC3DA_ARM*3F<br />$PSTMVER,SWCFG_8406532d*34<br />$PSTMVER,STAGPSLIB_6.0.1_ARM*5B<br />$PSTMVER,DRLIB_2.14.1_ARM*7E<br />$PSTMVER,STA8090_922bc043*60<br />$GPTXT,(C)2000-2018 ST Microelectronics*29<br />$GPTXT,DEFAULT VIC CONFIGURATION*24</p><p> </p><p>I tried to search for this in the forum, but I haven’t found anything about this. I would appreciate your help with this issue.</p><p> </p><p>Best regards,</p><p>Filip</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "120",
+  "categoryName": "GNSS positioning",
+  "tags": [
+    "GPS",
+    "GNSS"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 43,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108190",
+    "username": "fkod",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108190",
+    "username": "fkod",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-13T10:25:48+00:00",
+  "lastActivityAt": "2026-07-13T10:25:48+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-07-13T10:25:48+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/gnss-positioning-120/teseo-vic3d-pstmppsdata-ref-sec-issue-166899",
+  "scraped_replies": []
+}

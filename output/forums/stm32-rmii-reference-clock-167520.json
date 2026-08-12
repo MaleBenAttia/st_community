@@ -1,0 +1,58 @@
+{
+  "contentType": "question",
+  "id": "167491",
+  "publicId": "167520",
+  "title": "STM32 RMII Reference Clock",
+  "content": "<p>We have a current application in which our F7 is connected to an external Microchip PHY which provides a 50 MHz reference clock for RMII.  We are attempting to place the system into a low power mode in which we disable the PHY thus stopping the reference clock.  Is there a way to do this that will not cause the network stack on the MCU to fail?  We are using Zephyr as our RTOS which may or may not be relevant.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "STM32F7 series",
+    "Ethernet"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 23,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "101658",
+    "username": "mattr",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "98681",
+    "username": "T_Hamdi",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/7222a7aa-eea9-76ab-16bc-1643f1e2bb0b.png"
+  },
+  "createdAt": "2026-08-06T14:48:16+00:00",
+  "lastActivityAt": "2026-08-11T08:41:48+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745350,
+  "publishedAt": "2026-08-06T14:48:16+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32-rmii-reference-clock-167520",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"101658\">@mattr</user-mention> </p><p>If the PHY stops providing the 50 MHz RMII REF_CLK, the STM32 Ethernet MAC will lose its clock source. In that state, <strong>you cannot keep the network stack operating normally</strong>.</p><p>So the practical solution is:</p><ol><li><strong>shut down the network interface first</strong></li> <li><strong>stop/disable the PHY</strong></li> <li><strong>restore the PHY and clock later</strong></li> <li><strong>reinitialize the interface</strong></li></ol><p>If your requirement is <strong>“PHY off, but network stack still alive and usable”</strong></p><p>then the answer is <strong>no</strong> for RMII on STM32 F7, because the MAC depends on that clock.</p><p>Best regards,</p><p>hamdi</p><p> </p></div>"
+    }
+  ]
+}

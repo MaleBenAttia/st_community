@@ -1,0 +1,60 @@
+{
+  "contentType": "question",
+  "id": "167313",
+  "publicId": "167340",
+  "title": "Request for steps to run STM32N6 application in DEV_BOOT mode",
+  "content": "<p>  Referred Ticket: <a href=\"https://community.st.com/stm32-mcus-products-25/how-to-run-program-on-stm32n6-after-flashing-without-changing-boot-1-jumper-153278?tid=153278&amp;fid=25\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">How to run program on STM32N6 after flashing without changing BOOT-1 jumper | Community</a><br />Thank you for confirming that it is possible to run the application while keeping BOOT1 in DEV_BOOT mode by loading a RAM executable, performing a core reset, setting the SP and PC, and then running the core.</p><p>My target is: STM32N6570-DK</p><p>I need to achieve the following flow:</p><ol><li>\t<p>Flash and verify the complete HEX file (Example: <a href=\"https://github.com/STMicroelectronics/STM32N6-GettingStarted-ImageClassification/tree/main/Binary/STM32N6570-DK\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">STM32N6-GettingStarted-ImageClassification/Binary/STM32N6570-DK at main · STMicroelectronics/STM32N6-GettingStarted-ImageClassification</a>)</p>\t</li>\t<li>\t<p>Keep the STM32N6570-DK physically in DEV_BOOT mode.</p>\t</li>\t<li>\t<p>Start the flashed application automatically without manually changing the BOOT1 jumper.</p>\t</li>\t<li>\t<p>Perform the complete operation through command-line tools or a user script.</p>\t</li></ol><p>The following command successfully flashes and verifies the image:</p><pre><code>STM32_Programmer_CLI.exe `<br />-c port=SWD mode=UR reset=HWrst `<br />-el \"ExternalLoader\\MX66UW1G45G_STM32N6570-DK.stldr\" `<br />-w \"STM32N6570-DK_GettingStarted_ImageClassification.hex\" `<br />-v<br /></code></pre><p>However:</p><pre><code>-run<br /></code></pre><p>only reports:</p><pre><code>Core run<br /></code></pre><p>and the application does not start.</p><p>Using:</p><pre><code>-s<br /></code></pre><p>attempts to run from <code>0x08000000</code>, and the core later enters a locked-up state.</p><p>Could you please provide a complete working example or user script (as mentioned in the referred Ticket comment) showing:</p><ol><li>\t<p>Which FSBL/debug binary or ELF should be loaded into AXISRAM.</p>\t</li>\t<li>\t<p>How to determine the correct AXISRAM load address.</p>\t</li>\t<li>\t<p>The STM32CubeProgrammer CLI command to load the RAM executable.</p>\t</li>\t<li>\t<p>The command for performing a core reset without clearing AXISRAM.</p>\t</li>\t<li>\t<p>How to read or set the initial stack pointer (<code>SP/MSP</code>).</p>\t</li>\t<li>\t<p>How to set the program counter (<code>PC</code>) to the FSBL reset handler.</p>\t</li>\t<li>\t<p>How to start execution after setting <code>SP</code> and <code>PC</code>.</p>\t</li>\t<li>\t<p>Whether STM32CubeProgrammer CLI alone supports all these operations.</p>\t</li>\t<li>\t<p>Whether an STM32CubeProgrammer user script is available for this STM32N6570-DK use case.</p>\t</li>\t<li>\t<p>If STM32CubeProgrammer alone is insufficient, whether ST-LINK GDB Server and GDB are the recommended command-line solution.</p>\t</li></ol><p>I am using:</p><ul><li>\t<p>Board: STM32N6570-DK</p>\t</li>\t<li>\t<p>STM32CubeProgrammer: v2.23.0</p>\t</li>\t<li>\t<p>Probe: ST-LINK-V3</p>\t</li>\t<li>\t<p>External flash: MX66UW1G45G</p>\t</li>\t<li>\t<p>External loader: <code>MX66UW1G45G_STM32N6570-DK.stldr</code></p>\t</li>\t<li>\t<p>Application: STM32N6 Getting Started Image Classification example</p>\t</li>\t<li>\t<p>External flash base address: <code>0x70000000</code></p>\t</li></ul><p>My final goal is to automate the following flow in a service:</p><pre><code>Flash external HEX<br />→ Verify<br />→ Load RAM FSBL<br />→ Core reset<br />→ Set SP and PC<br />→ Run FSBL<br />→ Start external-flash application<br /></code></pre><p>A complete STM32CubeProgrammer user script, or GDB script example would be very helpful.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "30",
+  "categoryName": "STM32CubeProgrammer (MCUs)",
+  "tags": [
+    "Debug",
+    "STM32N6 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 1,
+  "votes": 0,
+  "views": 51,
+  "voteSet": [],
+  "likeSet": [
+    "2057"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108690",
+    "username": "viruthi",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "2057",
+    "username": "FBL",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-30T04:56:14+00:00",
+  "lastActivityAt": "2026-08-05T08:59:25+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744826,
+  "publishedAt": "2026-07-30T04:56:14+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubeprogrammer-mcus-30/request-for-steps-to-run-stm32n6-application-in-dev-boot-mode-167340",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108690\">@viruthi</user-mention> </p><p>I will check internally and get back to you.</p></div>"
+    }
+  ]
+}

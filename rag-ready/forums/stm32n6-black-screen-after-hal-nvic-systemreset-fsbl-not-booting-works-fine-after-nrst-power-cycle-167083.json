@@ -1,0 +1,22 @@
+{
+    "forum": [
+        {
+            "id": "167064",
+            "publicId": "167083",
+            "title": "STM32N6: Black screen after HAL_NVIC_SystemReset() — FSBL not booting, works fine after NRST/power cycle",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-black-screen-after-hal-nvic-systemreset-fsbl-not-booting-works-fine-after-nrst-power-cycle-167083",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-07-20T11:38:25+00:00",
+            "views": 245,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "",
+            "content_text": "STM32N6: Black screen after HAL\\_NVIC\\_SystemReset() — FSBL not booting, works fine after NRST/power cycle\n\n**Gövde:**\n\nHello,\n\nI have a bootloader (FSBL) and a separate application on anSTM32N645L0, running from external XSPI NOR flash MX25UM25645GXDI00 in memory-mapped XIP mode (Octal DTR).\n\n**Setup:**\n\n* FSBL configures the external flash into Octal DTR mode (volatile CR) at every boot and shows update/bootloader graphics on the display\n\n* The application runs its own graphics\n\n* To enter bootloader mode from the application, call `HAL_NVIC_SystemReset()`\n\n**Problem:**\n\nAfter `HAL_NVIC_SystemReset()`, the device stays on a black screen — the FSBL graphics never appear. However, if I reset via the NRST button or a full power cycle, everything boots normally.\n\n**What I suspect:**\n\nSince the N6 is flashless, BootROM must read the FSBL from external flash in standard SPI mode. My theory is that after a software reset the flash chip stays in Octal DTR mode (it doesn't lose power), so BootROM cannot read the FSBL at all.\n\n**Questions:**\n\n1. Is the correct fix to send the flash software reset sequence (0x66/0x99 in the current protocol) and de-init the XSPI before calling `HAL_NVIC_SystemReset()`? Can you share an example function?\n\n2. Does BootROM on the N6 perform any flash reset itself, or does it strictly assume the flash is in its power-on state?\n\nToolchain: [STM32CubeIDE 1.19  / CubeMX ], HAL version [x.y], board: [custom / STM32N6570-DK]\n\nThanks!",
+            "images": [],
+            "author": "makturan"
+        }
+    ]
+}

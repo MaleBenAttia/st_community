@@ -1,0 +1,62 @@
+{
+  "contentType": "question",
+  "id": "166851",
+  "publicId": "166868",
+  "title": "STM32H743 Bootloader Fallback Mechanism for Corrupted Bootloader",
+  "content": "<p>Hi everyone,</p><p>I'm working on an STM32H743-based product that already has a custom bootloader and I'm looking for the best industry practice for implementing a bootloader fallback mechanism.</p><h3>Current architecture</h3><pre><code>0x08000000  Primary Bootloader<br />0x08020000  Factory Application<br />0x08080000  Default Application</code></pre><p>The bootloader already performs:</p><ul><li>Application validity checks (MSP and Reset Handler)</li>\t<li>CRC verification of the Factory and Default applications</li>\t<li>UART firmware update</li>\t<li>Automatic fallback from Default Application to Factory Application</li></ul><p>The applications are working as expected.</p><h3>New requirement</h3><p>The new requirement is that if the <strong>primary bootloader becomes corrupted</strong>, the system should be able to boot from a backup bootloader stored elsewhere in flash, without requiring physical access (the device is remotely deployed).</p><p>I understand that after reset the Cortex-M7 hardware simply does:</p><pre><code>MSP = *(0x08000000)<br />PC  = *(0x08000004)</code></pre><p>and immediately jumps to the Reset_Handler.</p><p>My understanding is:</p><ul><li>If the vector table or Reset_Handler is corrupted, no software can execute.</li>\t<li>If the vector table is still valid but corruption occurs later in the bootloader, then a small first-stage loader could potentially verify the main bootloader (CRC/signature) and jump to a backup bootloader if necessary.</li></ul><h3>My questions</h3><ol start=\"1\"><li>Is a small immutable Stage-0 bootloader the standard industry solution for this problem?</li>\t<li>If the device has <strong>already been deployed</strong> with a monolithic bootloader at <code>0x08000000</code>, is there any safe way to retrofit a Stage-0 using a firmware update, or is that fundamentally impossible because Sector 0 itself must be erased and rewritten?</li>\t<li>Are there STM32H743-specific features (dual-bank flash, bank swap, option bytes, etc.) that can provide a true redundant bootloader solution?</li>\t<li>How do commercial embedded products (industrial, automotive, medical, etc.) typically implement recovery when the primary bootloader image is corrupted but the system must remain remotely recoverable?</li></ol><p>Thanks in advance for any insights.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "Bootloader",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 70,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "104550",
+    "username": "Ekeshwari",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "37189",
+    "username": "Pavel A.",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/848a253a-dfe0-ac3e-1818-32d276066844.png"
+  },
+  "createdAt": "2026-07-11T13:08:46+00:00",
+  "lastActivityAt": "2026-07-12T01:14:14+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 742788,
+  "publishedAt": "2026-07-11T13:08:46+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h743-bootloader-fallback-mechanism-for-corrupted-bootloader-166868",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>You can look at cyclone boot. I supports stage 0 and 1. It can be implemented as self IAP, Hybrid IAP or standalone BL.</p><p>The documentation is not the best, but surely I believe myself and others in this community can help.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>IMHO your understanding is correct, except of few details. The boot address is not fixed to 0x08000000 (sector 0).</p><p>It is defined by the “option bytes”, separately for BOOT0=1 and BOOT0=1.</p><p>So you can select a different bootloader by toggling BOOT0, but the STM32 won't do this without external logic.</p><p>As for adding a “small Stage-0 bootloader”: what if that will be corrupted? Who will check it? If you decide to have a backup bootloader, the main bootloader can check itself first and jump to the backup if needed.</p><p>But this does not solve the problem with corruption of the vector table. If you could add external logic to drive BOOT0 pin, you could start the backup bootloader first (as it has its own vectors), and let it jump to the primary if needed. Erasing and rewriting the corrupted bootloader can be delayed for later.</p><p>Understanding the failure modes is important. Should the backup bootloader sit in a separate sector or bank? it depends.</p><p>Adding logic to drive the BOOT0 pin likely is too late, but you can consider this for another project.</p><p>“Serious” applications can have redundant controllers with failover, including the whole MCU and its clock circuit, memories etc.</p><p>As for remote recovery - again, it depends on what you can drive or access remotely.</p></div>"
+    }
+  ]
+}

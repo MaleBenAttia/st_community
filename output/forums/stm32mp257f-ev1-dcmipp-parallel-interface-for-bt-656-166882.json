@@ -1,0 +1,52 @@
+{
+  "contentType": "question",
+  "id": "166865",
+  "publicId": "166882",
+  "title": "STM32MP257F-EV1 DCMIPP Parallel interface for BT.656",
+  "content": "<p>Hi:</p><p>Does </p><p>I have STM32MP257F-EV1 board and another board can generate BT.656 video source without I2c setting.</p><p>I want to use DCMIPP parallel interface to get the image.</p><p> </p><p>I modify the device tree in stm32mp257f-ev1.dts</p><pre><code class=\"language-c\">/ {<br /><br />...<br /><br />\tclocks {<br />\t\tcec_clock: cec-clock {<br />\t\t\tcompatible = \"fixed-clock\";<br />\t\t\t#clock-cells = &lt;0&gt;;<br />\t\t\tclock-frequency = &lt;12000000&gt;;<br />\t\t};<br /><br />\t\tdummy_cam_clk: dummy-cam-clk {<br />\t\t\tcompatible = \"fixed-clock\";<br />\t\t\t#clock-cells = &lt;0&gt;;<br />\t\t\tclock-frequency = &lt;54000000&gt;;<br />\t\t};<br /><br />\t\tpad_clk: pad-clk {<br />\t\t\t#clock-cells = &lt;0&gt;;<br />\t\t\tcompatible = \"fixed-clock\";<br />\t\t\tclock-frequency = &lt;100000000&gt;;<br />\t\t};<br />\t};<br /><br />...<br /><br />};<br /><br />&amp;dcmipp {<br />\tstatus = \"okay\";<br />    pinctrl-names = \"default\";<br />    pinctrl-0 = &lt;&amp;dcmipp_parallel_pins_a&gt;;<br /><br />\tports {<br />\t\t#address-cells = &lt;1&gt;;<br />\t\t#size-cells = &lt;0&gt;;<br /><br />\t\tport@0 {<br />\t\t\treg = &lt;0&gt;;<br />\t\t\tdcmipp_parallel_in: endpoint {<br />\t\t\t\tremote-endpoint = &lt;&amp;dummy_camera_out&gt;;<br /><br />\t\t\t\tbus-type = &lt;6&gt;;<br />\t\t\t\tbus-width = &lt;8&gt;;<br /><br />\t\t\t\tpclk-sample = &lt;0&gt;;<br />\t\t\t};<br />\t\t};<br />\t};<br />};<br /><br /><br />&amp;i2c2 {<br />\tpinctrl-names = \"default\", \"sleep\";<br />\tpinctrl-0 = &lt;&amp;i2c2_pins_a&gt;;<br />\tpinctrl-1 = &lt;&amp;i2c2_sleep_pins_a&gt;;<br />\ti2c-scl-rising-time-ns = &lt;100&gt;;<br />\ti2c-scl-falling-time-ns = &lt;13&gt;;<br />\tclock-frequency = &lt;400000&gt;;<br />\tstatus = \"okay\";<br />\t/* spare dmas for other usage */<br />\t/delete-property/dmas;<br />\t/delete-property/dma-names;<br /><br />    dummy_camera: camera@3c {<br />        compatible = \"linux,dummy-sensor\";<br />        reg = &lt;0x3c&gt;;<br />        clocks = &lt;&amp;dummy_cam_clk&gt;;<br />        clock-names = \"xclk\";<br />        status = \"okay\";<br /><br />        port {<br />            dummy_camera_out: endpoint {<br />                remote-endpoint = &lt;&amp;dcmipp_parallel_in&gt;;<br />\t\t\t\tbus-type = &lt;6&gt;;<br />                bus-width = &lt;8&gt;;<br />            };<br />        };<br />    };<br /><br />...<br /><br />};<br /></code></pre><p> </p><p>I use the eth1 and eth2  pin for DCMIPP parallel in stm32mp25-pinctrl.dtsi</p><pre><code class=\"language-c\">&amp;pinctrl {<br />\tdcmipp_parallel_pins_a: dmicpp_parallel-0 {<br />        pins {<br />            pinmux = &lt;STM32_PINMUX('C', 0,  AF9)&gt;,   /* DCMI_D0 */<br />                     &lt;STM32_PINMUX('C', 7,  AF14)&gt;,  /* DCMI_D1 */<br />                     &lt;STM32_PINMUX('C', 8,  AF14)&gt;,  /* DCMI_D2 */<br />                     &lt;STM32_PINMUX('C', 3,  AF14)&gt;,  /* DCMI_D3 */<br />                     &lt;STM32_PINMUX('G', 0,  AF14)&gt;,  /* DCMI_D4 */<br />                     &lt;STM32_PINMUX('C', 12, AF14)&gt;,  /* DCMI_D5 */<br />                     &lt;STM32_PINMUX('C', 10, AF14)&gt;,  /* DCMI_D6 */<br />                     &lt;STM32_PINMUX('C', 9,  AF14)&gt;,  /* DCMI_D7 */<br />                     &lt;STM32_PINMUX('J', 9,  AF14)&gt;;  /* DCMI_PIXCLK */<br />            bias-disable;<br />            slew-rate = &lt;3&gt;;<br />        };<br />\t};<br /><br />    ....<br />}</code></pre><p> </p><p>and create a dummy V4l2 driver in v4l2-dummy-cam.c</p><pre><code class=\"language-c\">#include &lt;linux/init.h&gt;<br />#include &lt;linux/module.h&gt;<br />#include &lt;linux/i2c.h&gt;<br />#include &lt;media/v4l2-subdev.h&gt;<br />#include &lt;media/v4l2-async.h&gt;<br />#include &lt;media/v4l2-mediabus.h&gt;<br /><br />struct dummy_cam_dev {<br />\tstruct v4l2_subdev sd;<br />\tstruct media_pad pad;<br />};<br /><br />#define to_dummy_cam(sd) container_of(sd, struct dummy_cam_dev, sd)<br /><br />static int dummy_cam_enum_mbus_code(struct v4l2_subdev *sd,<br />\t\t\t\t    struct v4l2_subdev_state *state,<br />\t\t\t\t    struct v4l2_subdev_mbus_code_enum *code)<br />{<br />\tif (code-&gt;index &gt; 0)<br />\t\treturn -EINVAL;<br /><br />\tcode-&gt;code = MEDIA_BUS_FMT_YUYV8_2X8; <br />\treturn 0;<br />}<br /><br />static int dummy_cam_enum_frame_size(struct v4l2_subdev *sd,<br />\t\t\t\t     struct v4l2_subdev_state *state,<br />\t\t\t\t     struct v4l2_subdev_frame_size_enum *fse)<br />{<br />\tif (fse-&gt;index &gt; 0)<br />\t\treturn -EINVAL;<br /><br />\tfse-&gt;code = fse-&gt;code ? fse-&gt;code : MEDIA_BUS_FMT_YUYV8_2X8;<br /><br />\tfse-&gt;min_width = 720;<br />\tfse-&gt;max_width = 720;<br />\tfse-&gt;min_height = 480; <br />\tfse-&gt;max_height = 480;<br /><br />\treturn 0;<br />}<br /><br />static int dummy_cam_get_fmt(struct v4l2_subdev *sd,<br />\t\t\t     struct v4l2_subdev_state *state,<br />\t\t\t     struct v4l2_subdev_format *format)<br />{<br />\tformat-&gt;format.width = 720;<br />\tformat-&gt;format.height = 480;<br />\tformat-&gt;format.code = MEDIA_BUS_FMT_YUYV8_2X8;<br />\tformat-&gt;format.field = V4L2_FIELD_NONE;<br />\tformat-&gt;format.colorspace = V4L2_COLORSPACE_SMPTE170M;<br />\treturn 0;<br />}<br /><br />static int dummy_cam_init_cfg(struct v4l2_subdev *sd,<br />\t\t\t      struct v4l2_subdev_state *state)<br />{<br />\treturn 0;<br />}<br /><br />static const struct v4l2_subdev_pad_ops dummy_cam_pad_ops = {<br />\t.init_cfg = dummy_cam_init_cfg,<br />\t.enum_mbus_code = dummy_cam_enum_mbus_code,<br />\t.enum_frame_size = dummy_cam_enum_frame_size,<br />\t.get_fmt = dummy_cam_get_fmt,<br />\t.set_fmt = dummy_cam_get_fmt,<br />};<br /><br />static int dummy_cam_s_stream(struct v4l2_subdev *sd, int enable)<br />{<br />\tstruct i2c_client *client = v4l2_get_subdevdata(sd);<br />\tdev_info(&amp;client-&gt;dev, \"Virtual stream %s\\n\", enable ? \"ON\" : \"OFF\");<br />\treturn 0;<br />}<br /><br />static const struct v4l2_subdev_video_ops dummy_cam_video_ops = {<br />\t.s_stream = dummy_cam_s_stream,<br />};<br /><br />static const struct v4l2_subdev_ops dummy_cam_ops = {<br />\t.pad = &amp;dummy_cam_pad_ops,<br />\t.video = &amp;dummy_cam_video_ops,<br />};<br /><br />static int dummy_cam_probe(struct i2c_client *client)<br />{<br />\tstruct dummy_cam_dev *vdev;<br />\tint ret;<br /><br />\tvdev = devm_kzalloc(&amp;client-&gt;dev, sizeof(*vdev), GFP_KERNEL);<br />\tif (!vdev)<br />\t\treturn -ENOMEM;<br /><br />\tv4l2_i2c_subdev_init(&amp;vdev-&gt;sd, client, &amp;dummy_cam_ops);<br /><br />\tvdev-&gt;sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;<br /><br />\tvdev-&gt;sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;<br />\tvdev-&gt;pad.flags = MEDIA_PAD_FL_SOURCE;<br /><br />\tret = media_entity_pads_init(&amp;vdev-&gt;sd.entity, 1, &amp;vdev-&gt;pad);<br />\tif (ret)<br />\t\treturn ret;<br /><br />\tdev_info(&amp;client-&gt;dev, \"STM32MP25 Dummy Sensor Probed Successfully!\\n\");<br /><br />\treturn v4l2_async_register_subdev(&amp;vdev-&gt;sd);<br />}<br /><br />static void dummy_cam_remove(struct i2c_client *client)<br />{<br />\tstruct v4l2_subdev *sd = i2c_get_clientdata(client);<br />\tv4l2_async_unregister_subdev(sd);<br />\tmedia_entity_cleanup(&amp;sd-&gt;entity);<br />}<br /><br />static const struct of_device_id dummy_cam_of_match[] = {<br />\t{ .compatible = \"linux,dummy-sensor\" },<br />\t{ /* sentinel */ }<br />};<br />MODULE_DEVICE_TABLE(of, dummy_cam_of_match);<br /><br />static struct i2c_driver dummy_cam_driver = {<br />\t.driver = {<br />\t\t.name = \"stm32-dummy-sensor\",<br />\t\t.of_match_table = dummy_cam_of_match,<br />\t},<br />\t.probe = dummy_cam_probe,<br />\t.remove = dummy_cam_remove,<br />};<br /><br />module_i2c_driver(dummy_cam_driver);<br /><br />MODULE_VERSION(\"0.0.1\");<br />MODULE_LICENSE(\"GPL\");<br />MODULE_AUTHOR(\"AI Collaborator\");<br /></code></pre><p> </p><p>do the following configuration in device bash shell</p><pre><code class=\"language-c\">v4l2-ctl --list-devices<br />media-ctl -d /dev/media2 -r<br /><br />media-ctl -d /dev/media2 -l \"'stm32-dummy-sensor 0-003c':0 -&gt; 'dcmipp_input':0[1]\"<br />media-ctl -d /dev/media2 -l \"'dcmipp_input':1 -&gt; 'dcmipp_dump_postproc':0[1]\"<br /><br />media-ctl -d /dev/media2 -V \"'stm32-dummy-sensor 0-003c':0[fmt:YUYV8_2X8/720x480 field:none]\"<br />media-ctl -d /dev/media2 -V \"'dcmipp_input':1[fmt:YUYV8_2X8/720x480 field:none]\"<br /><br />#check dcmipp_dump_capture dev name<br />media-ctl -d /dev/media2 -e \"dcmipp_dump_capture\"<br /><br />v4l2-ctl -d /dev/video0 --set-fmt-video=width=720,height=480,pixelformat=YUYV<br /><br />#check the frame capture<br />v4l2-ctl -d /dev/video0 --stream-mmap --stream-count=30</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "39",
+  "categoryName": "STM32 MPUs Products and hardware related",
+  "tags": [
+    "STM32MP25 lines"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 92,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108177",
+    "username": "charlie388",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "108177",
+    "username": "charlie388",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-13T02:07:45+00:00",
+  "lastActivityAt": "2026-07-16T06:22:54+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743179,
+  "publishedAt": "2026-07-13T02:07:45+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257f-ev1-dcmipp-parallel-interface-for-bt-656-166882",
+  "scraped_replies": []
+}

@@ -1,0 +1,63 @@
+{
+  "contentType": "question",
+  "id": "166626",
+  "publicId": "166651",
+  "title": "Feature request: adjustable size and placeholder image for custom containers",
+  "content": "<p>Creating your own custom reusable containers has its limitations. One of the, in my opionion, largest drawbacks is that you are not able to set multiple sizes in Designer for the same container (e.g. in the same screen add a <code>MyCustomContainer</code> with size 31x731 and a <code>MyCustomContainer</code> with size 61x13). Currently there are three options:</p><h3>(1) new container for every new size</h3><p>Create a new custom container for every size variation you have. Add an abstract base class that implements some of the common code and let every container extend that base class. <strong>Pro</strong>: in Designer you can see roughly how your component will look like for all of the sizes. <strong>Con</strong>: you still have to copy paste code between the different containers that are actually all identical except for their size. If you have a lot of different sizes, this option is not viable.</p><h3>(2) single container but all components are invisible</h3><p>Create a custom container with all of its child components hidden and “override” <code>Drawable::setWidthHeight(int16_t width, int16_t height)</code>:</p><pre><code class=\"language-c\">class CustomContainer1 : public CustomContainer1Base<br />{<br />public:<br />    CustomContainer1();<br />    virtual ~CustomContainer1() {}<br /><br />    virtual void initialize();<br /><br />    using Drawable::setWidthHeight;<br />    void setWidthHeight(int16_t width, int16_t height)<br />    {<br />        Drawable::setWidthHeight(width, height);<br />        executeSizeLogic();<br />        invalidate();<br />    }<br />protected:<br />    void executeSizeLogic();<br />};</code></pre><p>and then set the widget sizes inside the view’s <code>setupScreen()</code> using</p><pre><code class=\"language-c\">void Screen3View::setupScreen()<br />{<br />    Screen3ViewBase::setupScreen();<br />    myContainer1.setWidthHeight(100, 100);<br />    myContainer2.setWidthHeight(420, 420);<br />}</code></pre><p><strong>Pro</strong>: you have eliminated duplicate code and have a dynamic sizable container. <strong>Con</strong>: you cannot see the container in Designer because all child components have been hidden.</p><h3>(3) Another option</h3><p>some other design option that I have not thought of, but that I leave as an exercise to the reader? Post your answers below</p><h3>The Feature Request</h3><p>Ideally users would be able to utilise the Properties sidepane for their own custom containers as well (SVG, text element, etc.). If that would be possible, the sky’s the limit. I can however imagine that supporting this is a lot of work and may take a long time before it is implemented.</p><p>What I am suggesting is a middleground: support changing the width and height of custom containers such that it is possible to have multiple instances of the same custom containers but with different sizes on the same screen in Designer. While designing a custom component programmatically, you only really need to know the dimensions of the encapsulating container. Based on that you could calculate the correct locations and sizes for all child components. The only thing the user then needs to add is</p><pre><code class=\"language-c\">class CustomContainer1 : public CustomContainerBase<br />{<br />public:<br />    // ...<br /><br />    void initialize() override { executeSizeLogic(); }<br /><br />    // ...<br />};</code></pre><p>This still leaves the “oh no there are no child components so the Designer shows an empty custom container”. I suggest adding a “placeholderImage” that does not get compiled into the code, but only shows up in the Designer using the full width/height of the custom container. That way you can still design your UI with a feel for how it is going to look like, with the addition of dynamic-size custom containers.</p><p> </p><p>I hope I have conveyed my idea. If not, I’ll gladly answer questions.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "33",
+  "categoryName": "STM32 MCUs TouchGFX and GUI",
+  "tags": [
+    "TouchGFX",
+    "Feature request",
+    "TouchGFX Designer"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 3,
+  "votes": 0,
+  "views": 35,
+  "voteSet": [],
+  "likeSet": [
+    "27597",
+    "106850",
+    "198"
+  ],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "107645",
+    "username": "Aron Hoogeveen",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "67402",
+    "username": "mathiasmarkussen",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-03T09:55:21+00:00",
+  "lastActivityAt": "2026-08-12T08:20:07+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745461,
+  "publishedAt": "2026-07-03T09:55:21+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/feature-request-adjustable-size-and-placeholder-image-for-custom-containers-166651",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Very good input, we will take this into consideration for future releases.</p></div>"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "contentType": "question",
+  "id": "167314",
+  "publicId": "167341",
+  "title": "STM32H563–ADIN1200 RMII timing margin",
+  "content": "<p>Hello,</p><p>We are currently designing a board using an STM32H563VI and an ADIN1200 Ethernet PHY. The design is still at an early stage, and no prototype hardware has been built yet, so we can still change the interface from RMII to MII if necessary.</p><p>The planned RMII conditions are as follows:</p><p>* RMII reference clock: 50 MHz<br />* I/O voltage: 3.3 V<br />* STM32 GPIO speed: OSPEEDR = 10 (High speed)<br />* I/O compensation cell: Enabled<br />* ADIN1200 minimum setup time: 4 ns<br />* ADIN1200 minimum hold time: 2 ns<br />* Application ambient temperature range: −20°C to +50°C</p><p>According to the STM32H563 datasheet, the maximum delay from the RMII_REF_CLK rising edge to TXD[1:0]/TX_EN valid is 15.5 ns. Therefore, the worst-case setup margin appears to be:</p><p>20 ns − 15.5 ns − 4 ns = 0.5 ns</p><p>This calculation leaves only 0.5 ns of margin before considering PCB trace skew, capacitive loading, and the difference between the STM32 timing measurement threshold of 0.5 × VDD and the RMII/ADIN1200 timing thresholds.</p><p>This is my first time designing an RMII interface, so I am not sure whether a calculated worst-case setup margin of only 0.5 ns is acceptable in a practical PCB design.</p><p>Can ST confirm whether the RMII timing between the STM32H563 and ADIN1200 can be guaranteed over the operating voltage and temperature range under these conditions? If sufficient timing margin cannot be guaranteed, would ST recommend changing the design to MII?</p><p>Thank you for your support.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8c513f80-ce47-472f-8949-215d467432be.png\" /></figure><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "STM32H5 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
+  "likes": 0,
+  "votes": 0,
+  "views": 64,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "71947",
+    "username": "Takahide_Kikuchi",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "442",
+    "username": "STOne-32",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/9d54cf25-54b4-6cda-ac75-9e2e51354fee.png"
+  },
+  "createdAt": "2026-07-30T05:26:39+00:00",
+  "lastActivityAt": "2026-08-01T11:15:46+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744563,
+  "publishedAt": "2026-07-30T05:26:39+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32h563-adin1200-rmii-timing-margin-167341",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>RMII is standard ethernet bus and may not be working if not well design. Just publish some hardware design guide for reference. It seems not enough resource on ST official website so third party link as below:</p><p><a href=\"https://www.nxp.com.cn/docs/en/application-note/AN13335.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">PCB design guidelines for automotive Ethernet</a></p><p><a href=\"https://www.analog.com/en/resources/app-notes/an-2626.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">AN-2626: ADIN3310/ADIN6310 Schematic and System Level Design Considerations | Analog Devices</a></p><p>If you want to learn more about RMII, you can search more standard file from website, good luck!</p><p><a href=\"https://community.st.com/stm32-mcus-60/differences-between-mii-and-rmii-interfaces-152678\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">Differences between MII and RMII interfaces | Community</a></p><p><a href=\"https://embeddedhardwaredesign.com/media-independent-interface-mii-and-rmi-in-ethernet/\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">Media-Independent Interface (MII &amp; RMII) in Ethernet - Embedded Hardware Design</a></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Dear ​<user-mention data-id=\"71947\">@Takahide_Kikuchi</user-mention> ,</p><p>RMII is a standard and based on your calculation which is correct, I do not see an issue of margin the Maximum value we provide in our datasheet is the worst case condition with all process, temperature and voltage variations. Your conditions above are really in relaxed one and we should be close to the typical value instead of 10ns .</p><p>in general that parameter worst condition is at low voltage and very high temperature close to TJmax .</p><p>Let us know one you compete your design and have final PCB . </p><p> </p><p>Regards,</p><p>STOne-32</p></div>"
+    }
+  ]
+}

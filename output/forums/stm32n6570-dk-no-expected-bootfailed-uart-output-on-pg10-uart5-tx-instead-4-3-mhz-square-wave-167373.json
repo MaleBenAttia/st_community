@@ -1,0 +1,72 @@
+{
+  "contentType": "question",
+  "id": "167346",
+  "publicId": "167373",
+  "title": "STM32N6570-DK: No expected BootFailed UART output on PG10 / UART5_TX, instead ~4.3 MHz square wave",
+  "content": "<p>Title:<br /> </p><p>Hello,</p><p>I am investigating BootROM behavior on an STM32N6570-DK.</p><p>My expectation is based on the STM32N6 BootROM documentation and errata:<br />- PG10 is used as BootFailedn in blocking failure conditions.&lt;sup class=\"chatgpt-doc-sup\"&gt;&lt;span title=\"ES0620-STM32N6_Rev4.pdf, page 7\" /&gt;&lt;/sup&gt;<br />- There is a known erratum: “PG10 (BootFailedn) signal not maintained at 1 during blocking failure”, with no workaround listed.&lt;sup class=\"chatgpt-doc-sup\"&gt;&lt;span title=\"ES0620-STM32N6_Rev4.pdf, page 7\" /&gt;&lt;/sup&gt;</p><p>Observed behavior on my board:<br />- If the content of the OctaFlash is erased, I do not receive the expected serial BootFail-related output on PG10 / USART5_TX.<br />- Measuring PG10 with an oscilloscope, I see a ~4.3 MHz square wave instead.<br />- I observe the same square wave again after setting BOOT1=1 and BOOT0=0 and then resetting the board.</p><p>Additional context:<br />- I found guidance that Development Boot mode can be relevant for programming/erasing external flash on STM32N6570-DK.&lt;sup class=\"chatgpt-doc-sup\"&gt;&lt;span title=\"STCommunityTopic#stm32n6570-dk-unable-to-erase-external-flash\" /&gt;&lt;/sup&gt;<br />- I also found discussion that for STM32N6 boot/debug connection issues, boot-pin configuration matters and dev-boot mode may help during investigation.&lt;sup class=\"chatgpt-doc-sup\"&gt;&lt;span title=\"STCommunityTopic#unable-to-connect-stm32n657z0h3q\" /&gt;&lt;/sup&gt;</p><p>My questions:<br />1. Is the ~4.3 MHz square wave on PG10 a known BootROM behavior during blocking failure?<br />2. Can the PG10 erratum explain that no valid UART output is observable on this pin?<br />3. Has anyone from ST seen this exact behavior on STM32N6570-DK?</p><p>Any confirmation from ST or from users who measured PG10 directly with an oscilloscope would be very helpful.</p><p>Best regards</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "UART-USART",
+    "Hardware configuration",
+    "Boards and HW tools",
+    "STM32N6 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 4,
+  "inclusiveVisibleReplyCount": 4,
+  "likes": 0,
+  "votes": 0,
+  "views": 74,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108739",
+    "username": "Eugen",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "592",
+    "username": "RomainR.",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/f6a4b64a-a87b-dfce-d8e3-231c4138f3bf.png"
+  },
+  "createdAt": "2026-07-31T09:04:02+00:00",
+  "lastActivityAt": "2026-08-12T09:22:59+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745478,
+  "publishedAt": "2026-07-31T09:04:02+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32n6570-dk-no-expected-bootfailed-uart-output-on-pg10-uart5-tx-instead-4-3-mhz-square-wave-167373",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>A 4.3 MHz square wave on the UART TX pin instead of the expected boot message suggests the MCU may not be reaching the boot code at all, or that the UART pin is being driven by another peripheral or incorrect clock configuration. I'd verify the BOOT switch settings, confirm the UART5 pin multiplexing matches the board schematic, and test with a known ST example that outputs over UART. It would also help to know whether you're using the factory firmware or a custom build, and whether the ST-LINK debugger can halt the CPU after reset.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>I erased the OctaFlash of the DK using BOOT1=1, then switched to BOOT0=0 and BOOT1=0, and then pressed the reset button.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>The problem still exists</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108739\">@Eugen</user-mention> </p><p>This is the Dev_Boot mode of the STM32N6, which allows the programming and erasing of the Serial Flash (BOOT1/PA6 = 1 and BOOT0 = X).</p><p>This mode primarily allows the user to load and debug code from internal SRAM using an IDE, since the JTAG/SWD debug port remains open.</p><p>The 4.3 MHz square wave signal you observe on PG10 is generated by the BootROM when the N6 is in Dev_Boot mode. It has nothing to do with a boot failure in the BootROM. It is not generated in Flash or Serial Boot modes.</p><p>The boot failure and the appearance of the UART5_TX trace on PG10 should occur in the boot use cases described in Figure 2, “Boot ROM code flow diagram,” and in Section 3.10, “Error and trace logging,” of UM3234.</p><p>Please note that in the event of a boot failure, the traces are written by the BootROM into AXI-SRAM2 memory at the address TRACE_BUFFER_SEC_BASE_ADDR (0x341037F0).<br/> </p><p>Best regards,<br/>Romain</p></div>"
+    }
+  ]
+}

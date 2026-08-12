@@ -1,0 +1,25 @@
+{
+    "forum": [
+        {
+            "id": "166669",
+            "publicId": "166694",
+            "title": "USBX HS Not Working on stm32u595RJT6Q",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usbx-hs-not-working-on-stm32u595rjt6q-166694",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32U5 series",
+                "USBX"
+            ],
+            "published_at": "2026-07-06T08:13:16+00:00",
+            "views": 54,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34f28e47-42c4-42dc-a54b-016fc7b2aedf.png)\n\nWhile preparing the schematic to attach, I noticed an issue with the circuit. The USB signals were connected to pins 2 and 3 of connector P2, but the connected diode had not been removed.\n\nOnce I removed the diode, the PC recognized the USB properly, and the communication was carried out smoothly. It was my mistake, and I truly appreciate your support and attention to this matter",
+            "content_text": "* custom board, The USB D+ and D− lines are connected directly from the MCU to the USB Type-B connector, with no intermediate components.\n\n* There is no pull-up resistor on the D+ line, as I understand that the MCU provides the pull-up internally\n\n* As far as I know, the stm32u595 supports USB High-Speed using its internal PHY.\n\n**CubeMX Version:** 6.18.0\n\n**Reference project:**\n\n<https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/STM32U5G9J-DK2/Applications/USBX/Ux_Device_CDC_ACM>\n\nI configured my `.ioc` file to match the reference project as closely as possible. UART is not used.\n\n**Issue:**\n\nI implemented a simple CDC ACM echo function to verify USB communication.\n\n* In **Full-Speed (FS)** mode, the echo function works correctly. The PC recognizes the device, and both transmit and receive operate normally.\n\n* In **High-Speed (HS)** mode, however, the PC does not recognize the USB device at all (it reports an unknown or unrecognized USB device), so communication cannot be established.\n\nWhat could I be missing, or what configuration should I check?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34f28e47-42c4-42dc-a54b-016fc7b2aedf.png"
+            ],
+            "author": "EdwardSon"
+        }
+    ]
+}

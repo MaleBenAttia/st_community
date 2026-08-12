@@ -1,0 +1,25 @@
+{
+    "forum": [
+        {
+            "id": "166861",
+            "publicId": "166878",
+            "title": "SRAM3 clock not enabled on power up",
+            "url": "https://community.st.com/stm32-mcus-products-25/sram3-clock-not-enabled-on-power-up-166878",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "RAM",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-07-12T23:36:10+00:00",
+            "views": 220,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "```\n\n\"deviceId\" : 1109,\n\n```\n\nthats 0x455\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/27ca7b1f-db8e-442c-8e3b-467215c3bda0.png)\n\nand the “little” ‘U535/545 does not have SRAM3 at all.\\\n\nJW",
+            "content_text": "An issue has suddenly popped up on my custom boards using a STM32U575CIT6. It manifests as the MCU appearing to not run code that was successfully flashed. Viewing the registers with CubeProgrammer seems to show it repeatedly running the reset handler. Attaching to the running process with CubeIDE shows hard faults occurring in the first instruction of `\\_\\_libc\\_init\\_array` which is `push    {r4, r5, r6, lr}`. The hard faults are a precise data access violation and a stacking error. That instruction is the first instruction that utilizes the stack. When attached, CubeIDE cannot read any data from SRAM3. It appears as all ?’s. I found that the RCC\\_AHB2ENR1->SRAM3EN bit is 0, which is the clock enable bit for SRAM3. This would explain why SRAM3 appears inaccessible. Putting a breakpoint on the first instruction of the `Reset\\_Handler()` shows that this bit is unset even then. All other SRAM clock enable bits are set. According to the Reference Manual, that bit’s reset value is 1.\n\nAll that is to say, how is it possible that that bit is unset seemingly upon power up when it’s reset value is 1?\n\nSome further context: This is not solved by a reset or power cycle. It does not matter what code is put on the board. Even old, definitively working, code does this. It does not matter how it is flashed, CubeProgrammer or IDE. Strangest of all, this issue seems to just “happen” to our boards and once it does we cannot fix it. It has not happened to all of our boards and we have not nailed down exactly what seems to start this issue on our boards.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/27ca7b1f-db8e-442c-8e3b-467215c3bda0.png"
+            ],
+            "author": "Dylan_P"
+        }
+    ]
+}

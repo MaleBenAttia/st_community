@@ -1,0 +1,66 @@
+{
+  "contentType": "question",
+  "id": "167298",
+  "publicId": "167324",
+  "title": "Bare-metal I2C1 on STM32F411 — WHO_AM_I returns 0x98, not 0x68 (GY-521/MPU6050)",
+  "content": "<p>Hi all,</p><p>I'm working through a self-directed embedded systems curriculum, writing everything at the register level (no HAL, no CubeMX-generated I2C code) to actually understand what's happening under the hood. Posting this in case it saves someone else the same debugging loop, and to sanity-check my conclusion.</p><p><strong>Setup:</strong></p><ul><li>Board: Nucleo-F411RE</li>\t<li>Sensor: GY-521 breakout, sold as \"MPU6050\"</li>\t<li>I2C1 on PB8 (SCL) / PB9 (SDA), AF4, open-drain, onboard 4.7k pull-ups</li>\t<li>Standard mode, 100 kHz (CCR = 80, TRISE = 17, APB1 = 16 MHz)</li>\t<li>Pure register access via a self-built <code>I2C_TypeDef</code>-style struct — no ST HAL calls anywhere</li></ul><p><strong>Transaction sequence</strong> (reading WHO_AM_I, register 0x75):</p><ol><li>START, wait SB</li>\t<li>Send <code>(0x68&lt;&lt;1)|0</code>, wait ADDR (confirmed ACK)</li>\t<li>Clear ADDR (SR1 then SR2 read)</li>\t<li>Send <code>0x75</code>, wait TXE <strong>and</strong> BTF (important — TXE alone isn't enough before issuing a repeated START; BTF confirms the byte and its ACK are fully clocked out)</li>\t<li>Repeated START, wait SB</li>\t<li>Send <code>(0x68&lt;&lt;1)|1</code>, wait ADDR (confirmed ACK again)</li>\t<li>Clear ACK bit (CR1 bit 10) <strong>before</strong> clearing ADDR — required ordering for a single-byte read</li>\t<li>Clear ADDR, set STOP</li>\t<li>Wait RXNE, read DR</li></ol><p><strong>What I've verified with the debugger:</strong></p><ul><li>Both address phases (write and read) get ACKed — no NACK, no bus hang, ever.</li>\t<li>Breakpointing right before the register-select write confirms the CPU register holding the value is exactly <code>0x75</code> — the correct byte is being placed in DR.</li>\t<li>The transaction completes cleanly every single run.</li></ul><p><strong>The result:</strong> DR consistently returns <code>0x98</code>, not <code>0x68</code>. Every run, same value — not noise, not an intermittent timing artifact.</p><p><strong>What I've found so far:</strong> it looks like this specific GY-521 board carries a die that isn't the original InvenSense MPU-6050 — likely an ICM-20689 (or a clone claiming to be one), which is pin- and largely protocol-compatible but reports a different WHO_AM_I value at the same 0x75 offset. Several other people report the exact same <code>0x98</code> value on GY-521 boards bought recently, which lines up.</p><p><strong>My question for the group:</strong> for anyone who's hit this — does the rest of the standard MPU6050 register map (PWR_MGMT_1 default 0x40, ACCEL_CONFIG/GYRO_CONFIG, and the ACCEL/GYRO output registers starting at 0x3B) behave identically on these ICM-20689-based clones, or are there other offsets I should watch for before I build the rest of my accel/gyro read pipeline on top of this? Trying to figure out if it's safe to treat this as a drop-in MPU6050 for everything except the WHO_AM_I check, or if there are other landmines waiting.</p><p>Thanks in advance — happy to share the full register-level driver if useful to anyone else doing this without HAL.</p><pre><code class=\"language-c\">#include &lt;stdint.h&gt;<br /><br />typedef struct {<br />    volatile uint32_t CR1;   // (Control Register 1 - on/off, start, stop)<br />    volatile uint32_t CR2;   // Tells the peripheral what frequency its input clock is running at (in MHz)<br />    volatile uint32_t OAR1;  // (Own Address Register 1 - slave address)<br />    volatile uint32_t OAR2;  // (Own Address Register 2 - general call address)<br />    volatile uint32_t DR;    // The mailbox. Write a byte here → it gets sent on the bus. Read from it → you get the byte the sensor sent back.<br />    volatile uint32_t SR1;   // The flags register — your window into what's happening. You poll bits here to know when each step of the conversation is done<br />    volatile uint32_t SR2;   // (Status Register 2)<br />    volatile uint32_t CCR;   // Sets the bus speed — how fast SCL ticks. You put a divisor here that determines whether you run at 100 kHz (standard) or 400 kHz (fast). Similar idea to UART's BRR.<br />    volatile uint32_t TRISE; // A fine-tuning register for signal timing (the maximum \"rise time\" of the bus signals).<br />} I2C_Msg;<br /><br />typedef struct {<br />    volatile uint32_t MODER;   // (GPIO port mode register)<br />    volatile uint32_t OTYPER;  // (GPIO port output type register)<br />    volatile uint32_t OSPEEDR; // (GPIO port output speed register)<br />    volatile uint32_t PUPDR;   // (GPIO port pull-up/pull-down register)<br />    volatile uint32_t IDR;     // (GPIO port input data register)<br />    volatile uint32_t ODR;     // (GPIO port output data register)<br />    volatile uint32_t BSRR;    // (GPIO port bit set/reset register)<br />    volatile uint32_t LCKR;    // (GPIO port configuration lock register)<br />    volatile uint32_t AFRL;    // (GPIO alternate function low register)<br />    volatile uint32_t AFRH;    // (GPIO alternate function high register)<br /><br />} GPIO_Msg;<br />typedef struct {<br />    volatile uint32_t CR;           // (Clock control register)<br />    volatile uint32_t PLLCFGR;      // (PLL configuration register)<br />    volatile uint32_t CFGR;         // (Clock configuration register)<br />    volatile uint32_t CIR;          // (Clock interrupt register)<br />    volatile uint32_t AHB1RSTR;     // (AHB1 peripheral reset register)<br />    volatile uint32_t AHB2RSTR;     // (AHB2 peripheral reset register)<br />    volatile uint32_t AHB3RSTR;     // (AHB3 peripheral reset register)<br />    volatile uint32_t RESERVED0;    // Reserved<br />    volatile uint32_t APB1RSTR;     // (APB1 peripheral reset register)<br />    volatile uint32_t APB2RSTR;     // (APB2 peripheral reset register)<br />    volatile uint32_t RESERVED1[2]; // Reserved<br />    volatile uint32_t AHB1ENR;      // (AHB1 peripheral clock enable register)<br />    volatile uint32_t AHB2ENR;      // (AHB2 peripheral clock enable register)<br />    volatile uint32_t AHB3ENR;      // (AHB3 peripheral clock enable register)<br />    volatile uint32_t RESERVED2;    // Reserved<br />    volatile uint32_t APB1ENR;      // (APB1 peripheral clock enable register)<br />    volatile uint32_t APB2ENR;      // (APB2 peripheral clock enable register)<br />} RCC_Msg;<br /><br />#define I2C1 ((volatile I2C_Msg *) 0x40005400) // Base address of I2C peripheral)<br />#define GPIOB ((volatile GPIO_Msg *) 0x40020400) // Base address of GPIOB peripheral)<br />#define RCC ((volatile RCC_Msg *) 0x40023800) // Base address of RCC peripheral)<br />uint8_t i2c_read_register(uint8_t device_addr, uint8_t reg);<br />int main(void){<br />    RCC-&gt;AHB1ENR |= (1&lt;&lt;1); // Enable GPIOB clock<br />    RCC-&gt;APB1ENR |= (1&lt;&lt;21); // Enable I2C1 clock<br />    GPIOB-&gt;MODER &amp;= ~((3&lt;&lt;16) | (3&lt;&lt;18)); // Clear mode bits for PB8&amp;PB9<br />    GPIOB-&gt;MODER |= (2&lt;&lt;16) | (2&lt;&lt;18); // Set mode bits for PB8&amp;PB9 as alternate function<br />    GPIOB-&gt;AFRH &amp;= ~((0xF&lt;&lt;0) | (0xF&lt;&lt;4)); // Clear alternate function bits for PB8&amp;PB9<br />    GPIOB-&gt;AFRH |= (4&lt;&lt;0) | (4&lt;&lt;4); // Set alternate function bits for PB8&amp;PB9 as AF4 (I2C1)<br />    GPIOB-&gt;OTYPER |= (1&lt;&lt;8) | (1&lt;&lt;9); // shared bus, pins can only pull low so devices don't fight<br />    I2C1-&gt;CR2 = 16; // Set clock freq. to the clock of the MCU (16 MHz)<br />    // Formula for CCR: CCR = APB1_clock / (2 × desired_SCL_speed)<br />    I2C1-&gt;CCR = 80; // Set clock control register for 100 kHz SCL speed (STandard mode)<br />    // Formula for TRISE: TRISE = (APB1_clock_in_MHz) + 1<br />    I2C1-&gt;TRISE = 17; // Set maximum rise time for standard mode<br />    /* Because I²C pins are open-drain,<br />     the line doesn't snap HIGH instantly<br />      — the pull-up resistor drags it up,<br />       which takes a little time (the \"rise time\").<br />        The peripheral needs to know the maximum rise time so its timing stays within the I²C spec. <br />        TRISE tells it that limit.*/<br />    I2C1-&gt;CR1 |= (1&lt;&lt;0); // Enable I2C<br />    i2c_read_register(0x68, 0x75);<br />}<br />uint8_t i2c_read_register(uint8_t device_addr, uint8_t reg) {<br />    /*1. START<br />    2. Send device address + WRITE bit → (tell it \"I want to talk, and I'm going to write\")<br />    3. Send the register number we want (0x75)<br />    4. Repeated START  → (turn the bus around)<br />    5. Send device address + READ bit → (\"now I want to read\")<br />    6. Read the byte the sensor sends<br />    7. STOP*/<br />    I2C1-&gt;CR1 |= (1&lt;&lt;8); // Generate START condition<br />    while(!(I2C1-&gt;SR1 &amp; (1&lt;&lt;0))); // Wait for SB (Start Bit) flag<br />    I2C1-&gt;DR = (0x68&lt;&lt;1) | 0; // 1st byte: the device ADDRESS (\"talk to chip 0x68, writing\")<br />    while(!(I2C1-&gt;SR1 &amp; (1&lt;&lt;1))); // Wait for ADDR (Address acknowledged) flag<br />    (void)I2C1-&gt;SR1; // Read SR1 to clear ADDR flag<br />    (void)I2C1-&gt;SR2; // Read SR2 to clear ADDR flag<br />    I2C1-&gt;DR = 0x75; // 2nd byte: the REGISTER number (\"I want register 0x75\")<br />    while (!(I2C1-&gt;SR1 &amp; (1&lt;&lt;7))); // Wait for TXE (Data register empty) flag<br />    while (!(I2C1-&gt;SR1 &amp; (1&lt;&lt;2))); // Basierend auf Fausregel<br />    I2C1-&gt;CR1 |= (1&lt;&lt;8); // Regenerate the Start<br />    while (!(I2C1-&gt;SR1 &amp; (1&lt;&lt;0)));<br />    I2C1-&gt;DR = (0x68&lt;&lt;1) | 1; // choosing the same slave again (IMU) + Intent of Reading (Read bit 1)<br />    while(!(I2C1-&gt;SR1 &amp; (1&lt;&lt;1)));<br />    I2C1-&gt;CR1 &amp;= ~(1&lt;&lt;10);<br />    (void)I2C1-&gt;SR1;<br />    (void)I2C1-&gt;SR2;<br />    I2C1-&gt;CR1 |= (1&lt;&lt;9);<br />    /*SR1 isn't one status — it's a register full of separate flags, each reporting a different event.*/<br />    while(!(I2C1-&gt;SR1 &amp; (1&lt;&lt;6)));<br />    uint8_t value = I2C1-&gt;DR;<br />    return value;<br /><br />}</code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "I2C",
+    "STM32F4 series"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 49,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "108668",
+    "username": "youssefgebah",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "35659",
+    "username": "Andrew Neil",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/e3db5bb4-89b8-12a0-585d-31f467ff8b21.png"
+  },
+  "createdAt": "2026-07-29T13:16:45+00:00",
+  "lastActivityAt": "2026-07-29T15:37:26+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 744300,
+  "publishedAt": "2026-07-29T13:16:45+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/bare-metal-i2c1-on-stm32f411-who-am-i-returns-0x98-not-0x68-gy-521-mpu6050-167324",
+  "scraped_replies": [
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>does the rest of the standard MPU6050 register map (PWR_MGMT_1 default 0x40, ACCEL_CONFIG/GYRO_CONFIG, and the ACCEL/GYRO output registers starting at 0x3B) behave identically on these ICM-20689-based clones</p></blockquote><p>This isn’t really an STM32 question. You should ask the manufacturer you got the sensor from. Better to stick with trusted suppliers if you want reliable products.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Have you tried actually <em>reading</em> the Data Sheets and comparing them, or is that not AI-enough?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>it looks like this specific GY-521 board carries a die that isn't the original InvenSense MPU-6050 — likely an ICM-20689 (or a clone claiming to be one),</p></blockquote><p>So have you taken this up with the supplier ?</p><p>If you’ve already concluded that the product is mis-described, is there really any point in proceeding with it?</p><p> </p><p>As ​<user-mention data-id=\"18044\">@David Littell</user-mention> said, have you checked if the behaviour does fully match the ICM-20689 datasheet ?</p><p> </p><p>And, as ​<user-mention data-id=\"8205\">@TDK</user-mention> says, this really doesn’t have anything to do with the STM32</p></div>"
+    }
+  ]
+}

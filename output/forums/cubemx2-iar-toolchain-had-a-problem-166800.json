@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "166780",
+  "publicId": "166800",
+  "title": "Cubemx2 : IAR toolchain had a problem",
+  "content": "<p>Hi</p><p> </p><p>I recently started using CubeMX2 and my board is the Nucleo-C542RC.</p><p> </p><p>The issue is: I'm trying to use a timer interrupt, but the IRQ Handler doesn't seem to trigger when using the IAR toolchain. (The timer value itself increases normally when I use 'get Value', so the timer peripheral is working).</p><p> </p><p>However, it works perfectly when I use CMake. </p><p> </p><p>Are there any additional settings I should check in the configuration?</p><p> </p><p>Here’s my Main and Timer code :</p><p> </p><p> </p><p> </p><p>Main :</p><pre><code class=\"language-c\">/**<br />  ******************************************************************************<br />  * file           : main.c<br />  * brief          : Main program body<br />  *                  Calls target system initialization then loop in main.<br />  ******************************************************************************<br />  *<br />  * Copyright (c) 2025 STMicroelectronics.<br />  * All rights reserved.<br />  *<br />  * This software is licensed under terms that can be found in the LICENSE file<br />  * in the root directory of this software component.<br />  * If no LICENSE file comes with this software, it is provided AS-IS.<br />  *<br />  ******************************************************************************<br />  */<br />/* Includes ------------------------------------------------------------------*/<br />#include \"main.h\"<br /><br />/* Private typedef -----------------------------------------------------------*/<br />/* Private define ------------------------------------------------------------*/<br />/* Private macro -------------------------------------------------------------*/<br />/* Private variables ---------------------------------------------------------*/<br />/* Private functions prototype -----------------------------------------------*/<br /><br /><br />/**<br />  * brief:  The application entry point.<br />  * retval: none but we specify int to comply with C99 standard<br />  */<br />int main(void)<br />{<br />  /** System Init: this code placed in targets folder initializes your system.<br />    * It calls the initialization (and sets the initial configuration) of the peripherals.<br />    * You can use STM32CubeMX to generate and call this code or not in this project.<br />    * It also contains the HAL initialization and the initial clock configuration.<br />    */<br />  if (mx_system_init() != SYSTEM_OK)<br />  {<br />    return (-1);<br />  }<br />  else<br />  {<br />    /*<br />      * You can start your application code here<br />      */<br /><br /><br />\t  if (HAL_TIM_Start_IT(mx_tim2_gethandle()) != HAL_OK)<br />\t   {<br /><br />\t   }<br />    while (1) {}<br />  }<br />} /* end main */<br /><br /></code></pre><p> </p><p> </p><p> </p><p>Tim2 :</p><pre><code class=\"language-c\">/**<br />  ******************************************************************************<br />  * @file           : mx_tim2.c<br />  * @brief          : Peripheral initialization<br />  ******************************************************************************<br />  * @attention<br />  *<br />  * Copyright (c) 2026 STMicroelectronics.<br />  * All rights reserved.<br />  *<br />  * This software is licensed under terms that can be found in the mx_stm32c5xx_hal_drivers_license.md file<br />  * in the same directory as the generated code.<br />  * If no mx_stm32c5xx_hal_drivers_license.md file comes with this software, it is provided AS-IS.<br />  *<br />  ******************************************************************************<br />  */<br /><br />/* Includes ------------------------------------------------------------------*/<br />#include \"mx_tim2.h\"<br /><br />/* Private typedef -----------------------------------------------------------*/<br />/* Private define ------------------------------------------------------------*/<br />/* Private macro -------------------------------------------------------------*/<br />/* Private variables ---------------------------------------------------------*/<br />/* Private functions prototype------------------------------------------------*/<br />/* Exported variables by reference--------------------------------------------*/<br />static hal_tim_handle_t hTIM2;<br /><br />/* Exported function definition ----------------------------------------------*/<br />/******************************************************************************/<br />/* Exported functions for TIM2 in HAL layer */<br />/******************************************************************************/<br />hal_tim_handle_t *mx_tim2_init(void)<br />{<br />  if (HAL_TIM_Init(&amp;hTIM2, HAL_TIM2) != HAL_OK)<br />  {<br />    return NULL;<br />  }<br /><br />  HAL_RCC_TIM2_EnableClock();<br /><br />  /* Timer configuration to reach the output frequency at 100 Hz */<br />  hal_tim_config_t config;<br />  config.prescaler              = 1439;<br />  config.counter_mode           = HAL_TIM_COUNTER_UP;<br />  config.period                 = 0x3E7;<br />  config.repetition_counter     = 0;<br />  config.clock_sel.clock_source = HAL_TIM_CLK_INTERNAL;<br />  if (HAL_TIM_SetConfig(&amp;hTIM2, &amp;config) != HAL_OK)<br />  {<br />    return NULL;<br />  }<br /><br />  /* Sampling Clock */<br />  if (HAL_TIM_SetDTSPrescaler(&amp;hTIM2, HAL_TIM_DTS_DIV1) != HAL_OK)<br />  {<br />    return NULL;<br />  }<br />  if (HAL_TIM_SetDTS2Prescaler(&amp;hTIM2, HAL_TIM_DTS2_DIV1) != HAL_OK)<br />  {<br />    return NULL;<br />  }<br /><br />  /* Update Event Management */<br />  if (HAL_TIM_SetUpdateSource(&amp;hTIM2, HAL_TIM_UPDATE_REGULAR) != HAL_OK)<br />  {<br />    return NULL;<br />  }<br />  if (HAL_TIM_EnableUpdateGeneration(&amp;hTIM2) != HAL_OK)<br />  {<br />    return NULL;<br />  }<br />  /* Master Mode Configuration */<br />  /* No GPIO configuration required for TIM2 */<br />  /* Enable the Timer global interrupt */<br />  HAL_CORTEX_NVIC_SetPriority(TIM2_IRQn, HAL_CORTEX_NVIC_PREEMP_PRIORITY_0, HAL_CORTEX_NVIC_SUB_PRIORITY_0);<br />  HAL_CORTEX_NVIC_EnableIRQ(TIM2_IRQn);<br /><br />  return &amp;hTIM2;<br />}<br /><br />void mx_tim2_deinit(void)<br />{<br />  (void)HAL_TIM_DeInit(&amp;hTIM2);<br /><br />  HAL_RCC_TIM2_DisableClock();<br /><br />  HAL_RCC_TIM2_Reset();<br /><br />  /* No GPIO de-initialization required for TIM2 */<br />  /* Disable Timer global interrupt */<br />  HAL_CORTEX_NVIC_DisableIRQ(TIM2_IRQn);<br />}<br /><br />hal_tim_handle_t *mx_tim2_gethandle(void)<br />{<br />  return &amp;hTIM2;<br />}<br /><br />/******************************************************************************/<br />/*                           TIM2 global interrupt                            */<br />/******************************************************************************/<br />void TIM2_IRQHandler(void)<br />{<br />  HAL_TIM_IRQHandler(&amp;hTIM2);<br />}<br /></code></pre><p> </p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "151",
+  "categoryName": "STM32CubeMX2 (MCUs)",
+  "tags": [
+    "STM32C5 series",
+    "STM32CubeMX2"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 1,
+  "inclusiveReplyCount": 1,
+  "inclusiveVisibleReplyCount": 1,
+  "likes": 0,
+  "votes": 0,
+  "views": 56,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": true,
+  "author": {
+    "id": "78134",
+    "username": "ptb",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "78134",
+    "username": "ptb",
+    "avatar": ""
+  },
+  "createdAt": "2026-07-09T09:06:39+00:00",
+  "lastActivityAt": "2026-07-16T06:27:58+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 743180,
+  "publishedAt": "2026-07-09T09:06:39+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32cubemx2-mcus-151/cubemx2-iar-toolchain-had-a-problem-166800",
+  "scraped_replies": []
+}

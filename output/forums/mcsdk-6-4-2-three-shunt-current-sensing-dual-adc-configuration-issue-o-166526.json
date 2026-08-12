@@ -1,0 +1,54 @@
+{
+  "contentType": "question",
+  "id": "166505",
+  "publicId": "166526",
+  "title": "MCSDK 6.4.2 - Three Shunt Current Sensing Dual ADC Configuration Issue o",
+  "content": "<p>Dear ST Support Team,</p><p>I am working on a custom BLDC motor controller using <strong>STM32G431CBU6</strong> with <strong>STM32 Motor Control SDK 6.4.2</strong> and <strong>DRV8316CT</strong> motor driver.</p><p>I have created custom Control Board and Power Board JSON files using the Motor Control Board Designer. However, I am facing an issue configuring the current sensing topology for FOC.</p><h3>Hardware Configuration</h3><ul><li>MCU: STM32G431CBU6</li>\t<li>MCSDK Version: 6.4.2</li>\t<li>Motor Driver: DRV8316CT</li>\t<li>Control Algorithm: FOC</li>\t<li>PWM Configuration: 3-PWM (TIM1)</li>\t<li>Current Sensing: Three Shunt Resistors (Amplified)</li></ul><p>Current sensing connections are:</p><table><thead><tr><th>Signal</th>\t\t\t<th>MCU Pin</th>\t\t\t<th>ADC Function</th>\t\t</tr></thead><tbody><tr><td>CURRENT_AMPL_U</td>\t\t\t<td>PA1</td>\t\t\t<td>ADC1_IN2 / ADC2_IN2</td>\t\t</tr><tr><td>CURRENT_AMPL_V</td>\t\t\t<td>PA2</td>\t\t\t<td>ADC1_IN3</td>\t\t</tr><tr><td>CURRENT_AMPL_W</td>\t\t\t<td>PA3</td>\t\t\t<td>ADC1_IN4</td>\t\t</tr></tbody></table><h3>Problem</h3><p>When I configure <strong>Three Shunt Resistors</strong>, Motor Control Workbench reports the following warnings:</p><pre> </pre><pre><code>CSConnect: ThreeShunt_AmplifiedCurrents DualADCs SharedSignal<br />CSConnect: ThreeShunt_AmplifiedCurrents DualADCs NoSolution</code></pre><p>I investigated the <code>ParameterConnection.json</code> file and found that the <code>DualADCs</code> implementation requires a shared signal.</p><p>Since <strong>PA1 supports both ADC1_IN2 and ADC2_IN2</strong>, I modified my board configuration to make <code>CURRENT_AMPL_U</code> the shared signal.</p><p>After this modification, the warnings disappeared, but the generated ADC mapping became:</p><pre><code>Channel U : ADC2_IN2 (PA1)<br />Channel V : ADC1_IN2 / ADC2_IN2 (PA1)<br />Channel W : ADC1_IN4 (PA3)</code></pre><p>This causes both <strong>CURRENT_AMPL_U</strong> and <strong>CURRENT_AMPL_V</strong> to be assigned to <strong>PA1</strong>, which does not match my hardware.</p><p>The actual hardware connections are:</p><pre><code>CURRENT_AMPL_U → PA1<br />CURRENT_AMPL_V → PA2<br />CURRENT_AMPL_W → PA3</code></pre><h3>Questions</h3><ol><li>Does MCSDK 6.4.2 support a Three-Shunt current sensing configuration where:\t<ul><li>CURRENT_AMPL_U → PA1 (ADC1_IN2 / ADC2_IN2)</li>\t\t<li>CURRENT_AMPL_V → PA2 (ADC1_IN3 only)</li>\t\t<li>CURRENT_AMPL_W → PA3 (ADC1_IN4 only)</li>\t</ul></li>\t<li>Is this ADC topology supported by the Dual ADC current sensing algorithm?</li>\t<li>Is there a recommended way to configure this hardware using Board Designer, or does this configuration require modifications to the generated firmware?</li>\t<li>If this topology is not supported, what is the recommended current sensing configuration for a custom STM32G431 board with this pin assignment?</li></ol><p>I would appreciate any guidance or reference project that demonstrates the correct configuration for this hardware.</p><p>Thank you for your support.</p><p>Best regards,</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "34",
+  "categoryName": "STM32 MCUs Motor control",
+  "tags": [
+    "ADC",
+    "MCSDK6",
+    "FOC"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 2,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 75,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "99718",
+    "username": "prathmeshpatil06",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "914",
+    "username": "GMA",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/d1712325-15f1-a2d3-e445-2eadaaf975fe.png"
+  },
+  "createdAt": "2026-06-30T06:23:00+00:00",
+  "lastActivityAt": "2026-06-30T13:56:50+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 741638,
+  "publishedAt": "2026-06-30T06:23:00+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-motor-control-34/mcsdk-6-4-2-three-shunt-current-sensing-dual-adc-configuration-issue-o-166526",
+  "scraped_replies": []
+}
