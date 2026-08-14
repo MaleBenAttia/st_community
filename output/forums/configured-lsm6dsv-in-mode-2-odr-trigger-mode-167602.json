@@ -22,7 +22,7 @@
   "inclusiveVisibleReplyCount": 1,
   "likes": 0,
   "votes": 0,
-  "views": 15,
+  "views": 24,
   "voteSet": [],
   "likeSet": [],
   "trashed": false,
@@ -34,12 +34,12 @@
     "avatar": ""
   },
   "lastContributor": {
-    "id": "108960",
-    "username": "george2121",
-    "avatar": ""
+    "id": "1608",
+    "username": "Federica Bossi",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/72266775-a352-6a28-5382-90a255104589.png"
   },
   "createdAt": "2026-08-11T03:46:37+00:00",
-  "lastActivityAt": "2026-08-11T04:40:33+00:00",
+  "lastActivityAt": "2026-08-13T12:54:25+00:00",
   "status": "published",
   "ideaStatus": {
     "name": "",
@@ -47,14 +47,14 @@
     "backgroundColor": ""
   },
   "productAreas": [],
-  "lastPostId": 745333,
+  "lastPostId": 745592,
   "publishedAt": "2026-08-11T03:46:37+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/mems-sensors-48/configured-lsm6dsv-in-mode-2-odr-trigger-mode-167602",
   "scraped_replies": [
     {
       "is_best": true,
-      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Sagar,</p><p>Thanks for sharing the detailed setup and requirements. Your approach makes sense, particularly the need to synchronize IMU sampling with the camera reference signal.</p><p>One area I would verify first is the exact relationship between the LSM6DSV ODR-triggered mode, the DEN functionality, and the INT2 input configuration. Since the current SSC driver appears to be handling the sensor primarily through FIFO and INT1, simply configuring the sensor registers may not be sufficient if the SSC framework does not expose or handle the required INT2/DEN events.</p><p>I would recommend checking the LSM6DSVTR datasheet and application notes for the supported trigger/synchronization configuration, especially the required INT2 routing and DEN timing. It would also be useful to confirm whether the Qualcomm SSC driver supports the corresponding hardware interrupt and timestamp handling.</p><p>If the hardware is already designed around Mode-1, it would be worth confirming the exact INT2/DEN pin routing before considering any board changes. This should help determine whether the requirement can be achieved through the existing hardware and driver configuration or requires modifications to the SSC driver.</p><p>Hopefully this helps narrow down the issue.</p></div>"
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107320\">@sagar7046</user-mention> ,</p><p>Yes, the ODR-triggered mode of the LSM6DSV is the correct feature to synchronize IMU sampling with an external reference signal on INT2; the device can align both frequency and phase to the edges of that signal.<br/>However, it must be configured from power-down, with both accelerometer and gyroscope set either to ODR-triggered or power-down, and both using the same ODR.<br/>The INT2 reference pulse must be at least 5 µs long, and its polarity is selected using <code>CTRL4.INT2_IN_LH</code>.</p><p>Your current DEN-based configuration is not the right approach for this requirement, since DEN is used for data stamping, not for ODR synchronization on INT2 edges.</p><p>The main limitations are that ODR-triggered mode is not compatible with EIS, SFLP, pedometer, DRDY mask, and activity/inactivity functions (except motion/stationary).</p><p>From the hardware point of view, no major changes are typically required if INT2 is correctly wired as a sync input and not used simultaneously as an interrupt output.</p><p>We do not have a Qualcomm SSC driver package to share, but the existing SSC framework can be adapted to support this configuration.</p></div>"
     }
   ]
 }

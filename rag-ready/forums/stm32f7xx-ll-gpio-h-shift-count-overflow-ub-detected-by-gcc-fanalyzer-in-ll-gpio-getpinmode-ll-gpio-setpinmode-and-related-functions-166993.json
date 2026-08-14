@@ -11,7 +11,7 @@
                 "STM32F7 series"
             ],
             "published_at": "2026-07-16T09:00:45+00:00",
-            "views": 41,
+            "views": 42,
             "reply_count": 1,
             "best_answer": true,
             "best_answer_content": "pin=0 is an invalid parameter. LL was designed specifically not to check for invalid parameters (unlike HAL) in order to optimize for speed. Adding the & 0xF0 operation is slower unless both 1) the compiler inlines the code and 2) optimization levels are set to nonzero. Those aren’t guarantees.\n\nIt’s on the user to pass valid parameters. Invalid parameters lead to invalid or undefined results--that is expected. There is no problem to solve here.\n\n*> compiler optimizes it away for constant pins*\n\nThe compiler will also optimize out the double-evaluation on any non-zero optimization level. Though I tend to agree it should be a separate evaluation as you’ve shown it.",

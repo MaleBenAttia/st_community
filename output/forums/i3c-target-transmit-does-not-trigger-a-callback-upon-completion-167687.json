@@ -1,0 +1,53 @@
+{
+  "contentType": "question",
+  "id": "167656",
+  "publicId": "167687",
+  "title": "I3C target transmit does not trigger a callback upon completion",
+  "content": "<p>Hi,</p><p> </p><p>I am developing an I3C target application that responds to I3C private messages from the controller. The application starts by registering the Tx callback.</p><pre><code class=\"language-c\">static void I3C_TxCompleteCallback(hal_i3c_handle_t *hi3c);<br /><br />  // The callback is registered during initialization <br />  hal_status_t status = HAL_I3C_TGT_RegisterTxCpltCallback(hI3C, I3C_TxCompleteCallback);<br />  if (status != HAL_OK) {<br />    SWD_printf(\"HAL_I3C_TGT_RegisterTxCpltCallback failed.\\n\");<br />    return status;<br />  }<br /></code></pre><p>The target responds to the controller:</p><pre><code class=\"language-c\">      hal_status_t status;<br />      hal_i3c_handle_t *hI3C = mx_i3c1_gethandle();<br />      status = HAL_I3C_TGT_Transmit_IT(hI3C, I3C_TxBuffer, 8);<br />      if (status != HAL_OK) {<br />        SWD_printf(\"HAL_I3C_TGT_Transmit_IT: %lx\\n\", status);<br />        return status;<br />      }<br /></code></pre><p>The controller receives 8 bytes of data and the data is correct but the TxComplete callback does not trigger on the target side.</p><p>I placed a breakpoint inside the HAL I3C_Tgt_ISR show below.</p><pre><code class=\"language-c\">/**<br />  * @brief  Interrupt Sub-Routine which handles target transmit data in Interrupt mode.<br />  * @param  hi3c  Pointer to a @ref hal_i3c_handle_t<br />  * @param  it_masks  Flag Interrupt Masks flags to handle<br />  * @retval HAL_OK  Operation completed successfully<br />  */<br />static hal_status_t I3C_Tgt_Tx_ISR(hal_i3c_handle_t *hi3c, uint32_t it_masks)<br />{<br />  I3C_TypeDef *p_i3cx;<br /><br />  p_i3cx = I3C_GET_INSTANCE(hi3c);<br /><br />  /* I3C Tx FIFO not full interrupt Check */<br />  if (I3C_CHECK_FLAG(it_masks, LL_I3C_MISR_TXFNFMIS) != 0U)<br />  {<br />    if (hi3c-&gt;tx_count_byte &gt; 0U)<br />    {<br />      hi3c-&gt;p_tx_func(hi3c);<br />    }<br />  }<br /><br />  /* I3C target frame complete event Check */<br />  if (I3C_CHECK_FLAG(it_masks, LL_I3C_MISR_FCMIS) != 0U)<br />  {<br />    LL_I3C_ClearFlag_FC(p_i3cx);<br /><br />    /* Check if all data bytes are transmitted */<br />    if (LL_I3C_GetXferDataCount(p_i3cx) == hi3c-&gt;data_size_byte)<br />    {<br />      LL_I3C_DisableIT(p_i3cx, LL_I3C_TGT_TX_IT);<br />      I3C_StateIdle(hi3c);<br />#if (USE_HAL_I3C_REGISTER_CALLBACKS) &amp;&amp; (USE_HAL_I3C_REGISTER_CALLBACKS == 1)<br />      hi3c-&gt;p_tgt_tx_cplt_cb(hi3c);<br />#else<br />      HAL_I3C_TGT_TxCpltCallback(hi3c);<br />#endif /* USE_HAL_I3C_REGISTER_CALLBACKS */<br />    }<br />    else<br />    {<br />      I3C_ErrorTreatment(hi3c);<br />    }<br />  }<br /><br />  /* I3C target wakeup event management ----------------------------------*/<br />  if (I3C_CHECK_FLAG(it_masks, LL_I3C_MISR_WKPMIS) != 0U)<br />  {<br />    /* Clear WKP flag */<br />    LL_I3C_ClearFlag_WKP(p_i3cx);<br /><br />#if (USE_HAL_I3C_REGISTER_CALLBACKS) &amp;&amp; (USE_HAL_I3C_REGISTER_CALLBACKS == 1)<br />    hi3c-&gt;p_notify_cb(hi3c, HAL_I3C_TGT_NOTIFICATION_WKP);<br />#else<br />    HAL_I3C_NotifyCallback(hi3c, HAL_I3C_TGT_NOTIFICATION_WKP);<br />#endif /* USE_HAL_I3C_REGISTER_CALLBACKS */<br />  }<br /><br />  return HAL_OK;<br />}<br /></code></pre><p>When the interrupt occurs the hi3c-&gt;p_tx_func is called and sends the 8 bytes into the FIFO.  Once it completes the it_masks check that follows fails and therefore the Tx callback is not called:</p><pre><code class=\"language-c\">  /* I3C target frame complete event Check */<br />  if (I3C_CHECK_FLAG(it_masks, LL_I3C_MISR_FCMIS) != 0U)<br />  {<br />    // This code does not execute<br />  }</code></pre><p>Could you help me figure out why the Tx callback does not occur on the target side?</p><p> </p><p>Thank you,</p><p>Gil</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "32",
+  "categoryName": "STM32 MCUs Embedded software",
+  "tags": [
+    "I3C",
+    "HAL2"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 19,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "105834",
+    "username": "gil_dobjanschi",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/b99db449-2ef2-f3a5-2bdc-d64d2da58a80.png"
+  },
+  "lastContributor": {
+    "id": "105834",
+    "username": "gil_dobjanschi",
+    "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/b99db449-2ef2-f3a5-2bdc-d64d2da58a80.png"
+  },
+  "createdAt": "2026-08-13T13:34:06+00:00",
+  "lastActivityAt": "2026-08-13T13:34:06+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-13T13:34:06+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-embedded-software-32/i3c-target-transmit-does-not-trigger-a-callback-upon-completion-167687",
+  "scraped_replies": []
+}

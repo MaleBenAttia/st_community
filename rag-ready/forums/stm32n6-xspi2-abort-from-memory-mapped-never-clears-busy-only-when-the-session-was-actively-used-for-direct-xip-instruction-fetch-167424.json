@@ -13,7 +13,7 @@
                 "XSPI"
             ],
             "published_at": "2026-08-03T08:31:48+00:00",
-            "views": 102,
+            "views": 108,
             "reply_count": 1,
             "best_answer": true,
             "best_answer_content": "Our own translation unit's string literals were NOT covered by this rule. Functions marked \\_\\_attribute\\_\\_((section(\".RamFunc\"))) get their CODE relocated correctly, but GCC does NOT propagate that section attribute to string literals those functions reference — those land in the default .rodata output section, i.e. back in flash/ROM. Since we used debug logging (const char\\* literals) inside the abort/BUSY-wait loop, every debug print during \"wait for BUSY=0\" was a fresh read from the flash address space we were trying to quiesce — and because FMODE isn't cleared until the abort sequence completes, those reads kept re-triggering peripheral activity through the still-configured memory-mapped session. That looked exactly like \"BUSY never clears no matter what we try.\"\n\nThe fix was one line added to the same .ramfunc section:\n\n\\*flash\\_agent.c.obj(.rodata .rodata.\\*)\n\ni.e. explicitly pull our own object file's rodata into RAM too, the same way the HAL driver's rodata already was. After this, HAL\\_XSPI\\_Abort() started succeeding immediately, on the first attempt, zero BUSY-wait iterations — after dozens of hardware-level hypotheses (DMA, cache, DTR/DQS protocol, prescaler, EN toggle, RCC reset, CS-high timing, etc.) had gone nowhere.",

@@ -122,11 +122,15 @@ Les fichiers dans `output/` et `rag-ready/` sont nommés de manière strictement
 ### 2. Détection 100 % Fiable de la Meilleure Réponse (Best Answer)
 Sur inSided, la réponse validée est dupliquée dans un bloc épinglé en haut de page (Zone A) et dans le fil chronologique (Zone B). Pour éviter les doublons et les fausse attributions, `main.py` et `prepare_rag.py` s'appuient uniquement sur le conteneur principal `.paginated-threaded-replies` et la présence de `[data-qa="pill-best-answer"]`.
 
-### 3. Multithreading & Performance
+### 3. Multithreading & Robustesse (Rate Limiting)
 - Scraping HTML des sujets de forums parallélisé via `ThreadPoolExecutor` (10 workers).
+- Mécanisme de **Backoff exponentiel (réessais automatiques)** intégré à `main.py` pour gérer de manière transparente les erreurs HTTP 429 (Trop de requêtes) et les Timeouts du serveur.
 - Scan préalable des catégories actives (`scan_categories.py`) pour éviter de paginer inutilement les catégories vides.
 - Mise en cache automatique du jeton d'accès OAuth2 (`.token_cache.json`) pendant 58 minutes.
 - Support du rechargement d'environnement `override=True` pour prendre en compte les changements de date à la volée.
+
+### 4. Prise en compte des Médias et Vidéos
+Les réponses ne contenant que des vidéos ou des intégrations externes (balises HTML `<oembed>` et `<iframe>`) sont détectées par `prepare_rag.py` et transformées automatiquement en liens cliquables Markdown avant conversion, évitant ainsi la perte de données et les réponses vides.
 
 ---
 

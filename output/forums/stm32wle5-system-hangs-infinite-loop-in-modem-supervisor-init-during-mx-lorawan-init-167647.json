@@ -15,12 +15,12 @@
   ],
   "moderatorTags": [],
   "moderationLabel": "",
-  "replyCount": 0,
-  "inclusiveReplyCount": 0,
-  "inclusiveVisibleReplyCount": 0,
+  "replyCount": 1,
+  "inclusiveReplyCount": 2,
+  "inclusiveVisibleReplyCount": 2,
   "likes": 0,
   "votes": 0,
-  "views": 2,
+  "views": 18,
   "voteSet": [],
   "likeSet": [],
   "trashed": false,
@@ -37,7 +37,7 @@
     "avatar": "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/icon/200x200/cad9e07b-c623-47c8-a0e3-574444e76d7c.png"
   },
   "createdAt": "2026-08-12T12:08:15+00:00",
-  "lastActivityAt": "2026-08-12T12:08:15+00:00",
+  "lastActivityAt": "2026-08-13T08:32:34+00:00",
   "status": "published",
   "ideaStatus": {
     "name": "",
@@ -45,9 +45,18 @@
     "backgroundColor": ""
   },
   "productAreas": [],
-  "lastPostId": 0,
+  "lastPostId": 745549,
   "publishedAt": "2026-08-12T12:08:15+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-wireless-35/stm32wle5-system-hangs-infinite-loop-in-modem-supervisor-init-during-mx-lorawan-init-167647",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p><strong>Behavior:</strong> Halting execution with a debugger shows it never completes <code>modem_supervisor_init()</code>.</p></blockquote><p>So have you stepped in the debugger to see what prevents it from completing ?</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Code falls into infinite loop between, while (ssr != LL_RTC_TIME_GetSubSecond(RTC)) and return (uint32_t)(READ_BIT(RTCx-&gt;SSR, RTC_SSR_SS));</p><pre><code class=\"language-c\">// timer_if.c<br/><br/>static inline uint32_t GetTimerTicks(void)<br/>{<br/>  uint32_t ssr = LL_RTC_TIME_GetSubSecond(RTC);<br/><br/>  while (ssr != LL_RTC_TIME_GetSubSecond(RTC))<br/>  {<br/>    ssr = LL_RTC_TIME_GetSubSecond(RTC);<br/>  }<br/><br/>  return UINT32_MAX - ssr;<br/>}<br/><br/>// stm32wlxx_ll_rtc.h<br/><br/>__STATIC_INLINE uint32_t LL_RTC_TIME_GetSubSecond(const RTC_TypeDef *RTCx)<br/>{<br/>  return (uint32_t)(READ_BIT(RTCx-&gt;SSR, RTC_SSR_SS));<br/>}</code></pre><p> </p></div>"
+    }
+  ]
 }

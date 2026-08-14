@@ -1,0 +1,22 @@
+{
+    "forum": [
+        {
+            "id": "167620",
+            "publicId": "167651",
+            "title": "PPS OUT signal (again) on stm32mp157d-dk1",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/pps-out-signal-again-on-stm32mp157d-dk1-167651",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-08-12T13:33:06+00:00",
+            "views": 14,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "As usual, I found it myself after a good sleep: I had M4 firmware with usart3 pins taking over the PG8 pin, as this was just some old test firmware.\n\nFor reference, although I had this already sorted, the dk1 default DTS settings for usart3 are using the usart3\\_pins\\_c and have option “has-rts-cts” enabled. One needs to change it to usart3\\_pins\\_a and disable “has-rts-cts” in device tree.\n\nb.r.\n\nOskar",
+            "content_text": "Hi All!\n\nI have successfully run ptp4l as a GM role on the 157d-dk1 kit, using NMEA+GPS in as a reference time. I have a specific setup, where NTP is actually disciplining the system clock and the PHC clock is driven from the CLOCK\\_REALTIME using phc2sys.\n\nI wanted to test the PPS output generation on the PG8 pin, so that I can compare incoming PPS with generated PPS, but I can’t make it work.\n\nThe board version is C03 (no missing solderbridge), Yocto is Kirkstone (kernel 5.15), ptp4l 3.1.1.\n\nI have added PG,8,AF11 to kernel’s device tree (in separate inc file):\n\n>     ethernet0\\_rgmii\\_pins\\_a: ethernet0-rgmii-0 {\n\n>         pins4 {\n\n>                 pinmux = <STM32\\_PINMUX('G', 8, AF11)>; /\\*PPS OUT\\*/\n\n>         };\n\n>    };\n\nNow I can see in gpioinfo output that it is used by kernel but still set as input.\n\nThen tried setting period for the PPS through ptp0 (tried different settings):\n\n> echo “0 0 0 1 0” > /sys/class/ptp/ptp0/period\n\nThe “clk\\_summary” shows and in general ptp4l works:\n\n>           ethptp\\_k                    1        1        0    99000000          0     0  50000         Y\n\nI also switched roles between client&server, that is - disabled NTP, run ptp4l as client, phc2sys driving CLOCK\\_REALTIME from the /dev/ptp0 and set some fake ptp server on my ubuntu machine. Still no PPS on PG8 output.\n\nI’m kind of lost - I have seen some comments from people successful with this, but it doesn’t work for me - what else I could check?\n\nEDIT: I also checked\n\n> /sys/kernel/debug/stmmaceth/eth0/dma\\_cap\n\nthat it states: “Number of PPS Outputs: 1” which would reflect probably the “periodic outputs” value.\n\nthanks\n\nOskar",
+            "images": [],
+            "author": "OskarM"
+        }
+    ]
+}

@@ -49,5 +49,38 @@
   "publishedAt": "2026-07-10T13:55:25+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32cubemx2-mcus-151/usart1-receives-garbage-data-at-1-5-mbits-second-or-higher-stm32c542rc-166852",
-  "scraped_replies": []
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>What is the max. supported baud rate for the USART</p></blockquote><p>The datasheet should tell you that?</p><p> </p><p>Garbage data on async links is usually due to wrong baud rate - see <a href=\"https://learn.sparkfun.com/tutorials/serial-communication/all#:~:text=If%20all%20the%20receiving%20device%20sees%20on%20its%20receive%20line%20is%20garbage%2C%20check%20to%20make%20sure%20the%20baud%20rates%20match%20up\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">here</a>.</p><p>So the first thing to check is that the baud rate is <em>really </em>what you think it is.</p><p>Also use an oscilloscope to check that the signals are still valid at 1.5Mbps.</p><p> </p><p>Please give some more details of your setup:</p><ul><li>What is at the other end of the link ?</li> <li>How are they connected ?</li></ul><p>Some good, clear photos of your setup could help.</p><p> </p><oembed url=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\"></oembed><p> </p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>At the other end, <strong>Jetson Orin Nano Developer Kit Carrier Board</strong> is connected:<br/>PIN 8: UART1_TXD     ↔     PB15: USART1_RX<br/>PIN 10: UART1_RXD    ↔    PB14: USART1_TX<br/>GND    ↔    GND</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/864b5c77-78d4-49bc-95ee-9c4d98f71ba9.png\"/><figcaption>Jetson Orin Nano (Expansion Header Connections)</figcaption></figure><p>Commands:</p><p>1. Configure the UART:</p><pre><code class=\"language-bash\">stty -F /dev/ttyTHS1 1500000 cs8 -parenb -cstopb -crtscts -ixon -ixoff -ixany raw -echo</code></pre><p>2. Send a message:</p><pre><code class=\"language-bash\">printf \"hello world\\n\" &gt; /dev/ttyTHS1</code></pre><p><br/>​​​<strong>Reference</strong>:</p><p><a href=\"https://developer.nvidia.com/downloads/assets/embedded/secure/jetson/orin_nano/docs/jetson_orin_nano_devkit_carrier_board_specification_sp.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://developer.nvidia.com/downloads/assets/embedded/secure/jetson/orin_nano/docs/jetson_orin_nano_devkit_carrier_board_specification_sp.pdf</a></p><p> </p><p> </p><p> </p><p></p><p></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>And ofcourse check if your clock tree is based on HSE and PLL is set right for 1,5Mb divider without error.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"MM..1\"><div class=\"content-quote-content\"> <p>And ofcourse check if your clock tree is based on HSE </p> </div></content-quote><p>Indeed.</p><p> </p><p>​<user-mention data-id=\"108136\">@vatsal</user-mention> using an internal RC oscillator is unlikely to give good baud rate accuracy - especially at such high speeds.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108136\">@vatsal</user-mention> </p><p>I’m quite confident that your issue is related to clock accuracy.</p><p>The USART has a maximum tolerance for clock frequency deviation. If this tolerance is exceeded, it can result in framing errors or garbled characters on the received data.</p><p>Could you please confirm which clock source you are using: HSI or HSE?</p><p>For high baud rates such as 1.5 Mbit/s, we strongly recommend using HSE, as it is typically much more accurate and stable than HSI.<br/>Since HSI is less precise, it may cause the system clock to exceed the USART’s allowable tolerance.</p><p>You can also verify the clock accuracy using MCO, and calculate the allowed deviation based on the following section of the reference manual:</p><p>43.5.9 Tolerance of the USART receiver to clock deviation<br/>BR<br/>Gyessine</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>For high baudrates I recommend using DMA for reception instead of interrupts.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Orin cant handle  </p><pre><code class=\"language-c\"> stty -F /dev/ttyTHS1 1500000</code></pre><p>result speed is not as you write, but what hw is capable. Here maybe baud = 68 000 000 / (16 × 3) = <strong>1 416 666,7 baud</strong></p><p>Set both sides to same speed .</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello all, </p><p>Likely not a USART1 max-rate limitation, but a baud-accuracy mismatch at higher speed.</p><p>1.5 Mbit/s can fail if either side’s real baud is off (even when configured the same), especially with HSI or rounded divisors on the peer side. Since 1 Mbit/s works and 1.5 Mbit/` corrupts, this points to timing margin, not feature support.</p><p>I’d check:<br/>1. STM32 clock source: use HSE+PLL (avoid HSI for this case).<br/>2. Actual baud on both sides with a scope/logic analyzer.<br/>3. Jetson actual achievable divisor/rate for 1500000 and match both ends exactly.<br/>4. <strong>Signal quality/wiring/ground at high edge rates.</strong></p><p>If needed, switch to DMA RX once timing is fixed, <strong>but DMA won’t solve a baud mismatch by itself</strong>.</p><p>Kind regards, </p><p>DHIF Khaled</p></div>"
+    }
+  ]
 }

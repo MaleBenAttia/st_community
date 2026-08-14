@@ -10,7 +10,7 @@
                 "ADC"
             ],
             "published_at": "2026-06-30T14:45:50+00:00",
-            "views": 107,
+            "views": 109,
             "reply_count": 3,
             "best_answer": true,
             "best_answer_content": "*> Do I need to lower the resolution or something when the number of channel increases ?*\n\nNo, I think you would need to understand the design around the STM32 ADC peripheral, and ST’s motivation for doing so.\n\nWhile each ADC has multiple channels (usually >10), each ADC has only only one single result register.\n\nThis is not the case with Cortex M devices of other vendors, which often have individual result registers for each individual channel.\n\nThis leaves you two options with STM32 ADCs - either use EOC interrupts to catch individual results (and keep track of channels !), or use DMA.\n\nST’s ADCs were clearly designed for usage with DMA.\n\nThe idea is to configure an arbitrary conversion sequence, assign the appropriate DMA channel with matching settings, and you get the correct sampled data in a memory buffer.\n\nYou can trigger the ADC sequence from a timer, and have the DMA “Transfer Complete” interrupt notify you when a buffer with results is ready. This is the approach I use most of the time.\n\nPolling works for single conversions, although it is wasteful.\n\nBut it is basically impossible to get polling right with conversion sequences in a meaningful context.",

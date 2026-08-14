@@ -1,0 +1,56 @@
+{
+  "contentType": "question",
+  "id": "167634",
+  "publicId": "167665",
+  "title": "STM32H562 GPDMA: leftover CxCR.SUSP after an abort on a non-active channel permanently blocks SPI DMA",
+  "content": "<p><strong>Environment</strong></p><p> </p><p>- Device: STM32H562ZI</p><p>- Reference manual: RM0481 Rev 5</p><p>- HAL: STM32Cube H5 HAL Driver V1.5.0</p><p>- Peripherals: GPDMA used for SPI slave Tx/Rx. SPI in slave mode, normal (non-circular) transfers, no linked-list.</p><p> </p><p><strong>Summary</strong></p><p> </p><p>On our SPI slave DMA path, the DMA channel becomes permanently stuck after an SPI error, and SPI communication never recovers until the device is power-cycled.</p><p> </p><p>The cause is that `GPDMA_CxCR.SUSP` gets written to a channel that has **already completed its transfer and stopped** (EN=0, IDLEF=1). In that state `GPDMA_CxSR.SUSPF` is never set, so `GPDMA_CxCR.RESET` is never written and **SUSP stays set**. Setting `EN=1` afterwards suspends the channel immediately after start, and the driver can no longer escape that state.</p><p> </p><p><strong>Observed register sequence (Tx channel, real measurements)</strong></p><p> </p><p>```</p><p>1) Block transfer completes. Hardware clears EN.</p><p>CxCR = 0x00805D00 (EN=0, SUSP=0, SUSPIE=0)</p><p>CxSR = 0x00000001 (IDLEF=1)</p><p> </p><p>2) An SPI error occurs right after this point.</p><p>SPI ErrorCode = 0x84 (UDR + OVR)</p><p>registers unchanged - the channel is stopped</p><p> </p><p>3) HAL_SPI_IRQHandler() error path calls HAL_DMA_Abort_IT(),</p><p>which writes SUSP and SUSPIE.</p><p>CxCR = 0x00807D04 (EN=0, SUSP=1, SUSPIE=1)</p><p>SUSPF is NEVER set &lt;-- RESET is therefore never written</p><p> </p><p>4) EN is set to 1 to arm the next transfer.</p><p>CxCR = 0x00807D05 (EN=1, SUSP=1)</p><p>the channel is suspended immediately after start</p><p> </p><p>5) The suspend interrupt fires and the HAL state becomes</p><p>HAL_DMA_STATE_SUSPEND.</p><p>```</p><p> </p><p>From here the driver cannot recover:</p><p> </p><blockquote><p>SUSP is left set</p><p>-&gt; setting EN=1 suspends immediately, HAL state becomes SUSPEND</p><p>-&gt; HAL_DMA_Abort() only accepts State == BUSY, so it is rejected</p><p>with HAL_DMA_ERROR_NO_XFER</p><p>-&gt; CxCR.RESET is never written</p><p>-&gt; SUSP is never cleared (loop)</p></blockquote><p> </p><p> </p><p>Note that when the <strong>same abort runs while the channel is genuinely active (EN=1)</strong>, it completes normally and `CxCR` returns cleanly to `0x00805D00`. The deciding factor is not which abort function is used, but whether the channel was active at the moment SUSP was written.</p><p> </p><p><strong>What we understand from RM0481</strong></p><p> </p><p>The manual seems to restrict SUSP to active channels:</p><p> </p><p>Section 16.8.9, GPDMA_CxCR, SUSP bit:</p><p>&gt; Software must write 1 in order to suspend **an active channel** (channel with an ongoing GPDMA transfer over its master ports)</p><p> </p><p>Section 16.4.4 \"GPDMA channel abort and restart\" (p.690-691, Figure 78):</p><p>&gt; the software can abort, on its own, **a still active channel** with the following sequence</p><p> </p><p>So step 3 above writes SUSP to a non-active channel, which we understand to be outside what the manual specifies.</p><p> </p><p>---</p><p> </p><p><strong>Q1. Is the immediate suspension at step 4 the intended behavior?</strong></p><p> </p><p>When `EN` is set to 1 while `SUSP=1` is still set, the channel is suspended right after start (observed `CxCR = 0x00807D05`, then SUSPF=1). Is this by design?</p><p> </p><p>---</p><p> </p><p><strong>Q2. Is our workaround correct practice?</strong></p><p> </p><p>When we detect a leftover SUSP, we call `HAL_DMA_Init()` to recover the channel. Internally that calls `__HAL_DMA_DISABLE()`, which writes **SUSP and RESET together** and then waits for EN to clear:</p><p> </p><p> </p><blockquote><p>#define __HAL_DMA_DISABLE(__HANDLE__) \\</p><p>((__HANDLE__)-&gt;Instance-&gt;CCR |= (DMA_CCR_SUSP | DMA_CCR_RESET))</p></blockquote><p> </p><p> </p><p>This writes RESET <strong>without waiting for SUSPF</strong>, which the 16.4.4 sequence does not describe. We do it this way because the documented sequence cannot complete when SUSPF never arrives.</p><p> </p><p>- Is this safe?</p><p>- Is it also safe when `EN` happens to be 1 at that moment?</p><p> </p><p>In our test (88 cycles of firmware update + cold reboot) this recovery path triggered many times with zero failures and zero lockups, but we would like confirmation that it is correct practice rather than merely working.</p><p> </p><p>If there is a better way to clear a leftover SUSP - for example writing `CxCR.SUSP=0` instead - we would like to know which is recommended.</p><p> </p><p>---</p><p> </p><p><strong>Q3. Should HAL_DMA_Abort_IT() check whether the channel is still active?</strong></p><p> </p><p>`HAL_DMA_Abort_IT()` only checks the **HAL state**, not whether the hardware has already finished (EN=0 / IDLEF=1):</p><p> </p><p> </p><blockquote><p>/* stm32h5xx_hal_dma.c V1.5.0 */</p><p>if (hdma-&gt;State != HAL_DMA_STATE_BUSY)</p><p>{</p><p>hdma-&gt;ErrorCode = HAL_DMA_ERROR_NO_XFER;</p><p>return HAL_ERROR;</p><p>}</p><p>else</p><p>{</p><p>hdma-&gt;State = HAL_DMA_STATE_ABORT;</p><p>hdma-&gt;Instance-&gt;CCR |= (DMA_CCR_SUSP | DMA_CCR_SUSPIE); /* written even if not active */</p><p>}</p></blockquote><p> </p><p> </p><p>Since the DMA runs in normal mode, the **hardware clears EN on completion**, while the HAL state stays BUSY until the completion interrupt is serviced. An SPI error inside that window takes the `else` branch above and writes SUSP to a stopped channel.</p><p> </p><p>The blocking `HAL_DMA_Abort()` has the same issue in a different form: it writes SUSP and then polls SUSPF with a 5 ms timeout (`HAL_TIMEOUT_DMA_ABORT`), so on a stopped channel it blocks for 5 ms, returns `HAL_ERROR`, and still leaves SUSP set.</p><p> </p><p>- Is this a known issue?</p><p>- Should the driver check `CxSR.IDLEF` / `CxCR.EN` before writing SUSP?</p><p>- Is a fix planned?</p><p> </p><p>---</p><p> </p><p><strong>Additional note on impact</strong></p><p> </p><p>A leftover SUSP also<strong> suppresses the error notification itself</strong>. The HAL SPI error callback is invoked from the DMA abort completion callback, so it is never called if the abort does not complete. In our instrumentation the SPI error callback was never invoked even once. From the application side, SPI simply goes silent, which made this problem difficult to diagnose. We believe other users with a similar configuration could be affected.</p>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "25",
+  "categoryName": "STM32 MCUs Products",
+  "tags": [
+    "DMA",
+    "STM32H5 series",
+    "SPI",
+    "HAL",
+    "GPDMA"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 0,
+  "inclusiveReplyCount": 0,
+  "inclusiveVisibleReplyCount": 0,
+  "likes": 0,
+  "votes": 0,
+  "views": 15,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "101344",
+    "username": "yuichiro",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "101344",
+    "username": "yuichiro",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-13T04:30:46+00:00",
+  "lastActivityAt": "2026-08-13T04:30:46+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 0,
+  "publishedAt": "2026-08-13T04:30:46+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32h562-gpdma-leftover-cxcr-susp-after-an-abort-on-a-non-active-channel-permanently-blocks-spi-dma-167665",
+  "scraped_replies": []
+}

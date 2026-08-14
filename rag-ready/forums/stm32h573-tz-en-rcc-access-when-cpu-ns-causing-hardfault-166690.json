@@ -14,7 +14,7 @@
                 "TrustZone"
             ],
             "published_at": "2026-07-06T06:40:58+00:00",
-            "views": 82,
+            "views": 83,
             "reply_count": 1,
             "best_answer": true,
             "best_answer_content": "Hello ​@cjackson ,\n\nFirst, your zip is missing gcc-arm-none-eabi.cmake\n\nI still managed to build after understanding that you separated the 2 projects.\n\nI’m not sure how you managed to do that, but you missed one important point:\n\nthe secure application has to be build with -mcmse flag to tell compiler you run in secure. This flag impact the selection of the memory alias that are used to access peripheral.\n\nThis flag is actually set in your 2 projects : secure and non secure.\n\nSo, when your non secure project tries to access RCC it uses the secure alias (starting by 0x5 … instead of 0x4..) which generates a secure fault transformed into a hardfault.\n\nRemoving this -mcmse flag from your non secure build solves the issue.\n\nAs a general rule, I would recommend having a working setup with default code generated first and then make your adaptation. In such way you would have been able to figure our the difference in the compilation flags.\n\nBesides, I noticed one option byte configuration enabling the flash data, probably reason why you changed the size of the secure app (no in the code shared but in your previous comment). You should also change non secure app size to avoid overlapping the flash data area also enabled in the second bank.\n\nBest regards\n\nJocelyn",

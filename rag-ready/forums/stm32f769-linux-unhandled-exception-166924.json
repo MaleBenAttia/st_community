@@ -10,7 +10,7 @@
                 "STM32F7 series"
             ],
             "published_at": "2026-07-14T07:26:11+00:00",
-            "views": 97,
+            "views": 98,
             "reply_count": 2,
             "best_answer": true,
             "best_answer_content": "Hello,\n\nBetter to ask the question to Emcarft or who developped that buildroot.\n\n> my question stays insofar as “how does anyone make ARM Cortex-M7 boot with FPU?”\n\nYou need to ensure CP10 and CP11 bits are set in SCB\\_CPACR register:\n\n<https://developer.arm.com/documentation/ddi0403/d/System-Level-Architecture/System-Address-Map/System-Control-Space--SCS-/Coprocessor-Access-Control-Register--CPACR>\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8abaa419-afc6-4682-a20d-4095834b1ee7.png)\n\nIn the HAL implementation ([system\\_stm32f7xx.c](https://github.com/STMicroelectronics/STM32CubeF7/blob/master/Projects/STM32F769I-Discovery/Templates/Src/system_stm32f7xx.c) file) / almost after reset:\n\n```\n\nvoid SystemInit(void)\n\n{\n\n/* FPU settings ------------------------------------------------------------*/\n\n#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)\n\nSCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */\n\n#endif\n\n..\n\n..\n\n```\n\nHope that helps.",

@@ -135,10 +135,37 @@ def clean_html_to_markdown(html_content: str) -> str:
     """Convertit du HTML en Markdown propre pour le RAG (un paragraphe par bloc)."""
     if not html_content:
         return ""
-    md_text = markdownify.markdownify(html_content, heading_style="ATX")
+        
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    # Remplacer les balises <oembed> par des liens simples
+    for oembed in soup.find_all('oembed'):
+        url = oembed.get('url')
+        if url:
+            new_tag = soup.new_tag('a', href=url)
+            new_tag.string = url
+            oembed.replace_with(new_tag)
+            
+    # Remplacer les balises <iframe> par des liens simples
+    for iframe in soup.find_all('iframe'):
+        src = iframe.get('src')
+        if src:
+            new_tag = soup.new_tag('a', href=src)
+            new_tag.string = src
+            iframe.replace_with(new_tag)
+            
+    html_processed = str(soup)
+    md_text = markdownify.markdownify(html_processed, heading_style="ATX")
+    
     # Conserve les paragraphes originaux séparés par des sauts de ligne clairs
     lines = [line.strip() for line in md_text.splitlines() if line.strip()]
-    return "\n\n".join(lines)
+    final_text = "\n\n".join(lines)
+    
+    # Fallback si markdownify donne un texte vide (ex: HTML avec que des balises non supportées)
+    if not final_text.strip():
+        final_text = soup.get_text(separator="\n").strip()
+        
+    return final_text
 
 def extract_images_from_html(html_content: str) -> list:
     """Extrait toutes les URLs d'images d'un contenu HTML."""

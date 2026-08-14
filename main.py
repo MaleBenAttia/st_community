@@ -229,35 +229,39 @@ def scrape_all_replies(url: str) -> list:
     """
     Scrape la page publique d'un topic et extrait toutes ses réponses.
     Extrait les réponses chronologiques et identifie la réponse acceptée (best answer).
+    Intègre un système de réessai (retry) pour éviter les blocages serveur (Rate Limit / Timeout).
     """
     replies = []
-    try:
-        resp = session.get(url, timeout=10)
-        if resp.status_code == 200:
-            soup = BeautifulSoup(resp.content, 'html.parser')
+    max_retries = 3
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            resp = session.get(url, timeout=10)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.content, 'html.parser')
 
-            # ÉTAPE 1 : Détections prioritaires de la réponse épinglée (Best Answer / Solved Box)
-            best_answer_box = (
-                soup.find(class_='qa-answer-field') or
-                soup.find(class_='reply-flexbox--bestanswer') or
-                soup.find(attrs={"data-qa": "qa-answer-field"})
-            )
-            best_answer_html = None
-            if best_answer_box:
-                content_div = best_answer_box.find(class_='post__content') or best_answer_box.find(class_='qa-qa-post-content')
-                if content_div:
-                    best_answer_html = str(content_div)
+                # ÉTAPE 1 : Détections prioritaires de la réponse épinglée (Best Answer / Solved Box)
+                best_answer_box = (
+                    soup.find(class_='qa-answer-field') or
+                    soup.find(class_='reply-flexbox--bestanswer') or
+                    soup.find(attrs={"data-qa": "qa-answer-field"})
+                )
+                best_answer_html = None
+                if best_answer_box:
+                    content_div = best_answer_box.find(class_='post__content') or best_answer_box.find(class_='qa-qa-post-content')
+                    if content_div:
+                        best_answer_html = str(content_div)
 
-            # ÉTAPE 2 : Conteneur principal du fil de discussion
-            thread_container = (
-                soup.find(class_='paginated-threaded-replies') or
-                soup.find(class_='threaded-replies') or
-                soup.find(class_='thread__list') or
-                soup.find(class_='replies-list') or
-                soup
-            )
+                # ÉTAPE 2 : Conteneur principal du fil de discussion
+                thread_container = (
+                    soup.find(class_='paginated-threaded-replies') or
+                    soup.find(class_='threaded-replies') or
+                    soup.find(class_='thread__list') or
+                    soup.find(class_='replies-list') or
+                    soup
+                )
 
-            # ÉTAPE 3 : Extrait les posts individuels du fil
+                # ÉTAPE 3 : Extrait les posts individuels du fil
             post_divs = thread_container.find_all(class_="threaded-reply-item")
             if not post_divs:
                 post_divs = thread_container.find_all(
@@ -309,10 +313,14 @@ def scrape_all_replies(url: str) -> list:
             if not any(r.get('is_best') for r in replies) and replies:
                 replies[0]['is_best'] = True
 
-    except Exception as e:
-        print(f"  [Scrape Error] {url} -> {e}")
+            return replies # Succès, on quitte la boucle de retry
 
-    return replies
+        except Exception as e:
+            import time
+            print(f"  [Scrape Error] {url} -> {e} (Tentative {attempt}/{max_retries})")
+            time.sleep(2 ** attempt) # Backoff exponentiel
+
+    return replies # Renvoie ce qu'on a (probablement vide) si échec total
 
 
 # --------------------------------------------------------------------------

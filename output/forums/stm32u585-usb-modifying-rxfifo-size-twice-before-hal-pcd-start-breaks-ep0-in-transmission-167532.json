@@ -15,12 +15,12 @@
   ],
   "moderatorTags": [],
   "moderationLabel": "",
-  "replyCount": 3,
-  "inclusiveReplyCount": 5,
-  "inclusiveVisibleReplyCount": 5,
+  "replyCount": 4,
+  "inclusiveReplyCount": 6,
+  "inclusiveVisibleReplyCount": 6,
   "likes": 1,
   "votes": 0,
-  "views": 31,
+  "views": 40,
   "voteSet": [],
   "likeSet": [
     "108700"
@@ -34,12 +34,12 @@
     "avatar": ""
   },
   "lastContributor": {
-    "id": "82085",
-    "username": "lll",
+    "id": "2057",
+    "username": "FBL",
     "avatar": ""
   },
   "createdAt": "2026-08-07T04:26:03+00:00",
-  "lastActivityAt": "2026-08-12T13:25:17+00:00",
+  "lastActivityAt": "2026-08-13T11:36:43+00:00",
   "status": "published",
   "ideaStatus": {
     "name": "",
@@ -47,7 +47,7 @@
     "backgroundColor": ""
   },
   "productAreas": [],
-  "lastPostId": 745502,
+  "lastPostId": 745581,
   "publishedAt": "2026-08-07T04:26:03+00:00",
   "closed": false,
   "_seoUrl": "https://community.st.com/stm32-mcus-products-25/stm32u585-usb-modifying-rxfifo-size-twice-before-hal-pcd-start-breaks-ep0-in-transmission-167532",
@@ -71,6 +71,10 @@
     {
       "is_best": false,
       "html": "<div class=\"post__content post__content--new-editor\"><p>hello,</p><p>Adding 8 to the calculation result of the formula(<em>Device RxFIFO</em>) can work normally, is this(+8) right? What is the correct calculation method</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @lll,</p><p>if you are asking why <strong>37? </strong>FIFO size should be interpreted as a <strong>word count </strong>and the value is typically written in <strong>hexadecimal</strong> when programming the register.</p><p>In general, the Rx FIFO is not used only for OUT data payloads. It must also reserve space for internal USB core traffic, including:</p><ul><li>SETUP packets for the control endpoint: 13 words (52 bytes)</li> <li>Largest received packet</li> <li>One additional word for status information</li> <li>Two words per OUT endpoint</li> <li>One word for the global OUT NAK</li></ul><p>So the Rx FIFO size can be calculated : 13 + ((largest USB packet size) / 4 + 1) + (2 × number of OUT EP) + 1 ​</p><p>I’m not sure if the value <strong>256 </strong>words is exactly on the edge in your case since you didn’t provide further details about your application. However, if your configuration works correctly with a larger Rx FIFO, you can keep that margin.</p></div>"
     }
   ]
 }

@@ -1,0 +1,67 @@
+{
+  "contentType": "question",
+  "id": "167650",
+  "publicId": "167681",
+  "title": "TSN SWITCH IN STM32MP257 DK BOARD",
+  "content": "<h2> </h2><p>Hello ST Team,</p><p>I am working  on the <strong>STM32MP257F </strong>, using <strong>OpenSTLinux 5.0.17</strong> and the <strong>ST TSN switch stack v6</strong>.</p><p>I would like to confirm whether the <strong>TSN Ethernet switch is officially supported on the STM32MP257F-DK board</strong><br /><br />NOTE:I understand that the DK board has only one externally accessible Ethernet port and that it can be used as a <strong>TSN endpoint</strong>.<br /><br /> </p><p>I have enabled the TSN switch, and the following interfaces are available:<br />lo<br />wlan0<br />end0<br />sw0p1<br />sw0p2<br />sw0p3<br />sw0ep<br />With the TSN switch enabled, the switch interfaces are created and <code>sw0p1</code>, <code>sw0p2</code>, and <code>sw0p3</code> are visible.<br /><br /> </p><p>I have connected an external PHY to <code>sw0p3</code>.</p><p>root@stm32mp2-e3-d2-99:~# ethtool sw0p3</p><p>Settings for sw0p3:</p><p>Supported ports: [ TP MII ]</p><p>Supported link modes: 10baseT/Full</p><p>100baseT/Full</p><p>1000baseT/Full</p><p>Supported pause frame use: No</p><p>Supports auto-negotiation: Yes</p><p>Supported FEC modes: Not reported</p><p>Advertised link modes: 10baseT/Full</p><p>100baseT/Full</p><p>1000baseT/Full</p><p>Advertised pause frame use: No</p><p>Advertised auto-negotiation: Yes</p><p>Advertised FEC modes: Not reported</p><p>Link partner advertised link modes: 10baseT/Half 10baseT/Full</p><p>100baseT/Half 100baseT/Full</p><p>1000baseT/Half 1000baseT/Full</p><p>Link partner advertised pause frame use: Symmetric Receive-only</p><p>Link partner advertised auto-negotiation: Yes</p><p>Link partner advertised FEC modes: Not reported</p><p>Speed: 100Mb/s</p><p>Duplex: Full</p><p>Auto-negotiation: on</p><p>master-slave cfg: preferred slave</p><p>master-slave status: slave</p><p>Port: Twisted Pair</p><p>PHYAD: 1</p><p>Transceiver: external</p><p>MDI-X: Unknown</p><p>Supports Wake-on: d</p><p>Wake-on: d</p><p>Link detected: yes<br /><br />…………………………...</p><p>root@stm32mp2-e3-d2-99:~# cat /etc/modprobe.d/edgx_sw_core.conf<br />options edgx_pfm_lkm netif=\"end1:0\"<br />I Change to <br />options edgx_pfm_lkm netif=\"end0:0\"<br />……………………………….<br />I configured an IP address directly on <code>sw0ep</code>.<br />………………<br />The PC and board are on the same subnet.</p><h3>PC → Board</h3><p>When I ping the board from the PC, the board can see the ICMP echo requests with:<br /><br />root@stm32mp2-e3-d2-99:~# tcpdump -ni sw0ep -e -vv</p><p><strong>150.100.50.38 &gt; 150.100.50.27: ICMP echo request, id 3, seq 11, length 64</strong></p><p><strong>18:55:20.250046 00:dd:c5:eb:d8:bf &gt; ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 60: Ethernet (len 6), IPv4 (len 4), Request who-has 150.100.50.1 tell 150.100.50.38, length 46</strong></p><p><strong>18:55:21.210117 00:dd:c5:eb:d8:bf &gt; ea:a3:64:82:5f:ff, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, id 25861, offset 0, flags [DF], proto ICMP (1), length 84)</strong></p><p><strong>150.100.50.38 &gt; 150.100.50.27: ICMP echo request, id 3, seq 12, length 64</strong></p><h3>Board → PC</h3><p> </p><p>When I ping from the board to the PC, the PC can see the ICMP echo request and the corresponding reply, but the ping test on the board still reports failure.</p><p><br /> </p><p><strong>150.100.50.38 &gt; 150.100.50.27: ICMP echo request, id 10, seq 4, length 64</strong></p><p><strong>18:50:55.189043 10:e7:7a:e3:d2:99 &gt; 00:dd:c5:eb:d8:bf, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, id 11531, offset 0, flags [none], proto ICMP (1), length 84)</strong></p><p><strong>150.100.50.27 &gt; 150.100.50.38: ICMP echo reply, id 10, seq 4, length 64</strong></p><p><strong>18:50:56.085175 00:dd:c5:eb:d8:bf &gt; ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 60: Ethernet (len 6), IPv4 (len 4), Request who-has 150.100.50.1 tell 150.100.50.38, length 46</strong></p><h3> </h3>",
+  "featuredImage": "",
+  "featuredImageAltText": "",
+  "publicLabel": "",
+  "categoryId": "46",
+  "categoryName": "STM32 MPUs Embedded software and solutions",
+  "tags": [
+    "Linux-SDK",
+    "U-Boot",
+    "STM32MP25 lines ST boards"
+  ],
+  "moderatorTags": [],
+  "moderationLabel": "",
+  "replyCount": 3,
+  "inclusiveReplyCount": 3,
+  "inclusiveVisibleReplyCount": 3,
+  "likes": 0,
+  "votes": 0,
+  "views": 21,
+  "voteSet": [],
+  "likeSet": [],
+  "trashed": false,
+  "sticky": false,
+  "bestAnswer": false,
+  "author": {
+    "id": "109060",
+    "username": "M.MALLESH",
+    "avatar": ""
+  },
+  "lastContributor": {
+    "id": "109060",
+    "username": "M.MALLESH",
+    "avatar": ""
+  },
+  "createdAt": "2026-08-13T10:39:44+00:00",
+  "lastActivityAt": "2026-08-14T05:30:33+00:00",
+  "status": "published",
+  "ideaStatus": {
+    "name": "",
+    "textColor": "",
+    "backgroundColor": ""
+  },
+  "productAreas": [],
+  "lastPostId": 745630,
+  "publishedAt": "2026-08-13T10:39:44+00:00",
+  "closed": false,
+  "_seoUrl": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/tsn-switch-in-stm32mp257-dk-board-167681",
+  "scraped_replies": [
+    {
+      "is_best": true,
+      "html": "<div class=\"post__content post__content--new-editor\"><p><strong>Why does <code>/proc/net/snmp</code> show <code>InEchos: 0</code> even though <code>tcpdump</code> on <code>sw0ep</code> clearly captures the incoming ICMP echo request?</strong></p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"109060\">@M.MALLESH</user-mention> ,<br/>The switch is integrated in the SoC, so yes we can say that is “supported” from a SoC point of view. However, the DK board has not been created to be used with it (the STM32MP257F-EV board is the one to use).</p><p>I understand that you modified the HW of the board to connect the ETH1 MAC to an external PHY right ? Did you also modify the device tree as requested for <strong><em>eth1 </em></strong>and did you already confirm that this port is working without activating the TSN switch (what we call by-pass mode, or direct mode) ?</p><p>Is the external PHY a RGMII one or a RMII one ?</p><hr/><p>After that, you can begin to try making TSN switch work. However, as you modified the HW of the discovery kit, we did not test a such setup on our side.</p><p>Maybe you can share more details about your modifications (HW) and the SW adaptations you made (like Device trees and pinctrl) to let us see more precisely what you did.</p><p>Anyway, first step is to confirm that without the switch ETH1 is working properly.</p><p>Kind regards,<br/>Erwan.</p></div>"
+    },
+    {
+      "is_best": false,
+      "html": "<div class=\"post__content post__content--new-editor\"><p>thanks for reply</p></div>"
+    }
+  ]
+}

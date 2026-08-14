@@ -11,7 +11,7 @@
                 "Secure"
             ],
             "published_at": "2026-08-07T11:01:09+00:00",
-            "views": 15,
+            "views": 17,
             "reply_count": 1,
             "best_answer": true,
             "best_answer_content": "Finally got it working…\n\n**STiRoT** leaves SAES in a state that retains the shared **RNG** path, causing `PKA_SR.INITOK` to remain 0 because, as described in [RM0481](https://www.st.com/resource/en/reference_manual/rm0481-stm32h523533xx-stm32h543553xx-stm32h562xx-and-stm32h563573xx-armbased-32bit-mcus-stmicroelectronics.pdf), `INITOK` stays low while **SAES** is using the **RNG** bus.\n\nResetting **SAES** in the secure application before the non-secure handoff fixed it:\n\n```\n\n__HAL_RCC_SAES_CLK_ENABLE();\n\n__HAL_RCC_SAES_FORCE_RESET();\n\n__DSB();\n\n__HAL_RCC_SAES_RELEASE_RESET();\n\n__DSB();\n\n```\n\n**PKA** now initializes normally in `IROT_PROVISIONED`.",

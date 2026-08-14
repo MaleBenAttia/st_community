@@ -12,7 +12,7 @@
                 "X Cube AI"
             ],
             "published_at": "2026-07-28T13:06:20+00:00",
-            "views": 58,
+            "views": 60,
             "reply_count": 1,
             "best_answer": true,
             "best_answer_content": "Hi everyone,\n\nI finally found the root cause of the issue.\n\nThe problem was **not** related to the generated network, HyperRAM, quantization or the STAI runtime itself.\n\nI integrated a STEdgeAI-generated network into my own RTOS (uKOS-X), where all low-level hardware initialization (clocks, CACHEAXI, external memories, etc.) is already performed by the operating system.\n\nThe missing step was simply the initialization of the ST CACHEAXI software module:\n\n```\n\n#include \"npu_cache.h\"\n\nnpu_cache_enable();\n\nstai_runtime_init();\n\nstai_network_init(s_network);\n\n```\n\nAlthough the CACHEAXI hardware was already configured, the Neural-ART runtime expects `npu_cache_enable()` to initialize its internal software handle before performing any cache maintenance operations.\n\nAfter adding this call, the network became fully deterministic:\n\n* identical inputs always produce identical outputs;\n\n* activation memory checksums are identical across multiple runs.\n\nI hope this helps anyone integrating STEdgeAI into an existing RTOS instead of using the generated standalone application.\n\nMany thanks to the ST team for their support during the investigation.",

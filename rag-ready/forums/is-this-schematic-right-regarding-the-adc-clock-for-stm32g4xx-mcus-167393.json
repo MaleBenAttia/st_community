@@ -11,14 +11,14 @@
                 "ADC"
             ],
             "published_at": "2026-08-01T10:23:00+00:00",
-            "views": 154,
+            "views": 157,
             "reply_count": 4,
             "best_answer": true,
             "best_answer_content": "So…\n\n>I am new here and to these STM32 processors\n\nmaybe you should ask : how to use this and the CubeIDE and what you want to do …\n\nI wrote in the beginning: you can set the clock for ADC in CubeMX - so why not just doing it ?\n\nOr is it just to find out something in the internal structure of a soc , thats only valid for exactly this version ? why ?\n\nOHhhh - i just see, you playing with Arduino, ok, now i understand better, why you ask.\n\n+ in Arduino you cannot control these kind of chips anyway (i know, because i tried...), you can get in the best-case scenario a dont-know-why-it-works-now mix of simple Arduino commands and HAL-library snippets.\n\nJust believe me: Arduino is perfect to get something running in view minutes, if a good library doing, what you want.\n\nBut if you want something, thats not covered by ready made libs and functions, and want/need go to the limits that such a complex SOC (not just cpu, its a System On Chip)  you have to use the tool of the manufacturer , here STM .\n\n​​​​​​​ + so finally about your first question: yes, your schematic looks ok . :)",
             "content_text": "I have used some time to figure out to use the ADCs for a couple of Nucleo STM32G4xx boards. In particular I liked to be able to make use of the asynchronous clock. I found out by some trials and errors to get the right RCC settings for that.\n\nIn RM0440 you got a ADC clock schematic figure 83 page 597. I have tried to enlarge this schematic a bit regarding the RCC controls like this:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/358dd77d-5062-467e-975d-bf10d0d071e2.png)\n\nCan you agree to this schematic?\n\nThese functions can help configure RCC for the other ADC clock input:\n\n\\_\\_HAL\\_RCC\\_ADC12\\_CLK\\_ENABLE()         Enables clock to AHB interface\n\n\\_\\_HAL\\_RCC\\_PLLCLKOUT\\_ENABLE(RCC\\_PLL\\_ADCCLK); Enables clock to PLLP\n\nI did not find a function outside the big HAL RCC init data structure to set the bits ABCxxSEL[1:0] of RCC\\_CCIPR, so I did that bare metal.",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/446fe4be-a8f0-4fbd-a455-5c5c95e55bc2.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/358dd77d-5062-467e-975d-bf10d0d071e2.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/358dd77d-5062-467e-975d-bf10d0d071e2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/446fe4be-a8f0-4fbd-a455-5c5c95e55bc2.png"
             ],
             "author": "Backflip"
         }
