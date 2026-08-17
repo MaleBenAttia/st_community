@@ -1,8 +1,10 @@
 # Pipeline de collecte RAG & Dashboard Analytique — STMicroelectronics Community
 
-Système complet d'extraction, de préparation de données pour un pipeline **RAG (Retrieval-Augmented Generation)**, et d'un **Dashboard Web interactif** à partir de la communauté STMicroelectronics (Gainsight/inSided).
+Système complet d'extraction et de préparation de données pour un pipeline **RAG (Retrieval-Augmented Generation)** à partir de la communauté STMicroelectronics (Gainsight/inSided).
 
-Le pipeline est divisé en 3 étapes autonomes, orchestrées soit par la ligne de commande, soit directement depuis l'interface Web.
+Le pipeline est **entièrement orchestré par un point d'entrée unique** (`run_pipeline.py`) qui enchaîne : Scan → Extraction → Mise à jour des rôles → Préparation RAG. La configuration partagée (auth, API, dates, catégories, chemins, helpers) est centralisée dans `config.py`.
+
+> Prochaine étape : **frontend** consommant les données préparées de `rag-ready/`.
 
 ---
 
@@ -10,15 +12,24 @@ Le pipeline est divisé en 3 étapes autonomes, orchestrées soit par la ligne d
 
 ```
 .
+├── config.py                   ← Configuration & clients partagés (env, auth OAuth2, api_get, slugify, dates, catégories, chemins)
+├── run_pipeline.py             ← Orchestrateur principal (SEUL point d'entrée : Scan → Extraction → MàJ rôles → RAG)
+├── run_logger.py               ← Logger par run : logs/<ts>_pipeline/ (run.log, ErrorLog.txt, stats.json)
+├── scan_categories.py          ← Étape 1 : Scan des volumes par catégorie (ne s'exécute que via run_pipeline)
+├── main.py                     ← Étape 2 : Extraction API + scraping HTML des réponses (3 workers, anti-blocage)
+├── build_author_roles.py       ← Étape 2bis : régénère author_roles.json depuis output/
+├── author_roles.py             ← Module rôles (lecture de la référence statique)
+├── author_roles.json           ← Référence statique des rôles d'auteurs (éditable à la main)
+├── prepare_rag.py              ← Étape 3 : Filtrage, nettoyage, conversion Markdown & RAG-ready
+│
 ├── Dashboard/                  ← Application Web Dashboard (Flask + Interface UI)
 │   ├── app.py                  ← Serveur backend Flask (API, gestion subprocess & SSE logs)
 │   ├── dashboard.Html          ← Interface graphique moderne (Glassmorphism, onglets & contrôle)
 │   └── latest_stats.json       ← Copie des dernières statistiques générées pour l'UI
 │
-├── run_pipeline.py              ← Orchestrateur principal (Scan → Extraction → RAG)
-├── scan_categories.py       ← Étape 1 : Scan des volumes par catégorie
-├── main.py                  ← Étape 2 : Extraction brute de l'API (avec scraping multithread)
-└── prepare_rag.py           ← Étape 3 : Filtrage, nettoyage, conversion Markdown & RAG-ready
+├── .env / .env.example         ← Identifiants, URL, RAG_START_DATE, catégories
+├── requirements.txt
+└── README.md
 ```
 
 ### Dossiers de données générés
@@ -26,15 +37,15 @@ Le pipeline est divisé en 3 étapes autonomes, orchestrées soit par la ligne d
 ```
 .
 ├── output/                  ← Données brutes extraites par main.py
-│   ├── knowledge_base/      ← Fichiers JSON par article KB
-│   └── forums/              ← Fichiers JSON par topic de forum
+│   ├── knowledge_base/<cat>/ ← 1 fichier JSON par article KB ({publicId}.json)
+│   └── forums/<cat>/         ← 1 fichier JSON par topic de forum ({publicId}.json)
 │
 ├── rag-ready/               ← Données filtrées et nettoyées pour le RAG
-│   ├── knowledge_base/      ← Articles KB (HTML → Markdown, encapsulés dans {"kb": [...]})
-│   └── forums/              ← Topics résolus avec best answer (HTML → Markdown, encapsulés dans {"forum": [...]})
+│   ├── knowledge_base/<cat>/ ← Articles KB (HTML → Markdown, encapsulés dans {"kb": [...]})
+│   └── forums/<cat>/         ← Topics résolus avec best answer (HTML → Markdown, {"forum": [...]})
 │
-├── logs/                    ← Rapports d'exécution et KPIs horodatés (pipeline_stats_*.json)
-└── scan_report.txt          ← Rapport du dernier scan des catégories
+└── logs/                    ← Un dossier par run d'exécution
+    └── <YYYYMMDD_HHMMSS>_pipeline/  ← run.log, ErrorLog.txt, stats.json, scan_report.txt, extracted_ids.txt
 ```
 
 ---
@@ -44,7 +55,7 @@ Le pipeline est divisé en 3 étapes autonomes, orchestrées soit par la ligne d
 ```powershell
 # 1. Créer et activer un environnement virtuel
 python -m venv venv
-.\venv\Scripts\Activate.ps1  
+.\venv\Scripts\Activate.ps1
 venv\Scripts\activate
 
 # 2. Installer les dépendances (y compris Flask)
@@ -63,12 +74,19 @@ CLIENT_ID=votre_client_id
 CLIENT_SECRET=votre_client_secret
 AUTH_URL=https://api2-eu-west-1.insided.com/oauth2/token
 API_BASE_URL=https://api2-eu-west-1.insided.com/v2
+SITE_BASE_URL=https://community.st.com
 AUTH_METHOD=basic          # 'basic' (HTTP Basic Auth) ou 'body' (x-www-form-urlencoded)
 OAUTH_SCOPE=read
 
 # Configuration RAG
-RAG_START_DATE=2026-06-30T00:00:00Z   # Date limite (ISO 8601)
+RAG_START_DATE=2026-06-30T00:00:00Z   # Date limite (ISO 8601) : seuls les items publiés APRÈS cette date sont conservés
+
+# Catégories (optionnel : par défaut listes complètes intégrées dans config.py)
+RAG_KB_CATEGORIES=60,61,62,63,64,65,66,68
+RAG_FORUM_CATEGORIES=25,26,28,29,30,31,32,33,34,35,36,39,46,48,49,50,51,52,53,54,57,118,120,121,133,134,138,142,151
 ```
+
+Toutes ces variables sont lues et interprétées une seule fois par `config.py` (cache de module) et partagées par les 3 étapes.
 
 > **⚠️ Ne jamais commiter le fichier `.env`.** Il contient vos identifiants d'accès.
 
@@ -87,56 +105,73 @@ python Dashboard/app.py
 Accédez à **[http://127.0.0.1:5000](http://127.0.0.1:5000)** dans votre navigateur.
 
 **Fonctionnalités du Dashboard :**
-- **Onglet "Knowledge Base"** : Métriques, articles validés, distribution des vues et catégories KB.
-- **Onglet "Community Forums"** : Taux de résolution, posts les plus vus/répondus, statistiques d'interaction.
+- **Onglet "Knowledge Base"** : Métriques, articles validés, distribution des vues et catégories KB. Breakdown par catégorie et liste d'articles validés repliables (**Voir plus ▾ / Voir moins ▴**).
+- **Onglet "Community Forums"** : Taux de résolution, posts les plus vus/répondus, statistiques d'interaction, et **2 grands blocs KPI** :
+  - **Solved Posts** (résolus) avec sous-répartition colorée *Replied with ST agent* (vert) / *Replied without ST agent* (bleu), en nombre et pourcentage.
+  - **Ongoing** (non résolus) avec sous-répartition colorée *With ST agent* (ambre) / *Without ST agent* (rouge).
+  - Breakdown par catégorie repliable (**Voir plus ▾ / Voir moins ▴**) et cartes à hauteur égale.
 - **Onglet "Pipeline Control"** :
   - Modification dynamique de `RAG_START_DATE`.
+  - Case **"Full re-scrape"** : ré-extraction complète (tous les topics re-scrapés, reprise incrémentale ignorée) — à cocher pour un état 100 % frais, plus lent (~20 min).
   - Bouton **"Start Pipeline"** pour lancer le traitement en arrière-plan.
   - Bouton **"Stop Execution"** pour interrompre immédiatement le pipeline.
   - Console de logs en temps réel (Server-Sent Events).
-
----
+  - Section **"Last Run"** : dossier, heure de début, durée et nombre d'erreurs du dernier run, avec fin du log.
 
 ### Option 2 — En Ligne de Commande (CLI)
 
-#### Lancement du Pipeline Complet
+Le pipeline complet (les 3 étapes + mise à jour des rôles) s'exécute **via un unique point d'entrée** :
+
 ```powershell
 python run_pipeline.py
 ```
 
-#### Lancement étape par étape
-
-| Script | Commande | Description |
-|---|---|---|
-| `scan_categories.py` | `python scan_categories.py` | Scanne et identifie les catégories avec items récents |
-| `main.py` | `python main.py` | Extrait les articles/posts bruts dans `output/` |
-| `prepare_rag.py` | `python prepare_rag.py` | Filtre (Best Answer, date), nettoie le HTML et génère `rag-ready/` |
+> Les modules d'étapes (`scan_categories.py`, `main.py`, `prepare_rag.py`) **ne sont plus exécutables seuls** (plus de bloc `if __name__ == "__main__"`) : ils sont orchestrés uniquement par `run_pipeline.py`. Pour lancer une étape isolément, appeler sa fonction depuis Python, ex. : `python -c "from prepare_rag import run_prepare; run_prepare()"`.
 
 ---
 
 ## Fonctionnalités Clés & Robustesse
 
-### 1. Nommage Déterministe & Gestion des Doublons
-Les fichiers dans `output/` et `rag-ready/` sont nommés de manière strictement déterministe sous la forme `{slug}-{publicId}.json`. Lors des ré-exécutions ou des mises à jour d'un article, **le nouveau contenu écrase automatiquement l'ancien**, évitant tout doublon d'extraction.
+### 1. Nommage Déterministe `{publicId}.json`
+Les fichiers dans `output/` et `rag-ready/` sont nommés **`{publicId}.json`** (ex. `166940.json` — le `publicId` est la référence publique de la plateforme inSided, à distinguer du champ interne `id`) et rangés dans un sous-dossier par catégorie (`<categoryName>` slugifié par `config.slugify`, identique entre `output/` et `rag-ready/`). Lors des ré-exécutions ou des mises à jour d'un item, **le nouveau contenu écrase automatiquement l'ancien**, évitant tout doublon d'extraction.
 
 ### 2. Détection 100 % Fiable de la Meilleure Réponse (Best Answer)
-Sur inSided, la réponse validée est dupliquée dans un bloc épinglé en haut de page (Zone A) et dans le fil chronologique (Zone B). Pour éviter les doublons et les fausse attributions, `main.py` et `prepare_rag.py` s'appuient uniquement sur le conteneur principal `.paginated-threaded-replies` et la présence de `[data-qa="pill-best-answer"]`.
+Sur inSided, la réponse validée est dupliquée dans un bloc épinglé en haut de page (Zone A) et dans le fil chronologique (Zone B). Pour éviter les doublons et les fausses attributions, `main.py` et `prepare_rag.py` s'appuient uniquement sur le conteneur principal `.paginated-threaded-replies` et la présence de `[data-qa="pill-best-answer"]`.
 
-### 3. Multithreading & Robustesse (Rate Limiting)
-- Scraping HTML des sujets de forums parallélisé via `ThreadPoolExecutor` (10 workers).
-- Mécanisme de **Backoff exponentiel (réessais automatiques)** intégré à `main.py` pour gérer de manière transparente les erreurs HTTP 429 (Trop de requêtes) et les Timeouts du serveur.
-- Scan préalable des catégories actives (`scan_categories.py`) pour éviter de paginer inutilement les catégories vides.
-- Mise en cache automatique du jeton d'accès OAuth2 (`.token_cache.json`) pendant 58 minutes.
-- Support du rechargement d'environnement `override=True` pour prendre en compte les changements de date à la volée.
+### 3. Multithreading, Anti-Blocage & Reprise Incrémentale
+- Scraping HTML des topics de forums parallélisé via `ThreadPoolExecutor` (**3 workers**) avec **jitter aléatoire** autour de `SCRAPE_DELAY_SECONDS` (0.5 s) pour éviter les salves synchronisées.
+- **Anti-blocage IP** : tout échec HTTP non-200 est compté ; après **5 échecs consécutifs**, une **pause longue (30-60 s)** est appliquée avant de reprendre (mécanisme thread-safe).
+- **Backoff exponentiel** (429, 5xx, Timeout) avec prise en compte de l'en-tête `Retry-After` ; un `401` régénère automatiquement le token OAuth2.
+- **Reprise incrémentale intelligente** : lors des ré-exécutions, un topic déjà scrapé (fichier `{publicId}.json` présent avec `scraped_replies` non vide) est géré selon son statut :
+  - déjà **résolu** (`bestAnswer` true) → **sauté** (rapide, fichier conservé) ;
+  - non résolu et toujours non résolu côté API → sauté, mais **métadonnées rafraîchies** (vues, réponses, statut) sans re-scrape ;
+  - **non résolu puis devenu résolu** (l'API le confirme) → **re-scrapé** pour capter le nouveau best answer et les réponses ST (un forum peut être résolu aujourd'hui mais pas hier).
+  - Option **"Full re-scrape"** (Dashboard) ou `FULL_RESCRAPE=1` (CLI) pour tout re-scraper sans condition.
+- Scan préalable des catégories actives (`scan_categories.py`) pour ne paginer que les catégories non vides.
+- Pagination avec **arrêt anticipé** : dès qu'une page ne contient plus aucun item après `RAG_START_DATE`, l'extraction s'arrête (l'API renvoie les topics du plus récent au plus ancien).
+- Mise en cache automatique du jeton d'accès OAuth2 (`.token_cache.json`) pendant ~58 minutes.
 
 ### 4. Prise en compte des Médias et Vidéos
 Les réponses ne contenant que des vidéos ou des intégrations externes (balises HTML `<oembed>` et `<iframe>`) sont détectées par `prepare_rag.py` et transformées automatiquement en liens cliquables Markdown avant conversion, évitant ainsi la perte de données et les réponses vides.
+
+### 5. Rôles d'auteurs & réponses d'agents ST
+- Les rôles sont extraits du HTML des réponses (`.rank-title`) puis complétés via la référence statique **`author_roles.json`** (source de vérité manuelle, éditable à la main).
+- Chaque run régénère `author_roles.json` (`build_author_roles.py`) **sans écraser les modifications manuelles** (merge : un rôle non vide déjà présent est conservé) ; les auteurs non résolus sont listés dans `_roles_non_resolus` et signalés dans le log.
+- Chaque topic RAG-ready contient **`st_agent_reply`** (`has_st_reply` + liste des réponses ST) pour identifier les topics "solved" par un agent ST (Technical Moderator / Community Manager / Employee).
+- Les KPIs agrégés exposés dans `stats.json` / `latest_stats.json` (`step_3_forums_stats`) :
+  - **`st_agent_stats`** : répartition ST sur les topics **résolus** (`forums_with_st_reply`, `forums_without_st_reply`, `st_reply_pct`) ;
+  - **`st_agent_stats_ongoing`** : même répartition sur les topics **non résolus** (`ongoing`) — alimente le bloc KPI "Ongoing" du Dashboard.
+
+### 6. Logs par run
+Chaque exécution du pipeline crée `logs/<YYYYMMDD_HHMMSS>_pipeline/` contenant `run.log` (tee console), `ErrorLog.txt` (erreurs), `stats.json` (KPIs), `scan_report.txt` et `extracted_ids.txt`. Le Dashboard affiche le **dernier run** (dossier, durée, nombre d'erreurs et fin du log).
 
 ---
 
 ## Structure des Données RAG-Ready (`rag-ready/`)
 
-### Knowledge Base (`rag-ready/knowledge_base/*.json`)
+Les fichiers sont nommés `{publicId}.json` (même nom que la source `output/`) et encapsulés dans un objet racine typé — **contrat de données pour le frontend**.
+
+### Knowledge Base (`rag-ready/knowledge_base/<categorie>/*.json`)
 ```json
 {
     "kb": [
@@ -158,7 +193,7 @@ Les réponses ne contenant que des vidéos ou des intégrations externes (balise
 }
 ```
 
-### Community Forums (`rag-ready/forums/*.json`)
+### Community Forums (`rag-ready/forums/<categorie>/*.json`)
 ```json
 {
     "forum": [
@@ -174,9 +209,18 @@ Les réponses ne contenant que des vidéos ou des intégrations externes (balise
             "reply_count": 1,
             "best_answer": true,
             "best_answer_content": "Hello @embd...\n\nThe BOR_LEV bit...",
+            "best_answer_author": "ST Technical Moderator name",
+            "best_answer_author_role": "ST Technical Moderator",
             "content_text": "Hi\n\nWhile reviewing...",
             "images": [],
-            "author": "embd"
+            "author": "embd",
+            "scraped_replies": [
+                {"is_best": true, "html": "...", "author": "...", "role": "Super User"}
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [{"author": "...", "role": "ST Technical Moderator"}]
+            }
         }
     ]
 }
@@ -188,3 +232,5 @@ Les réponses ne contenant que des vidéos ou des intégrations externes (balise
 
 - **29 Catégories Forums** (MCUs, MPUs, MEMS, TouchGFX, Motor Control, Security, Edge AI, VS Code tools, etc.)
 - **8 Catégories Knowledge Base** (STM32 MCUs, MPUs, Sensors, Analog, Power management, Quality & Reliability, etc.)
+
+La liste exacte est définie par défaut dans `config.py` et surchargeable via les variables `RAG_KB_CATEGORIES` / `RAG_FORUM_CATEGORIES` du `.env`.

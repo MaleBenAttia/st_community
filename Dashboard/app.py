@@ -21,6 +21,7 @@ app = Flask(__name__)
 BASE_DIR = Path(__file__).parent.parent
 ENV_PATH = BASE_DIR / ".env"
 STATS_PATH = Path(__file__).parent / "latest_stats.json"
+LOGS_DIR = BASE_DIR / "logs"
 
 current_process = None
 
@@ -35,11 +36,53 @@ def get_stats():
             return jsonify(json.load(f))
     return jsonify({"error": "No stats found yet. Please run the pipeline."}), 404
 
+@app.route("/api/runs")
+def get_last_run():
+    """Renvoie uniquement le DERNIER run du pipeline (dossier logs/<ts>_pipeline)."""
+    folders = sorted(LOGS_DIR.glob("*_pipeline"), reverse=True)
+    if not folders:
+        return jsonify({"error": "No run found yet. Please run the pipeline."}), 404
+
+    folder = folders[0]
+
+    stats = {}
+    sp = folder / "stats.json"
+    if sp.exists():
+        try:
+            with open(sp, "r", encoding="utf-8") as f:
+                stats = json.load(f)
+        except Exception:
+            stats = {}
+
+    errors = 0
+    ep = folder / "ErrorLog.txt"
+    if ep.exists():
+        try:
+            errors = sum(1 for line in open(ep, encoding="utf-8") if line.strip())
+        except Exception:
+            errors = 0
+
+    log_text = ""
+    lp = folder / "run.log"
+    if lp.exists():
+        try:
+            log_text = lp.read_text(encoding="utf-8")
+        except Exception:
+            log_text = ""
+
+    return jsonify({
+        "name": folder.name,
+        "stats": stats,
+        "errors": errors,
+        "log": log_text[-30000:],
+    })
+
 @app.route("/api/run", methods=["POST"])
 def run_pipeline():
     global current_process
     data = request.json
     start_date = data.get("start_date")
+    full = bool(data.get("full", False))
     
     if start_date:
         update_env_date(start_date)
@@ -56,6 +99,8 @@ def run_pipeline():
     if start_date:
         env["RAG_START_DATE"] = start_date
         os.environ["RAG_START_DATE"] = start_date
+    if full:
+        env["FULL_RESCRAPE"] = "1"
 
     current_process = subprocess.Popen(
         [sys.executable, "-u", str(BASE_DIR / "run_pipeline.py")],

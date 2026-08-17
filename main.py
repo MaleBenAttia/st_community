@@ -1,209 +1,101 @@
 #!/usr/bin/env python3
 """
-PoC - Collecte de contenu Gainsight/inSided (communauté STMicroelectronics)
+Étape 2 du pipeline - Collecte de contenu Gainsight/inSided (communauté STMicroelectronics)
 
-Objectif du PoC :
-  - Récupérer 10 items de Knowledge Base + 10 items de Product Forums
-  - publiés après le 31 mai 2026 (champ `publishedAt`)
-  - Générer l'URL SEO-friendly de chaque item
-  - Sauvegarder le résultat dans un fichier JSON (output/poc_result.json)
+Objectif :
+  - Extraire les items (Knowledge Base + Product Forums) publiés après RAG_START_DATE
+    via l'API inSided (paginateur avec arrêt anticipé sur les pages trop anciennes).
+  - Scraper les réponses HTML de chaque topic de forum en parallèle (3 workers,
+    jitter anti-blocage + pause longue après 5 échecs consécutifs) pour récupérer
+    best answer, auteurs et rôles.
+  - Remplir les rôles d'auteurs via la référence statique author_roles.json (source de
+    vérité manuelle) et signaler les auteurs non résolus.
+  - Sauvegarder un fichier JSON par item dans output/ (nom = {publicId}.json,
+    rangé par catégorie).
+   - Reprise incrémentale intelligente : un topic déjà résolu (bestAnswer true)
+     est sauté ; un topic non résolu est re-vérifié côté API (bestAnswer frais,
+     déjà présent dans la pagination) et re-scrapé dès qu'il devient résolu
+     (le best answer peut être marqué aujourd'hui mais pas hier). Les métadonnées
+     (views, replyCount) des topics sautés sont rafraîchies sans re-scrape.
+   - Force re-scrape : flag force_rescrape=True (ou env FULL_RESCRAPE=1) pour
+     tout re-scraper sans tenir compte de la reprise incrémentale.
 
-Usage :
-  1. Copier .env.example en .env et remplir CLIENT_ID / CLIENT_SECRET
-  2. pip install -r requirements.txt
-  3. python main.py
-"""
-#!/usr/bin/env python3
-"""
-PoC - Collecte de contenu Gainsight/inSided (communauté STMicroelectronics)
-
-Objectif du PoC :
-  - Récupérer 10 items de Knowledge Base + 10 items de Product Forums
-  - publiés après le 31 mai 2026 (champ `publishedAt`)
-  - Générer l'URL SEO-friendly de chaque item
-  - Sauvegarder le résultat dans un fichier JSON (output/poc_result.json)
-
-Usage :
-  1. Copier .env.example en .env et remplir CLIENT_ID / CLIENT_SECRET
-  2. pip install -r requirements.txt
-  3. python main.py
+Point d'entrée : run_pipeline.py (scan → extraction → rôles → RAG).
 """
 
-import os
-import re
-import sys
 import json
+import random
+import threading
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 
-# --------------------------------------------------------------------------
-# Configuration
-# --------------------------------------------------------------------------
+import author_roles
+import run_logger
 
-load_dotenv(override=True)
+from config import (
+    API_BASE_URL,
+    DATE_THRESHOLD,
+    FORUM_CATEGORIES,
+    KB_CATEGORIES,
+    OUTPUT_DIR,
+    OUTPUT_FORUMS_DIR,
+    OUTPUT_KB_DIR,
+    PAGE_SIZE,
+    REQUEST_DELAY_SECONDS,
+    SCRAPE_DELAY_SECONDS,
+    SITE_BASE_URL,
+    TARGET_COUNT,
+    api_get,
+    get_access_token,
+    slugify,
+)
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-AUTH_URL = os.getenv("AUTH_URL", "https://api2-eu-west-1.insided.com/oauth2/token")
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api2-eu-west-1.insided.com/v2")
-SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://community.st.com")
+# Auteurs dont le role reste vide apres le repli statique author_roles.json (message d'erreur final)
+UNRESOLVED = set()
 
-# "basic" -> client_id/client_secret envoyés via HTTP Basic Auth (le plus courant avec Kong)
-# "body"  -> client_id/client_secret envoyés dans le body x-www-form-urlencoded
-AUTH_METHOD = os.getenv("AUTH_METHOD", "basic").lower()
+# Anti-blocage scraping : pause longue après N échecs consécutifs (détection blocage IP)
+CONSECUTIVE_SCRAPE_FAILURES_LIMIT = 5
+SCRAPE_BLOCK_PAUSE_SECONDS = (30, 60)
+_scrape_failures = 0
+_scrape_failures_lock = threading.Lock()
 
-OAUTH_SCOPE = os.getenv("OAUTH_SCOPE", "read")
-
-PAGE_SIZE = 100
-MAX_RETRIES = 5
-RETRY_BACKOFF_SECONDS = 2  # backoff exponentiel : 2, 4, 8, 16, 32...
-REQUEST_DELAY_SECONDS = 0.3  # pause polie entre 2 requêtes (rate limit inconnu -> prudence)
-
-# Date de début de collecte : lit RAG_START_DATE depuis .env
-# Format attendu : ISO 8601 (ex. 2026-08-08T00:00:00Z)
-# Seuls les items publiés APRÈS cette date sont extraits dans output/.
-_raw_start_date = os.getenv("RAG_START_DATE", "")
-try:
-    DATE_THRESHOLD = datetime.fromisoformat(_raw_start_date.replace("Z", "+00:00"))
-    print(f"[CONFIG] DATE_THRESHOLD = {DATE_THRESHOLD.isoformat()} (lu depuis RAG_START_DATE dans .env)")
-except (ValueError, AttributeError):
-    DATE_THRESHOLD = datetime(2026, 5, 31, tzinfo=timezone.utc)
-    print(
-        f"[CONFIG] [WARN] RAG_START_DATE manquant ou invalide dans .env (valeur : '{_raw_start_date}').\n"
-        f"          Valeur par défaut utilisée : {DATE_THRESHOLD.isoformat()}"
-    )
-
-TARGET_COUNT = 99999  # Extraction complète : toutes les catégories sans limite d'items
-
-# Toutes les catégories à extraire
-KB_CATEGORIES = ["60", "61", "62", "63", "64", "65", "66", "68"]
-FORUM_CATEGORIES = [
-    "25", "26", "28", "29", "30", "31", "32", "33", "34", "35",
-    "36", "39", "46", "48", "49", "50", "51", "52", "53", "54",
-    "57", "118", "120", "121", "133", "134", "138", "142", "151"
-]
-
-OUTPUT_DIR = Path(__file__).parent / "output"
-OUTPUT_KB_DIR = OUTPUT_DIR / "knowledge_base"
-OUTPUT_FORUMS_DIR = OUTPUT_DIR / "forums"
+# Session réutilisable (HTTP Keep-Alive) pour accélérer les requêtes HTML publiques.
+session = requests.Session()
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+})
 
 
 # --------------------------------------------------------------------------
-# Authentification
+# Anti-blocage
 # --------------------------------------------------------------------------
 
-def get_access_token(force_refresh: bool = False) -> str:
-    """Récupère un token d'accès via OAuth2 (mise en cache)."""
-    if not CLIENT_ID or not CLIENT_SECRET:
-        sys.exit(
-            "ERREUR : CLIENT_ID / CLIENT_SECRET manquants.\n"
-            "Renseigne-les dans le fichier .env (voir .env.example)."
-        )
-
-    cache_file = Path(__file__).parent / ".token_cache.json"
-
-    if not force_refresh and cache_file.exists():
-        try:
-            with open(cache_file, "r") as f:
-                cache = json.load(f)
-            last_login = cache.get("last_login", 0)
-            token = cache.get("access_token", "")
-            # Cache valide 3500 secondes (un peu moins d'1h)
-            if token and (time.time() - last_login) < 3500:
-                print("[AUTH] Utilisation du token en cache (valide).")
-                return token
-        except Exception:
-            pass
-
-    data = {"grant_type": "client_credentials", "scope": OAUTH_SCOPE}
-    auth = None
-
-    if AUTH_METHOD == "basic":
-        auth = (CLIENT_ID, CLIENT_SECRET)
-    elif AUTH_METHOD == "body":
-        data["client_id"] = CLIENT_ID
-        data["client_secret"] = CLIENT_SECRET
-    else:
-        sys.exit(f"ERREUR : AUTH_METHOD invalide '{AUTH_METHOD}' (attendu: 'basic' ou 'body').")
-
-    print(f"[AUTH] Demande de token à {AUTH_URL} (méthode: {AUTH_METHOD})...")
-    resp = requests.post(AUTH_URL, data=data, auth=auth, timeout=30)
-
-    if resp.status_code != 200:
-        sys.exit(
-            f"ERREUR AUTH ({resp.status_code}) : {resp.text}\n"
-            "-> Vérifie AUTH_URL, AUTH_METHOD, CLIENT_ID, CLIENT_SECRET dans .env."
-        )
-
-    token = resp.json().get("access_token")
-    if not token:
-        sys.exit(f"ERREUR : pas de 'access_token' dans la réponse : {resp.text}")
-
-    try:
-        with open(cache_file, "w") as f:
-            json.dump({"access_token": token, "last_login": time.time()}, f)
-        print("[AUTH] Token obtenu et sauvegardé dans le cache.")
-    except Exception as e:
-        print(f"[AUTH] Token obtenu mais impossible de sauvegarder le cache: {e}")
-
-    return token
+def _register_scrape_failure() -> None:
+    """Compte un échec ; déclenche une pause longue après N échecs consécutifs (blocage IP)."""
+    global _scrape_failures
+    pause = None
+    with _scrape_failures_lock:
+        _scrape_failures += 1
+        if _scrape_failures >= CONSECUTIVE_SCRAPE_FAILURES_LIMIT:
+            _scrape_failures = 0
+            pause = random.uniform(*SCRAPE_BLOCK_PAUSE_SECONDS)
+    if pause:
+        msg = (f"[SCRAPE] Détection d'un blocage ({CONSECUTIVE_SCRAPE_FAILURES_LIMIT} "
+               f"échecs consécutifs). Pause de {pause:.0f}s...")
+        print(msg)
+        run_logger.error(msg)
+        time.sleep(pause)
 
 
-# --------------------------------------------------------------------------
-# Appels API avec retry / backoff
-# --------------------------------------------------------------------------
-
-def api_get(url: str, headers: dict, params: dict) -> dict:
-    """GET avec retry + backoff exponentiel en cas d'erreur ou de rate limit (429)."""
-    for attempt in range(1, MAX_RETRIES + 1):
-        resp = requests.get(url, headers=headers, params=params, timeout=30)
-
-        if resp.status_code == 200:
-            return resp.json()
-
-        if resp.status_code == 429:
-            wait = RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1))
-            retry_after = resp.headers.get("Retry-After")
-            if retry_after:
-                wait = float(retry_after)
-            print(f"[RATE LIMIT] 429 reçu, pause de {wait}s (tentative {attempt}/{MAX_RETRIES})...")
-            time.sleep(wait)
-            continue
-
-        if resp.status_code >= 500:
-            wait = RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1))
-            print(f"[ERREUR SERVEUR] {resp.status_code}, pause de {wait}s (tentative {attempt}/{MAX_RETRIES})...")
-            time.sleep(wait)
-            continue
-
-        if resp.status_code == 401:
-            print("[API] 401 Unauthorized détecté (token expiré ?). Régénération du token...")
-            new_token = get_access_token(force_refresh=True)
-            headers["Authorization"] = f"Bearer {new_token}"
-            time.sleep(1)
-            continue
-
-        # Erreur non récupérable (403, 404...)
-        resp.raise_for_status()
-
-    sys.exit(f"ERREUR : échec après {MAX_RETRIES} tentatives sur {url}")
-
-
-# --------------------------------------------------------------------------
-# Slugification (aucun champ 'slug' fourni par l'API -> génération maison)
-# --------------------------------------------------------------------------
-
-def slugify(text: str) -> str:
-    """Convertit un texte en slug kebab-case simple, façon community.st.com."""
-    text = text.lower().strip()
-    text = re.sub(r"[^a-z0-9]+", "-", text)
-    text = re.sub(r"-+", "-", text).strip("-")
-    return text
+def _reset_scrape_failures() -> None:
+    """Réinitialise le compteur d'échecs consécutifs (un scrape a réussi)."""
+    global _scrape_failures
+    with _scrape_failures_lock:
+        _scrape_failures = 0
 
 
 def build_seo_url(item: dict) -> str:
@@ -215,15 +107,9 @@ def build_seo_url(item: dict) -> str:
     return f"{SITE_BASE_URL}/{category_slug}-{category_id}/{title_slug}-{public_id}"
 
 
-# Session réutilisable pour accélérer les requêtes HTTP publiques (scraping).
-# Avantages :
-#   - HTTP Keep-Alive : la connexion TCP reste ouverte entre les requêtes
-#     → évite le coût de la poignée de main SSL à chaque appel (~50-200 ms gagné par requête)
-#   - Partage du User-Agent entre tous les appels sans répétition
-session = requests.Session()
-session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-})
+# --------------------------------------------------------------------------
+# Scraping HTML des réponses
+# --------------------------------------------------------------------------
 
 def scrape_all_replies(url: str) -> list:
     """
@@ -233,35 +119,48 @@ def scrape_all_replies(url: str) -> list:
     """
     replies = []
     max_retries = 3
-    
+
     for attempt in range(1, max_retries + 1):
+        # Jitter aléatoire autour de SCRAPE_DELAY_SECONDS pour éviter les salves synchronisées
+        time.sleep(random.uniform(SCRAPE_DELAY_SECONDS * 0.6, SCRAPE_DELAY_SECONDS * 1.4))
         try:
             resp = session.get(url, timeout=10)
-            if resp.status_code == 200:
-                soup = BeautifulSoup(resp.content, 'html.parser')
+            if resp.status_code != 200:
+                # Statut non-200 (429 rate limit, 403 blocage, 5xx...) -> retry avec backoff
+                msg = f"[Scrape] HTTP {resp.status_code} sur {url} (Tentative {attempt}/{max_retries})"
+                print(msg)
+                run_logger.error(msg)
+                _register_scrape_failure()
+                retry_after = resp.headers.get("Retry-After")
+                time.sleep(float(retry_after) if retry_after else (2 ** attempt))
+                continue
 
-                # ÉTAPE 1 : Détections prioritaires de la réponse épinglée (Best Answer / Solved Box)
-                best_answer_box = (
-                    soup.find(class_='qa-answer-field') or
-                    soup.find(class_='reply-flexbox--bestanswer') or
-                    soup.find(attrs={"data-qa": "qa-answer-field"})
-                )
-                best_answer_html = None
-                if best_answer_box:
-                    content_div = best_answer_box.find(class_='post__content') or best_answer_box.find(class_='qa-qa-post-content')
-                    if content_div:
-                        best_answer_html = str(content_div)
+            _reset_scrape_failures()
 
-                # ÉTAPE 2 : Conteneur principal du fil de discussion
-                thread_container = (
-                    soup.find(class_='paginated-threaded-replies') or
-                    soup.find(class_='threaded-replies') or
-                    soup.find(class_='thread__list') or
-                    soup.find(class_='replies-list') or
-                    soup
-                )
+            soup = BeautifulSoup(resp.content, 'html.parser')
 
-                # ÉTAPE 3 : Extrait les posts individuels du fil
+            # ÉTAPE 1 : Détections prioritaires de la réponse épinglée (Best Answer / Solved Box)
+            best_answer_box = (
+                soup.find(class_='qa-answer-field') or
+                soup.find(class_='reply-flexbox--bestanswer') or
+                soup.find(attrs={"data-qa": "qa-answer-field"})
+            )
+            best_answer_html = None
+            if best_answer_box:
+                content_div = best_answer_box.find(class_='post__content') or best_answer_box.find(class_='qa-qa-post-content')
+                if content_div:
+                    best_answer_html = str(content_div)
+
+            # ÉTAPE 2 : Conteneur principal du fil de discussion
+            thread_container = (
+                soup.find(class_='paginated-threaded-replies') or
+                soup.find(class_='threaded-replies') or
+                soup.find(class_='thread__list') or
+                soup.find(class_='replies-list') or
+                soup
+            )
+
+            # ÉTAPE 3 : Extrait les posts individuels du fil
             post_divs = thread_container.find_all(class_="threaded-reply-item")
             if not post_divs:
                 post_divs = thread_container.find_all(
@@ -287,6 +186,11 @@ def scrape_all_replies(url: str) -> list:
                     if is_best:
                         found_best = True
 
+                    author_el = pd.find(class_='qa-username')
+                    rank_el = pd.find(class_='rank-title')
+                    author_name = author_el.get_text(strip=True) if author_el else ""
+                    author_role = rank_el.get_text(strip=True) if rank_el else ""
+
                     existing = next((r for r in replies if r['html'] == html), None)
                     if existing:
                         if is_best:
@@ -295,39 +199,73 @@ def scrape_all_replies(url: str) -> list:
                         replies.append({
                             "is_best": is_best,
                             "html": html,
+                            "author": author_name,
+                            "role": author_role,
                         })
 
-            # Si le sujet est résolu et qu'une box best answer était présente ou qu'il y a 1 réponse
+            # Si une box best answer est présente mais n'a pas été retrouvée dans les posts extraits
             if best_answer_html and not found_best:
                 existing = next((r for r in replies if r['html'] == best_answer_html), None)
                 if existing:
                     existing['is_best'] = True
                 else:
+                    best_author = best_answer_box.find(class_='qa-username')
+                    best_rank = best_answer_box.find(class_='rank-title')
+                    box_author = ""
+                    reply_label = best_answer_box.find(class_='reply-label')
+                    if reply_label:
+                        label_text = reply_label.get_text(" ", strip=True)
+                        if "by" in label_text:
+                            box_author = label_text.split("by", 1)[1].strip()
                     replies.insert(0, {
                         "is_best": True,
-                        "html": best_answer_html
+                        "html": best_answer_html,
+                        "author": best_author.get_text(strip=True) if best_author else box_author,
+                        "role": best_rank.get_text(strip=True) if best_rank else "",
                     })
                     found_best = True
 
-            # Si aucune réponse n'est marquée is_best mais qu'il existe des réponses
-            if not any(r.get('is_best') for r in replies) and replies:
-                replies[0]['is_best'] = True
+            author_roles.fill_missing_roles(replies)
+            UNRESOLVED.update(author_roles.unresolved_authors(replies))
 
             return replies # Succès, on quitte la boucle de retry
 
         except Exception as e:
-            import time
             print(f"  [Scrape Error] {url} -> {e} (Tentative {attempt}/{max_retries})")
+            run_logger.error(f"[Scrape Error] {url} -> {e} (Tentative {attempt}/{max_retries})")
+            _register_scrape_failure()
             time.sleep(2 ** attempt) # Backoff exponentiel
 
     return replies # Renvoie ce qu'on a (probablement vide) si échec total
 
 
 # --------------------------------------------------------------------------
+# Rafraîchissement léger des métadonnées d'un topic déjà scrapé (sans re-scrape)
+# --------------------------------------------------------------------------
+
+def _refresh_metadata(existing_file: Path, existing: dict, fresh: dict) -> None:
+    """Met à jour views/replyCount/bestAnswer sur le fichier existant si l'API est plus récente."""
+    changed = False
+    for key in ("views", "replyCount", "bestAnswer", "lastActivityAt", "closed", "status"):
+        fresh_val = fresh.get(key)
+        if fresh_val is not None and existing.get(key) != fresh_val:
+            existing[key] = fresh_val
+            changed = True
+    if changed:
+        try:
+            existing_file.write_text(
+                json.dumps(existing, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except Exception as e:
+            print(f"  [WARN] Échec rafraîchissement métadonnées {existing_file.name} -> {e}")
+
+
+# --------------------------------------------------------------------------
 # Collecte paginée + filtre de date, jusqu'à obtenir N items valides
 # --------------------------------------------------------------------------
 
-def collect_items(category_id: str, token: str, target_count: int, label: str) -> dict:
+def collect_items(category_id: str, token: str, target_count: int, label: str, force_rescrape: bool = False) -> dict:
     """
     Parcourt les pages de /v2/topics pour une catégorie donnée, avec reprise sur erreur.
     """
@@ -335,10 +273,10 @@ def collect_items(category_id: str, token: str, target_count: int, label: str) -
     url = f"{API_BASE_URL}/topics"
 
     collected = []
-    
+
     state_file = Path(__file__).parent / ".scraper_state.json"
     start_page = 1
-    
+
     if state_file.exists():
         try:
             with open(state_file, "r") as f:
@@ -353,7 +291,7 @@ def collect_items(category_id: str, token: str, target_count: int, label: str) -
     print(f"\n[{label}] Collecte sur categoryId={category_id} (cible : {target_count} items)...")
 
     while len(collected) < target_count:
-        # Sauvegarde de l'état
+        # Sauvegarde de l'état (reprise en cas d'interruption)
         try:
             with open(state_file, "w") as f:
                 json.dump({"category_id": category_id, "page": page}, f)
@@ -383,7 +321,7 @@ def collect_items(category_id: str, token: str, target_count: int, label: str) -
             print(f"[{label}] Page {page} : aucun item après {DATE_THRESHOLD.date()} -> arrêt anticipé.")
             break
 
-        # Si c'est un forum, scraper les réponses en parallèle avec ThreadPoolExecutor pour aller 5x à 10x plus vite
+        # Si c'est un forum, scraper les réponses en parallèle avec ThreadPoolExecutor
         if "Forum" in label and results:
             items_to_process = []
             for item in results:
@@ -396,22 +334,44 @@ def collect_items(category_id: str, token: str, target_count: int, label: str) -
                         continue
                 except ValueError:
                     continue
-                
+
                 seo_url = build_seo_url(item)
                 item["_seoUrl"] = seo_url
                 items_to_process.append(item)
 
-            # Scraping parallèle de 10 topics simultanés
+            # Scraping parallèle de 3 topics simultanés (throttled + jitter pour éviter les blocages).
+            # Reprise incrémentale intelligente :
+            #   - déjà résolu (bestAnswer true)     -> skip (fichier conservé tel quel)
+            #   - non résolu, toujours non résolu   -> skip + rafraîchissement métadonnées
+            #   - non résolu, devient résolu (API)  -> RE-SCRAPE (capter le nouveau best answer)
+            # force_rescrape=True -> tout re-scraper sans tenir compte de la reprise.
             if items_to_process:
                 from concurrent.futures import ThreadPoolExecutor
                 def _fetch_replies(it):
+                    cat_dir = OUTPUT_FORUMS_DIR / slugify(it.get("categoryName", "unknown"))
+                    public_id = it.get("publicId") or it.get("id") or ""
+                    existing_file = cat_dir / f"{public_id}.json"
+                    if not force_rescrape and existing_file.exists():
+                        try:
+                            existing = json.loads(existing_file.read_text(encoding="utf-8"))
+                            if existing.get("scraped_replies"):
+                                if existing.get("bestAnswer"):
+                                    return None  # déjà résolu -> on garde tel quel
+                                if not it.get("bestAnswer"):
+                                    _refresh_metadata(existing_file, existing, it)
+                                    return None  # toujours non résolu -> pas de re-scrape
+                                # bestAnswer false (fichier) -> true (API) : devient résolu -> re-scrape
+                        except Exception:
+                            pass
                     it["scraped_replies"] = scrape_all_replies(it["_seoUrl"])
                     return it
 
-                with ThreadPoolExecutor(max_workers=10) as executor:
+                with ThreadPoolExecutor(max_workers=3) as executor:
                     processed_batch = list(executor.map(_fetch_replies, items_to_process))
 
                 for item in processed_batch:
+                    if item is None:
+                        continue
                     collected.append(item)
                     if len(collected) >= target_count:
                         break
@@ -426,7 +386,7 @@ def collect_items(category_id: str, token: str, target_count: int, label: str) -
                         continue
                 except ValueError:
                     continue
-                
+
                 seo_url = build_seo_url(item)
                 item["_seoUrl"] = seo_url
                 collected.append(item)
@@ -441,33 +401,35 @@ def collect_items(category_id: str, token: str, target_count: int, label: str) -
             break
 
     print(f"[{label}] Terminé : {len(collected)}/{target_count} items trouvés.")
-    
+
     # Nettoyage de l'état si on a terminé la catégorie avec succès
     if state_file.exists():
         try:
             state_file.unlink()
         except Exception:
             pass
-            
+
     return {"items": collected, "last_page": page - 1}
 
 
 # --------------------------------------------------------------------------
-# Sauvegarde : 1 fichier JSON par item (nom = slug du titre, contenu = titre)
+# Sauvegarde : 1 fichier JSON par item (nom = {publicId}.json, par catégorie)
 # --------------------------------------------------------------------------
 
 def save_items(items: list, output_folder: Path, label: str) -> None:
-    """Écrit un fichier JSON par item (nom déterministe avec ID pour éviter les doublons)."""
+    """Écrit un fichier JSON par item, rangé par catégorie (dossier par categoryName)."""
     output_folder.mkdir(parents=True, exist_ok=True)
     written = 0
     for item in items:
-        base_name = slugify(item.get("title", "untitled"))
         public_id = item.get("publicId") or item.get("id") or ""
         if public_id:
-            file_name = f"{base_name}-{public_id}.json"
+            file_name = f"{public_id}.json"
         else:
-            file_name = f"{base_name}.json"
-        file_path = output_folder / file_name
+            file_name = "unknown.json"
+        cat_folder = slugify(item.get("categoryName", "unknown")) or "unknown"
+        cat_dir = output_folder / cat_folder
+        cat_dir.mkdir(parents=True, exist_ok=True)
+        file_path = cat_dir / file_name
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(item, f, ensure_ascii=False, indent=2)
         written += 1
@@ -475,10 +437,10 @@ def save_items(items: list, output_folder: Path, label: str) -> None:
 
 
 # --------------------------------------------------------------------------
-# Main
+# Extraction principale
 # --------------------------------------------------------------------------
 
-def run_extract(active_forum_ids: list = None, active_kb_ids: list = None) -> dict:
+def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force_rescrape: bool = False) -> dict:
     """
     Extrait les items de l'API pour les catégories ciblées.
 
@@ -487,10 +449,14 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None) -> di
                            Si None ou vide → utilise la liste complète FORUM_CATEGORIES.
         active_kb_ids    : liste des IDs de catégories KB ayant des items récents.
                            Si None ou vide → utilise la liste complète KB_CATEGORIES.
+        force_rescrape   : True → ré-extraction complète (tous les topics sont
+                           re-scrapés, la reprise incrémentale est ignorée).
 
     Ce ciblage évite de paginer des catégories vides (0 items récents détectés au scan),
     ce qui réduit considérablement le temps d'exécution.
     """
+    if force_rescrape:
+        print("[EXTRACT] MODE FULL RE-SCRAPE : tous les topics seront re-scrapés (reprise ignorée).")
     # Sélection des catégories à traiter
     # Si le scan a fourni une liste non vide, on l'utilise ; sinon fallback complet
     forum_cats = active_forum_ids if active_forum_ids else FORUM_CATEGORIES
@@ -526,7 +492,7 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None) -> di
     # --- Forums ---
     print(f"\n=== FORUMS ({len(forum_cats)} catégories) ===")
     for cat_id in forum_cats:
-        result = collect_items(cat_id, token, TARGET_COUNT, f"Forum-{cat_id}")
+        result = collect_items(cat_id, token, TARGET_COUNT, f"Forum-{cat_id}", force_rescrape=force_rescrape)
         save_items(result["items"], OUTPUT_FORUMS_DIR, f"Forum-{cat_id}")
         ids = [str(item.get("publicId") or item.get("id", "")) for item in result["items"]]
         extracted_ids["forums"][f"cat_{cat_id}"] = {"count": len(ids), "ids": ids}
@@ -541,11 +507,12 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None) -> di
     end_time_dt = datetime.now()
     duration = (end_time_dt - start_time_dt).total_seconds()
 
-    # Sauvegarde du fichier d'IDs extraits dans logs/
-    logs_dir = Path(__file__).parent / "logs"
+    # Sauvegarde du fichier d'IDs extraits dans le dossier du run (ou logs/ si run standalone)
+    run_dir = run_logger.current_run_dir()
+    logs_dir = Path(run_dir) if run_dir else (Path(__file__).parent / "logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
     run_ts = start_time_dt.strftime('%Y%m%d_%H%M%S')
-    ids_file = logs_dir / f"extracted_ids_{run_ts}.txt"
+    ids_file = logs_dir / f"extracted_ids.txt"
 
     lines = [
         f"FICHIER DES IDs EXTRAITS - Run {run_ts}",
@@ -566,6 +533,14 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None) -> di
         f.write("\n".join(lines))
     print(f"[OK] IDs extraits sauvegardés dans : {ids_file}")
 
+    # Message d'erreur : auteurs dont le role reste vide (a completer dans author_roles.json)
+    if UNRESOLVED:
+        msg = "Auteurs sans role (completer manuellement dans author_roles.json) : " + ", ".join(sorted(UNRESOLVED))
+        print("[MSG ERREUR] " + msg)
+        run_logger.error(msg)
+    else:
+        print("[OK] Toutes les reponses ont un role (aucun auteur sans role).")
+
     return {
         "kb_extracted": total_kb,
         "forum_extracted": total_forums,
@@ -573,10 +548,3 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None) -> di
         "forum_pages_total": all_forum_pages,
         "duration_seconds": duration
     }
-
-
-def main():
-    run_extract()
-
-if __name__ == "__main__":
-    main()

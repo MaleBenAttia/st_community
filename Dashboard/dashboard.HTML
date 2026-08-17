@@ -262,6 +262,99 @@
     }
     .mini-stat .num { font-size: 28px; font-weight: 600; margin-bottom: 5px; }
     .mini-stat .lbl { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+    /* KPI large blocks (Community Forums) */
+    .kpi-blocks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 768px) { .kpi-blocks { grid-template-columns: 1fr; } }
+
+    .kpi-block {
+      padding: 26px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .kpi-block-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-block .big-num {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+      margin: 4px 0 14px;
+    }
+    .kpi-block .big-num.text-success { color: var(--success); }
+    .kpi-block .big-num.text-warning { color: var(--warning); }
+
+    .kpi-sub {
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.55);
+      border-radius: var(--radius-sm);
+      padding: 4px 16px;
+    }
+    .kpi-sub-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      font-size: 15px;
+      color: var(--text-main);
+    }
+    .kpi-sub-row:last-child { border-bottom: none; }
+    .kpi-sub-row .lbl { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+    .kpi-sub-row .val { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; }
+    .kpi-sub-row .val .pct { color: inherit; opacity: 0.85; font-weight: 600; margin-left: 10px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+    .dot.success { background: var(--success); }
+    .dot.warning { background: var(--warning); }
+    .dot.muted { background: var(--text-light); }
+    .dot.blue { background: var(--accent-color); }
+    .dot.red { background: var(--danger); }
+    .text-info { color: var(--accent-color); }
+
+    /* Hauteurs équilibrées sur les grilles à 2 colonnes */
+    .row-2 > .glass {
+      display: flex;
+      flex-direction: column;
+      min-height: 380px;
+    }
+    .row-2 > .glass .grow { flex: 1 1 auto; }
+
+    /* Bouton Voir plus / Voir moins */
+    .see-more {
+      margin-top: 14px;
+      background: none;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      color: var(--accent-color);
+      border-radius: 24px;
+      padding: 8px 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: center;
+      transition: all 0.2s;
+    }
+    .see-more:hover { background: rgba(14, 165, 233, 0.08); }
+    .see-more .chev {
+      display: inline-block;
+      transition: transform 0.25s ease;
+      font-size: 10px;
+    }
+    .see-more.open .chev { transform: rotate(180deg); }
     .text-success { color: var(--success); }
     .text-danger { color: var(--danger); }
     .text-warning { color: var(--warning); }
@@ -411,32 +504,46 @@
               <thead><tr><th>Category</th><th>Accepted</th><th>Views</th></tr></thead>
               <tbody id="kb-cat-table"></tbody>
             </table>
+            <button class="see-more" id="kb-cat-toggle" hidden><span class="chev">▾</span><span class="txt">Voir plus</span></button>
           </div>
           <div class="glass" style="padding:24px;">
             <h3 class="section-title">Validated Articles</h3>
-            <div id="kb-ok-urls" style="display:flex; flex-direction:column;"></div>
+            <div id="kb-ok-urls" class="grow" style="display:flex; flex-direction:column;"></div>
+            <button class="see-more" id="kb-url-toggle" hidden><span class="chev">▾</span><span class="txt">Voir plus</span></button>
           </div>
         </div>
       </div>
 
       <!-- FORUMS PANEL -->
       <div id="panel-forums" class="tab-panel">
-        <div class="kpi-grid">
-          <div class="mini-stat glass">
-            <div class="num text-success" id="fo-k4">-</div>
-            <div class="lbl">Accepted Posts</div>
+        <div class="kpi-blocks">
+          <div class="kpi-block glass">
+            <div class="kpi-block-label">Solved Posts</div>
+            <div class="big-num text-success" id="fo-solved-total">-</div>
+            <div class="kpi-sub">
+              <div class="kpi-sub-row">
+                <span class="lbl text-success"><span class="dot success"></span>Replied with ST agent</span>
+                <span class="val text-success"><span id="fo-solved-st">-</span><span class="pct" id="fo-solved-st-pct">-</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="lbl text-info"><span class="dot blue"></span>Replied without ST agent</span>
+                <span class="val text-info"><span id="fo-solved-none">-</span><span class="pct" id="fo-solved-none-pct">-</span></span>
+              </div>
+            </div>
           </div>
-          <div class="mini-stat glass">
-            <div class="num" id="fo-k5">-</div>
-            <div class="lbl">Acceptance Rate</div>
-          </div>
-          <div class="mini-stat glass">
-            <div class="num text-danger" id="fo-k6">-</div>
-            <div class="lbl">Rejected (No Solution)</div>
-          </div>
-          <div class="mini-stat glass">
-            <div class="num" id="fo-k9">-</div>
-            <div class="lbl">Total Replies</div>
+          <div class="kpi-block glass">
+            <div class="kpi-block-label">Ongoing</div>
+            <div class="big-num text-warning" id="fo-ongoing-total">-</div>
+            <div class="kpi-sub">
+              <div class="kpi-sub-row">
+                <span class="lbl text-warning"><span class="dot warning"></span>With ST agent</span>
+                <span class="val text-warning"><span id="fo-ongoing-st">-</span><span class="pct" id="fo-ongoing-st-pct">-</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="lbl text-danger"><span class="dot red"></span>Without ST agent</span>
+                <span class="val text-danger"><span id="fo-ongoing-none">-</span><span class="pct" id="fo-ongoing-none-pct">-</span></span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -447,10 +554,11 @@
               <thead><tr><th>Category</th><th>Accepted</th><th>Replies</th><th>Views</th></tr></thead>
               <tbody id="fo-cat-table"></tbody>
             </table>
+            <button class="see-more" id="fo-cat-toggle" hidden><span class="chev">▾</span><span class="txt">Voir plus</span></button>
           </div>
           <div class="glass" style="padding:24px;">
             <h3 class="section-title">Most Replied Posts</h3>
-            <div id="fo-top-replied" style="display:flex; flex-direction:column;"></div>
+            <div id="fo-top-replied" class="grow" style="display:flex; flex-direction:column;"></div>
           </div>
         </div>
 
@@ -469,14 +577,27 @@
           <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
             <div class="input-group">
               <label>Start Date (RAG_START_DATE)</label>
-              <input type="text" id="run-date" value="2026-08-08T00:00:00Z">
+              <input type="text" id="run-date" value="2026-03-01T00:00:00Z">
             </div>
+
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); padding-bottom:12px; cursor:pointer;" title="Re-scraper tous les topics (ignore la reprise incrémentale, plus lent)">
+              <input type="checkbox" id="run-full" style="width:16px; height:16px; cursor:pointer;"> Full re-scrape
+            </label>
             
             <button id="btn-run" class="btn btn-primary">Start Pipeline</button>
             <button id="btn-stop" class="btn btn-danger" style="display:none;">Stop Execution</button>
           </div>
           
           <div class="terminal" id="log-output">Waiting for execution...</div>
+        </div>
+
+        <!-- LAST RUN -->
+        <div class="glass" style="padding: 30px; margin-top: 25px;">
+          <h2 class="section-title" style="font-size: 22px;">Last Run</h2>
+          <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">
+            <span id="lr-name">-</span> · Start <span id="lr-start">-</span> · Duration <span id="lr-duration">-</span> · <span id="lr-errors">0 errors</span>
+          </div>
+          <div class="terminal" id="lr-log" style="height:220px;">Loading...</div>
         </div>
       </div>
 
@@ -517,7 +638,28 @@
       const last = url.split('/').pop().replace(/-\d+$/, '').replace(/-/g, ' ');
       return last.charAt(0).toUpperCase() + last.slice(1);
     }
-    function pct(n) { return (n || 0).toFixed(1) + ' %'; }
+    function pct(n) { return (n || 0).toFixed(1).replace('.', ',') + ' %'; }
+
+    // Liste repliable : 5 items par défaut + bouton "Voir plus / Voir moins" (chevron rotatif)
+    function renderCollapsible(container, items, renderFn, toggleId, limit) {
+      limit = limit || 5;
+      const toggle = document.getElementById(toggleId);
+      if (!toggle) return;
+      let expanded = false;
+      function render() {
+        const slice = expanded ? items : items.slice(0, limit);
+        container.innerHTML = slice.map(renderFn).join('');
+        if (items.length > limit) {
+          toggle.hidden = false;
+          toggle.classList.toggle('open', expanded);
+          toggle.querySelector('.txt').textContent = expanded ? 'Voir moins' : 'Voir plus';
+        } else {
+          toggle.hidden = true;
+        }
+      }
+      toggle.onclick = function () { expanded = !expanded; render(); };
+      render();
+    }
 
     function renderDashboard(data) {
       document.getElementById('footer-text').textContent = `Last report generated on ${fmtDate(data.pipeline_run_info.start_time)}`;
@@ -539,30 +681,48 @@
       document.getElementById('kb-k3').textContent = s2.kb_pages_total || 0;
       document.getElementById('kb-k2').textContent = s1.categories_active_kb;
 
-      const kbCatTbl = document.getElementById('kb-cat-table');
-      kbCatTbl.innerHTML = '';
-      if(kb.by_category) Object.entries(kb.by_category).forEach(([name, c]) => {
-        kbCatTbl.innerHTML += `<tr><td>${name}</td><td class="num">${c.accepted}</td><td class="num">${c.total_views}</td></tr>`;
-      });
+      const kbCatItems = kb.by_category ? Object.entries(kb.by_category).map(([name, c]) => ({ name: name, accepted: c.accepted, total_views: c.total_views })) : [];
+      renderCollapsible(
+        document.getElementById('kb-cat-table'),
+        kbCatItems,
+        (c) => `<tr><td>${c.name}</td><td class="num">${c.accepted}</td><td class="num">${c.total_views}</td></tr>`,
+        'kb-cat-toggle'
+      );
 
       const kbUrlList = document.getElementById('kb-ok-urls');
-      kbUrlList.innerHTML = '';
       const kbUrls = (data.step_3_details && data.step_3_details.knowledge_base && data.step_3_details.knowledge_base.ok_urls) ? data.step_3_details.knowledge_base.ok_urls : (data.kb_ok_urls || []);
-      kbUrls.forEach((url) => {
-        kbUrlList.innerHTML += `<div class="list-item"><a href="${url}" target="_blank">${slugTitle(url)}</a></div>`;
-      });
+      renderCollapsible(
+        kbUrlList,
+        kbUrls,
+        (url) => `<div class="list-item"><a href="${url}" target="_blank">${slugTitle(url)}</a></div>`,
+        'kb-url-toggle'
+      );
 
-      // Forums
-      document.getElementById('fo-k4').textContent = fo.accepted;
-      document.getElementById('fo-k5').textContent = pct(fo.accepted_pct);
-      document.getElementById('fo-k6').textContent = fo.rejected_no_best_answer || 0;
-      document.getElementById('fo-k9').textContent = fo.total_replies || 0;
+      // Forums — 2 grands blocs KPI (Solved / Ongoing)
+      const accepted = fo.accepted || 0;
+      const rejectedTotal = fo.rejected_total || 0;
+      const stStats = fo.st_agent_stats || {};
+      const ogStats = fo.st_agent_stats_ongoing || {};
 
-      const foCatTbl = document.getElementById('fo-cat-table');
-      foCatTbl.innerHTML = '';
-      if(fo.by_category) Object.entries(fo.by_category).forEach(([name, c]) => {
-        foCatTbl.innerHTML += `<tr><td>${name}</td><td class="num">${c.accepted}</td><td class="num">${c.total_replies}</td><td class="num">${c.total_views}</td></tr>`;
-      });
+      document.getElementById('fo-solved-total').textContent = accepted;
+      document.getElementById('fo-solved-st').textContent = stStats.forums_with_st_reply || 0;
+      document.getElementById('fo-solved-st-pct').textContent = pct(stStats.st_reply_pct);
+      document.getElementById('fo-solved-none').textContent = stStats.forums_without_st_reply || 0;
+      document.getElementById('fo-solved-none-pct').textContent = pct(accepted ? 100 - (stStats.st_reply_pct || 0) : 0);
+
+      document.getElementById('fo-ongoing-total').textContent = rejectedTotal;
+      document.getElementById('fo-ongoing-st').textContent = ogStats.forums_with_st_reply || 0;
+      document.getElementById('fo-ongoing-st-pct').textContent = pct(ogStats.st_reply_pct);
+      document.getElementById('fo-ongoing-none').textContent = ogStats.forums_without_st_reply || 0;
+      document.getElementById('fo-ongoing-none-pct').textContent = pct(rejectedTotal ? 100 - (ogStats.st_reply_pct || 0) : 0);
+
+      const foCatItems = fo.by_category ? Object.entries(fo.by_category).map(([name, c]) => ({ name: name, accepted: c.accepted, total_replies: c.total_replies, total_views: c.total_views })) : [];
+      renderCollapsible(
+        document.getElementById('fo-cat-table'),
+        foCatItems,
+        (c) => `<tr><td>${c.name}</td><td class="num">${c.accepted}</td><td class="num">${c.total_replies}</td><td class="num">${c.total_views}</td></tr>`,
+        'fo-cat-toggle'
+      );
 
       const repliedList = document.getElementById('fo-top-replied');
       repliedList.innerHTML = '';
@@ -602,7 +762,7 @@
         const res = await fetch('/api/run', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ start_date: dateStr })
+          body: JSON.stringify({ start_date: dateStr, full: document.getElementById('run-full').checked })
         });
         if (!res.ok) throw new Error("Already running or server error.");
         
@@ -616,7 +776,7 @@
           if (e.data.includes("PIPELINE TERMINÉ AVEC SUCCÈS") || e.data.includes("PIPELINE ARRÊTÉ")) {
             resetBtn();
             evtSource.close();
-            if (e.data.includes("TERMINÉ")) loadData(); 
+            if (e.data.includes("TERMINÉ")) { loadData(); loadLastRun(); }
           }
         };
       } catch (err) {
@@ -632,7 +792,26 @@
       btnStop.style.display = 'none';
     }
 
+    // Last Run
+    async function loadLastRun() {
+      try {
+        const res = await fetch('/api/runs');
+        if (!res.ok) throw new Error("No run yet");
+        const run = await res.json();
+        document.getElementById('lr-name').textContent = run.name || '-';
+        const info = run.stats && run.stats.pipeline_run_info;
+        document.getElementById('lr-start').textContent = info ? fmtDate(info.start_time) : '-';
+        document.getElementById('lr-duration').textContent = info && info.total_duration_seconds ? (info.total_duration_seconds + 's') : '-';
+        document.getElementById('lr-errors').textContent = (run.errors || 0) + ' errors';
+        document.getElementById('lr-log').textContent = run.log ? run.log.slice(-8000) : 'No log';
+        document.getElementById('lr-log').scrollTop = document.getElementById('lr-log').scrollHeight;
+      } catch (err) {
+        document.getElementById('lr-log').textContent = 'Aucun run disponible. Lancez le pipeline.';
+      }
+    }
+
     loadData();
+    loadLastRun();
   </script>
 </body>
 </html>

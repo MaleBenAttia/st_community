@@ -2,130 +2,34 @@
 """
 Préparation RAG - STMicroelectronics
 
-Ce script lit les fichiers JSON bruts générés par main.py dans le dossier `output/`,
-applique des filtres, nettoie le contenu HTML (en Markdown), récupère les réponses 
-acceptées pour les forums via un appel API supplémentaire, et sauvegarde le résultat 
-propre dans `rag-ready/`.
+Lit les fichiers JSON bruts générés par main.py dans `output/`, applique les filtres
+(best answer pour les forums, date >= RAG_START_DATE), nettoie le HTML en Markdown,
+et sauvegarde le résultat propre dans `rag-ready/` (nom de fichier = {publicId}.json,
+récupéré du nom du fichier source, rangé par catégorie slugifiée identique à `output/`).
 Génère également un rapport d'exécution (JSON).
+
+Point d'entrée : run_pipeline.py (scan → extraction → rôles → RAG).
 """
 
-import os
-import re
-import json
 import sys
-import time
+import json
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime
 
-import requests
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 import markdownify
 
-# --------------------------------------------------------------------------
-# Configuration
-# --------------------------------------------------------------------------
+from config import (
+    OUTPUT_DIR,
+    RAG_READY_DIR,
+    RAG_START_DATE_STR,
+    is_recent_enough,
+    slugify,
+)
 
-load_dotenv(override=True)
+# Rôles considérés comme des agents ST (réponses ST sur les forums)
+ST_AGENT_ROLES = {"ST Technical Moderator", "ST Community Manager", "ST Employee"}
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-AUTH_URL = os.getenv("AUTH_URL", "https://api2-eu-west-1.insided.com/oauth2/token")
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api2-eu-west-1.insided.com/v2")
-AUTH_METHOD = os.getenv("AUTH_METHOD", "basic").lower()
-OAUTH_SCOPE = os.getenv("OAUTH_SCOPE", "read")
-
-# Paramètres RAG
-RAG_START_DATE_STR = os.getenv("RAG_START_DATE", "2026-03-15T00:00:00Z")
-try:
-    RAG_START_DATE = datetime.fromisoformat(RAG_START_DATE_STR.replace("Z", "+00:00"))
-except ValueError:
-    RAG_START_DATE = datetime(2026, 3, 15, tzinfo=timezone.utc)
-
-MAX_RETRIES = 5
-RETRY_BACKOFF_SECONDS = 2
-REQUEST_DELAY_SECONDS = 0.3
-
-BASE_DIR = Path(__file__).parent
-OUTPUT_DIR = BASE_DIR / "output"
-RAG_READY_DIR = BASE_DIR / "rag-ready"
-
-# --------------------------------------------------------------------------
-# Authentification et API (repris de main.py)
-# --------------------------------------------------------------------------
-
-def get_access_token() -> str:
-    """Récupère un access token via OAuth2 Client Credentials (avec cache)."""
-    if not CLIENT_ID or not CLIENT_SECRET:
-        print("Avertissement: CLIENT_ID ou CLIENT_SECRET manquant pour l'API.")
-        print("La récupération des réponses de forums pourrait échouer si l'API exige une auth.")
-        return ""
-
-    cache_file = Path(__file__).parent / ".token_cache.json"
-    
-    if cache_file.exists():
-        try:
-            with open(cache_file, "r") as f:
-                cache = json.load(f)
-            last_login = cache.get("last_login", 0)
-            token = cache.get("access_token", "")
-            if token and (time.time() - last_login) < 3500:
-                print("[AUTH] Utilisation du token en cache (valide).")
-                return token
-        except Exception:
-            pass
-
-    data = {"grant_type": "client_credentials", "scope": OAUTH_SCOPE}
-    auth = None
-
-    if AUTH_METHOD == "basic":
-        auth = (CLIENT_ID, CLIENT_SECRET)
-    elif AUTH_METHOD == "body":
-        data["client_id"] = CLIENT_ID
-        data["client_secret"] = CLIENT_SECRET
-    else:
-        sys.exit(f"ERREUR : AUTH_METHOD invalide '{AUTH_METHOD}'.")
-
-    resp = requests.post(AUTH_URL, data=data, auth=auth, timeout=30)
-    if resp.status_code != 200:
-        sys.exit(f"ERREUR AUTH ({resp.status_code}) : {resp.text}")
-
-    token = resp.json().get("access_token")
-    
-    try:
-        with open(cache_file, "w") as f:
-            json.dump({"access_token": token, "last_login": time.time()}, f)
-    except Exception:
-        pass
-
-    return token
-
-def api_get(url: str, headers: dict, params: dict = None) -> dict:
-    """GET avec retry + backoff exponentiel en cas d'erreur ou de rate limit (429)."""
-    for attempt in range(1, MAX_RETRIES + 1):
-        resp = requests.get(url, headers=headers, params=params, timeout=30)
-        
-        if resp.status_code == 200:
-            return resp.json()
-
-        if resp.status_code == 429:
-            wait = RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1))
-            retry_after = resp.headers.get("Retry-After")
-            if retry_after:
-                wait = float(retry_after)
-            print(f"  [RATE LIMIT] 429 reçu, pause de {wait}s...")
-            time.sleep(wait)
-            continue
-
-        if resp.status_code >= 500:
-            wait = RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1))
-            print(f"  [ERREUR SERVEUR] {resp.status_code}, pause de {wait}s...")
-            time.sleep(wait)
-            continue
-
-        resp.raise_for_status()
-
-    raise Exception(f"Échec après {MAX_RETRIES} tentatives sur {url}")
 
 # --------------------------------------------------------------------------
 # Fonctions de Traitement HTML
@@ -135,9 +39,9 @@ def clean_html_to_markdown(html_content: str) -> str:
     """Convertit du HTML en Markdown propre pour le RAG (un paragraphe par bloc)."""
     if not html_content:
         return ""
-        
+
     soup = BeautifulSoup(html_content, 'html.parser')
-    
+
     # Remplacer les balises <oembed> par des liens simples
     for oembed in soup.find_all('oembed'):
         url = oembed.get('url')
@@ -145,7 +49,7 @@ def clean_html_to_markdown(html_content: str) -> str:
             new_tag = soup.new_tag('a', href=url)
             new_tag.string = url
             oembed.replace_with(new_tag)
-            
+
     # Remplacer les balises <iframe> par des liens simples
     for iframe in soup.find_all('iframe'):
         src = iframe.get('src')
@@ -153,19 +57,20 @@ def clean_html_to_markdown(html_content: str) -> str:
             new_tag = soup.new_tag('a', href=src)
             new_tag.string = src
             iframe.replace_with(new_tag)
-            
+
     html_processed = str(soup)
     md_text = markdownify.markdownify(html_processed, heading_style="ATX")
-    
+
     # Conserve les paragraphes originaux séparés par des sauts de ligne clairs
     lines = [line.strip() for line in md_text.splitlines() if line.strip()]
     final_text = "\n\n".join(lines)
-    
+
     # Fallback si markdownify donne un texte vide (ex: HTML avec que des balises non supportées)
     if not final_text.strip():
         final_text = soup.get_text(separator="\n").strip()
-        
+
     return final_text
+
 
 def extract_images_from_html(html_content: str) -> list:
     """Extrait toutes les URLs d'images d'un contenu HTML."""
@@ -179,21 +84,20 @@ def extract_images_from_html(html_content: str) -> list:
             images.append(src)
     return images
 
-def is_recent_enough(published_at_raw: str) -> bool:
-    """Vérifie si la date de publication est supérieure au seuil RAG_START_DATE."""
-    if not published_at_raw:
-        return False
-    try:
-        pub_date = datetime.fromisoformat(published_at_raw.replace("Z", "+00:00"))
-        return pub_date >= RAG_START_DATE
-    except ValueError:
-        return False
+
+def _category_dir(output_dir: Path, category_name: str) -> Path:
+    """Dossier de catégorie identique à celui utilisé par main.py (config.slugify)."""
+    cat_slug = slugify(category_name) or "unknown"
+    cat_dir = output_dir / cat_slug
+    cat_dir.mkdir(parents=True, exist_ok=True)
+    return cat_dir
+
 
 # --------------------------------------------------------------------------
 # Traitement par Type
 # --------------------------------------------------------------------------
 
-def process_forums(token: str) -> dict:
+def process_forums() -> dict:
     input_dir = OUTPUT_DIR / "forums"
     output_dir = RAG_READY_DIR / "forums"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -211,39 +115,53 @@ def process_forums(token: str) -> dict:
     filtered_no_best_answer = 0
     filtered_too_old = 0
     filtered_other = 0
+    st_with = 0      # topics acceptés où un agent ST a répondu
+    st_without = 0   # topics acceptés sans réponse d'agent ST
+    ongoing_with = 0      # topics rejetés (non résolus) où un agent ST a répondu
+    ongoing_without = 0   # topics rejetés (non résolus) sans réponse d'agent ST
 
     if not input_dir.exists():
         print("Aucun dossier de forums trouvé.")
         return {"count": 0, "ok_urls": [], "filtered_urls": [], "stats": {}}
 
-    headers = {"Authorization": f"Bearer {token}"} if token else {}
-
     print("\n--- Traitement des Forums ---")
-    for file_path in input_dir.glob("*.json"):
+    for file_path in input_dir.rglob("*.json"):
         with open(file_path, "r", encoding="utf-8") as f:
             topic = json.load(f)
 
         topic_url = topic.get("_seoUrl", file_path.name)
 
-        out_path = output_dir / file_path.name
+        cat_dir = _category_dir(output_dir, topic.get("categoryName", ""))
         # Toujours traiter le fichier pour appliquer les corrections de scraping récents
 
         # 1. Filtre: bestAnswer doit être true
         if not topic.get("bestAnswer", False):
             filtered_urls.append({"url": topic_url, "reason": "no_best_answer"})
             filtered_no_best_answer += 1
+            if any((r.get("role") or "") in ST_AGENT_ROLES for r in topic.get("scraped_replies", [])):
+                ongoing_with += 1
+            else:
+                ongoing_without += 1
             continue
 
         # 2. Filtre: Date
         if not is_recent_enough(topic.get("publishedAt")):
             filtered_urls.append({"url": topic_url, "reason": "too_old"})
             filtered_too_old += 1
+            if any((r.get("role") or "") in ST_AGENT_ROLES for r in topic.get("scraped_replies", [])):
+                ongoing_with += 1
+            else:
+                ongoing_without += 1
             continue
 
         topic_id = topic.get("id")
         if not topic_id:
             filtered_urls.append({"url": topic_url, "reason": "no_id"})
             filtered_other += 1
+            if any((r.get("role") or "") in ST_AGENT_ROLES for r in topic.get("scraped_replies", [])):
+                ongoing_with += 1
+            else:
+                ongoing_without += 1
             continue
 
         print(f"Traitement du topic forum {topic_id}...")
@@ -251,7 +169,7 @@ def process_forums(token: str) -> dict:
         # 3. Nettoyage HTML -> Markdown lisible
         question_md = clean_html_to_markdown(topic.get("content", ""))
         question_images = extract_images_from_html(topic.get("content", ""))
-        
+
         all_images = set(question_images)
         if topic.get("featuredImage"):
             all_images.add(topic.get("featuredImage"))
@@ -259,18 +177,33 @@ def process_forums(token: str) -> dict:
         # Traitement des réponses extraites par main.py
         scraped_replies = topic.get("scraped_replies", [])
         best_answers = []
+        best_answer_meta = []
 
         if scraped_replies:
             for reply in scraped_replies:
                 html_reply = reply.get("html", "")
                 is_best = reply.get("is_best", False)
                 md_reply = clean_html_to_markdown(html_reply)
-                
+
                 if md_reply:
                     if is_best and md_reply not in best_answers:
                         best_answers.append(md_reply)
+                        best_answer_meta.append({
+                            "author": reply.get("author", ""),
+                            "role": reply.get("role", ""),
+                        })
                     reply_images = extract_images_from_html(html_reply)
                     all_images.update(reply_images)
+
+        scraped_replies_out = [
+            {
+                "is_best": reply.get("is_best", False),
+                "html": reply.get("html", ""),
+                "author": reply.get("author", ""),
+                "role": reply.get("role", ""),
+            }
+            for reply in scraped_replies
+        ]
 
         r = topic.get("replyCount", 0) or 0
         total_replies += r
@@ -295,25 +228,51 @@ def process_forums(token: str) -> dict:
         # S'il y en a plusieurs -> "best_answer_content1", "best_answer_content2", etc.
         if len(best_answers) == 1:
             rag_item["best_answer_content"] = best_answers[0]
+            rag_item["best_answer_author"] = best_answer_meta[0]["author"]
+            rag_item["best_answer_author_role"] = best_answer_meta[0]["role"]
         elif len(best_answers) > 1:
             for idx, ans in enumerate(best_answers, start=1):
                 rag_item[f"best_answer_content{idx}"] = ans
+                rag_item[f"best_answer_author{idx}"] = best_answer_meta[idx - 1]["author"]
+                rag_item[f"best_answer_author_role{idx}"] = best_answer_meta[idx - 1]["role"]
         else:
             # Fallback : si best_answers est vide mais qu'il y a au moins une réponse extraite
             all_scraped_md = [clean_html_to_markdown(r.get("html", "")) for r in scraped_replies if clean_html_to_markdown(r.get("html", ""))]
             if all_scraped_md:
                 rag_item["best_answer_content"] = all_scraped_md[0]
+                first_reply = scraped_replies[0]
+                rag_item["best_answer_author"] = first_reply.get("author", "")
+                rag_item["best_answer_author_role"] = first_reply.get("role", "")
             else:
                 rag_item["best_answer_content"] = ""
+                rag_item["best_answer_author"] = ""
+                rag_item["best_answer_author_role"] = ""
 
         rag_item["content_text"] = question_md
         rag_item["images"] = list(all_images)
         rag_item["author"] = topic.get("author", {}).get("username", "")
+        rag_item["scraped_replies"] = scraped_replies_out
+
+        # Détection des réponses d'agents ST (rôles : Technical Moderator / Community Manager / Employee)
+        st_replies = [
+            {"author": reply.get("author", ""), "role": reply.get("role", "")}
+            for reply in scraped_replies
+            if reply.get("role") in ST_AGENT_ROLES
+        ]
+        rag_item["st_agent_reply"] = {
+            "has_st_reply": bool(st_replies),
+            "replies": st_replies,
+        }
+        if st_replies:
+            st_with += 1
+        else:
+            st_without += 1
 
         # Silhouette exacte demandée : englobé dans {"forum": [ ... ]}
         wrapped_item = {"forum": [rag_item]}
 
-        out_path = output_dir / file_path.name
+        # Nom du fichier source préservé ({publicId}.json) pour rester cohérent avec output/
+        out_path = cat_dir / file_path.name
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(wrapped_item, f, ensure_ascii=False, indent=4)
 
@@ -323,6 +282,7 @@ def process_forums(token: str) -> dict:
 
     # ── Calcul des stats finales ─────────────────────────────────────────
     total_input = processed_count + filtered_no_best_answer + filtered_too_old + filtered_other
+    rejected_total = total_input - processed_count
     avg_replies  = round(total_replies / processed_count, 2) if processed_count > 0 else 0
     avg_views    = round(total_views   / processed_count, 2) if processed_count > 0 else 0
     min_replies  = min(r for r, _, _ in reply_counts) if reply_counts else 0
@@ -372,6 +332,18 @@ def process_forums(token: str) -> dict:
         "avg_replies_per_post":           avg_replies,
         "min_replies":                    min_replies,
         "max_replies":                    max_replies,
+        # Réponses agents ST (solved)
+        "st_agent_stats": {
+            "forums_with_st_reply":       st_with,
+            "forums_without_st_reply":    st_without,
+            "st_reply_pct":               round(st_with / processed_count * 100, 1) if processed_count > 0 else 0,
+        },
+        # Réponses agents ST sur les posts rejetés (Ongoing / non résolus)
+        "st_agent_stats_ongoing": {
+            "forums_with_st_reply":       ongoing_with,
+            "forums_without_st_reply":    ongoing_without,
+            "st_reply_pct":               round(ongoing_with / rejected_total * 100, 1) if rejected_total > 0 else 0,
+        },
         "reply_distribution": {
             "0_replies":    dist["0"],
             "1_reply":      dist["1"],
@@ -417,13 +389,13 @@ def process_knowledge_base() -> dict:
         return {"count": 0, "ok_urls": [], "filtered_urls": [], "stats": {}}
 
     print("\n--- Traitement de la Knowledge Base ---")
-    for file_path in input_dir.glob("*.json"):
+    for file_path in input_dir.rglob("*.json"):
         with open(file_path, "r", encoding="utf-8") as f:
             article = json.load(f)
 
         article_url = article.get("_seoUrl", file_path.name)
 
-        out_path = output_dir / file_path.name
+        cat_dir = _category_dir(output_dir, article.get("categoryName", ""))
 
         # 1. Filtre: Date
         if not is_recent_enough(article.get("publishedAt")):
@@ -462,7 +434,8 @@ def process_knowledge_base() -> dict:
         # Silhouette exacte demandée : englobé dans {"kb": [ ... ]}
         wrapped_item = {"kb": [rag_item]}
 
-        out_path = output_dir / file_path.name
+        # Nom du fichier source préservé ({publicId}.json) pour rester cohérent avec output/
+        out_path = cat_dir / file_path.name
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(wrapped_item, f, ensure_ascii=False, indent=4)
 
@@ -495,22 +468,17 @@ def process_knowledge_base() -> dict:
     print(f"  -> {processed_count} articles préparés pour le RAG.")
     return {"count": processed_count, "ok_urls": ok_urls, "filtered_urls": filtered_urls, "stats": stats, "rag_items": rag_items}
 
+
 # --------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------
-
-LOGS_DIR = Path(__file__).parent / "logs"
 
 def run_prepare() -> dict:
     print("Démarrage du pipeline de préparation RAG...")
     start_time_dt = datetime.now()
     start_time_iso = start_time_dt.isoformat()
 
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-
-    token = get_access_token()
-
-    forums_report = process_forums(token)
+    forums_report = process_forums()
     kb_report = process_knowledge_base()
 
     end_time_dt = datetime.now()
@@ -589,9 +557,3 @@ def run_prepare() -> dict:
     print("="*55)
 
     return report
-
-def main():
-    run_prepare()
-
-if __name__ == "__main__":
-    main()
