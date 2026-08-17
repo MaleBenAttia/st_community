@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "165652",
+            "publicId": "165652",
+            "title": "STM32H563 Open Drain pulls line to 200mV",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h563-open-drain-pulls-line-to-200mv-165652",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-05-13T14:11:15+00:00",
+            "views": 238,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Sorry for the delay in getting back.\n\nI changed to input and Open drain and found both now gave me 200mV level.\n\nTried the same on another pin and got same result, nothing to do with UART mode.\n\nThis got me suspicious as to the CRO I was using, it had been recently returned from calibration so should have been spot on but I measured voltage with multimeter and this showed 3.3V.\n\nI changed to another CRO and voltage now measures correctly and UART is correctly pulling the signal down and my 1 wire code works.\n\nAnnoying when you have new PCB, new API and CRO is the problem.\n\nThank you to all who answered",
+            "best_answer_author": "Andini",
+            "best_answer_author_role": "",
+            "content_text": "I am new to using the STM32H563, 64 pin package and am trying to implement Dallas 1 wire protocol with a UART.\n\nInitially I was going to use transmit and receive with diode back into Tx, but I saw example using the Half duplex mode of the UART and thought I would give that a go.\n\nHowever, whenever I change the USART1 pin to open drain (Pin 59 of 64 pin package), the line which is pulled up by a 4k7 resistor drops to about 200mV.  If I try to transmit with the UART, I can see the Open drain pulling from 200mV down to ground as the data goes through. If I place another 4k7 pullup in parallel, the voltage increases to 400mV.\n\nIf I make the pin an input, the voltage goes up to 3.3V as expected.\n\nIf I make the pin full duplex standard USART1 TX with PP pin, the voltage goes to 3.3V.\n\nI have removed all other components so it is just the processor pin itself, setting Open Drain just fails to give me a proper open drain, it seems to have something else loading the line.\n\nBoth pullup and pulldown resistors are disabled.\n\nThe initialisation for the port is from MX cube.\n\nIs there a known issue with Open Drain on this version of processor?\n\nIf not, how should I initialise the port to get a real Open Drain output where the 4k7 pulls up to 3.3V.\n\nNeither MX Cube or Claude seem to know?",
+            "images": [],
+            "author": "Andini",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Sorry for the delay in getting back.</p><p>I changed to input and Open drain and found both now gave me 200mV level.</p><p>Tried the same on another pin and got same result, nothing to do with UART mode.</p><p>This got me suspicious as to the CRO I was using, it had been recently returned from calibration so should have been spot on but I measured voltage with multimeter and this showed 3.3V. </p><p>I changed to another CRO and voltage now measures correctly and UART is correctly pulling the signal down and my 1 wire code works. </p><p> </p><p>Annoying when you have new PCB, new API and CRO is the problem.</p><p>Thank you to all who answered</p></div>",
+                    "author": "Andini",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106934\">@Andini</user-mention> and welcome to the ST community,</p>\n<p>Forget about USART for the moment. If you use that pin as normal GPIO in output open drain, do you have the same behavior?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I will try this and get back with the result.  </p></div>",
+                    "author": "Andini",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Normal open drain is based on ODR register and default is 0. Then enable open drain set pin to logical 0 as you see.</p><p>For real \"open\" you add before switch to open drain set pin to high ...</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

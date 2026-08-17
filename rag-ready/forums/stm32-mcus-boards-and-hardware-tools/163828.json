@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "163828",
+            "publicId": "163828",
+            "title": "STLink V3 MINIE won't connect to STM32U0 target; V2 and V3_SET connect OK",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stlink-v3-minie-won-t-connect-to-stm32u0-target-v2-and-v3-set-connect-ok-163828",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "STM32U0 series"
+            ],
+            "published_at": "2026-03-16T09:05:38+00:00",
+            "views": 496,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nConcerning the signal behavior, it is explained because the V3MINIE embeds level shifters without output enable signal. So outputs (including SWCLK) are always driven. This remark applies also to T\\_JTDI and T\\_VCP\\_Rx. SWDIO can be released because it is bidir and thus can be configured as input for the ST-Link (so not driven by the level shifter).\n\nOne point following this difference with V2 and V3SET, is that T\\_VCC (input for V3MINIE on pin3) is absolutely mandatory for the V3MINIE to work. I don't know if this can explain the issue with CubeProg (because I see 3,02V in the log windows and 0V in the GUI at the right), but I would say this should be the first signal to check in case of connection issue with V3MINIE vs V2 and V3SET (other signals should also be checked, because I guess that connectors differences lead to manual wiring with possible erratic contact)",
+            "best_answer_author": "S C",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I have the following original debuggers:\n\nStlink V2\n\nStlink V3\\_SET\n\nStlink V3\\_MINIE (2 pieces)\n\nI was recently testing a simple board with an STM32U083 (powered by 3.3V) and found that two Stlink V3 MINIE units could connect to the MCU. Meanwhile, both the V2 and V3\\_SET work without any issues.\n\nI observed that after connecting (SWDIO,SWCLK,VDD,GND) to the powered MCU, both the V2 and V3\\_SET leave SWDIO at 3.3V (pull-up in the MCU) and SWCLK at 0V (pull-down in the MCU). Whereas the MINIE maintains a 3.3V level on both SWDIO and SWCLK. Out of curiosity, I connected an external 10k pull-down resistor to both SWDIO and SWCLK and observed that SWDIO drops (which is fine), but SWCLK does not, meaning that the Stlink V3 MINIE actively holds SWCLK at 3.3V.\n\nAm I doing something wrong, or are both MINIE boards defective?\n\nBest regards,\n\nMichal Dudka",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/13c3ba0e-7ea5-74de-980b-9cfff5171383.jpg"
+            ],
+            "author": "Michal Dudka",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt; <span>found that two Stlink V3 MINIE units could connect to the MCU</span></p><p>- thats normal, right ?</p><p>&gt;<span>Am I doing something wrong, or are both MINIE boards defective?</span></p><p>What now: they connect - or not ?</p><p> </p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, there's a typo there. I meant to say that <span>Stlink V3 MINIE units could not connect to the MCU.</span></p></div>",
+                    "author": "Michal Dudka",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok :)  .</p><p>What shows CubeProgrammer (actual version !) , when connect a miniE ? (updated firmware ? )</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"10134\">@Michal Dudka</user-mention> wrote:<br/><p>connecting (SWDIO,SWCLK,VDD,GND) to the powered MCU</p><hr/></blockquote><p>What if you include NRST in the connection, and try to connect under reset?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Concerning the signal behavior, it is explained because the V3MINIE embeds level shifters without output enable signal. So outputs (including SWCLK) are always driven. This remark applies also to T_JTDI and T_VCP_Rx. SWDIO can be released because it is bidir and thus can be configured as input for the ST-Link (so not driven by the level shifter).</p><p>One point following this difference with V2 and V3SET, is that T_VCC (input for V3MINIE on pin3) is absolutely mandatory for the V3MINIE to work. I don't know if this can explain the issue with CubeProg (because I see 3,02V in the log windows and 0V in the GUI at the right), but I would say this should be the first signal to check in case of connection issue with V3MINIE vs V2 and V3SET (other signals should also be checked, because I guess that connectors differences lead to manual wiring with possible erratic contact)</p></div>",
+                    "author": "S C",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The MCU is, of course, powered, and VCC is connected to MINIE. Just to be sure, I also measured the voltage at MINIE and verified that there is 3V coming from the MCU.</p><p>Connecting it \"under reset\"—whether via hardware or software reset—has no effect on this, and the result is the same.<br/><br/><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"minie2.jpg\" style=\"width: 400px;\"><img alt=\"minie2.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/13c3ba0e-7ea5-74de-980b-9cfff5171383.jpg\" title=\"minie2.jpg\"/></span></p><p> </p><p>I didn’t want you to spend too much time on this; I was just curious if any of you had encountered this issue and had a ready-made solution. Of course, I’ll resolve it by simply not using the MINIE in this case.<br/><br/>Best regards, Michal Dudka</p></div>",
+                    "author": "Michal Dudka",
+                    "role": "Lead"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "S C",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

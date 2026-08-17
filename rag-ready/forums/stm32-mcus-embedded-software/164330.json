@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164330",
+            "publicId": "164330",
+            "title": "[stm32u585] HAL_IWDG_Init reconfig does not take effect",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u585-hal-iwdg-init-reconfig-does-not-take-effect-164330",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "IWDG-WWDG",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-03-31T07:39:59+00:00",
+            "views": 256,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @lll\n\nafter changing the IWDG prescaler/reload, the new configuration is not guaranteed to be fully effective if you enter STANDBY immediately. Even though HAL\\_IWDG\\_Init() waits for update flags, the IWDG (running on LSI in another clock domain) needs a short time to synchronize internally. Therefore, your second sequence is the correct approach: add a small delay after HAL\\_IWDG\\_Init() and before the first HAL\\_IWDG\\_Refresh() / HAL\\_PWR\\_EnterSTANDBYMode(), to ensure the new reload value is properly taken into account.",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "hello,\n\nI encountered a problem while developing for stm32u585.\n\nI change the iwdg reload value by HAL\\_IWDG\\_Init(), and then HAL\\_PWR\\_EnterSTANDBYMode(), but the new reload value does not take effect:\n\n```\n\nhiwdg.Instance = IWDG;\n\nhiwdg.Init.Prescaler = IWDG_PRESCALER_64;\n\nhiwdg.Init.Window = 4095;\n\nhiwdg.Init.Reload = 3600;\n\nhiwdg.Init.EWI = 0;\n\nHAL_IWDG_Init(&hiwdg);\n\nHAL_IWDG_Refresh(&hiwdg);\n\nHAL_Delay(300); //more than one downcount\n\nHAL_PWR_EnterSTANDBYMode();\n\n```\n\nif delay before refresh, it seems work\n\n```\n\nhiwdg.Instance = IWDG;\n\nhiwdg.Init.Prescaler = IWDG_PRESCALER_64;\n\nhiwdg.Init.Window = 4095;\n\nhiwdg.Init.Reload = 3600;\n\nhiwdg.Init.EWI = 0;\n\nHAL_IWDG_Init(&hiwdg);\n\nHAL_Delay(300); //more than one downcount\n\nHAL_IWDG_Refresh(&hiwdg);\n\nHAL_PWR_EnterSTANDBYMode();\n\n```\n\nIs this the correct process ? If I want to ensure the modification is successful, what should I pay attention to",
+            "images": [],
+            "author": "lll",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"82085\">@lll</user-mention> </p>\n<p>after changing the IWDG prescaler/reload, the new configuration is not guaranteed to be fully effective if you enter STANDBY immediately. Even though HAL_IWDG_Init() waits for update flags, the IWDG (running on LSI in another clock domain) needs a short time to synchronize internally. Therefore, your second sequence is the correct approach: add a small delay after HAL_IWDG_Init() and before the first HAL_IWDG_Refresh() / HAL_PWR_EnterSTANDBYMode(), to ensure the new reload value is properly taken into account.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>LSI=32K, <span>prescaler=128 ==&gt; IWDG=250Hz</span></p><p>before: <span>prescaler=64, reload=40</span></p><p><span>after: prescaler=512, reload=3600</span></p><p><span>if i only config once, i need to delay about 3s. if i config twice, it seems that only a delay of 300ms is needed:</span></p><pre class=\"lia-code-sample language-c\"><code> hiwdg.Instance = IWDG;\n hiwdg.Init.Prescaler = IWDG_PRESCALER_64;\n hiwdg.Init.Window = 4095;\n hiwdg.Init.Reload = 3600;\n hiwdg.Init.EWI = 0;\n HAL_IWDG_Init(&amp;hiwdg);\n HAL_Delay(350);\n HAL_IWDG_Refresh(&amp;hiwdg);\n\n hiwdg.Instance = IWDG;\n hiwdg.Init.Prescaler = IWDG_PRESCALER_512;\n hiwdg.Init.Window = 4095;\n hiwdg.Init.Reload = 3600;\n hiwdg.Init.EWI = 0;\n HAL_IWDG_Init(&amp;hiwdg);</code></pre><p>is this <span>sequence </span><span>correct?</span></p></div>",
+                    "author": "lll",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

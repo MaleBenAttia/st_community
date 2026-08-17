@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "163846",
+            "publicId": "163846",
+            "title": "Internal Temp Sensor STM32H563VI",
+            "url": "https://community.st.com/stm32-mcus-products-25/internal-temp-sensor-stm32h563vi-163846",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H5 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-16T14:42:38+00:00",
+            "views": 366,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @adakPal and welcome to the ST community,\n\n> ---\n\n>\n\n> @adakPal wrote:\n\n>\n\n> It worked with Nucleo H563ZI, but doesn't with H563VI.\n\n>\n\n> ---\n\nYou didn't mention what board are you using for that STM32H563VI device. What about the VREF pins? did you connect it to a reference voltage?\n\nIf it works on H563ZI it should work on H563VI.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear ST Community,\n\nI am currently migrating my Firmware from STM32H723VG to STM32H563VI. I have problem with Internal Temp Sensor. Based on Reference Manual on both MCU reading temperature is the same, but it doesn't work as it should.\n\nWhen on STM32H7 I got about 750 (24 degree Celsius) on reading ADC from TEMP Sens, on STM32H5 I have around 100.\n\nI tried both with and without cache (ICache and DCache), with Bare Metal and Zephyr RTOS code. In every configuration it is not working. I tried also on different MCUs, so it shouldn't be part itself.\n\nIt worked with Nucleo H563ZI, but doesn't with H563VI.\n\nWhat else can I do?",
+            "images": [],
+            "author": "adakPal",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Calibrate the ADC before using.</p><p>Use longest sampling time for internal temperature sensor.</p><p>Use the correct voltage reference.</p><p>Show you code.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"82963\">@adakPal</user-mention> and welcome to the ST community,</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"82963\">@adakPal</user-mention> wrote:<br/>\n<p>It worked with Nucleo H563ZI, but doesn't with H563VI.</p>\n<hr/></blockquote>\n<p>You didn't mention what board are you using for that STM32H563VI device. What about the VREF pins? did you connect it to a reference voltage? </p>\n<p>If it works on H563ZI it should work on H563VI.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><ol><li>I calibrate ADC before reading</li><li>On my custom PCB I have VREF+ connected to 3V3 and VREF- to GND</li><li>I use the longest possible sampling time </li></ol><pre class=\"lia-code-sample language-c\"><code>ADC_SAMPLETIME_640CYCLES_5​</code></pre><p>My code:<br/>ADC:</p><pre class=\"lia-code-sample language-c\"><code>static void MX_ADC1_Init(void)\n{\n\n /* USER CODE BEGIN ADC1_Init 0 */\n\n /* USER CODE END ADC1_Init 0 */\n\n ADC_ChannelConfTypeDef sConfig = {0};\n\n /* USER CODE BEGIN ADC1_Init 1 */\n\n /* USER CODE END ADC1_Init 1 */\n\n /** Common config\n */\n hadc1.Instance = ADC1;\n hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;\n hadc1.Init.Resolution = ADC_RESOLUTION_12B;\n hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;\n hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;\n hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;\n hadc1.Init.LowPowerAutoWait = DISABLE;\n hadc1.Init.ContinuousConvMode = DISABLE;\n hadc1.Init.NbrOfConversion = 1;\n hadc1.Init.DiscontinuousConvMode = DISABLE;\n hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;\n hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;\n hadc1.Init.DMAContinuousRequests = DISABLE;\n hadc1.Init.SamplingMode = ADC_SAMPLING_MODE_NORMAL;\n hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;\n hadc1.Init.OversamplingMode = DISABLE;\n if (HAL_ADC_Init(&amp;hadc1) != HAL_OK)\n {\n Error_Handler();\n }\n\n /** Configure Regular Channel\n */\n sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;\n sConfig.Rank = ADC_REGULAR_RANK_1;\n sConfig.SamplingTime = ADC_SAMPLETIME_640CYCLES_5;\n sConfig.SingleDiff = ADC_SINGLE_ENDED;\n sConfig.OffsetNumber = ADC_OFFSET_NONE;\n sConfig.Offset = 0;\n if (HAL_ADC_ConfigChannel(&amp;hadc1, &amp;sConfig) != HAL_OK)\n {\n Error_Handler();\n }\n /* USER CODE BEGIN ADC1_Init 2 */\n\n /* USER CODE END ADC1_Init 2 */\n\n}</code></pre><p>main():</p><pre class=\"lia-code-sample language-c\"><code>int main(void)\n{\n\n /* USER CODE BEGIN 1 */\n\n /* USER CODE END 1 */\n\n /* MCU Configuration--------------------------------------------------------*/\n\n /* MPU Configuration--------------------------------------------------------*/\n MPU_Config();\n\n /* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n HAL_Init();\n\n /* USER CODE BEGIN Init */\n\n /* USER CODE END Init */\n\n /* Configure the system clock */\n SystemClock_Config();\n\n /* USER CODE BEGIN SysInit */\n\n /* USER CODE END SysInit */\n\n /* Initialize all configured peripherals */\n MX_GPIO_Init();\n MX_ADC1_Init();\n MX_ICACHE_Init();\n /* USER CODE BEGIN 2 */\n\n if (HAL_ADCEx_Calibration_Start(&amp;hadc1, ADC_SINGLE_ENDED) != HAL_OK)\n {\n Error_Handler();\n }\n\n HAL_Delay(2);\n\n /* USER CODE END 2 */\n\n /* Infinite loop */\n /* USER CODE BEGIN WHILE */\n while (1)\n {\n /* USER CODE END WHILE */\n\n /* USER CODE BEGIN 3 */\n HAL_StatusTypeDef st;\n\n st = HAL_ADC_Start(&amp;hadc1);\n if (st != HAL_OK)\n {\n return st;\n }\n\n /* Rank 1: TEMPSENSOR */\n st = HAL_ADC_PollForConversion(&amp;hadc1, 100);\n if (st != HAL_OK)\n {\n HAL_ADC_Stop(&amp;hadc1);\n return st;\n }\n uint32_t temp_raw_out = HAL_ADC_GetValue(&amp;hadc1);\n uint32_t temp = (uint32_t)((float)(TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) /\n (float)(*TEMPSENSOR_CAL2_ADDR - *TEMPSENSOR_CAL1_ADDR) *\n (float)((uint16_t)(temp_raw_out) -\n *TEMPSENSOR_CAL1_ADDR) +\n (float)TEMPSENSOR_CAL1_TEMP);\n\n HAL_Delay(100);\n }\n}</code></pre><p>And temp_raw_out is always around 470-520</p></div>",
+                    "author": "adakPal",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; on STM32H5 I have around 100.</em></p><p><em>&gt; And temp_raw_out is always around 470-520</em></p><p>Which of these is true?</p><p>The ADC value shouldn't necessarily match between two series. Ignore whatever you get on the H7. What does the temperature calculation on the H5 turn up?</p><p>What are the values of *TEMPSENSOR_CALx_ADDR and *TEMPSENSOR_CAL1_TEMP?</p><p>Can you show your schematic? Is there a capacitor next to VREF+ pin?</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm sorry, but after consulting with an electronics engineer, it appears there is an issue with the hardware VREF- connection.</p><p>Thank you for your guidance!</p></div>",
+                    "author": "adakPal",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164900",
+            "publicId": "164900",
+            "title": "ST25DV04 antenna connection",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25dv04-antenna-connection-164900",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 Dynamic NFC Tags – ST25DV series"
+            ],
+            "published_at": "2026-04-20T05:56:29+00:00",
+            "views": 194,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nThe NFC is based on an electromagnetic coupling of the reader's antenna and the tag's antenna. It actually works exactly as a transformer, with the air replacing the metal core of the transformer.\n\nThe aluminum PCB is made of an aluminum core, with an insulating layer between the aluminum core and the top copper layer (from what I know). The aluminum core will act as a shield for the magnetic flux, preventing the flux to circle through the copper antenna because of the proximity of both layers.\n\nTo have it working, you would need to make a hole in the aluminum, slightly larger than the antenna, and have the copper layer of the antenna on top of this hole. But that won't be possible, I think.\n\nBrest regards.",
+            "best_answer_author": "JL. Lebon",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I want to add NFC functionality to an existing product. Because the PCB is made of aluminium, I can't use a PCB antenna.\n\nOn the enclosure of the product, there is a small PCB with 2 pushbuttons and some leds. My idea is to place the PCB antenna on this small PCB.\n\nBut because of space restrictions, I can't add positions to the existing connector.\n\nMy idea is to connect the antenna in parallel to the pushbuttons (see attached drawing). The GPIOs of the uP are inputs. I'm aware that the NFC does not work if a pushbutton is being pressed.\n\nMy questions are: Do you think this can work? Can the ST25DV04 take damage, if an antenna connection is shortet to GND? Can the 1K resistors remain in the circuit or do I need to replace them with 0R resisorts?",
+            "images": [],
+            "author": "michael.gaechter",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Unfortunately, I think there are several things that will prevent this to work correctly.</p><p>I see that the push buttons are connecting the GPIOs to ground. This means that you probably have an internal pull-up inside the MCU? If this is the case it means that the AC0/AC1 pins will be permanently powered in DC from this pull-up resistor. This will prevent the ST25DV to work correctly.</p><p>Internally, the AC0/AC1 pins are connected to a bridge rectifier. This means that your GPIOs will also be connected to this bridge rectifier. I'm not sure of the effect on the GPIOs, but I don't think it will work well.</p><p>You also have to consider the tuning of this, as the GPIOs will change significantly the impedance seen by the antenna.</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">Thank you for your answer.<br/><br/>Do you have a suggestion how to implement a NFC antenna on an aluminium PCB.<br/></div>",
+                    "author": "michael.gaechter",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>The NFC is based on an electromagnetic coupling of the reader's antenna and the tag's antenna. It actually works exactly as a transformer, with the air replacing the metal core of the transformer.</p><p>The aluminum PCB is made of an aluminum core, with an insulating layer between the aluminum core and the top copper layer (from what I know). The aluminum core will act as a shield for the magnetic flux, preventing the flux to circle through the copper antenna because of the proximity of both layers. <br/>To have it working, you would need to make a hole in the aluminum, slightly larger than the antenna, and have the copper layer of the antenna on top of this hole. But that won't be possible, I think.</p><p>Brest regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

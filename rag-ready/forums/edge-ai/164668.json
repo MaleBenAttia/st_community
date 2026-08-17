@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "164668",
+            "publicId": "164668",
+            "title": "implement multi-model scheduling with FreeRTOS using STM32Cube.AI ?",
+            "url": "https://community.st.com/edge-ai-134/implement-multi-model-scheduling-with-freertos-using-stm32cube-ai-164668",
+            "category": "Edge AI",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-12T09:57:18+00:00",
+            "views": 304,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello  @Jason32\n\nWhen working with multiple networks / multiple instances, you need to specify a \"model name\".\n\nST Edge AI Core API uses stai\\_<network\\_name>\\_run() methods, which can be specified in STM32Cube AI Studio.\n\nIn the \"Right Panel\", scroll to \"Advanced Settings\" and in \"Common Options\", edit \"network\" by a string which is friendly to you (example: img\\_detect\\_1).\n\nAll the code generated (sources and headers) will be with this name:\n\nnetwork.c -> img\\_detect\\_1.c\n\nnetwork\\_data.c -> img\\_detect\\_1\\_data.c\n\netc...\n\nTo share a single activation buffer, allocation needs to be the greater one. If you are working with a contiguous memory region, and working with 3 models, you need to allocate a memory region which is the maximum of the 3.\n\nBest regards,\n\nYanis",
+            "best_answer_author": "hamitiya",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi all,\n\nI’m currently working on an Edge AI project using the **NUCLEO-N657X0-q** and I've run into a roadblock regarding multi-model deployment.\n\nI need to run **2 or 3 models** on this MCU, scheduled via **FreeRTOS**. While I can get a single model working fine with STM32Cube.AI Studio, I’m struggling to find a detailed workflow for managing multiple instances.\n\n**Specific questions:**\n\n* **API Naming:** How to properly configure Cube.AI to generate unique prefixes for multiple models to avoid link-time conflicts?\n\n* **Memory/Buffer Sharing:** Is there a standard way to share a single activation buffer between models to save RAM, given they are called sequentially via FreeRTOS?\n\n* **Task Scheduling:** Any known issues or best practices for calling stai\\_network\\_run() within a FreeRTOS task? (e.g. stack size or re-entrancy).\n\nI’ve checked the *ST Edge AI Core* docs but couldn't find a concrete example for this multi-model + RTOS use case. If anyone has a reference project or can point me to the right Application Note, I’d really appreciate it.\n\nThanks!",
+            "images": [],
+            "author": "Jason32",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello  <user-mention data-id=\"106005\">@Jason32</user-mention> </p><p>When working with multiple networks / multiple instances, you need to specify a \"model name\". </p><p>ST Edge AI Core API uses stai_&lt;network_name&gt;_run() methods, which can be specified in STM32Cube AI Studio.</p><p>In the \"Right Panel\", scroll to \"Advanced Settings\" and in \"Common Options\", edit \"network\" by a string which is friendly to you (example: img_detect_1). </p><p>All the code generated (sources and headers) will be with this name:</p><p>network.c -&gt; img_detect_1.c</p><p>network_data.c -&gt; img_detect_1_data.c</p><p>etc...</p><p>To share a single activation buffer, allocation needs to be the greater one. If you are working with a contiguous memory region, and working with 3 models, you need to allocate a memory region which is the maximum of the 3.</p><p> </p><p> </p><p>Best regards,</p><p>Yanis</p></div>",
+                    "author": "hamitiya",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "hamitiya",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

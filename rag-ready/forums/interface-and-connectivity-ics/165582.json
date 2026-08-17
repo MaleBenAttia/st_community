@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "165582",
+            "publicId": "165582",
+            "title": "ST87M01 MQTT issues",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/st87m01-mqtt-issues-165582",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "ST87 series"
+            ],
+            "published_at": "2026-05-11T14:37:48+00:00",
+            "views": 90,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Dear ILabs,\n\nI cannot see your MQTT client configuration, please provide it (if not set , you will use the default one).\n\nAlso, the socket creation and the connection to the socket are missing.\n\nTheses steps are described in the Application Note attached (which is also copied on your PC when you install the GUI). Let me know if it is helpful.\n\nBest regards,",
+            "best_answer_author": "Didier HERROUIN",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**Module / setup**\n\n- Module: ST87M01-1301\n\n- Host: STM32-class MCU over UART, 115200 8N1, no flow control\n\n- Carrier: 1NCE NB-IoT (auto-PDP on CID 5)\n\n- AT manual reference: v3.1, 2025-10-06\n\nCurrent sleep-related configuration\n\n16:34:39.720 -> === AT readbacks ===\n\n16:34:39.720 -> >>> AT+CGMR\n\n16:34:39.720 -> <<< A:2.7.0-M:2.7.0-S:2.7.0\n\n16:34:39.720 -> <<< OK\n\n16:34:39.720 -> >>> AT#SLEEPMODE?\n\n16:34:39.720 -> <<< #SLEEPMODE: 1,5,0\n\n16:34:39.720 -> <<< OK\n\n16:34:39.720 -> >>> AT#WAKEUPEVENT?\n\n16:34:39.720 -> <<< #WAKEUPEVENT: 15,3\n\n16:34:39.720 -> <<< OK\n\n16:34:39.720 -> >>> AT#SLEEPIND?\n\n16:34:39.720 -> <<< #SLEEPIND: 0C\n\n16:34:39.720 -> <<< OK\n\n16:34:39.720 -> >>> AT#RINGPIN?\n\n16:34:39.720 -> <<< #RINGPIN:0,20,1,100\n\n16:34:39.720 -> <<< OK\n\n16:34:39.720 -> >>> AT+CPSMS?\n\n16:34:39.847 -> <<< +CPSMS: 1,,,\"10010100\",\"00001111\"\n\n16:34:39.847 -> <<< OK\n\n16:34:39.847 -> >>> AT+CEDRXRDP\n\n16:34:39.847 -> <<< +CEDRXRDP: 5,\"0010\",\"0010\",\"0011\"\n\n16:34:39.847 -> <<< OK\n\n16:34:39.847 -> === end dump ===\n\n**Observed behaviour**\n\nUse case: an MQTT client (using native AT#MQTT\\*) publishes a short message every 30 seconds to broker.hivemq.com:1883 (port 1883, no TLS). The\n\nMQTT session and IP context stay up across the publish interval. Between publishes there is no AT activity from the host.\n\nWe observe two distinct failure modes:\n\nFailure mode A: #SLEEP URC arrives after the command is sent, no response from module\n\n16:14:46.658 <<< OK (previous MQTTPUB OK)\n\n16:15:15.535 >>> AT#MQTTPUB=st87m01/data,hello #3,10,0,0 (29 s later)\n\n16:15:22.679 <<< #SLEEP (7 s after our send)\n\n16:15:46.666 <<< #WAKEUP (31 s after our send)\n\n16:15:46.666 Publish failed (no OK in 30 s)\n\n16:15:46.666 >>> AT#MQTTPUB=st87m01/data,hello #4,10,0,0\n\n16:15:46.765 <<< OK (99 ms — succeeds)\n\nThe module accepted the AT#MQTTPUB bytes, then went to sleep without responding. #SLEEP arrived 7 s after our send. #WAKEUP arrived 31 s after our\n\nsend (apparently a natural wake — we did nothing). The very next AT#MQTTPUB, issued immediately after #WAKEUP, succeeded in 99 ms.\n\nFailure mode B: module sleeps silently — no #SLEEP or #WAKEUP URC at all\n\nIn a separate run on the same hardware/firmware, after a different boot, with the same publish cadence, the module exhibited the following pattern\n\nacross many publish cycles without ever emitting a #SLEEP or #WAKEUP URC:\n\n16:22:07.317 Publish: hello #2\n\n16:22:07.317 >>> AT (sent as a \"wake probe\")\n\n(no response for ~2 s — first AT lost)\n\n16:22:09.303 >>> AT (second probe)\n\n16:22:09.303 <<< OK (immediate — module is now responsive)\n\n16:22:09.303 >>> AT#MQTTPUB=st87m01/data,hello #2,10,0,0\n\n16:22:09.435 <<< OK (132 ms — succeeds)\n\nThe first AT after the 30 s quiet interval always gets no response; the second AT always responds immediately. Once the module is responsive,\n\nAT#MQTTPUB succeeds in ~100 ms.\n\n**What we tried**\n\n1. Waited up to 30 s on AT#MQTTPUB — confirms there is no late response from the module; the OK truly never comes.\n\n2. Two-step \"wake probe\": send AT twice with a 2 s gap before AT#MQTTPUB. This works reliably in both failure modes — but adds 2 s overhead per\n\npublish when the module is asleep.\n\n3. URC-based sleep tracking on the host: set a \\_sleeping flag from #SLEEP/#WAKEUP URCs and run a wake sequence only when flagged. Works in failure\n\nmode A only when the #SLEEP URC arrives before the next host command, which is not guaranteed. Useless in failure mode B because no URCs are\n\nemitted at all.\n\n**Questions**\n\n1. Is the first-byte-after-sleep loss documented? Per the manual, AT#PWROFF describes \"wake by power-on key or UART character\", and the CMUX <T3>\n\nparameter mentions a wake response timer up to 10 s. Is there an analogous response-timer behaviour for the normal sleep mode? What is the minimum\n\nnumber of bytes / time the host should send before issuing a real AT command after the module has been idle?\n\n2. Is a host-side wake handshake documented anywhere? I have not found one in the AT manual, MQTT app note, or Startup app note. Is the\n\nrecommended pattern: send a dummy byte, wait N ms, then send the actual command? If so, what is N?\n\n3. #SLEEP and #WAKEUP URC reliability. Are these URCs guaranteed to be emitted when the module enters/exits sleep, given AT#SLEEPIND is enabled\n\nand saved? We observe runs where they are emitted (failure mode A) and runs where they are silently absent (failure mode B). What controls this?\n\n4. Module accepting a command then sleeping without responding. In failure mode A the module clearly receives the bytes (it doesn't emit #WAKEUP,\n\nwhich suggests it was already awake), but then goes to sleep without ever acknowledging the command. Is this a known scenario? Is the in-flight\n\ncommand dropped or queued?\n\n5. Default <hold\\_time> for AT#SLEEPMODE. The manual specifies the parameter but not its default value. What is the factory default? Our observed\n\ntiming (sleep hold ≈ 27–30 s) appears to match the default.\n\n6. AT#RINGPIN for URC delivery. Would configuring AT#RINGPIN change the timing of #SLEEP/#WAKEUP URC delivery to the host? Our reading is that it\n\ngives the host advance hardware notice before any URC, which would help on the receive side — but does it also change when the URC is emitted from\n\nthe module's perspective?\n\n7. Recommended pattern for periodic publishing (≥ hold\\_time interval). What is ST's recommended sequence when the host wants to send an MQTT\n\npublish (or any AT command) after an idle period longer than <hold\\_time>? Should the host explicitly issue something like AT#WAKEUP (if such a\n\ncommand exists) or rely on UART activity to wake the module?\n\nAny pointer to documentation we may have missed would be appreciated.\n\nThanks.",
+            "images": [],
+            "author": "iLabs",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear ILabs,</p>\n<p>I cannot see your MQTT client configuration, please provide it (if not set , you will use the default one).</p>\n<p>Also, the socket creation and the connection to the socket are missing.</p>\n<p>Theses steps are described in the Application Note attached (which is also copied on your PC when you install the GUI). Let me know if it is helpful.</p>\n<p>Best regards,</p>\n<p> </p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "163586",
+            "publicId": "163586",
+            "title": "stm32u575vgt, usart DMA rX , rx_buff was not changed by DMA.",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u575vgt-usart-dma-rx-rx-buff-was-not-changed-by-dma-163586",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "DMA",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-03-09T04:33:23+00:00",
+            "views": 288,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @simonkoo\n\nHere are some ideas that might help you troubleshoot and solve your issue.\n\nFirst, I noticed that you have\n\n```\n\nMX_GTZC_Init();\n\n```\n\nAre you using the secure zone intentionally? If yes, verify that you handle it correctly. If it is not mandatory, consider using a nonsecure world project to simplify manipulation.\n\nSecond, do you really need all these peripherals?\n\n```\n\nMX_GPIO_Init();\n\nMX_GPDMA1_Init();\n\nMX_SPI2_Init();\n\nMX_USB_OTG_FS_PCD_Init();\n\nMX_UCPD1_Init();\n\nMX_I2C4_Init();\n\nMX_LPUART1_UART_Init();\n\nMX_USART2_UART_Init();\n\nMX_USART3_UART_Init();\n\nMX_I2C3_Init();\n\nMX_FLASH_Init();\n\nMX_TIM2_Init();\n\nMX_USART1_UART_Init();\n\nMX_ICACHE_Init();\n\n```\n\nIf not, create a project with only the required peripherals, such as USART1 and GPDMA. Clear pinouts when the .ioc file opens.\n\n-I also recommend enabling the destination address increment.\n\nFinally, I have attached a project that echoes a \"hello world\" buffer transmitted through USART1\\_TX to USART1\\_RX using HAL\\_UART\\_Receive\\_DMA and prints it in a buffer named rx\\_buffer. You can visualize rx\\_buffer using live expression. Wire the TX pin to the RX pin. Use this project as a reference to identify issues in your project.\n\nBR\n\nGyessine",
+            "best_answer_author": "Gyessine",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Post edited by ST moderator. In next time please use **</>** to share your code. Thank you for your understanding.*\n\nhi, I am using stm32U5's uasrt2 DMA RX ,  DMA interrupt coming, usart idle int coming, ROR value right, but rx\\_buffer was not refreshed by DMA, here is my part of code.\n\n```\n\n/* USER CODE BEGIN PV */\n\nuint8_t loop_TX = 0xaa;\n\nuint8_t loop_RX = 0x0f;\n\n/* USER CODE END PV */\n\n.............................\n\n/* MPU Configuration--------------------------------------------------------*/\n\nMPU_Config();\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick.\n\n*/\n\nHAL_Init();\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* Configure the system clock */\n\nSystemClock_Config();\n\n/* GTZC initialisation */\n\nMX_GTZC_Init();\n\n/* USER CODE BEGIN SysInit */\n\ndelay_init();\n\nHAL_Delay(100);\n\n/* USER CODE END SysInit */\n\n/* Initialize all configured peripherals */\n\nMX_GPIO_Init();\n\nMX_GPDMA1_Init();\n\nMX_SPI2_Init();\n\nMX_USB_OTG_FS_PCD_Init();\n\nMX_UCPD1_Init();\n\nMX_I2C4_Init();\n\nMX_LPUART1_UART_Init();\n\nMX_USART2_UART_Init();\n\nMX_USART3_UART_Init();\n\nMX_I2C3_Init();\n\nMX_FLASH_Init();\n\nMX_TIM2_Init();\n\nMX_USART1_UART_Init();\n\nMX_ICACHE_Init();\n\n/* Initialize interrupts */\n\nMX_NVIC_Init();\n\nHAL_Delay(100);\n\nwhile (1) {\n\n/* First transmit data, then start DMA receive */\n\nif (loop_TX < 0xFF) {\n\nloop_TX++;\n\nHAL_UART_Transmit(&huart2, &loop_TX, 1, 100);\n\nHAL_Delay(100);\n\n/* Start DMA receive with IDLE detection */\n\nHAL_UARTEx_ReceiveToIdle_DMA(&huart2, &loop_RX, 1);\n\n/* Wait for DMA transfer to complete */\n\nHAL_Delay(500);\n\n/* Flush cache to ensure DMA data is visible to CPU */\n\n//SCB_InvalidateDCache_by_Addr(&loop_RX, sizeof(loop_RX));\n\nprintf(\"[MAIN] TX: %02X, RX: %02X\\r\\n\", loop_TX, loop_RX);\n\n}\n\n}\n\nvoid USART2_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN USART2_IRQn 0 */\n\nif (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE)) {\n\n__HAL_UART_CLEAR_IDLEFLAG(&huart2);\n\nuint16_t dma_cntr = __HAL_DMA_GET_COUNTER(huart2.hdmarx);\n\n/* Flush cache to ensure DMA data is visible to CPU */\n\n//SCB_InvalidateDCache_by_Addr(&loop_RX, sizeof(loop_RX));\n\nprintf(\"[USART2] IDLE, DMA CNDTR=%u, RX=%02X, RDR=%02X\\r\\n\",\n\ndma_cntr, loop_RX, huart2.Instance->RDR);\n\n}\n\n/* USER CODE END USART2_IRQn 0 */\n\nHAL_UART_IRQHandler(&huart2);\n\n/* USER CODE BEGIN USART2_IRQn 1 */\n\n/* USER CODE END USART2_IRQn 1 */\n\n}\n\nvoid GPDMA1_Channel4_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN GPDMA1_Channel4_IRQn 0 */\n\n/* USER CODE END GPDMA1_Channel4_IRQn 0 */\n\nHAL_DMA_IRQHandler(&handle_GPDMA1_Channel4);\n\n/* USER CODE BEGIN GPDMA1_Channel4_IRQn 1 */\n\nprintf(\"[GPDMA1_Channel4] DMA done, CNDTR=%u\\r\\n\",\n\n__HAL_DMA_GET_COUNTER(&handle_GPDMA1_Channel4));\n\nprintf(\n\n\"[GPDMA1_Channel4] DMA buf: %02X %02X %02X %02X %02X %02X %02X %02X\\r\\n\",\n\ng_oas1200.rx_buffer[0], g_oas1200.rx_buffer[1], g_oas1200.rx_buffer[2],\n\ng_oas1200.rx_buffer[3], g_oas1200.rx_buffer[4], g_oas1200.rx_buffer[5],\n\ng_oas1200.rx_buffer[6], g_oas1200.rx_buffer[7]);\n\n/* USER CODE END GPDMA1_Channel4_IRQn 1 */\n\n}\n\n```\n\nhere is some print result :\n\n[MAIN] loop\\_RX addr=0x20000029\n\n[GPDMA1\\_Channel0] DMA done, CNDTR=0, CSAR=0x40004424, CDAR=0x20000029, CTR1=0x00000000\n\n[MAIN] TX: B4, RX: 0F\n\n[USART2] IDLE, DMA CNDTR=0, RX=0F, RDR=B5\n\n[MAIN] loop\\_RX addr=0x20000029\n\n[GPDMA1\\_Channel0] DMA done, CNDTR=0, CSAR=0x40004424, CDAR=0x20000029, CTR1=0x00000000\n\n[MAIN] TX: B5, RX: 0F\n\n[USART2] IDLE, DMA CNDTR=0, RX=0F, RDR=B6[MAIN] loop\\_RX addr=0x20000029\n\n[GPDMA1\\_Channel0] DMA done, CNDTR=0, CSAR=0x40004424, CDAR=0x20000029, CTR1=0x00000000\n\n![10ebc053-ecce-41f0-8ab8-c576f4fc8c96.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b76b122e-de29-9faa-daa4-5bd00ab313ae.png \"10ebc053-ecce-41f0-8ab8-c576f4fc8c96.png\")![st.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/20b976cc-abcc-1f05-a879-a9a99ca2f168.png \"st.png\")\n\nI connect usart2 TX and RX pin to do the test , the RX value should be  equal to TX, I have no idea what is wrong ....",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/20b976cc-abcc-1f05-a879-a9a99ca2f168.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b76b122e-de29-9faa-daa4-5bd00ab313ae.png"
+            ],
+            "author": "simonkoo",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104888\">@simonkoo</user-mention> <br/>Here are some ideas that might help you troubleshoot and solve your issue.<br/>First, I noticed that you have</p>\n<pre class=\"lia-code-sample language-c\"><code> MX_GTZC_Init();\n</code></pre>\n<p>Are you using the secure zone intentionally? If yes, verify that you handle it correctly. If it is not mandatory, consider using a nonsecure world project to simplify manipulation.</p>\n<p>Second, do you really need all these peripherals?</p>\n<pre class=\"lia-code-sample language-c\"><code>MX_GPIO_Init();\n MX_GPDMA1_Init();\n MX_SPI2_Init();\n MX_USB_OTG_FS_PCD_Init();\n MX_UCPD1_Init();\n MX_I2C4_Init();\n MX_LPUART1_UART_Init();\n MX_USART2_UART_Init();\n MX_USART3_UART_Init();\n MX_I2C3_Init();\n MX_FLASH_Init();\n MX_TIM2_Init();\n MX_USART1_UART_Init();\n MX_ICACHE_Init();</code></pre>\n<p>If not, create a project with only the required peripherals, such as USART1 and GPDMA. Clear pinouts when the .ioc file opens.</p>\n<p>-I also recommend enabling the destination address increment.</p>\n<p>Finally, I have attached a project that echoes a \"hello world\" buffer transmitted through USART1_TX to USART1_RX using HAL_UART_Receive_DMA and prints it in a buffer named rx_buffer. You can visualize rx_buffer using live expression. Wire the TX pin to the RX pin. Use this project as a reference to identify issues in your project.</p>\n<p>BR<br/>Gyessine</p>\n<p><span><br/><br/></span></p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thanks a lot , it really was caused by  </p><pre> MX_GTZC_Init();</pre><p>I used memory management tool in MX which set the GTZC enable </p><p>Thanks !!!</p><p> </p><p>BR</p><p>Simon</p></div>",
+                    "author": "simonkoo",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

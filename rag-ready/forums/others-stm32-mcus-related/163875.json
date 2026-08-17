@@ -1,0 +1,45 @@
+{
+    "forum": [
+        {
+            "id": "163875",
+            "publicId": "163875",
+            "title": "STM32F103C8 PWM and clock slow down and MCU restarts in noisy environment.",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/stm32f103c8-pwm-and-clock-slow-down-and-mcu-restarts-in-noisy-environment-163875",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32CubeMX",
+                "Power",
+                "STM32F1 series",
+                "Interrupt",
+                "TIM"
+            ],
+            "published_at": "2026-03-17T07:34:56+00:00",
+            "views": 293,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nIt looks like EMI issue / \"ground bounce\" phenomenon due to the high current switching (12A) creating an induced voltage v = Ldi/dt in the ground plane.\n\nYou have to adopt a \"Star ground\" configuration. The power ground and signal ground should meet at exactly one point to break any common ground impedance path.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nWe are using an STM32F103 as a controller for a Half-bridge dc-dc convertor running at 110Khz. We are facing an issue where the microcontroller is resetting every minute when output crosses 12A.\n\nWe disconnected all peripherals, removed all protections and kept only the PWM and reset problem sustains itself. On further inspection, we found that the PWM duration increases for a few cycles and then the microcontroller resets. It seems to us that the microcontroller clock slows down and then finally stops forcing a reset. We do not have watchdog timer implemented.\n\nWe are using a 8MHz crystal.\n\nPlease check attached image (CH1 - reset line, CH2 - Independent PWM, CH3 - Half bridge high side)\n\nThe fun fact is that if we place the microcontroller on an external PCB and connect to the gate driver with wires, we do not see the microcontroller resetting. (even without the crystal).\n\nSometimes, attaching an oscilloscope probe (1Mohm) also prevents restart.\n\nCurrently, the microcontroller is grounded and the PCB is two layered. We have temporarily removed power ground from the ground plane and connected a wire to act as a return path.\n\nThe PCB is two layered, snapshot attached.\n\nAny advice will be appreciated and please feel free to ask for more data.\n\nRegards,\n\nSujoy.",
+            "images": [],
+            "author": "Sujoy_B",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>It looks like EMI issue / \"ground bounce\" <span>phenomenon due to the high current switching (12A) creating an induced voltage v = Ldi/dt in the ground plane.</span></p>\n<p><span>You have to adopt a \"Star ground\" configuration. The power ground and signal ground should meet at exactly one point to break any common ground impedance path. </span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

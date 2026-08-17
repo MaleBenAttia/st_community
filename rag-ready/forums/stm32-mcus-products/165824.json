@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "165824",
+            "publicId": "165824",
+            "title": "STM32H563 Dual-Bank OTA — Recovery When New Firmware Corrupted and Reset_Handler Never Executes",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h563-dual-bank-ota-recovery-when-new-firmware-corrupted-and-reset-handler-never-executes-165824",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-05-20T09:09:27+00:00",
+            "views": 131,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Deepika\\_Sivakumar and welcome to the ST community,\n\n> ---\n\n>\n\n> @Deepika\\_Sivakumar wrote:\n\n>\n\n> 1. Is there an option byte or hardware register that automatically reverts bank swap after N resets without a successful boot?\n\n>\n\n> ---\n\nNo. The bank swap is applied by the user. Nothing done by hardware.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "### Device\n\nSTM32H563ZIT6, single binary (no separate bootloader), dual-bank OTA\n\n---\n\n### Setup\n\n```\n\nBank1: Current running firmware (original)Bank2: New OTA firmware (potentially corrupted)IWDG: Started in Bank1 before swapOTABootSafetyCheck: In Reset_Handler of every binary buildBKP0R: Boot counter set before swap\n\n```\n\n---\n\n### Problem\n\nAfter bank swap, if Bank2 firmware is corrupted and Reset\\_Handler never executes:\n\n```\n\nBank swap → resetCPU reads 0x08000000 → SP (may be valid)CPU reads 0x08000004 → Reset vector (may be valid)CPU jumps to Reset_Handler addressReset_Handler code is corrupted → garbage instructions → crashOTABootSafetyCheck never runsBoot counter never incrementsIWDG fires → reset → same crash → infinite loopRollback never happensBank1 original firmware never recoversDevice is permanently stuck\n\n```\n\n---\n\n### What We Have Tried\n\n**1. OTABootSafetyCheck in Reset\\_Handler**\n\nasm\n\n```\n\nReset_Handler: ldr r0, =_estack mov sp, r0 bl OTABootSafetyCheck ; before SystemInit and main bl SystemInit bl __libc_init_array bl main\n\n```\n\nWorks when Reset\\_Handler body executes. Does not help when Reset\\_Handler code itself is corrupted.\n\n**2. IWDG Started in Bank1** IWDG survives bank swap reset. Bank2 must feed it. If Bank2 never feeds IWDG → reset. But reset always goes back to corrupted Bank2 → same crash → infinite loop.\n\n**3. Pre-swap Vector Table Check**\n\nc\n\n```\n\nuint32_t sp = *(uint32_t *)0x08100000;\n\nuint32_t reset = *(uint32_t *)0x08100004;\n\n```\n\nCatches completely empty or garbage vector table. Does not catch valid vector table pointing to corrupted Reset\\_Handler body.\n\n---\n\n### Core Question\n\n**Without a separate bootloader, is there any STM32H563 hardware mechanism that can force a bank reswap when:**\n\n* Bank2 Reset\\_Handler is corrupted\n\n* IWDG keeps firing\n\n* No code from Bank2 ever executes successfully\n\n* Bank1 original firmware needs to be restored\n\nSpecifically:\n\n1. Is there an option byte or hardware register that automatically reverts bank swap after N resets without a successful boot?\n\n2. Can IWDG reset be distinguished from other resets in a way that hardware automatically acts on it?\n\n3. Is there any RDP/TrustZone mechanism that can trigger bank reswap based on reset count without executing code from the corrupted bank?\n\n4. What is ST's recommended approach for single-binary dual-bank OTA rollback when the new firmware's Reset\\_Handler itself is corrupted?\n\n---\n\n### Constraint\n\n* Single binary — no separate bootloader\n\n* No CRC validation (trying to avoid storing expected CRC)\n\n* Bank1 original firmware must be recoverable in all corruption scenarios",
+            "images": [],
+            "author": "Deepika_Sivakumar",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"107127\">@Deepika_Sivakumar</user-mention> and welcome to the ST community,</p>\n<blockquote><hr/><user-mention data-id=\"107127\">@Deepika_Sivakumar</user-mention> wrote:<br/>\n<ol class=\"\">\n<li>Is there an option byte or hardware register that automatically reverts bank swap after N resets without a successful boot?</li>\n</ol>\n<hr/></blockquote>\n<p>No. The bank swap is applied by the user. Nothing done by hardware.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

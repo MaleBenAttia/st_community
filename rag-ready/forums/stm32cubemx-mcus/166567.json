@@ -1,0 +1,81 @@
+{
+    "forum": [
+        {
+            "id": "166545",
+            "publicId": "166567",
+            "title": "STM32CubeMX H7 USB CDC bug: usbd_desc.c Get_SerialNum() uninitialized variables cause HardFault on -O1/-O2",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-h7-usb-cdc-bug-usbd-desc-c-get-serialnum-uninitialized-variables-cause-hardfault-on-o1-o2-166567",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-07-01T07:05:35+00:00",
+            "views": 66,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@ICT\\_TAN\n\nYour contribution is much appreciated.\n\nIssue has been escalated to dev team under internal ticker ID**#0063998**\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "There is a critical code-generation template bug in STM32CubeMX (reproduced in 6.16.1 with STM32CubeH7) when generating USB Device middleware configurations. In the generated usbd\\_desc.c file, the Get\\_SerialNum() function is generated with uninitialized local variables that are then used in arithmetic operations.\n\nThis results in **Undefined Behavior (UB)**. It compiles and works under -O0 because the uninitialized stack happens to evaluate to zero, but it causes an immediate, silent **HardFault/BusFault** during USB enumeration on Windows when compiled with -O1 or -O2 optimizations\n\noriginal generated code\n\n```\n\nstatic void Get_SerialNum(void)\n\n{\n\nuint32_t deviceserial0; // Uninitialized\n\nuint32_t deviceserial1; // Uninitialized\n\nuint32_t deviceserial2; // Uninitialized\n\n// ST's generator template completely misses the lines assigning the registers!\n\ndeviceserial0 += deviceserial2; // Undefined Behavior: addition on uninitialized variables\n\nif (deviceserial0 != 0)\n\n{\n\nIntToUnicode(deviceserial0, &USBD_StringSerial[2], 8);\n\nIntToUnicode(deviceserial1, &USBD_StringSerial[18], 4);\n\n}\n\n}\n\n```\n\n```\n\n//proposed fix or at least working code\n\nstatic void Get_SerialNum(void)\n\n{\n\nuint32_t deviceserial0;\n\nuint32_t deviceserial1;\n\nuint32_t deviceserial2;\n\n/* Explicitly read the Unique Device ID (UID) from the hardware */\n\ndeviceserial0 = HAL_GetUIDw0();\n\ndeviceserial1 = HAL_GetUIDw1();\n\ndeviceserial2 = HAL_GetUIDw2();\n\ndeviceserial0 += deviceserial2;\n\nif (deviceserial0 != 0)\n\n{\n\nIntToUnicode(deviceserial0, &USBD_StringSerial[2], 8);\n\nIntToUnicode(deviceserial1, &USBD_StringSerial[18], 4);\n\n}\n\n}\n\n```",
+            "images": [],
+            "author": "ICT_TAN",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"102574\">@ICT_TAN</user-mention> </p><p> </p><p>Could you please retest this using the latest version of <strong>STM32CubeMX 6.18.0</strong> and confirm whether the issue still occurs?</p><p>Download STM32CubeMX6.18.0  from  <a href=\"https://www.st.com/en/development-tools/stm32cubemx.html\" rel=\"noopener noreferrer\" target=\"_blank\"><u>here</u></a> </p><p>THX</p><p>Ghofrane</p><p> </p><p> </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> thanks for the quick reply.<br/>Even with 1.18.0 and STM32Cube FW_H7 V1.13.0 instead of  FW_H7 V1.12.1 the error sadly still persist leaving those variables uninitialised.<br/>Furthermore when migrating from 1.16.1 to 1.18 i now get warned, that the peripheral base clock of 240MHz should now be below or equal to 225Mhz despite showing a tooltip of 240Hz max.</p></div>",
+                    "author": "ICT_TAN",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"102574\">@ICT_TAN</user-mention> </p><p>Could you please provide your IOC.</p><p>THX</p><p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <br/>sadly i did not get clearance to share the whole file, are there certain sections of relevance/importants here like only USB_DEVICE section eg.<br/><br/>Greetings<br/>Jonathan</p></div>",
+                    "author": "ICT_TAN",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <br/>Though not the original project here is a .ioc of a demo project with just fs and hs enabled.<br/>The generated code still holds the uninitialized variables.<br/>I dug a bit further and usbd_desc_template.c holds the “correct” assignment </p><div><div><span style=\"color:#d4d4d4;\">deviceserial0 = *(</span><span style=\"color:#569cd6;\">uint32_t</span><span style=\"color:#d4d4d4;\"> *)DEVICE_ID1;</span></div><div><span style=\"color:#d4d4d4;\">deviceserial1 = *(</span><span style=\"color:#569cd6;\">uint32_t</span><span style=\"color:#d4d4d4;\"> *)DEVICE_ID2;</span></div><div><span style=\"color:#d4d4d4;\">deviceserial2 = *(</span><span style=\"color:#569cd6;\">uint32_t</span><span style=\"color:#d4d4d4;\"> *)DEVICE_ID3;</span></div></div><p> <br/>Maybe I configured smth wrong def not a straight forward process ^^;</p><p> </p></div>",
+                    "author": "ICT_TAN",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"102574\">@ICT_TAN</user-mention> </p><p>Your contribution is much appreciated.</p><p>Issue has been escalated to dev team under internal ticker ID<strong> #0063998</strong></p><p>I will keep you posted with updates.</p><p>THX</p><p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

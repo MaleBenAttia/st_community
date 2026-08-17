@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "163831",
+            "publicId": "163831",
+            "title": "EVSPIN32G4-DUAL + MCSDK 6.3.2: speed oscillations when only one motor is running",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/evspin32g4-dual-mcsdk-6-3-2-speed-oscillations-when-only-one-motor-is-running-163831",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "STM32 motor control",
+                "MC firmware",
+                "MCSDK6",
+                "FOC"
+            ],
+            "published_at": "2026-03-16T10:00:29+00:00",
+            "views": 563,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @IrianJ,\n\nUsing two Shinano motors and a Hall main speed sensor, the following speed behavior is observed:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dacf644-7a2e-7e6a-ca39-f03024bafa41.png \"image.png\")\n\nStarting or stopping a motor does not affect the speed of the other motor.\n\nAt low speed, the Hall sensor average speed FIFO depth parameter in the Speed Sensing Config tab is reduced from 16 to 6. This adjustment may also help in your case.\n\nIs there a mechanical or electrical link between your both motors?",
+            "best_answer_author": "GMA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**[PN]:** EVSPIN32G4-DUAL\n\n**[VERSION]:** MCSDK 6.3.2\n\n**[TOOL]:** Firmware\n\n**[DETAILS]:**\n\nHello,\n\nI am working on a dual-motor application using the **EVSPIN32G4-DUAL** board with **MCSDK 6.3.2**.\n\nI observe the following behavior:\n\n* when **both motors are running at the same time**, the speed regulation is stable\n\n* when **only one motor is running**, strong **speed oscillations** appear\n\nThis behavior is observed when running either motor alone. In other words, the issue does not seem to be linked to one specific motor channel.\n\nThe motors are **custom motors designed/manufactured by us**, with the following configuration:\n\n* **5 pole pairs**\n\n* **Rs / Ls identified with the profiler**\n\n* **Hall phase shift = 121°**\n\n* **Rotor angle measured using Hall sensors**\n\n* **PWM frequency = 16 kHz**\n\nThe attached speed plot illustrates the issue:\n\n* **first phase**: only one motor running → oscillations visible\n\n* **middle phase**: both motors running → stable behavior\n\n* **last phase**: only one motor running again → oscillations visible\n\nThe **current regulator seems very stable**, only the speed loop is going crazy when both motors are running.\n\nSo the surprising point is that the system is more stable when both motors are enabled than when only one motor is active.\n\n**[EXPECTED BEHAVIOR]:**\n\nI expect the speed regulation to remain stable both in:\n\n* **single-motor operation**\n\n* **dual-motor operation**\n\nThe target is to have similar speed control performance regardless of whether one motor or both motors are running.\n\n**[HOW TO REPRODUCE]:**\n\n1. Use **EVSPIN32G4-DUAL** with a project generated with **MCSDK 6.3.2**\n\n2. Configure both motors with Hall sensors\n\n3. Use the following motor parameters:\n\n* 5 pole pairs\n\n* Rs / Ls identified with profiler\n\n* Hall phase shift = 121°\n\n* PWM = 16 kHz\n\n4. Start only one motor and observe the measured speed\n\n5. Speed oscillations appear\n\n6. Then run both motors simultaneously\n\n7. The measured speed becomes stable\n\n8. Stop one motor again\n\n9. The oscillations return on the remaining active motor\n\nThank you for your help.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dacf644-7a2e-7e6a-ca39-f03024bafa41.png"
+            ],
+            "author": "IrianJ",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"68792\">@IrianJ</user-mention>,</p>\n<p><span>Using two Shinano motors and a Hall main speed sensor, the following speed behavior is observed:</span><br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 200px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dacf644-7a2e-7e6a-ca39-f03024bafa41.png\" title=\"image.png\"/></span> <br/><span>Starting or stopping a motor does not affect the speed of the other motor.</span></p>\n<p>At low speed, the Hall sensor average speed FIFO depth parameter in the Speed Sensing Config tab is reduced from 16 to 6. This adjustment may also help in your case.</p>\n<p>Is there a mechanical or electrical link between your both motors?</p>\n<p><span> </span></p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your reply and for your suggestion.</p><p>On my side, I managed to get the motors working correctly in single-motor operation by drastically lowering the speed controller gains (Kp and Ki). After that change, the speed oscillations disappeared when only one motor was running.</p><p>This should not be an issue for our application, even with the reduced speed control bandwidth.</p><p>So this is an acceptable workaround for us, even if it does not really explain why this behavior was happening.</p><p>Regarding your question: there is no mechanical link between the two motors. The only link is electrical, because both motors share the same DC bus.</p><p>I will try to change the FIFO depth parameter but we can considered the topic closed as explained above. </p><p>Thank you again for your support.</p></div>",
+                    "author": "IrianJ",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

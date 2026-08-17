@@ -1,0 +1,101 @@
+{
+    "forum": [
+        {
+            "id": "165126",
+            "publicId": "165126",
+            "title": "STM32H743 - Setting External Event source for HRTIM Timer in CubeMX ?",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32h743-setting-external-event-source-for-hrtim-timer-in-cubemx-165126",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "HRTIM",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-26T02:22:30+00:00",
+            "views": 470,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "@mƎALLEm\n\nThank you , you helped me to understand that this basic configuration itself the reason to invalidate the options for External Events sources for any unit timer. Then re-configuring the timer multiple times I accidentally stumbled on the cause of the issue...\n\nHere it is :\n\nIN the MCU reference manual ch.37.3.2 there is table 303 which explains the purpose of each pin and internal signals for the HRTIM. It explains 10 lines of External events, each having 4 sources. Those 10 line hrtim\\_evt1 through hrtim\\_evt10 defined as \"Digital Inputs\" explained as follows\n\n***\"External events. Each of the 10 events can be selected among 4 sources,******either on-chip (from other built-in peripherals: comparator, ADC analog******watchdog, TIMx timers, trigger outputs) or off-chip (HRTIM\\_EEVx input pins)\"***\n\nAs you can see these lines represent both External off-chip Input Pins as well as internal on-chip connections .\n\nFollowing this information I was choosing the External Event Line 1 prior to setting up a particular source for any unit Timer. But now the option of a required source for this External event got dimmed and would not change no matter what I did.\n\nThen I accidentally noticed that if I don't choose any External Event Line prior to setting the options for Timer A - then all options are valid ! This led to the discovery of this CubeMX created confusion : contrary to the Table 303 of the manual, the External Events Lines are made to choose ONLY the off-chip events connected to the GPIO pins ! If those lines are chosen, then all the on-chip External Events are invalidated and get dimmed . If the on-chip External Events needed, those lines should not be checked.\n\nI notified the tech support asking them to change the text from \"External Events Lines\" to something like \"External Events off-chip\" Or \"EEV off-chip Input Pins\" or something alike...\n\nHope this will help others ...",
+            "best_answer_author": "eBirdman",
+            "best_answer_author_role": "",
+            "content_text": "There are 4 external events that can be chosen to trigger and reset individual counters of each HRTIM timer unit in STM32H743 MCU. CubeMX shows those events once the Event Configuration is chosen \"Enabled\" . Yet only Source 1 is active (allowed to be chosen) but the Source 3 that I need to connect internally to the TIM2 TRGO output is inactive (cannot be chosen) . Why? My attempts to use AI got strange results - after searching the STM documents AI concluded that CubeMX is limited , it allows only external on-pin connections and any internal connections must be manually coded in addition to the generated code.\n\nIf it is so then why does CubeMX show those other options yet does not allow to choose them? Or is there way to activate those options ?\n\nPlease anybody give me suggestion.\n\nNote: the STM32CubeMX is the latest downloaded and installed yesterday. The MCU library pack is also current.\n\n![eBirdman_0-1777170134029.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35100cea-14c2-69b9-46de-958e53b709dd.png \"eBirdman_0-1777170134029.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7cf2f59-eec2-72ea-8390-f50b572fdd1c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6680dac9-6c8b-f7aa-4752-6c1cab6de632.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/801aa535-4bc4-7b16-fb4b-e347263f2d41.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35100cea-14c2-69b9-46de-958e53b709dd.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/decc0c38-ff7e-3600-f3c2-80d52c79d409.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7bb341a5-a79a-1e08-28dd-0eb3c0b4e3a8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/62fda7f4-1484-746a-eda8-a9afa2044f3e.png"
+            ],
+            "author": "eBirdman",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> </p><p>Thank you , you helped me to understand that this basic configuration itself the reason to invalidate the options for External Events sources for any unit timer. Then re-configuring the timer multiple times I accidentally stumbled on the cause of the issue...</p><p>Here it is :</p><p>IN the MCU reference manual ch.37.3.2 there is table 303 which explains the purpose of each pin and internal signals for the HRTIM. It explains 10 lines of External events, each having 4 sources. Those 10 line hrtim_evt1 through hrtim_evt10 defined as \"Digital Inputs\" explained as follows</p><p><em><strong>\"External events. Each of the 10 events can be selected among 4 sources, </strong></em><em><strong>either on-chip (from other built-in peripherals: <u>comparator, ADC analog </u></strong></em><em><strong><u>watchdog, TIMx timers, trigger outputs</u>) <u>or off-chip (HRTIM_EEVx input pins)</u>\"</strong></em></p><p>As you can see these lines represent both External off-chip Input Pins as well as internal on-chip connections .</p><p>Following this information I was choosing the External Event Line 1 prior to setting up a particular source for any unit Timer. But now the option of a required source for this External event got dimmed and would not change no matter what I did.</p><p>Then I accidentally noticed that if I don't choose any External Event Line prior to setting the options for Timer A - then all options are valid ! This led to the discovery of this CubeMX created confusion : contrary to the Table 303 of the manual, the External Events Lines are made to choose ONLY the off-chip events connected to the GPIO pins ! If those lines are chosen, then all the on-chip External Events are invalidated and get dimmed . If the on-chip External Events needed, those lines should not be checked.<br/>I notified the tech support asking them to change the text from \"External Events Lines\" to something like \"External Events off-chip\" Or \"EEV off-chip Input Pins\" or something alike...<br/>Hope this will help others ...</p><p><br/><br/></p></div>",
+                    "author": "eBirdman",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>I did the exercise and I can see <span>TIM2 TRGO is not grayed out for HRTIM external event 2 source:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1777286076469.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1777286076469.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7cf2f59-eec2-72ea-8390-f50b572fdd1c.png\" title=\"mALLEm_0-1777286076469.png\"/></span></p>\n<p><span>and can be selectable:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1777286107063.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1777286107063.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/801aa535-4bc4-7b16-fb4b-e347263f2d41.png\" title=\"mALLEm_1-1777286107063.png\"/></span></p>\n<p>What MCU part number you've set in CubeMx?</p>\n<p>I've attached my ioc file.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> </p><p>your .ioc file does not have any of HRTIM timer units enabled.</p><p>Here I attached a simple basic .ioc file Test_HRTIM.ioc  for testing . It has HRTIM enabled with only one timer A enabled, been reset by External Event 1, , single External Event 1 enabled and TIM1 configured to generate TIM1 TRGO output.<br/>Can you load this in CubeMX and see if you get a  External Event 1 Source TIM1 TRGO  for Timer A ?<br/>I only get  \"External Event Source 1 - External Pin\"  , Source 3 - TIM1 TRGO inactive. Again my MCU STM32H743VIT6 .<br/>Please let me know, Thanks</p></div>",
+                    "author": "eBirdman",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>TIM1 TRGO option is grayed out. Only External pin is available:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1777539653011.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1777539653011.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7bb341a5-a79a-1e08-28dd-0eb3c0b4e3a8.png\" title=\"mALLEm_0-1777539653011.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for  giving me hope but I am yet to repeat this in my configuration. My MCU package is STM32H743VITx (100 pins package) . TIM2 TRGO enabled and configured but still greyed out as a choice for HRTIM... I'll try to compare the .ioc files, will try to pinpoint the difference... </p><p>Is your CubeMX the latest v.6.17.0 ?</p></div>",
+                    "author": "eBirdman",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"29142\">@eBirdman</user-mention> wrote:<br/>\n<p>Is your CubeMX the latest v.6.17.0 ?</p>\n<hr/></blockquote>\n<p>Yes, sorry I forget to tell that I'm using the latest version 6.17.0.</p>\n<p>I tried also the part number you are using and having the same result. As you can see I'm able to select TM2 TRGO as external event 2 for HRTIM:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1777301905906.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1777301905906.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/decc0c38-ff7e-3600-f3c2-80d52c79d409.png\" title=\"mALLEm_0-1777301905906.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I see the apparent mismatch between our setup : all your slave timer units are disabled.</p><p>Could you please enable timers A, B and D, also Enable external Event Lines 1, 2 and 3 (these are to be configured)</p><p>and setup as example Timer B : Enable all 4 Compare Units , disable the Capture units and set the 1st Reset Trigger Source to the \"Timer counter is reset upon external event 2\"</p><p>These are all relevant configurations for choosing/using the external events...</p><p>here are the main relevant parameters for this example Timer B setup . As per this configuration Timer B must be triggered By External Event 2 (which is TIM2 TRGO)   ....</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot from 2026-04-28 15-50-09.png\" style=\"width: 999px;\"><img alt=\"Screenshot from 2026-04-28 15-50-09.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/62fda7f4-1484-746a-eda8-a9afa2044f3e.png\" title=\"Screenshot from 2026-04-28 15-50-09.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot from 2026-04-28 15-51-05.png\" style=\"width: 999px;\"><img alt=\"Screenshot from 2026-04-28 15-51-05.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6680dac9-6c8b-f7aa-4752-6c1cab6de632.png\" title=\"Screenshot from 2026-04-28 15-51-05.png\"/></span></p><p>Please let me know if you have the TIM2 TRGO enabled as External Event for triggering Timer B thus been setup.</p><p>Thank you</p><p> </p></div>",
+                    "author": "eBirdman",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>when the mouse hovers over the inactive choice for External Event (such as choice of TIM2_TRGO) , the tip prompt pops up showing the following: \"EEV pin is selected (or used by Capture or One Pulse mode) , the source has to be set to GPIO\".<br/>But EEV pins are already set to \"Alternate Function\" that is their GPIO modes . This tip prompt adds the confusion. </p></div>",
+                    "author": "eBirdman",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

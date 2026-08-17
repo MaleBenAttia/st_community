@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "165297",
+            "publicId": "165297",
+            "title": "UART_Start_Receive_IT error when using hardware flow control",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/uart-start-receive-it-error-when-using-hardware-flow-control-165297",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "UART-USART",
+                "STM32C5 series"
+            ],
+            "published_at": "2026-05-01T13:47:46+00:00",
+            "views": 308,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Aha so there's a race between HAL\\_UART\\_Receive\\_IT and a RX byte arriving and causing interrupt, thus satisfying your request for one byte.\n\nTL;DR using HAL\\_UART\\_Receive\\_IT for anything practical isn't a good idea, especially for receiving bytes one by one. People use a continuous DMA with cyclical buffer, or something equivalent.",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nI ran into an issue when testing a UART application on a STM32C562RE in loopback mode with RTS and CTS enabled. The app does the following:\n\n1. Start receiving 1 character at a time by using HAL\\_UART\\_Receive\\_IT.\n\n2. Send a string\n\n3. After the received character is printed out I issue another call HAL\\_UART\\_Receive\\_IT.\n\nEverything works fine; the app prints out the string I sent.\n\nI wanted to make sure the hardware flow control was running correctly so I placed a HAL\\_Delay(1) after I print out the character received and before I issue a new call  to HAL\\_UART\\_Receive\\_IT. This should stop the transmitter due to the CTS -> 1 (no more room in the Rx buffer) and it should restart it after I issue the HAL\\_UART\\_Receive\\_IT CTS -> 0 due to available room in the Rx buffer; and, it does. All the characters are received as expected however HAL\\_UART\\_Receive\\_IT returns HAL\\_ERROR. Everything seems normal except the error returned by HAL\\_UART\\_Receive\\_IT.\n\nI debugged the code and it fails in UART\\_Start\\_Receive\\_IT:\n\n```\n\nif (huart->rx_state != HAL_UART_RX_STATE_ACTIVE)\n\n{\n\nhuart->p_rx_isr = NULL;\n\nreturn HAL_ERROR;\n\n}\n\n```\n\nThe rx\\_state is HAL\\_UART\\_RX\\_STATE\\_IDLE and therefore the check above fails.\n\nI also enabled 'Get last error' for UART in MX2 and the last\\_reception\\_error\\_codes is 0.\n\nI cannot figure out why HAL\\_UART\\_Receive\\_IT returns an error.\n\nI appreciate the help,\n\nGil",
+            "images": [],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The <strong>rx_state</strong> field is assigned HAL_UART_RX_STATE_ACTIVE  here: <a href=\"https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/hal/stm32c5xx_hal_uart.c#L4534\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/hal/stm32c5xx_hal_uart.c#L4534</a></p><p>and the check is here <a href=\"https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/hal/stm32c5xx_hal_uart.c#L7408\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/hal/stm32c5xx_hal_uart.c#L7408</a></p><p>Somewhere between these points the value changes. Try to set a breakpoint on value change in debugger.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"37189\">@Pavel A.</user-mention> </p><p>I traced it to the line before the check:<span> LL_USART_EnableIT_RXNE_RXFNE(p_uartx). </span></p><pre class=\"lia-code-sample language-c\"><code> if ((reg_temp &amp; USART_CR1_PCE) != LL_USART_PARITY_NONE)\n {\n LL_USART_EnableIT_PE(p_uartx);\n }\n LL_USART_EnableIT_RXNE_RXFNE(p_uartx);\n }\n\n if (huart-&gt;rx_state != HAL_UART_RX_STATE_ACTIVE)\n {\n huart-&gt;p_rx_isr = NULL;\n return HAL_ERROR;\n }</code></pre><div><div><p> </p><p>When I execute the line: <span>LL_USART_EnableIT_RXNE_RXFNE(p_uartx)</span> my interrupt callback is executed (I had a breakpoint on it) and rx_state was set to HAL_UART_RX_STATE_IDLE.</p><p> </p><p>Regards,</p><p>-Gil</p><p> </p></div></div></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Aha so there's a race between HAL_UART_Receive_IT and a RX byte arriving and causing interrupt, thus satisfying your request for one byte.</p><p>TL;DR using HAL_UART_Receive_IT for anything practical isn't a good idea, especially for receiving bytes one by one. People use a continuous DMA with cyclical buffer, or something equivalent.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for acknowledging the issue <user-mention data-id=\"37189\">@Pavel A.</user-mention>!</p><p> </p><p>I am writing a book about STM32 and I develop multiple examples on one topic. I start from the simplest scenario and advance to practical ones. This is why I was testing this mode.</p><p> </p><p>Regards,</p><p>Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"105834\">@gil_dobjanschi</user-mention> A book? could you tell something on the idea - is it about practical projects based on STM32? If so, which STM32 type (CM0, CM7? CM33), which kind of applications, do you use any RTOS and HMI?</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"37189\">@Pavel A.</user-mention> </p><p> </p><p>Yes, it is a book about practical projects for Nucleo-C562RE. I thought that the C5 series presents an opportunity to write about STM32CubeMX2 and use HAL2. The examples will be in C and will not use RTOS. RTOS is reserved for a followup book should the first one be interesting to readers. For the first book the intended audience is the experienced C programmers that wants to get into STM32 and learn its capabilities and programming techniques. I want to present interesting examples and explain behavior and visualize it for readers with the use of the oscilloscope. I will not write chapters about C programming and elementary embedded programming. </p><p>I only started two months ago and I have a long road ahead. It's a lot of work to write the code, write the chapters, develop hardware that speeds up switching between projects and keep the quality of the material high. As I work on the book I learn new things, sometimes I find minor issues in HAL but that's what keeps it interesting.</p><p> </p><p>Regards,</p><p>-Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p> </p><p>Generally speaking it is not good to leave code that does not work properly in the main body of code even if it has minimal importance from a practical standpoint. This is to avoid to explain to those who encounter this issue in the future that the code in question does not work flawlessly when data is received on a byte-by-byte basis. If the code remains as is, maybe a comment in the documentation will need to state that the function should not be used to receive data byte-by-byte.</p><p> </p><p>Regards,</p><p>-Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

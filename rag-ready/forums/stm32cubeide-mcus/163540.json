@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163540",
+            "publicId": "163540",
+            "title": "Newlib - where is the definitive source repository / bug tracker ?",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/newlib-where-is-the-definitive-source-repository-bug-tracker-163540",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-03-06T15:02:53+00:00",
+            "views": 441,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Source: <https://github.com/STMicroelectronics/gnu-tools-for-stm32/tree/14.3.rel1/src/newlib>\n\nBugs/issues:  <https://github.com/STMicroelectronics/gnu-tools-for-stm32/issues>",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "Using various STM32 MCUs, I have a intermittent bug occuring in malloc() where it returns a nonsensical address for no apparent reason.\n\nAfter hours of digging I managed to find some some source code for newlib from <https://sourceware.org/newlib/>\n\nfor newlib-4.5.0.20241231 which at least let me step into the internals of malloc to try and find the problem but as thats a slightly different release to the one used by STM32CubeIDE the bug mutated to something less frequent.\n\nMy main problem currently is trying to find an issue list \\ bug tracker for newlib, so I can see what issues others are having with it. Usually I end up on a site like github and their issue tracker, which is great, but for newlib there seems to be a myraid of git repos and sourceware.org with primitive mailing lists, some being long in the tooth.\n\nIt would also have helped if ST Micro indicated exactly which version of newlib they embed into STM32CubeIDE (and\\or provided the source code for it too).",
+            "images": [],
+            "author": "Bags",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There's no chance there's a bug in malloc in newlib that has somehow gone unnoticed.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>When a malloc() returns a value of 0x000000A0, something ain't working correctly.</p><p><span>Besides I want to know why </span>its failing.</p><p><span>So far I have determined that inside nano_malloc() variable r goes to value 0x9C, (which then eventually becomes 0xA0 on return).</span></p><p> </p><p> </p></div>",
+                    "author": "Bags",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Source: <a href=\"https://github.com/STMicroelectronics/gnu-tools-for-stm32/tree/14.3.rel1/src/newlib\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/gnu-tools-for-stm32/tree/14.3.rel1/src/newlib</a></p><p>Bugs/issues:  <a href=\"https://github.com/STMicroelectronics/gnu-tools-for-stm32/issues\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/gnu-tools-for-stm32/issues</a></p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ahh great, thanks for those github links.</p><p>The way I found out about newlib inside STM32CubeIDE was via the linker cmd line \\ output... my build used this path to link in libc-nano.a --&gt;<br/>/home/main/.eclipse/com.st.stm32cube.ide.mcu.rcp.product_2.0.0_1934254364_linux_gtk_x86_64/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.linux64_1.0.0.202510151430/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc_nano.a</p><p>From that I determined I needed to use a \"thumb/v7e-m\" version of libc. So using that info and some digging around the internet I came across newlib-4.5.0.20241231 source from sourceware.org as a first attempt for usable source code.</p><p>I see now in your github links that they contain \"14.3.rel1\" - and my linker path above also has the same, so that matches up.</p><p>I just tried using STM32CubeIDE \"Installation Details\" (in the About Dialog), and it is possible to find some entries relating to \"14.3.rel1\", but searching for \"newlib\" displays nothing, so its invisible to a lay user.</p><p>Later on I'll see if I can switch over to using the github source instead of the sourceware.org version.</p><p> </p></div>",
+                    "author": "Bags",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

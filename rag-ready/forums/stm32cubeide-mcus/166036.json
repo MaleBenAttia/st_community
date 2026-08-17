@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "166025",
+            "publicId": "166036",
+            "title": "HAL_NVIC_EnableIRQ()  not generated with checkbox enabled for EXTI",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/hal-nvic-enableirq-not-generated-with-checkbox-enabled-for-exti-166036",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "GPIO-EXTI",
+                "STM32F4 series",
+                "Generate-Code"
+            ],
+            "published_at": "2026-06-10T13:19:18+00:00",
+            "views": 59,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Adriano Melis\n\nI reproduced the behavior and the **HAL\\_NVIC\\_EnableIRQ**(EXTI3\\_IRQn); was generated on gpio.c file.\n\nI recommend that you use the latest STM32CubeMX Version 6.17.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/930f41ba-9592-4a95-8013-c8bf60738336.png)\n\nI will be waiting for your feedback.\n\nThanks.\n\nMAHMOUD",
+            "best_answer_author": "Mahmoud Ben Romdhane",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "The call to\n\n**HAL\\_NVIC\\_EnableIRQ**(EXTI3\\_IRQn);\n\nis not generated with the checkbox enabled in the GPIO/NVIC panel in gpio.c\n\nHowever:\n\nthe call for HAL\\_NVIC\\_SetPriority() is generated correctly.\n\nMCU: STM32L496ZGTx\n\nSTM32CubeIDE: Version: 1.17.0\n\npads: PD3, PD4 set up as EXTI, NVIC enabled for both.\n\ngenerated code: (section of gpio.c):\n\n```\n\n/* EXTI interrupt init*/\n\nHAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);\n\nHAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);\n\nHAL_NVIC_EnableIRQ(EXTI4_IRQn);\n\n```\n\n**HAL\\_NVIC\\_EnableIRQ**(EXTI3\\_IRQn);\n\nis missing.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/930f41ba-9592-4a95-8013-c8bf60738336.png"
+            ],
+            "author": "Adriano Melis",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"11305\">@Adriano Melis</user-mention> </p><p>Let me thank you for posting.</p><p>For more investigation, could you please provide your Ioc.File.</p><p>Thanks.</p><p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"11305\">@Adriano Melis</user-mention> </p><p>I reproduced the behavior and the <strong>HAL_NVIC_EnableIRQ</strong>(EXTI3_IRQn); was generated on gpio.c file.</p><p>I recommend that you use the latest STM32CubeMX Version 6.17.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/930f41ba-9592-4a95-8013-c8bf60738336.png\"/></figure><p>I will be waiting for your feedback.</p><p>Thanks.</p><p>MAHMOUD</p><p> </p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

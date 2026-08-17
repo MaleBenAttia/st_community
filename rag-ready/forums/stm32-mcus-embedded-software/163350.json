@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "163350",
+            "publicId": "163350",
+            "title": "No output on GPIOs",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/no-output-on-gpios-163350",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-02T16:32:52+00:00",
+            "views": 370,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "@Ursus As @Chris21 said, the 2nd parameter to HAL\\_GPIO\\_TogglePin needs to be one of the GPIO\\_PIN\\_x definitions.\n\nThe GPIO\\_PIN\\_x definitions are bit-maps - not numbers:\n\n```\n\n/** @defgroup GPIO_pins GPIO pins\n\n* @{\n\n*/\n\n#define GPIO_PIN_0 ((uint16_t)0x0001U) /* Pin 0 selected */\n\n#define GPIO_PIN_1 ((uint16_t)0x0002U) /* Pin 1 selected */\n\n#define GPIO_PIN_2 ((uint16_t)0x0004U) /* Pin 2 selected */\n\n#define GPIO_PIN_3 ((uint16_t)0x0008U) /* Pin 3 selected */\n\n#define GPIO_PIN_4 ((uint16_t)0x0010U) /* Pin 4 selected */\n\n#define GPIO_PIN_5 ((uint16_t)0x0020U) /* Pin 5 selected */\n\n#define GPIO_PIN_6 ((uint16_t)0x0040U) /* Pin 6 selected */\n\n#define GPIO_PIN_7 ((uint16_t)0x0080U) /* Pin 7 selected */\n\n#define GPIO_PIN_8 ((uint16_t)0x0100U) /* Pin 8 selected */\n\n#define GPIO_PIN_9 ((uint16_t)0x0200U) /* Pin 9 selected */\n\n#define GPIO_PIN_10 ((uint16_t)0x0400U) /* Pin 10 selected */\n\n#define GPIO_PIN_11 ((uint16_t)0x0800U) /* Pin 11 selected */\n\n#define GPIO_PIN_12 ((uint16_t)0x1000U) /* Pin 12 selected */\n\n#define GPIO_PIN_13 ((uint16_t)0x2000U) /* Pin 13 selected */\n\n#define GPIO_PIN_14 ((uint16_t)0x4000U) /* Pin 14 selected */\n\n#define GPIO_PIN_15 ((uint16_t)0x8000U) /* Pin 15 selected */\n\n#define GPIO_PIN_All ((uint16_t)0xFFFFU) /* All pins selected */\n\n```",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello\n\nI have a STM32H7R3V8T6 and want to use a few peripherals and GPIOs. However, I don't manage to see an output with my analyzer. The peripherals themselves seem to work: An XSPI receive for example does receive some dummy bytes and takes exactly the required time for the transfer (measured with the cycle counter), but the pins do not show anything.\n\nI reduced my code and came up with this simple demonstration of how I initialize a GPIO:\n\n```\n\nint main(void)\n\n{\n\nSystemCoreClockUpdate();\n\nHAL_Init();\n\nSystemClock_Config();\n\n__HAL_RCC_GPIOB_CLK_ENABLE();\n\nGPIO_InitTypeDef GPIO_InitStruct = {0};\n\nGPIO_InitStruct.Pin = GPIO_PIN_12;\n\nGPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;\n\nHAL_GPIO_Init(GPIOB, &GPIO_InitStruct);\n\nwhile (1) {\n\nHAL_GPIO_TogglePin(GPIOB, 12);\n\nHAL_Delay(10);\n\n}\n\n}\n\n```\n\nThe debugger shows that I reach the loop. The registers of the peripheral seem to be correct, but the pin doesn't toggle. This also happens with other GPIOs and pins that are assigned to peripherals such as the XSPI.\n\nWhat could I be missing?\n\nThank you very much.\n\nPS: See the attachment for the clock setup, if that matters.",
+            "images": [],
+            "author": "Ursus",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><pre class=\"lia-code-sample language-c\"><code>HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_12);</code></pre></div>",
+                    "author": "Chris21",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"104653\">@Ursus</user-mention> As <user-mention data-id=\"56328\">@Chris21</user-mention> said, the 2nd parameter to <font face=\"courier new,courier\">HAL_GPIO_TogglePin</font> needs to be one of the <font face=\"courier new,courier\">GPIO_PIN_x</font> definitions.</p><div><p> </p><p>The <font face=\"courier new,courier\">GPIO_PIN_x</font> definitions are bit-maps - not numbers:</p></div><pre class=\"lia-code-sample language-c\"><code>/** @defgroup GPIO_pins GPIO pins\n * @{\n */\n#define GPIO_PIN_0 ((uint16_t)0x0001U) /* Pin 0 selected */\n#define GPIO_PIN_1 ((uint16_t)0x0002U) /* Pin 1 selected */\n#define GPIO_PIN_2 ((uint16_t)0x0004U) /* Pin 2 selected */\n#define GPIO_PIN_3 ((uint16_t)0x0008U) /* Pin 3 selected */\n#define GPIO_PIN_4 ((uint16_t)0x0010U) /* Pin 4 selected */\n#define GPIO_PIN_5 ((uint16_t)0x0020U) /* Pin 5 selected */\n#define GPIO_PIN_6 ((uint16_t)0x0040U) /* Pin 6 selected */\n#define GPIO_PIN_7 ((uint16_t)0x0080U) /* Pin 7 selected */\n#define GPIO_PIN_8 ((uint16_t)0x0100U) /* Pin 8 selected */\n#define GPIO_PIN_9 ((uint16_t)0x0200U) /* Pin 9 selected */\n#define GPIO_PIN_10 ((uint16_t)0x0400U) /* Pin 10 selected */\n#define GPIO_PIN_11 ((uint16_t)0x0800U) /* Pin 11 selected */\n#define GPIO_PIN_12 ((uint16_t)0x1000U) /* Pin 12 selected */\n#define GPIO_PIN_13 ((uint16_t)0x2000U) /* Pin 13 selected */\n#define GPIO_PIN_14 ((uint16_t)0x4000U) /* Pin 14 selected */\n#define GPIO_PIN_15 ((uint16_t)0x8000U) /* Pin 15 selected */\n#define GPIO_PIN_All ((uint16_t)0xFFFFU) /* All pins selected */</code></pre><div><p> </p></div></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>XSPI pins should be VERY_HIGH. What is the hardware and where are you measuring? XSPI is typically fast data rate so ensure your capture device is sampling fast enough. Not really enough info here to diagnose apart from the bug in the posted code.</p><p><em>&gt; The registers of the peripheral seem to be correct</em></p><p>There is no way ODR toggles correctly given the code you posted above.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Probably you've forgotten to enable the GPIO port itself:</p><p>__HAL_RCC_GPIOB_CLK_ENABLE();</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104653\">@Ursus</user-mention> <br/>-Are you using a custom-PCB design?<br/>-Make sure that your sampling rate is good enough.</p>\n<p>-What do you see in the ODR register?<br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot for your help! The GPIO bitmask solved it, though for the pins on ports O and P (used for XSPI) I additionally had to add the line</p><pre class=\"lia-code-sample language-c\"><code>HAL_PWREx_EnableXSPIM1();</code></pre><p>in order to enable its separate power domain, otherwise there was no output.</p></div>",
+                    "author": "Ursus",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"104653\">@Ursus</user-mention> wrote:<br/><p> for the pins on ports O and P (used for XSPI) I additionally had to add the line</p></blockquote><pre class=\"lia-code-sample language-c\"><code>HAL_PWREx_EnableXSPIM1();</code></pre><p>in order to enable its separate power domain</p><hr/><p>Indeed - see: <a href=\"https://community.st.com/t5/stm32-mcus-boards-and-hardware/nucleo-h7s3l8-no-gpio-output-on-ports-o-and-p/m-p/883267\" target=\"_blank\"><em>Solved: </em></a><span><a href=\"https://community.st.com/t5/stm32-mcus-boards-and-hardware/nucleo-h7s3l8-no-gpio-output-on-ports-o-and-p/m-p/883267\" target=\"_blank\"><em>Nucleo H7S3L8: No GPIO output on ports O and P</em></a>.</span></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

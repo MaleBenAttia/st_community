@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "164827",
+            "publicId": "164827",
+            "title": "STM32C071FBP6 Pin muxing issue",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32c071fbp6-pin-muxing-issue-164827",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "Bug-report"
+            ],
+            "published_at": "2026-04-16T13:06:04+00:00",
+            "views": 401,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @Sumanth\\_Veeyes\n\nBy checking the Firmware , you need to call the following HAL function\n\n```\n\n* @brief Set Pin Binding\n\n* @param pin_binding specifies which pin will bind a specific GPIO\n\n* for each die package\n\n* This parameter can be a value of @ref HAL_BIND_CFG\n\n* @retval None\n\n*/\n\nvoid HAL_SYSCFG_SetPinBinding(uint32_t pin_binding)\n\n{\n\n/* Check the parameter */\n\nassert_param(IS_HAL_SYSCFG_PINBINDING(pin_binding));\n\nLL_SYSCFG_ConfigPinMux(pin_binding);\n\n}\n\n```\n\nin your case : the parameter will be\n\n```\n\n#define HAL_BIND_TSSOP20_PIN20_PB3 LL_PINMUX_TSSOP20_PIN20_PB3 /*!< STM32C071 TSSOP20 package, Pin20 assigned to GPIO PB3 */\n\n```\n\nSo add this call in your code\n\n```\n\nuint32_t pin_binding = HAL_BIND_TSSOP20_PIN20_PB3;\n\nHAL_SYSCFG_SetPinBinding(pin_binding );\n\n```\n\nI will be waiting for your feedback.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am using STM32C071FBP6N MCU TSSOP 20 pin package for one of our project.\n\nI am observing Pin\\_20 is muxed with lot of other pins like PB3/PB4/PB5/PB6. if i select PB3 as GPIO\\_Output using STM32CubeMx and generated a code. If i try to toggle the pin but its not working at all, none of the peripheral on that pin for PB3 is working. But if i select PB6 as GPIO\\_Output i can able to toggle or modify.\n\nThis issue is not only with Pin\\_20, same with Pin\\_1 also which shares with PB7/PB8, only PB7 is working.\n\nI have tried with multiple chips what could be wrong in this scenario??",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14b2d937-0dc7-eb3f-d324-ae6969f6aa8d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/21444189-8b11-6a6a-e348-b02013032426.png"
+            ],
+            "author": "Sumanth_Veeyes",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106170\">@Sumanth_Veeyes</user-mention> </p>\n<p>Could you please provide your IOC in order to check your configuration and code .</p>\n<p>I will be waiting for your feedback.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Here is the IOC generated using CubeMx for your reference</p></div>",
+                    "author": "Sumanth_Veeyes",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>CubeMX assumes SECURE_MUXING_EN = 0 when it generates code, which is not the default.</p><p><a href=\"https://community.st.com/t5/stm32cubemx-mcus/stm32c092fcp6-spi-sck-pin-remapping-by-cubemx/m-p/836338\" target=\"_blank\">Solved: STM32C092FCP6 SPI, SCK Pin remapping by CubeMX - STMicroelectronics Community</a></p><p> </p><p>You can only use one muxed pin at a time if SECURE_MUXING_EN is enabled. Probably the settings in SYSCFG_CFGR3 are not being set up correctly by CubeMX. PB3 and PB7 are enabled by default which explains why they are working.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"TDK_0-1776345346637.png\" style=\"width: 400px;\"><img alt=\"TDK_0-1776345346637.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/21444189-8b11-6a6a-e348-b02013032426.png\" title=\"TDK_0-1776345346637.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"TDK_1-1776345372065.png\" style=\"width: 400px;\"><img alt=\"TDK_1-1776345372065.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14b2d937-0dc7-eb3f-d324-ae6969f6aa8d.png\" title=\"TDK_1-1776345372065.png\"/></span></p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Without using CubeMX how can i hardcode SYS_CFG3 to use PB3??</p></div>",
+                    "author": "Sumanth_Veeyes",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106170\">@Sumanth_Veeyes</user-mention> </p>\n<p>By checking the Firmware , you need to call the following HAL function </p>\n<pre class=\"lia-code-sample language-c\"><code> * @brief Set Pin Binding\n * @param pin_binding specifies which pin will bind a specific GPIO\n * for each die package\n * This parameter can be a value of @ref HAL_BIND_CFG\n * @retval None\n */\nvoid HAL_SYSCFG_SetPinBinding(uint32_t pin_binding)\n{\n /* Check the parameter */\n assert_param(IS_HAL_SYSCFG_PINBINDING(pin_binding));\n LL_SYSCFG_ConfigPinMux(pin_binding);\n}\n</code></pre>\n<p>in your case : the parameter will be </p>\n<pre class=\"lia-code-sample language-c\"><code>#define HAL_BIND_TSSOP20_PIN20_PB3 LL_PINMUX_TSSOP20_PIN20_PB3 /*!&lt; STM32C071 TSSOP20 package, Pin20 assigned to GPIO PB3 */</code></pre>\n<p>So add this call in your code </p>\n<pre class=\"lia-code-sample language-c\"><code>uint32_t pin_binding = HAL_BIND_TSSOP20_PIN20_PB3;\nHAL_SYSCFG_SetPinBinding(pin_binding );</code></pre>\n<p>I will be waiting for your feedback.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

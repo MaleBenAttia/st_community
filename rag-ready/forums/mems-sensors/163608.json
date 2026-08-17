@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "163608",
+            "publicId": "163608",
+            "title": "FSM \"dual\" timer for fail-safe",
+            "url": "https://community.st.com/mems-sensors-48/fsm-dual-timer-for-fail-safe-163608",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Developers corner",
+                "INEMO inertial modules",
+                "Accelerometers"
+            ],
+            "published_at": "2026-03-09T13:54:53+00:00",
+            "views": 289,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @Bennny ,\n\nHello,\n\nIn order to be able to wait one second before evaluating fly condition you could add an additional TI4 | LNTH2 state. During the evaluation of TI4 | LNTH2, TC value will be 1s while during GNTH2 | TI3, TC value will be 0.202s.\n\n![FedericaBossi_0-1774603753431.jpeg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05ec31f8-50c6-e849-acd0-5fb12e614187.jpeg \"FedericaBossi_0-1774603753431.jpeg\")",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi.\n\nI'm working with the FSM in LSM6DSO. I'm able to program detection which I want, but I struggle to do something like \"fail-safe\" to avoid the algorithm to stuck in the middle of the detection.\n\nFor example, I want to do a \"throw\" detection of a thing. The accelerometer is in the thing.\n\nI can simply wait for enough acceleration in -X (in my case it will be always in this axis), then wait for the \"fly\" of the thing, where simply I can use norm V, which must be almost 0, as it's almost free fall, and it must fly for some time.\n\nBut I struggle to do some timeout to jump out of the fly detection, when there is no any, after e.g. 1s.\n\nThe problem is, that I can't use 2 timers (there is only single TC), because from manual, every time when comparison is done, the TC is loaded automatically and even when setting SCTC1, it loads anyway when I do comparison of 2 different timers.\n\nHere is the example in the MEMS studio:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/958e0499-dc97-6c55-1ed8-0c77e634f6fb.png \"image.png\")\n\nNow the FSM is able to stuck at S4, where it will wait for the \"fly\" detection, which must be detected at least for 200ms. I need to add something like \"reset to start after 1s if no fly was detected\".\n\nAny idea how to implement it using these limitations?\n\nThank you",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14e957bd-8c1d-5ea5-621c-a9e206154e9a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/958e0499-dc97-6c55-1ed8-0c77e634f6fb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/56e39697-2814-5044-4359-07b02a34d270.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c423e13f-2e09-e99a-4d84-1d778b916dd6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05ec31f8-50c6-e849-acd0-5fb12e614187.jpeg"
+            ],
+            "author": "Bennny",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"96802\">@Bennny</user-mention> ,</p>\n<p>Hello,</p>\n<p>In order to be able to wait one second before evaluating fly condition you could add an additional TI4 | LNTH2 state. During the evaluation of TI4 | LNTH2, TC value will be 1s while during GNTH2 | TI3, TC value will be 0.202s. </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FedericaBossi_0-1774603753431.jpeg\" style=\"width: 400px;\"><img alt=\"FedericaBossi_0-1774603753431.jpeg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05ec31f8-50c6-e849-acd0-5fb12e614187.jpeg\" title=\"FedericaBossi_0-1774603753431.jpeg\"/></span></p>\n<p> </p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi.<br/>This unfortunately doesn't help in all cases.<br/>For better example I post an image.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bennny_2-1777033373803.png\" style=\"width: 400px;\"><img alt=\"Bennny_2-1777033373803.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14e957bd-8c1d-5ea5-621c-a9e206154e9a.png\" title=\"Bennny_2-1777033373803.png\"/></span></p><p><br/>I need to detect a peak (no problem), then detect that V+ is under threshold for some time, e.g. 100ms, then detect another peak - no problem.<br/>This solution can be used for \"fail-safe\" on the second peak detection, but no for the \"low level\" detection.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bennny_0-1777033324566.png\" style=\"width: 400px;\"><img alt=\"Bennny_0-1777033324566.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c423e13f-2e09-e99a-4d84-1d778b916dd6.png\" title=\"Bennny_0-1777033324566.png\"/></span></p><p> </p><p>In this situation the state machine is able to \"stuck\" on S2-S3 until the level is detected, because there can be problem, that there is no level (the value oscillate e.g. around the threshold, as at picture below) so it will detect level somewhere in future which doesn't correlate to this pattern.</p><p>Like this:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bennny_1-1777033352074.png\" style=\"width: 400px;\"><img alt=\"Bennny_1-1777033352074.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/56e39697-2814-5044-4359-07b02a34d270.png\" title=\"Bennny_1-1777033352074.png\"/></span></p><p> </p><p>It looks like pretty easy detection with just 3 conditions, but this can result in wrong detection...</p></div>",
+                    "author": "Bennny",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

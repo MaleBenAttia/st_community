@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "163792",
+            "publicId": "163792",
+            "title": "Unable to install stlink-gdbserver with bundles manager",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/unable-to-install-stlink-gdbserver-with-bundles-manager-163792",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-14T10:07:20+00:00",
+            "views": 573,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "I fixed the problem. The issue was that the extension did not create the .vscode/launch.json file. The fix was pretty easy: Run/Add configuration/Stm32Cube: STM32 Launch STLink GDB Server. I wonder why I had to manually do this operation, I never had to do it.\n\nThanks to the people who answered to the post",
+            "best_answer_author": "DamianoF",
+            "best_answer_author_role": "Associate III",
+            "content_text": "After a recent update I am unable to run my code from vscode on my Windows 11 machine. The compilation succeed, but when I click on Run -> Start Debugging nothing happens. The System Bundle Manager shows that I have installed all the latest versions, but the bundle manager of the projects shows only a few of those bundles (see attached). How can I install the bundles in the project section?\n\nNote that I have already tried the usual things: remove the build, .vscode and .settings folders, rebooting the pc, upgrading the stlink firmware.\n\nI tested the same code on another linux pc and there it works as expected. On the linux PC `stlink-gdbserver` was installed at project level",
+            "images": [],
+            "author": "DamianoF",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"60921\">@DamianoF</user-mention> <br/>From what I observed, the stlink-gdbserver gets installed and locked the first time a debug session is launched for the project.<br/>When you say nothing happens, is there anything in the debug console, even with \"verbose\" set to true?<br/>When the project was imported, did the project setup complete correctly?</p><p><span>BR,<br/></span><span>Elliot</span></p></div>",
+                    "author": "ElliotAlderson",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"60921\">@DamianoF</user-mention> <br/>Works on Linux but not Windows ... any antivirus issue ?<br/>On my side works like a charm Windows11.</p><p><br/>Project level install happens if able to launch ... if any failure prior no chance to.</p><p><br/>Could you have a try relying on a VS Code integrated terminal:</p><pre class=\"lia-code-sample language-c\"><code>cube stlink-gdbserver --version </code></pre><p>On my side it reports:</p><pre class=\"lia-code-sample language-c\"><code>stlink-gdbserver/7.13.0+st.3/bin/ST-LINK_gdbserver.exe version: 7.13.0</code></pre><p><br/> </p></div>",
+                    "author": "Cartu38 OpenDev",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I fixed the problem. The issue was that the extension did not create the .vscode/launch.json file. The fix was pretty easy: Run/Add configuration/Stm32Cube: STM32 Launch STLink GDB Server. I wonder why I had to manually do this operation, I never had to do it.</p><p>Thanks to the people who answered to the post</p></div>",
+                    "author": "DamianoF",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"60921\">@DamianoF</user-mention> <br/>I agree should not have to do and myself Idon't have to.<br/>Which VS Code version and OS are you relying on ?<br/>launch.json is pure VS Code stuff according to me</p></div>",
+                    "author": "Cartu38 OpenDev",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>VsCode 1.111.0 and OS Windows 11 25H2</p></div>",
+                    "author": "DamianoF",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"60921\">@DamianoF</user-mention>, <user-mention data-id=\"27674\">@Cartu38 OpenDev</user-mention> </p><p>Note regarding the creation of the launch.json file and the choice of debug configuration to use. This follows rules defined by VSCode.</p><h3 id=\"toc-hId-1627410458\">Launch.json file creation:</h3><p>If there is no<span> launch.json </span>file, the<span> \"</span><strong>Run &amp; Debug\"</strong><span> </span>button and the<span> \"</span><strong>Run → Start Debugging\"</strong><span> </span>menu will use a debug configuration based on the selection explained below. However, in any case, they will<span> </span><u><strong>not create a launch.json file</strong></u>.<br/>They will use a debug configuration<span> </span><strong>\"on the fly\"</strong>.</p><p>To create a launch.json, you can click on \"<strong>create a launch.json file</strong>\" from the debug activity bar.</p><h3 id=\"toc-hId--924746503\">Selection of the debug configuration based on:</h3><ul><li><p><strong>If<span> </span>launch.json<span> </span>exists:</strong></p><ul><li>The<span> \"</span><strong>Run &amp; Debug\"</strong><span> </span>button is no longer available.</li><li>The<span> \"</span><strong>Run → Start Debugging\"</strong><span> </span>menu (or its associated button) uses the debug configuration selected in the combo box (debug activity bar).</li></ul></li><li><p><strong>If<span> </span>launch.json<span> </span>does not exist:</strong></p><ul><li>The<span> \"</span><strong>Run &amp; Debug\"</strong><span> </span>button is available.</li><li>Using this button or the<span> \"</span><strong>Run → Start Debugging\"</strong><span> </span>menu:<ul><li>With only one root workspace (i.e., one imported project):<ul><li>Depends on the file open in the editor pane:<ul><li>If the open file belongs to the project, then use the last debug configuration executed:<ul><li>The very first time, of course VSCode prompts the user to choose the adapter.</li><li>VSCode stores this choice for this workspace in internal metadata.</li></ul></li><li>If no file is open in the editor pane, VSCode then prompts the user to choose the adapter.</li></ul></li></ul></li><li>With multiple root workspaces (i.e., at least two imported projects):<ul><li>Does not depend on the file open, but on the last debug configuration used.</li><li>The very first time, VSCode prompts the user to choose the adapter and uses the first imported project.</li></ul></li></ul></li></ul></li></ul><p>Kind Regards,</p><p>/Flo</p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

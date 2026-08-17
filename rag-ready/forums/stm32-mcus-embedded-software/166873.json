@@ -1,0 +1,173 @@
+{
+    "forum": [
+        {
+            "id": "166856",
+            "publicId": "166873",
+            "title": "USB microphone to H743 host streams mic then data freezes",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-microphone-to-h743-host-streams-mic-then-data-freezes-166873",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Audio",
+                "STM32H7 series",
+                "USB"
+            ],
+            "published_at": "2026-07-12T15:04:26+00:00",
+            "views": 540,
+            "reply_count": 19,
+            "best_answer": true,
+            "best_answer_content": "You need to test it with an actual commerical USB microphone otherwise the tests aren’t\n\ngoing to be conclusive.\n\n<https://docs.espressif.com/projects/esp-usb/en/latest/esp32s2/usb_host/usb_host_notes_dwc_otg.html>\n\nUPDATE:  I have now solved the problem by rewritting the STM HOST USB handler and adding extensive driver code, including making it a fully composite CDC, Audio and HID driver.  I would recommend anyone trying to implement a host driver to refer to the above mentioned STM errata for the USB controller in their MCUs.\n\nI have also rewritten the STM Device USB driver to support composite CDC, Audio and HID, with audio rates from 48 to 192 KHz.  If any one is interested in this code they should PM me.",
+            "best_answer_author": "Robmar",
+            "best_answer_author_role": "Senior II",
+            "content_text": "Connected an USB microphone to an H743 as host and it streams mic audio perfectly at 48 KHz for around 5 seconds then the data freezes.\n\nSOF is still being called as is AudioHost\\_IsoDataReadyISR() from the STM IRQ driver, DMA is running (its set to use DMA, I tried without but same behaviour), but the same 96 bytes are transfered every uS: I can clear the receive buffer but it gets refilled with the same data.  Attempts to re-init the pipes etc etc fail to restore streaming.\n\nAlso, any pause in the servicing of the call to AudioHost\\_IsoDataReadyISR() results in exactly the same repeat data arriving.\n\nThis is my own code based on STM’s examples, as I said it runs perfectly for many seconds, **if I unplug the microphone it runs again when plugged back in** for the same good few seconds.\n\nIs there an approved way to restore audio streaming without a full reset when there is an occasional timing glitch in servicing the AudioHost\\_IsoDataReadyISR() call?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9afa31b7-c272-4fff-9519-c99a9ac23417.png"
+            ],
+            "author": "Robmar",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>You need to test it with an actual commerical USB microphone otherwise the tests aren’t</p><p> going to be conclusive.<br/><br/><a href=\"https://docs.espressif.com/projects/esp-usb/en/latest/esp32s2/usb_host/usb_host_notes_dwc_otg.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://docs.espressif.com/projects/esp-usb/en/latest/esp32s2/usb_host/usb_host_notes_dwc_otg.html</a><br/><br/>UPDATE:  I have now solved the problem by rewritting the STM HOST USB handler and adding extensive driver code, including making it a fully composite CDC, Audio and HID driver.  I would recommend anyone trying to implement a host driver to refer to the above mentioned STM errata for the USB controller in their MCUs.<br/>I have also rewritten the STM Device USB driver to support composite CDC, Audio and HID, with audio rates from 48 to 192 KHz.  If any one is interested in this code they should PM me.</p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There must be a standard way to reacti<em>vate the stream after  pause in serviving Notify, I tried this below but it did nothng.</em><br/> </p><pre><code class=\"language-c\">static void AUDIO_HOST_HardRecoverChannel(USBH_HandleTypeDef *phost, uint8_t pipe_num)<br/><br/>{<br/><br/>USB_OTG_GlobalTypeDef *USBx = ((HCD_HandleTypeDef *)phost-&gt;pData)-&gt;Instance;<br/><br/>USB_OTG_HostChannelTypeDef *hc = (USB_OTG_HostChannelTypeDef *)<br/><br/>(((uint32_t)USBx) + USB_OTG_HOST_CHANNEL_BASE + (pipe_num * USB_OTG_HOST_CHANNEL_SIZE));<br/><br/><br/><br/>// 1. Request halt<br/><br/>hc-&gt;HCCHAR |= USB_OTG_HCCHAR_CHDIS;<br/><br/>hc-&gt;HCCHAR |= USB_OTG_HCCHAR_CHENA;<br/><br/><br/><br/>// 2. Wait for hardware to confirm the channel actually halted<br/><br/>uint32_t timeout = 1000;<br/><br/>while ((hc-&gt;HCCHAR &amp; USB_OTG_HCCHAR_CHENA) &amp;&amp; timeout--)<br/><br/>; // hardware clears CHENA itself when truly halted<br/><br/><br/><br/>// 3. Clear any pending interrupt flags for this channel<br/><br/>hc-&gt;HCINT = 0xFFFFFFFF;<br/><br/><br/><br/>// 4. Flush the RX FIFO (required per reference manual before re-submitting)<br/><br/>USBx-&gt;GRSTCTL |= USB_OTG_GRSTCTL_RXFFLSH;<br/><br/>timeout = 1000;<br/><br/>while ((USBx-&gt;GRSTCTL &amp; USB_OTG_GRSTCTL_RXFFLSH) &amp;&amp; timeout--)<br/><br/>;<br/><br/>}</code></pre><p> </p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>STM managers clearly don’t value support, as a result of this, many clients have adopted the ESP32 platform, which has comprehensive USB support</p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"53669\">@Robmar</user-mention> </p><p>Would you provide minimum firmware to reproduce?</p><p>Can you point me directly in which file AudioHost_IsoDataReadyISR is defined <a href=\"https://github.com/STMicroelectronics/stm32-mw-usb-host/tree/master\" rel=\"noopener noreferrer\" target=\"_blank\">STMicroelectronics/stm32-mw-usb-host: Provides the USB Host library part of the STM32Cube MCU Component \"middleware\" for all STM32xx series</a></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, thanks for the reply.  There is no host audio code samples for audio as far as I am aware.<br/><br/>My Host audio driver works perfectly for around 6 seconds, receiving 96 byte packets perfectly every 1mS, I have a GPIO toggle on the ISOCreceive Notify that shows 1000uS spacing on calls that then stretches during a few seconds from a 1000:1000:1000 timing to 1200:800:1000 or less, a sort of slow drift with the centre of every 3 sets of pulses drifting back to 1000:1000:1000 and repeating.<br/>I wonder if the USB mic’s and H743 (25MHz xtal) 48 MHz clocks are beating, then a USB_OTG_HCINT_TXERR<u> </u>and USB_OTG_HCINT_BBERR can occur, a missed packet, is the odd/even packet bit out of step?</p><p>Anyway after that the host receives the last packet forever via DMA into its sole receive buffer, SOF and ISOCreceiver keep firing, no errors appear, same data.  I have erased the data buffer with memset but it gets refilled with same data as last packet before the errors.<br/><br/>So a lost packet can happen, even heavy noise could cause it.</p><p>My questsion is how to recover Host operation without unplugging the microphone, there must be an approved way, with minimal interruption?<br/><br/>I can’t post my USB code without posting my entire project.  As I said the issue is error recovery.<br/>I also have USB audio at 192 KHz working perfectly, with DMA enabled, but with this Mars Gaming microphone, timing drift occurs, which does not happen with a PC.  The Mic works fine on the PC, so I guess the PC driver syncs or recovers better.<br/><br/><br/><br/> </p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"53669\">@Robmar</user-mention> </p><p>You can refer to these examples for USB Host audio : </p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Applications/USB_Host/AUDIO_Standalone\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeH7/Projects/STM32H743I-EVAL/Applications/USB_Host/AUDIO_Standalone at master · STMicroelectronics/STM32CubeH7</a></p><p><a href=\"https://github.com/STMicroelectronics/x-cube-azrtos-h7/tree/main/Projects/STM32H747I-DISCO/Applications/USBX/Ux_Host_Audio\" rel=\"noopener noreferrer\" target=\"_blank\">x-cube-azrtos-h7/Projects/STM32H747I-DISCO/Applications/USBX/Ux_Host_Audio at main · STMicroelectronics/x-cube-azrtos-h7</a></p><p> </p><p>For USB isochronous audio, missed packets are not recoverable. No handshake for Isochronous transfers. </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The lost packet data isn’t the issue.  Thanks  for the links but the examples are very basic without any recovery methods.</p><p>The issue is that audio packet transfer fails and cannot be restarted, although SOF and Notify of packet arrival continues, the packet data transfered is always the last packet sent before the desync/lost signal.</p><p>My question is how to recover Host operation without unplugging the microphone, with minimal interruption?<br/><br/>An STM engineer versed in USB would know the answer because it would be a non-functional design if the only recovery method was a power down.</p><p>I would appreciate if someone who knows the USB core can answer my question?</p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Following the advice from STM tech FBL below, I checked the STM GitHub, the relevant code file is :<br/><a href=\"https://github.com/STMicroelectronics/stm32-mw-usb-host/blob/a5cc3798cd50f6b86322e7091ccf7e3eadd5be47/Class/AUDIO/Src/usbh_audio.c\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">usbh_audio.c</a><br/><br/>Its just an incomplete skeleton of a driver, I can’t see any code that actually handles data reception.<br/><br/>STM yet again show their contempt for clients needing USB support.</p><p>That they are losing business hand over foot to the ESP32 platform which has excellent USB support, is no surprise.<br/> </p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK ​<user-mention data-id=\"53669\">@Robmar</user-mention>  the repeat of the last packet could be the failure.</p><p>If receive servicing is being delayed occasionally (not deterministically from your observations), this can be an issue in our controller. But as I said, I need to reproduce on my end with our HAL/frameworks before escalating the issue.</p><p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I can show you exactly where the error is detected in the STM IRQ handler, <br/><br/>File: stm32h7xx_hal_hcd.c<br/>Routine: static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)<br/><br/>When mic stops streaming (or streaming starts repeating the ast frame, error USB_OTG_HCINT_TXERR occurs and is detected here:</p><pre><code class=\"language-c\">else if (__HAL_HCD_GET_CH_FLAG(hhcd, chnum, USB_OTG_HCINT_TXERR))<br/><br/>{<br/><br/>__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR); // Transaction error<br/><br/>hhcd-&gt;hc[chnum].state = HC_XACTERR; // Note: This occured when the USB mic stopped<br/><br/>(void)USB_HC_Halt(hhcd-&gt;Instance, chnum);<br/><br/>}<br/><br/>else<br/><br/>{<br/><br/>/* ... */<br/><br/>}</code></pre><p>From here execution falls through to this section of code below in the same routine:-<br/><br/> </p><p>After th<u>e</u> above error, executio<u>n</u> falls throug<u>h</u> here, deliveryin<u>g</u> the Notif<u>y</u> with th<u>e</u> NOTREADY statu<u>s</u> and th<u>e</u> pipe halte<u>d.</u></p><pre><code class=\"language-c\">else if ((hhcd-&gt;hc[chnum].state == f) ||<br/><br/>(hhcd-&gt;hc[chnum].state == HC_DATATGLERR))<br/><br/>{<br/><br/>hhcd-&gt;hc[chnum].state = HC_HALTED;<br/><br/>hhcd-&gt;hc[chnum].ErrCnt++;<br/><br/>if (hhcd-&gt;hc[chnum].ErrCnt &gt; 2U)  Note: ErrCnt is 1<br/><br/>{<br/><br/>hhcd-&gt;hc[chnum].ErrCnt = 0U;<br/><br/><br/><br/>if (hhcd-&gt;hc[chnum].do_ssplit == 1U)<br/><br/>{<br/><br/>hhcd-&gt;hc[chnum].do_csplit = 0U;<br/><br/>hhcd-&gt;hc[chnum].ep_ss_schedule = 0U;<br/><br/>__HAL_HCD_CLEAR_HC_CSPLT(chnum);<br/><br/>}<br/><br/><br/><br/>hhcd-&gt;hc[chnum].urb_state = URB_ERROR;<br/><br/>}<br/><br/>else<br/><br/>{<br/><br/>hhcd-&gt;hc[chnum].urb_state = URB_NOTREADY;<br/><br/><br/><br/>if ((hhcd-&gt;hc[chnum].ep_type == EP_TYPE_CTRL) ||<br/><br/>(hhcd-&gt;hc[chnum].ep_type == EP_TYPE_BULK))<br/><br/>{<br/><br/>/* re-activate the channel */<br/><br/>tmpreg = USBx_HC(chnum)-&gt;HCCHAR;<br/><br/>tmpreg &amp;= ~USB_OTG_HCCHAR_CHDIS;<br/><br/>tmpreg |= USB_OTG_HCCHAR_CHENA;<br/><br/>USBx_HC(chnum)-&gt;HCCHAR = tmpreg;<br/><br/>}<br/><br/>}<br/><br/>}</code></pre><p>It then calls :</p><pre><code class=\"language-c\">#else<br/><br/>HAL_HCD_HC_NotifyURBChange_Callback(hhcd, chnum, hhcd-&gt;hc[chnum].urb_state);<br/></code></pre><p><br/>Which calls my AudioHost_IsoDataReadyISR() code, as it does with every packet received during streaming, but with NOTREADY ERROR status.<br/><br/>So teh STM handler issued a halt:</p><pre><code class=\"language-c\">__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR); // Transaction error<br/><br/>hhcd-&gt;hc[chnum].state = HC_XACTERR; // Note: This occured when the USB mic stopped<br/><br/>(void)USB_HC_Halt(hhcd-&gt;Instance, chnum);</code></pre><p><br/><br/>I just need to know how to get the channel streaming again with the USB mic.</p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"53669\">@Robmar</user-mention> </p><p>Your post have been edited to comply with ST community rules: <a href=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\" rel=\"noreferrer\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></p><p>In next time and for code readability, please use “Code” insertion option to paste your code:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9afa31b7-c272-4fff-9519-c99a9ac23417.png\"/></figure><p>Thank you for your understanding.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>STM32 USB audio works perfectly for microphone. All you need is to send data  when USB audio class requested it, not when adc/i2s/i2c microphone interrupt occurs. Obviously you need to skip or insert samples. Please explain how you send microphone data to USB to get better advice</p></div>",
+                    "author": "Georgy Moshkin",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes I know that, as mentioned in my post, it does work for 6 seconds during that time the mic seems to get our of sync with the host, or visa versa. the SOF calls are 1mS, but the packet returns from the device start to lag.  This causes a BLERR babble error, halts the channel, and then the host seems to keep working, but the data received by DMA, is always the same packet.<br/>So it seems that something is missing in the recovery.  I had a similar issue with this error on the OUT channel, and added code to reset the channel, but the same code doesn’t work on the IN channel.</p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Why there should be any “recovery”? It is not a common practice to reset the channel from time to time in USB, and there should no be such issues. To ensure that your firmware works correctly, send a sawtooth instead of actual microphone data:</p><pre><code class=\"language-c\">for (int i=0; i&lt;buffer_length; i++)<br/>{<br/>   buf[i]=a;<br/>   a++;<br/>}<br/></code></pre><p>I’ve investigated USB packets from several microphones like Boya, Fifine, etc., and each one of them relies on the interrupt from the host. Therefore, regardless of their internal sampling rate imprecision, they are always ready to send the data to the host. The best way is to do the test with a generated sawtooth and check it in Audacity or other audio editor. Use sawtooth or sinewave and ensure that there are no clicks/pops.</p><p>If you sending data actively using USB HAL function, this will probably fail 100% one way or another (unless you figure out USB descriptors and events that allow the device to control the stream, but it seems that none of commercial USB microphones does it this way).</p><p>I send data to microphone like shown below. SOF interrupt is disabled, and there are no timers/etc. stuff is going on. This will obviously will be out of sync with the STM32 ADC/I2S/I2C microphone stream. The micTransferCallbackPtr() handles this by skipping/doubling few samples in the microphone stream, so there is always data ready.</p><pre><code class=\"language-c\">uint8_t DEV_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {<br/>\tif (epnum == (AUDIO_IN_EP &amp; 0x7F))<br/>\t{<br/>\t\tif (micState != MIC_IDLE)<br/>\t\t{<br/>\t\t\tmicState = MIC_RECORDING;<br/><br/>\t\t\tmicTransferCallbackPtr();<br/>\t\t\t//USBD_LL_Transmit(pdev, AUDIO_IN_EP, (uint8_t*)&amp;(*pcm_data_ptr)[pcm_idx], MIC_FRAME_SIZE*2);<br/><br/><br/>\t\t}<br/>\t}<br/>\treturn USBD_OK;<br/><br/>}<br/></code></pre><p> </p></div>",
+                    "author": "Georgy Moshkin",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For example can I modify the STM handler to handle the USB_OTG_HCINT_TXERR error so that it restores the channel and requests another packet, or is their a recommended method to recover?<br/><br/>This is the modified handler code:</p><pre><code class=\"language-c\">if (hhcd-&gt;hc[chnum].do_ssplit == 1U)<br/><br/>{<br/><br/>hhcd-&gt;hc[chnum].do_csplit = 0U;<br/><br/>hhcd-&gt;hc[chnum].ep_ss_schedule = 0U;<br/><br/>__HAL_HCD_CLEAR_HC_CSPLT(chnum);<br/><br/>}<br/><br/>hhcd-&gt;hc[chnum].urb_state = URB_ERROR;<br/><br/>}<br/><br/>else<br/><br/>{<br/><br/>//hhcd-&gt;hc[chnum].urb_state = URB_NOTREADY;<br/><br/>/* mod 20260710 add test xyx8 trying to ublock mic stream blockage DID NOT HELP */<br/><br/>if (hhcd-&gt;hc[chnum].ep_type == EP_TYPE_ISOC)<br/><br/>{<br/><br/>// For mic: treat TXERR as transient, re-prime the IN transfer<br/><br/>hhcd-&gt;hc[chnum].urb_state = URB_IDLE; // or a custom “retry” state GW8RDI Did return NOTREADY<br/><br/>hhcd-&gt;hc[chnum].ErrCnt = 0U;<br/><br/>// Flush RX FIFO to clear any partial frame<br/><br/>USB_FlushRxFifo(hhcd-&gt;Instance);<br/><br/>// Re-activate channel<br/><br/>tmpreg = USBx_HC(chnum)-&gt;HCCHAR;<br/><br/>tmpreg &amp;= ~USB_OTG_HCCHAR_CHDIS;<br/><br/>tmpreg |= USB_OTG_HCCHAR_CHENA;<br/><br/>USBx_HC(chnum)-&gt;HCCHAR = tmpreg;<br/><br/>// Re-submit the isochronous IN request for the mic<br/><br/>HAL_HCD_HC_SubmitRequest(hhcd,<br/><br/>chnum,<br/><br/>1, /* Dir IN */<br/><br/>hhcd-&gt;hc[chnum].ep_type, /* USBH_EP_ISO */<br/><br/>1, /* Token unused for ISOC */<br/><br/>hhcd-&gt;hc[chnum].xfer_buff,<br/><br/>hhcd-&gt;hc[chnum].xfer_len, 0);<br/><br/>} // End mod<br/><br/>else if ((hhcd-&gt;hc[chnum].ep_type == EP_TYPE_CTRL) ||<br/><br/>(hhcd-&gt;hc[chnum].ep_type == EP_TYPE_BULK))<br/><br/>{</code></pre><p> </p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"53669\">@Robmar</user-mention> </p><p>We have already identified similar issues in HCD_HC_IN_IRQHandler API linked to compute number of packets. Still not sure if it’s related to clear errors flags. Our teams will investigate the reported behavior as well. </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Could you give me the link to that one, I’d like to check if it affects are code.  Thanks</p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It will be hard to believe this is a bug, though we have had to make two other patches to this USB IRQ handler to stop lock ups in Device mode.<br/><br/>What we are seeing in host mode audo ISOC transfer looks similar to the Device side lockup, but so far we haven’t got this fix to solve the issue in Host mode.<br/><br/>In this routine:</p><pre><code class=\"language-c\">void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)</code></pre><p>We had to add this;<br/> </p><pre><code class=\"language-c\">/*BUG FIX AFTER (STM V1.12.1 Update): Resolved USB Host Channel Stalls (this may be incorrect but it does reactivate the channel)<br/>Context: In previous HAL USB versions (V1.11.2 and earlier), a Transaction Error (TXERR)<br/>occurring while DMA was enabled would increment the error counter but fail<br/>to re-prime the hardware. This left the channel in a 'Disabled' state (CHENA=0),<br/>causing the Host to stop sending IN tokens indefinitely.<br/>Impact on Audio: This resulted in 50ms+ silence periods, triggering device-side<br/>watchdogs and subsequently causing BBERR (Babble) errors during violent resyncs.<br/>Fix: Manually re-activate the channel by clearing CHDIS and setting CHENA in<br/>the HCCHAR register. This forces an immediate hardware retry of the transaction,<br/>maintaining stream continuity and preventing DMA pointer misalignment (byte-shifting).<br/>*/<br/><br/>/* Re-activate the channel */<br/><br/>tmpreg = USBx_HC(chnum)-&gt;HCCHAR;<br/><br/>tmpreg &amp;= ~USB_OTG_HCCHAR_CHDIS;<br/><br/>tmpreg |= USB_OTG_HCCHAR_CHENA;<br/><br/>USBx_HC(chnum)-&gt;HCCHAR = tmpreg;<br/><br/>}<br/><br/>}<br/><br/>__HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR);<br/><br/>}<br/><br/>else if (__HAL_HCD_GET_CH_FLAG(hhcd, chnum, USB_OTG_HCINT_DTERR))<br/><br/>{<br/><br/>hhcd-&gt;hc[chnum].state = HC_DATATGLERR;</code></pre><p> </p></div>",
+                    "author": "Robmar",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"53669\">@Robmar</user-mention> </p><p>Again, please use “Code” insertion option to paste your code:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9afa31b7-c272-4fff-9519-c99a9ac23417.png\"/></figure></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

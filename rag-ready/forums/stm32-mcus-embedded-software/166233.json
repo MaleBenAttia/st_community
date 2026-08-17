@@ -1,0 +1,92 @@
+{
+    "forum": [
+        {
+            "id": "166214",
+            "publicId": "166233",
+            "title": "USB Host MSC issue with Port Disable continuously",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-host-msc-issue-with-port-disable-continuously-166233",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series",
+                "USB"
+            ],
+            "published_at": "2026-06-17T12:49:38+00:00",
+            "views": 97,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nI found the root cause,\n\nThe issue is with wrong clock, I mean in the circuit board it has provided 8mhz input frequency, but I have set it to 25mhz which is wrong. Setting correct fix this issue immediately.\n\nNow able to do all operation with USB.\n\nThanks",
+            "best_answer_author": "npatil15",
+            "best_answer_author_role": "Senior",
+            "content_text": "Hello,\n\nI’m working with custom board STM32F767BITX, trying to interface Standalone USB Host MSC, with no Free RTOS.\n\nTried different reference, below is one reference which I followed\n\n<https://www.youtube.com/watch?v=_bfROydrssA&t=2s>\n\nAs soon as connected USB, it shows connected but after that it loop between this two calls alternatively, USBH\\_LL\\_PortDisabled() and USBH\\_LL\\_PortEnabled() which disconnect USB and connect again and continue to do that.\n\nSo I dont understand the root cause of this, what trigger this to behave like this?\n\nPlease guide me to fix this issue.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/31607b19-ce6d-4aff-82b2-e8f8e8e33322.png)\n\n```\n\nvoid SystemClock_Config(void)\n\n{\n\nRCC_OscInitTypeDef RCC_OscInitStruct = {0};\n\nRCC_ClkInitTypeDef RCC_ClkInitStruct = {0};\n\n/** Configure the main internal regulator output voltage\n\n*/\n\n__HAL_RCC_PWR_CLK_ENABLE();\n\n__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);\n\n/** Initializes the RCC Oscillators according to the specified parameters\n\n* in the RCC_OscInitTypeDef structure.\n\n*/\n\nRCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;\n\nRCC_OscInitStruct.HSEState = RCC_HSE_ON;\n\nRCC_OscInitStruct.HSIState = RCC_HSI_ON;\n\nRCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;\n\nRCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;\n\nRCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;\n\nRCC_OscInitStruct.PLL.PLLM = 15;\n\nRCC_OscInitStruct.PLL.PLLN = 144;\n\nRCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;\n\nRCC_OscInitStruct.PLL.PLLQ = 5;\n\nRCC_OscInitStruct.PLL.PLLR = 2;\n\nif (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Initializes the CPU, AHB and APB buses clocks\n\n*/\n\nRCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK\n\n|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;\n\nRCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;\n\nRCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;\n\nRCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;\n\nRCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;\n\nif (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n}\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9253895f-ffb9-4a02-9607-21036b213fed.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/31607b19-ce6d-4aff-82b2-e8f8e8e33322.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf472faa-9f40-44c7-8080-00dd53587e8f.png"
+            ],
+            "author": "npatil15",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"93229\">@npatil15</user-mention> </p><p>Have you tried the example provided in <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/tree/ea928c8afb33cfdb163b6efbaedd8aa6ea51cbc1/Projects/STM32F767ZI-Nucleo/Applications/USB_Host/MSC_Standalone\" rel=\"noreferrer noopener\" target=\"_blank\">CubeF7</a>. Which clock source are you using for USB?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have issue while opening that code in STM32CubeIde,</p><p>So, asa I open the file <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/blob/ea928c8afb33cfdb163b6efbaedd8aa6ea51cbc1/Projects/STM32F767ZI-Nucleo/Applications/USB_Host/MSC_Standalone/SW4STM32/STM32F767ZI_Nucleo_USBH-FS/.project\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">.project</a> it gest hanged, so dont understand how top open that project and test it, so I create new project with those reference.</p><p>Can you tell me how to open that project or test it in STM32CubeIde?</p></div>",
+                    "author": "npatil15",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"93229\">@npatil15</user-mention> This project needs to be converted from SW4STM32 (another Eclipse-like IDE).</p><p>In CubeIDE: File→ Import→ Ac6 System …</p><p>After conversion, sometimes small adjustments may be needed.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf472faa-9f40-44c7-8080-00dd53587e8f.png\"/></figure><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"93229\">@npatil15</user-mention> </p><p>You can either double click on the project and copy project into your workspace or by importing the project :</p><p>File &gt; Import… General &gt; Existing Projects into Workspace</p><p>I assume you should not select AC6 system workbench (this is an old IDE) use existing project instead.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So just show, where is the example for STM-IDE ? (User cannot find it, obviously.)</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9253895f-ffb9-4a02-9607-21036b213fed.png\"/></figure><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I found the root cause,</p><p>The issue is with wrong clock, I mean in the circuit board it has provided 8mhz input frequency, but I have set it to 25mhz which is wrong. Setting correct fix this issue immediately. </p><p>Now able to do all operation with USB.</p><p> </p><p>Thanks</p></div>",
+                    "author": "npatil15",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Likely root cause is the USB clock configuration.</p><p>For STM32F767 USB Host MSC, the USB peripheral requires an accurate 48 MHz clock. Looking at your PLL settings:</p><p>HSE = 25 MHz<br/>PLLM = 15<br/>PLLN = 144<br/>PLLQ = 5</p><p>USB clock = (25 / 15 × 144) / 5 = 48 MHz, so on paper it looks correct. However, continuous switching between USBH_LL_PortEnabled() and USBH_LL_PortDisabled() usually indicates one of these issues:</p><p>VBUS power instability (most common on custom boards).<br/>Incorrect USB OTG FS/HS hardware connections (DP/DM, ID, VBUS sensing).<br/>Insufficient power supply to the USB device.<br/>Wrong USB clock source or clock instability.<br/>Signal integrity issues (bad PCB routing, missing protection components, poor grounding).</p><p>First check VBUS (5V) with a multimeter/oscilloscope while the USB device is connected. If VBUS drops or fluctuates, the host stack will repeatedly disconnect and reconnect the device, causing exactly the behavior you're seeing.</p><p>Also verify that USBH_Process() is being called continuously in the main loop and that the USB interrupt is working correctly.</p></div>",
+                    "author": "faisu887",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I agree with your point, but the real issue is not about generating correct 48MHz frequency; it is what external clock source connected to controller.</p><p>So as per my custom board it has 8MHz crystal input, in which case I can’t provide 25MHz crystal input for clock configuration.</p><p>And that's it, setting 8MHz input clock and generating 48MHz from this fix my issue,</p></div>",
+                    "author": "npatil15",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

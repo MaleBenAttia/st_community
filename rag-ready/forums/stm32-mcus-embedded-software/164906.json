@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "164906",
+            "publicId": "164906",
+            "title": "Where to find if specific STM32 MCU supports specific CMSIS-RTOS version?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/where-to-find-if-specific-stm32-mcu-supports-specific-cmsis-rtos-version-164906",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Documentation",
+                "STM32Cube MCUs packages",
+                "LwIP"
+            ],
+            "published_at": "2026-04-20T08:40:10+00:00",
+            "views": 304,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "This is a question of compatibility between the various *software* components - it's not about the chips themselves.\n\nIn your specific case, it's that [the LwIP *provided by ST in CubeMX* requires](https://community.st.com/t5/stm32cubemx-mcus/cubemx-freertos-cmsis-v2-lwip-rtos-dependency/m-p/824875/highlight/true#M32995)[CMSIS V1](https://community.st.com/t5/stm32cubemx-mcus/cubemx-freertos-cmsis-v2-lwip-rtos-dependency/m-p/824875/highlight/true#M32995).\n\nNote that LwIP is an independent 3rd-party stack - so you might be able to find an alternative implementation, or even do your own port to work with CMSIS V2...\n\n**PS:**\n\nHere's a 3rd-party example using LwIP with CMSIS V2\n\n<https://mongoose.ws/documentation/tutorials/stm32/nucleo-f746zg-keil-cmsis2-lwip/>\n\n@MStackDev\\_376 is part of the Mongoose development team and posts here often - may be able to help ... ?",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "*Title edited to clarify this is about CMSIS-RTOS*\n\n---\n\nHello, everybody!\n\nI don't know where to look for information on which CMSIS versions are supported by specific STM32 microcontrollers. I asked one of the ST employees and STM32 Sidekick about this, and I got no definitive answers.\n\nSTM software tools confuse me further. For example, STM32CubeMX (6.17.0) allows me to choose CMSISv2 the interface for FreeRTOS in my STM32F769I‑DISCO board project, but LwIP in the same project does not see the operating system used unless I change the CMSIS version to v1 (you can find more details about this specific issue in [this thread](https://community.st.com/t5/stm32cubemx-mcus/unable-to-make-lwip-work-with-freertos-using-cmsis-v2/td-p/871576)). I couldn't find any document that would say which interfaces are supported by LwIP either.\n\nThat's why I would like to ask You, where should I look for information about which CMSIS versions are supported by specific STM MCUs and, ideally, middlewares and software packages?",
+            "images": [],
+            "author": "_AdamNtrx",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is a question of compatibility between the various <em>software</em> components - it's not about the chips themselves.</p><p> </p><p>In your specific case, it's that <a href=\"https://community.st.com/t5/stm32cubemx-mcus/cubemx-freertos-cmsis-v2-lwip-rtos-dependency/m-p/824875/highlight/true#M32995\" target=\"_blank\">the LwIP <em>provided by ST in CubeMX</em> requires </a><span><a href=\"https://community.st.com/t5/stm32cubemx-mcus/cubemx-freertos-cmsis-v2-lwip-rtos-dependency/m-p/824875/highlight/true#M32995\" target=\"_blank\">CMSIS V1</a>.</span></p><p> </p><p><span>Note that LwIP is an independent 3rd-party stack - so you might be able to find an alternative implementation, or even do your own port to work with CMSIS V2...</span></p><p> </p><p><strong><u>PS</u>:</strong></p><p><span>Here's a 3rd-party example using LwIP with CMSIS V2</span></p><p><span><a href=\"https://mongoose.ws/documentation/tutorials/stm32/nucleo-f746zg-keil-cmsis2-lwip/\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://mongoose.ws/documentation/tutorials/stm32/nucleo-f746zg-keil-cmsis2-lwip/</a></span></p><p><span><user-mention data-id=\"95049\">@MStackDev_376</user-mention> is part of the Mongoose development team and posts here often - may be able to help ... ?</span></p><div class=\"\"> </div><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So if I understand correctly, it's always the software component (like LwIP or FreeRTOS) that needs to support a specific interface and the chip used is not important at all, am I right?</p><p> </p><p>Taking this opportunity, do You know where can report a correction to LwIP code provided by ST? I made <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/program-stuck-in-netconn-connect-possible-solution/td-p/880644\" target=\"_self\">a thread</a> about it two months ago, but I don't know if I posted it in the right place.</p></div>",
+                    "author": "_AdamNtrx",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"80998\">@_AdamNtrx</user-mention> wrote:<br/><p>So if I understand correctly, it's always the software component (like LwIP or FreeRTOS) that needs to support a specific interface and the chip used is not important at all, am I right?</p><hr/></blockquote><p>Pretty much.</p><p>Of course, there are some basic hardware requirements - but not specific dependencies on particular chips.</p><p> </p><blockquote><hr/><user-mention data-id=\"80998\">@_AdamNtrx</user-mention> wrote:<br/><p>I made <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/program-stuck-in-netconn-connect-possible-solution/td-p/880644\" target=\"_self\">a thread</a> about it two months ago, but I don't know if I posted it in the right place.</p><hr/></blockquote><p>Yes, that's in the <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/bd-p/mcu-embedded-software-forum\" target=\"_blank\">Embedded Software forum</a> - that's the place to raise issues with software.</p><p>If you want direct support from ST, you can also raise a support case: <a href=\"https://ols.st.com/s/\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://ols.st.com/s/</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found this on the difference between CMSIS-RTOS v1 and v2:</p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><a href=\"https://github.com/STMicroelectronics/cmsis-core/issues/1\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/cmsis-core/issues/1</a></p><p> </p><p>Also this on the difference between CMSIS and CMSIS-RTOS:</p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><a href=\"https://community.st.com/t5/stm32-mcus-products/what-is-the-difference-between-cmsis-and-cmsis-rtos/td-p/334414\" target=\"_blank\"><em>What is the difference between CMSIS and CMSIS-RTOS?</em></a></p><p><span>I think this thread is really about CMSIS-RTOS?</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

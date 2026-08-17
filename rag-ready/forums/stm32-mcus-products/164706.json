@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "164706",
+            "publicId": "164706",
+            "title": "Wrong voltage typed at Vrefint STM32C092",
+            "url": "https://community.st.com/stm32-mcus-products-25/wrong-voltage-typed-at-vrefint-stm32c092-164706",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "ADC",
+                "STM32C0 series"
+            ],
+            "published_at": "2026-04-13T15:18:47+00:00",
+            "views": 269,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Yes correct, I found it. The ADC self calibration didnt apply",
+            "best_answer_author": "morris",
+            "best_answer_author_role": "Associate II",
+            "content_text": "![morris_0-1776092976724.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e1dc3a9b-0073-a0ce-0e9c-3dd8932d1954.png \"morris_0-1776092976724.png\")\n\n![Skärmbild 2026-04-13 153204.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2d218681-06fa-8993-0dae-715ef3a10b5f.png \"Skärmbild 2026-04-13 153204.png\")\n\nI have followed the datasheets and tried to calculate my reference voltage. I am supplying steady 3V on Vref+ pin but I wanted to confirm this because I have some troubles with the ADC precision.\n\nSo I read the internal voltage both on my card and on a nucelo-C092rc. This is my results:\n\nMy board:\n\nVref+ = 3.0 \\* 1659 / 1805 = 2.755\n\nNucelo board:\n\nVref+ = 3.0 \\* 1665 / 1641 = 3.043\n\nHowever I am quite certain that the nucelo boards are using 3.3 V as reference and my board are using 3 V as reference.\n\nSo if I swap the 3.0 V from the datasheet into 3.3 V I get the following:\n\nMy board:\n\nVref+ = 3.3 \\* 1659 / 1805 = 3.033\n\nNucelo board:\n\nVref+ = 3.3 \\* 1665 / 1641 = 3.348\n\nWhich match more my expectations, can someone confirm or deny this typo?\n\nI add my adc init function:\n\n```\n\nu16 uiDelay = 0;\n\nADC_CFGR2.CKMODE = 0x0; // Clock mode set to ADCCLK\n\nADC_CCR.PRESC = 0x2; // ADC prescaler set to 48MHz / 4 = 12MHz\n\nADC_CFGR1.RES = 0x0; // Set 12 bit resolution\n\nADC_SMPR = 0x07; // Sampling time set to 1,5 ADC clock cycles, ADC_ACTIVE_CHANNELS*Sampling time should be less than the ISR period to insure we have new\n\n// measurements\n\nADC_CCR.VREFEN = 1; // Enable VREFINT\n\nADC_CFGR1.EXTEN = 0x1; // Trigger ADC rising edge\n\nADC_CFGR1.EXTSEL = 0x0; // Trigger conversion on TIM1_TRGO\n\nADC_CFGR1.SCANDIR = 0; // 0 = scan from CHSEL0 to max\n\nADC_CFGR1.ALIGN = 0; // Right data align AC results\n\nADC_CHSELR = ADC_ACTIVE_CHANNELS; // Select channels to be scanned\n\nADC_CR.ADVREGEN = 1; // Enable the ADC Voltage regulator\n\nfor (int i = 0; i < ADC_SETUP_TIME; i++); // After ADC_CR.ADVREGEN is set, the mcu have to wait t_ADCVREG_STUP before calibration, see datasheet\n\nADC_CR.ADCAL = 1; // Initiate calibration of the ADC\n\nwhile (ADC_CR.ADCAL); // Loop until the calibration is complete\n\nADC_CR.ADEN = 1; // Enable the ADC\n\nwhile (ADC_ISR.ADRDY == 0) // After ADC_CR.ADEN is set it needs the time t_STAB to be ready, see datasheet.\n\n{\n\nuiDelay++;\n\nif (uiDelay > ADC_SETUP_TIME) // If the ADC is not ready after some time, re-enable it.\n\n{\n\nuiDelay = 0;\n\nADC_CR.ADEN = 1;\n\n}\n\n}\n\nDMA1.DMA_CH1.CPAR = (u32)(&(ADC_DR)); // Set DMA to read from ADC data register\n\nDMA1.DMA_CH1.CMAR = (u32)(gv_vuiADC_RSLT); // Write destination\n\nDMA1.DMA_CH1.CNDTR = ADC_Last; // No of bytes to be processed acc to datasheet??? #no of channels according to example\n\nDMA1.DMA_CH1.CCR.MSIZE = 1; // Memory size is 16 bits\n\nDMA1.DMA_CH1.CCR.PSIZE = 1; // Peripheral size is 16 bits\n\nDMA1.DMA_CH1.CCR.MINC = 1; // Enable memory increment mode\n\nDMA1.DMA_CH1.CCR.CIRC = 1; // Circular adressing\n\nDMA1.DMA_CH1.CCR.DIR = 0; // Read from peripheral\n\nDMAMUX_C0CR.DMAREQ_ID = 0x05; // Set DMA request identification, ADC is 5;\n\nDMAMUX_C0CR.EGE = 0; // Event generation disabled\n\nDMAMUX_C0CR.SE = 0; // Sync Disabled\n\nDMAMUX_C0CR.NBREQ = 0x01; // Number of DMA requests\n\nu16 uiGarbage = ADC_DR; // Read the ADC Data register to clear prior conversion flags\n\nADC_CFGR1.DMAEN = 1; // Enable DMA\n\nADC_CFGR1.DMACFG = 1; // Circular mode\n\nDMA1.DMA_CH1.CCR.EN = 1; // Enable DMA\n\nADC_CR.ADSTART = 1; // Start a conversion\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e1dc3a9b-0073-a0ce-0e9c-3dd8932d1954.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2d218681-06fa-8993-0dae-715ef3a10b5f.png"
+            ],
+            "author": "morris",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The Vrefint nominal value is 1.23V, which corresponds to ADC readout of 1679 at Vref+=3.0V, which quite well corresponds to VREFINT_CAL what you've read out from both chips' system memory.</p><p>I'd say, the problem is in your program, either in calibration or somewhere in the measurement. You don't use the ST-provided CMSIS-mandated device headers, so even there can be errors.</p><p>Try to measure a grounded pin, or a pin at Vref/2.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes correct, I found it. The ADC self calibration didnt apply</p></div>",
+                    "author": "morris",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for coming back with the solution.</p><p>&gt; ADC self calibration didnt apply</p><p>Can you please tell us, why? A quick look at the code provided above appears to show that you did perform the self calibration.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

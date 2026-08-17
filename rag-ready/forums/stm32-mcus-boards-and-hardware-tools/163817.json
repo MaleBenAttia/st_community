@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "163817",
+            "publicId": "163817",
+            "title": "NUCLEO-F103RB HSE Won't Start",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/nucleo-f103rb-hse-won-t-start-163817",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32F1 series",
+                "ST boards"
+            ],
+            "published_at": "2026-03-16T01:14:34+00:00",
+            "views": 540,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Having replaced the crystal and figuring there was no chance a 0 ohm resistor was the issue that left the capacitors.  I got a new tape of 20pF capacitors and replaced the ones on the board and viola!  It worked.\n\nNot sure how I got some bad capacitors, but I appear to have solved the problem.",
+            "best_answer_author": "nscale",
+            "best_answer_author_role": "Associate",
+            "content_text": "I have a NUCLEO-F103RB (MB1136 rev C05). My goal is to remove the ST-LINK and power via a hat supplying 3.3v.\n\nFor the 3.3v I have:\n\n* Moved JP5 to pins 2-3.\n\n* Checked JP1 is removed.\n\n* Removed SB2 zero ohm resistor.\n\n* Removed SB12 zero ohm resistor.\n\n* Verified my shield is putting out a good 3.3v which is attached to connector CN7 pin 16.\n\nFor the HSE I have:\n\n* Removed SB54 and SB55.\n\n* Soldered zero ohm resistors to R35 and R37.\n\n* Soldered 20pf capacitors to C33 and C34.\n\n* Removed SB16.\n\n* Removed SB50.\n\n* Added 8Mhz 16pf crystal X3.\n\nThe ST-LINK is still physically attached at the moment, but I do plan to cut it off once things are working. The board comes up and accepts programming and works in the debugger.\n\nStepping through the initialization it gets to where the HSE is set up and then sits in an infinite loop waiting for the HSE to come ready. I tried replacing the crystal X3 just in case I got a bad one but there was no change in behavior.\n\nThe clock config is unchanged, other than setting HSE to \"crystal\" mode, from the config that works with the out of the box config where the ST-LINK provides an 8Mhz clock. The board is set to run at 72Mhz.\n\nIf I set the board to use an 8Mhz HSI instead it comes up and runs (slowly), so I'm fairly sure the power portion is correct.  Stepping through the HAL initialization code it appears to me the HSE never comes ready.\n\nI tried two different boards.  The first one used an 8Mhz crystal from my generic stash, exact specs unknown.  For the second one I ordered some new 8Mhz crystals that perfectly matched the specifications.  Both show the same behavior.  I did try probing the crystal with an oscilloscope and I do not see a good clock signal but I'm not sure if my probes (standard 10x rigol) might cause problems seeing the crystal.\n\nAny tips or suggestions welcome.",
+            "images": [],
+            "author": "nscale",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You may try HSE bypass mode, to see if this mode works.</p><p>- solder <span>SB50</span></p><p>- configure HSE bypass mode for software</p><p> </p><p>about <span>probing the crystal with an oscilloscope, you may probe at R37(0 ohm) - OSC_OUT pin, valid signal should be seen for above HSE bypass mode and HSE normal mode.</span></p></div>",
+                    "author": "jiangfan",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did run the board in its factory default configuration prior to any modifications and it worked fine.  In that config I was using HSE Bypass mode and taking the clock from the ST-LINK (SB50 + SB16 in place).</p><p>I tried probing at R37 using a 10x probe and I got the attached waveform.  It does not look good, and I find it very odd there seems to be a significant ~60Hz component.</p><p>I also did a deeper investigation into my 3.3v supply line.  There is a bit more ripple there than planned, I'm not sure it's enough to be causing any issues with the clock but I thought I would post it and get an opinion.  Also of interest, when I plug in the USB on the ST-Link the ripple gets very slightly worse in amplitude</p></div>",
+                    "author": "nscale",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>RigolDS.png did not show valid HSE signal - 8MHz by default, instead ~60Hz seen, besides the signal amplitude is too low.<br/>Ripple.png shows noise instead of ripple (ripple is low-frequency, noise is high-frequency), ms scale will be used to measure ripple. Noise of 82mV seems not low, but it is not likely to prevent HSE Bypass mode to work.</p></div>",
+                    "author": "jiangfan",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>With these changes, it should work.</p><p>If it doesn't, I suspect a hardware issue. Perhaps one of the modifications isn't done or isn't complete or is mis-soldered.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Having replaced the crystal and figuring there was no chance a 0 ohm resistor was the issue that left the capacitors.  I got a new tape of 20pF capacitors and replaced the ones on the board and viola!  It worked.  </p><p>Not sure how I got some bad capacitors, but I appear to have solved the problem.</p></div>",
+                    "author": "nscale",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "jiangfan",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "jiangfan",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

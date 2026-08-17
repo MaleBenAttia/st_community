@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "163804",
+            "publicId": "163804",
+            "title": "STM32WB55; USB OutReport; not recieving data",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wb55-usb-outreport-not-recieving-data-163804",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "USB",
+                "STM32WB series"
+            ],
+            "published_at": "2026-03-15T03:42:16+00:00",
+            "views": 367,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @YamiTheWitch\n\nThanks for the detailed feedback.\n\nWhat you observed is consistent with how the OS HID stack treats your interface: since the HID type you defined normally doesn’t have an interrupt OUT EP / report, the OS effectively ignores or filters those OUT reports instead of delivering the payload to the interrupt OUT endpoint. That’s why your **CUSTOM\\_HID\\_OutEvent\\_FS**was only seeing garbage and not the bytes you sent.\n\nBy switching the channel to a **Feature report**, the data is now carried over the standard HID control path (SET\\_REPORT/GET\\_REPORT on EP0), which your OS accepts without applying those usage specific restrictions.\n\nSo, for your current use case, using a Feature report is valid.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello, I've been trying to setup bi-directional communication with USB-HID on a custom board with STM32WB55CEU. I can send data to the PC from the STM just fine. My usb stack runs, enumerates and reports correctly. However, when trying to send Data from the PC back to the STM, I always receive garbage packages.\n\nHere's my device descriptor for the Outreport:\n\n```\n\n0x09, 0x03, // USAGE (Vendor Usage 3)\n\n0x75, 0x08, // REPORT_SIZE (8)\n\n0x95, 0x04, // REPORT_COUNT (4)\n\n0x91, 0x02, // OUTPUT (Data,Var,Abs)\n\n```\n\nSo 4 Bytes. I also tried this with and without adding a Report ID, which did not change the results whatsoever.\n\nI have also tried running the code with defining USB\\_CUSTOMHID\\_REPORT\\_BUFFER\\_EVENT\\_ENABLED; both in main.h and in usbd\\_customhid.c and usbd\\_customhid.h to no changes.\n\nI also tried changing CUSTOM\\_HID\\_EPOUT\\_SIZE to 0x04 and 0x05, same with USBD\\_CUSTOMHID\\_OUTREPORT\\_BUF\\_SIZE. Including all of the combinations with and without report ID and with and without enabling the buffer define.\n\nHere is my OutReport callback:\n\n```\n\nstatic int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)\n\n{\n\n/* USER CODE BEGIN 6 */\n\n/* Start next USB packet transfer once data processing is completed */\n\nUSBD_CUSTOM_HID_ReceivePacket(&hUsbDeviceFS);\n\nuint8_t *buffer = (uint8_t*) ((uint32_t) event_idx);\n\nuint8_t a = buffer[0];\n\nuint8_t b = buffer[1];\n\nuint8_t c = buffer[2];\n\nuint8_t d = buffer[3];\n\nUSBD_CUSTOM_HID_HandleTypeDef* hhid = (USBD_CUSTOM_HID_HandleTypeDef*)hUsbDeviceFS.pClassData;\n\nuint8_t *buffer2 = hhid->Report_buf;\n\nuint8_t e = buffer2[0];\n\nuint8_t f = buffer2[1];\n\nuint8_t g = buffer2[2];\n\nuint8_t h = buffer2[3];\n\nif(buffer[0] ==0x01|| buffer2[0]==0x01){\n\nHAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);\n\n}\n\nreturn (USBD_OK);\n\n/* USER CODE END 6 */\n\n}\n\n```\n\nI tried putting both USBD\\_CUSTOM\\_HID\\_ReceivePacket(), before AND after handling the data, but this did not change anything. The callback does trigger correctly, so the stack works for triggering OutReports, and I would inspect the contents of the buffers with breakpoint. The first method of accessing buffer I saw from this: <https://stm32world.com/wiki/STM32_USB_Custom_HID>. This method however, always produces the same seemingly random bytes. The second buffer2 on the other hand, accessing it the \"proper\" way, would always just mirror the contents of event\\_idx and state, which leads me to believe the hhid->Report\\_buf is never initialized and is just reading the first memory in stack. The contents of the 2 buffers never were even close to the bytes I was sending.\n\nI send the HID report on my Linux computer through <hidapi/hidapi.h>, compiled with hidapi-hidraw and this code:\n\n```\n\nchar report[4] = { 0x01,0x02,0x03,0x04};\n\nint res = hid_write(handle, report, 4*sizeof(char));\n\n```\n\nI honestly don't know what else to try or where else to look. This seems like a hyperspecific issue and I have no clue why it's happening. I find it odd that the callback triggers but without the correct data, how does that even happen? I would appreciate the help.",
+            "images": [],
+            "author": "YamiTheWitch",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay Update: I think I know in which function it's going wrong, but I don't know why. In this function: USBD_StatusTypeDef USBD_LL_DataOutStage(USBD_HandleTypeDef *pdev, uint8_t epnum, uint8_t *pdata). <br/><br/></p><pre class=\"lia-code-sample language-c\"><code>USBD_StatusTypeDef USBD_LL_DataOutStage(USBD_HandleTypeDef *pdev,uint8_t epnum, uint8_t *pdata)\n{\n//...\n if (epnum == 0U)\n {\n pep = &amp;pdev-&gt;ep_out[0];\n\n if (pdev-&gt;ep0_state == USBD_EP0_DATA_OUT) // &lt;- NEVER hits breakpoint, pdev-&gt;ep0_state is always 5\n {\n //...\n }\n else\n {\n // my OutReport gets handled as handshake(?) i think = garbage data.\n }\n //...\n}</code></pre><p> I don't know why ep0_state is incorrect, however. Is this an issue on the PC side and how I send the packet? </p></div>",
+                    "author": "YamiTheWitch",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"96930\">@YamiTheWitch</user-mention> </p>\n<p>First, I suggest you to add logging message instead of inserting breakpoint. <span>You can't step through every USB stage to debug this;</span></p>\n<p>Second, event_idx and state are decoded values from the OUT report, not a pointer to the raw buffer. That’s why casting event_idx to an add<span>ress gives you random data.</span></p>\n<p><span>Here is a<a href=\"https://github.com/STMicroelectronics/STM32CubeL5/blob/0849a1c5ea7acce1f2d28ba238937f0ae15f9320/Projects/STM32L552E-EV/Applications/USB_Device/CustomHID_Standalone/USB_Device/App/usbd_custom_hid_if.c#L311\" rel=\"nofollow noopener noreferrer\" target=\"_self\"> reference example</a> to use <strong>CUSTOM_HID_OutEvent_FS</strong></span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the reply,<br/><br/>I can't use logging because neither UART nor SWDO Pins are available. It is irrelevant in this case anyways, because I can still breakpoint and inspect the bytes. <br/><br/>When defining USB_CUSTOMHID_REPORT_BUFFER_EVENT_ENABLED the signature of the callback changes:</p><pre class=\"lia-code-sample language-c\"><code>#ifdef USBD_CUSTOMHID_REPORT_BUFFER_EVENT_ENABLED\n ((USBD_CUSTOM_HID_ItfTypeDef *)pdev-&gt;pUserData[pdev-&gt;classId])-&gt;OutEvent(hhid-&gt;Report_buf);\n#else\n ((USBD_CUSTOM_HID_ItfTypeDef *)pdev-&gt;pUserData[pdev-&gt;classId])-&gt;OutEvent(hhid-&gt;Report_buf[0],\n hhid-&gt;Report_buf[1]);</code></pre><p> <br/>Which does not matter either anyhow, because I tested the data through both methods, because both of them contained the identical bytes matching event_idx and state anyways. Both of the methods of derefercing the data, produced the SAME result. <br/><br/>The reference isn't very useful, because as I have stated clearly, the custom sent bytes are not present anywhere in the data. It doesn't matter if I only use the first 2 bytes, because they are still just random garbage data.</p></div>",
+                    "author": "YamiTheWitch",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"96930\">@YamiTheWitch</user-mention> </p>\n<p>Can you confirm an interrupt OUT endpoint really exists and is opened using USBD_LL_OpenEP()? Can you provide a trace using USB analyzer or Wireshark/USBPCap sniffer? Maybe <span>the host is not sending an </span><strong>Interrupt OUT</strong><span> ?</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"96930\">@YamiTheWitch</user-mention> </p>\n<p>Thanks for the detailed feedback.</p>\n<p>What you observed is consistent with how the OS HID stack treats your interface: since the HID type you defined normally doesn’t have an interrupt OUT EP / report, the OS effectively ignores or filters those OUT reports instead of delivering the payload to the interrupt OUT endpoint. That’s why your <strong>CUSTOM_HID_OutEvent_FS </strong>was only seeing garbage and not the bytes you sent.</p>\n<p>By switching the channel to a<span> </span><strong>Feature report</strong>, the data is now carried over the standard HID control path (SET_REPORT/GET_REPORT on EP0), which your OS accepts without applying those usage specific restrictions. </p>\n<p>So, for your current use case, using a Feature report is valid.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "165065",
+            "publicId": "165065",
+            "title": "Unable to select RNG in boot & appli H7RS",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/unable-to-select-rng-in-boot-appli-h7rs-165065",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "Bug-report",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-23T18:16:10+00:00",
+            "views": 156,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Hamady\n\nCubeMX uses this Boot/Application architecture to enforce clear ownership of sensitive peripherals, especially crypto resources like RNG and HASH, so that initialization, clocking, interrupts, and security attribution remain deterministic, isolated, and maintainable. The main idea is to avoid ambiguous generated code and unintended coupling between the boot domain and the application domain, which is particularly important in secure startup flows. As a consequence, CubeMX allows such peripherals to be assigned to only one context. If both boot and application must use the same peripheral, this is generally not handled by the code generator, and the second context must access it through manual code integration, with the user taking responsibility for proper clock enable, initialization sequence, reset/state handling, security configuration, and safe handover between boot and application.\n\nThx\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI'm working on the STM32H7S7L86H with cube MX 6.17 and cube H7RS 1.3.0\n\nI need to use RNG in appli and boot context but it is grayed because it accept only one context. It also block the usage of the hash module.\n\nAny idea how to fix this ?\n\nThanks\n\n![Hamady_0-1776968113580.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2cde64b4-0aa2-0ad4-908e-a9b7b2607cbc.png \"Hamady_0-1776968113580.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2cde64b4-0aa2-0ad4-908e-a9b7b2607cbc.png"
+            ],
+            "author": "Hamady",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"91206\">@Hamady</user-mention> </p>\n<p>CubeMX uses this Boot/Application architecture to enforce clear ownership of sensitive peripherals, especially crypto resources like RNG and HASH, so that initialization, clocking, interrupts, and security attribution remain deterministic, isolated, and maintainable. The main idea is to avoid ambiguous generated code and unintended coupling between the boot domain and the application domain, which is particularly important in secure startup flows. As a consequence, CubeMX allows such peripherals to be assigned to only one context. If both boot and application must use the same peripheral, this is generally not handled by the code generator, and the second context must access it through manual code integration, with the user taking responsibility for proper clock enable, initialization sequence, reset/state handling, security configuration, and safe handover between boot and application.</p>\n<p>Thx</p>\n<p>Ghofrane </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

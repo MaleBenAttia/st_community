@@ -1,0 +1,82 @@
+{
+    "forum": [
+        {
+            "id": "166031",
+            "publicId": "166042",
+            "title": "Cannot debug JTAG device with address 45,10",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/cannot-debug-jtag-device-with-address-45-10-166042",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32",
+                "J-Link"
+            ],
+            "published_at": "2026-06-10T16:49:27+00:00",
+            "views": 108,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@Visques,\n\nIndeed, the error is on our side.\n\nOur step for validating the attributes is too aggressive and does not allow values above 10.\n\nIn the meantime, the simplest workaround is to launch J-Link from the command line and use the \"attach\" request to connect to the server.\n\nSorry for the inconvenience.\n\nThe attach debug configuration should look like this :\n\n```\n\n{\n\n\"type\": \"jlinkgdbtarget\",\n\n\"request\": \"attach\",\n\n\"name\": \"STM32Cube: Launch JLink GDB Server\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n\n\"runEntry\": \"main\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n],\n\n\"serverHost\": \"localhost\",\n\n\"serverPort\": \"2331\"\n\n},\n\n```\n\nKind Regards,\n\n/Flo",
+            "best_answer_author": "Florent V",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nI have a system with 11 STM32 in a single JTAG chain. I’m trying to debug device with JTAG address 10,45 (JTAG device position 10, IR -pre-length of 45) and I’m getting this error message when running my launch configuration:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4ac1ea86-17df-4391-a437-ddd7ab22bd49.png)\n\nThis is my entry in launch.json, my probe is a J-link:\n\n{\n\n\"type\": \"jlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"JTAG Launch Dev 10\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n\n\"runEntry\": \"main\",\n\n\"serverInterface\": \"JTAG\",\n\n\"serverJtagCfg\": \"45,10\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n]\n\n},\n\nDebugging device 0,0 on the same chain works (has similar firmware written on STM32Cube extension for VSCode) from STM32CubeIDE extension for VSCode.\n\nWith the exception of 0,0 and 10,45, all other devices have been programmed and debugged from STM32CubeIDE 1.18 and they work. J-link commander can also correctly connect to all devices. This makes me suspect that the problem is within the STM32CubeIDE extension (maybe just limiting the numbers too much?).\n\nMaybe I’m doing something wrong? I’ll be happy to provide extra information.\n\nThanks",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4ac1ea86-17df-4391-a437-ddd7ab22bd49.png"
+            ],
+            "author": "Visques",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"62384\">@Visques</user-mention>,</p><p> </p><p>Indeed, the error is on our side.</p><p>Our step for validating the attributes is too aggressive and does not allow values above 10.</p><p>In the meantime, the simplest workaround is to launch J-Link from the command line and use the \"attach\" request to connect to the server.<br/>Sorry for the inconvenience.</p><p> </p><p>The attach debug configuration should look like this :</p><pre><code class=\"language-json\">        {<br/>            \"type\": \"jlinkgdbtarget\",<br/>            \"request\": \"attach\",<br/>            \"name\": \"STM32Cube: Launch JLink GDB Server\",<br/>            \"origin\": \"snippet\",<br/>            \"cwd\": \"${workspaceFolder}\",<br/>            \"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",<br/>            \"runEntry\": \"main\",<br/>            \"imagesAndSymbols\": [<br/>                {<br/>                    \"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"<br/>                }<br/>            ],<br/>            \"serverHost\": \"localhost\",<br/>            \"serverPort\": \"2331\"<br/>        },</code></pre><p> Kind Regards,</p><p>/Flo</p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot for the quick reply. In the end I found a hardware workaround with minimal rework. Would this be fixed in a future update?</p></div>",
+                    "author": "Visques",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes,<br/>an internal ticket has been created, the fix is in progress and will be available in the next release.</p><p>BR,<br/>/Flo</p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Great, thanks so much!</p></div>",
+                    "author": "Visques",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"62384\">@Visques</user-mention> <br/>The July update of STM32CubeIDE for Microsoft Visual Studio Code resolves this issue. Update the local setup to benefit from this improvement.</p></div>",
+                    "author": "vincent_grenet",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Working great, thanks so much for the quick turnaround.</p></div>",
+                    "author": "Visques",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "vincent_grenet",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

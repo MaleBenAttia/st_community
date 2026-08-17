@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "166565",
+            "publicId": "166587",
+            "title": "STM32U5G7, analog camera, DCMI Embedded Sync (BT.656) with TW9912 decoder, DCMI Buffer Empty/Corrupted",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u5g7-analog-camera-dcmi-embedded-sync-bt-656-with-tw9912-decoder-dcmi-buffer-empty-corrupted-166587",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "DMA2D",
+                "DCMI",
+                "LCD-LTDC",
+                "DMA",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-07-01T12:18:04+00:00",
+            "views": 63,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@spartan and welcome to the community;\n\nAccording to [RM0456](https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf) section “Embedded data synchronization mode”, the embedded synchronization codes are supported only in 8-bit parallel data width capture (in the DCMI\\_CR register, the EDM[1:0] bits must be cleared). For other data widths, this mode generates unpredictable results and must not be used.\n\nCould you please check a data width?\n\nThe DCMI supports the ITU 656 mode. I recommend you to look at the example shared in [RM0456](https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf).\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe3f7fcf-0313-471f-8fe1-c98247c00a06.png)\n\nMaybe [DCMI\\_ContinousCap\\_EmbeddedSynchMode](https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/STM32U575I-EV/Examples/DCMI/DCMI_ContinousCap_EmbeddedSynchMode) can help you.\n\nThank you.\n\nKaouthar",
+            "best_answer_author": "KDJEM.1",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI am working on an STM32U5G7VJTx project where I am trying to capture analog composite video using a TW9912 video decoder and display it on an RGB TFT using LTDC.\n\n* Hardware\n\n\\* MCU: STM32U5G7VJTx\n\n\\* Video Decoder: TW9912\n\n\\* Input: Composite Video (NTSC)\n\n\\* Display: RGB TFT driven by LTDC\n\n\\* Interface between TW9912 and STM32: 8-bit BT.656 with Embedded Sync\n\n* Software Flow\n\nMy current flow is:\n\nTW9912 (configured through I2C)\n\n→ DCMI (Embedded Sync / BT.656)\n\n→ GPDMA\n\n→ SRAM buffer (YCbCr422)\n\n→ CPU converts YCbCr422 to RGB565\n\n→ LTDC framebuffer\n\n→ TFT display\n\n* Current Problem\n\nThe TFT powers up correctly.\n\nMost of the time the display is completely green.\n\nSometimes I briefly see something that resembles the camera image but in black and white sometime or in the random colour, but it is heavily distorted and not recognizable.\n\n* What I Have Already Checked\n\n\\* TW9912 is configured for BT.656 output with embedded synchronization.\n\n\\* DCMI is configured in Embedded Sync mode.\n\n\\* The Embedded Sync codes were updated from all zeros to the proper BT.656 values.\n\n\\* DMA starts successfully.\n\n\\* Cache invalidate is performed before reading the DCMI capture buffer , and after invalidate clearing the cache too.\n\n\\* LTDC framebuffer address is updated after RGB conversion.\n\n\\* YCbCr422 is converted to RGB565 before display.\n\n* Things I Am Not Sure About\n\n1. The DCMI Error IRQ continues to occur.\n\n2. The capture buffer (`dcmi\\_buffer\\_A`) often appears to contain only zeros when I inspect it in the debugger , i think its the dcmi capture issue but not sure  .\n\n3. Sometimes I briefly get a distorted image instead of a green screen , or sometime random distored black and white image.\n\n4. I am unsure whether this is a DCMI synchronization issue, a TW9912 output issue, a DMA issue, or an LTDC configuration issue.\n\n* Questions\n\n1. What are the most common reasons for DCMI to not detect the right value beofre filling the buffer ?\n\n2. If the capture buffer contains only zeros, what are the possible causes?\n\n3. Could this indicate that DCMI never detects the BT.656 SAV/EAV codes?\n\n4. Is there a recommended method to verify that the TW9912 is actually outputting valid BT.656 data before debugging the DCMI configuration?\n\n5. Are there any STM32U5 DCMI examples using BT.656 embedded synchronization?\n\nAny suggestions on how to systematically debug this pipeline would be greatly appreciated.\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe3f7fcf-0313-471f-8fe1-c98247c00a06.png"
+            ],
+            "author": "spartan",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107884\">@spartan</user-mention> and welcome to the community;</p><p> </p><p>According to <a href=\"https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">RM0456</a> section “Embedded data synchronization mode”, the embedded synchronization codes are supported only in 8-bit parallel data width capture (in the DCMI_CR register, the EDM[1:0] bits must be cleared). For other data widths, this mode generates unpredictable results and must not be used.</p><p> </p><p>Could you please check a data width?</p><p>The DCMI supports the ITU 656 mode. I recommend you to look at the example shared in <a href=\"https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">RM0456</a>.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe3f7fcf-0313-471f-8fe1-c98247c00a06.png\"/></figure><p>Maybe <a href=\"https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/STM32U575I-EV/Examples/DCMI/DCMI_ContinousCap_EmbeddedSynchMode\" rel=\"noopener noreferrer\" target=\"_blank\">DCMI_ContinousCap_EmbeddedSynchMode</a> can help you.</p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thank you for you help</p><p> </p></div>",
+                    "author": "spartan",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

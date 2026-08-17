@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "166184",
+            "publicId": "166200",
+            "title": "STM32CubeMX generates incorrect linker script for BKPRAM (backup RAM) via Memory Management Tool",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-generates-incorrect-linker-script-for-bkpram-backup-ram-via-memory-management-tool-166200",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "Bug-report",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-06-16T08:11:17+00:00",
+            "views": 92,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@vit.triska\n\nLet me thank you for bringing this behavior to our attention.\n\nAn internal ticket has been reported to the dedicated team (Ticket Number: CDM0063847).\n\nThanks.\n\nMahmoud",
+            "best_answer_author": "Mahmoud Ben Romdhane",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**STM32CubeMX generates incorrect linker script for BKPRAM (Backup RAM) via Memory Management Tool**\n\n**Environment**\n\n* STM32CubeMX: v6.17.0, see \"Memory Management\" (Tools > Memory Management)\n\n* MCU: STM32H523RETx\n\n* Toolchain: STM32CubeIDE - GNU Tools for STM32 (14.3.rel1)\n\nApplied Memory Setup (screenshot):\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/708158be-a21b-4183-9f14-11f4aa67b683.png)\n\nSTM32CubeMX generates 3 linker scripts (`STM32H523RETX_FLASH.ld`, `STM32H523RETX_FLASH_MMT_TEMPLATE.ld`, `STM32H523RETX_RAM.ld`). The `STM32H523RETX_FLASH_MMT_TEMPLATE.ld` is used in the generated STM32CubeIDE project output.\n\n**Issue 1: BKPRAM memory region has incorrect `x` (execute) permission**\n\nGenerated linker script contains:\n\n```\n\nBKPRAM (xrw) : ORIGIN = 0x40036400, LENGTH = 2K\n\n```\n\nThe `x` (executable) flag is incorrect. BKPSRAM is a data-only backup memory — it is not executable. According to RM0481 sec. 2.3, BKPSRAM is accessible only via the system bus (S-AHB), not the code bus (C-AHB). Marking it executable is misleading and may cause incorrect MPU configuration.\n\nExpected:\n\n```\n\nBKPRAM (rw) : ORIGIN = 0x40036400, LENGTH = 2K\n\n```\n\n**Issue 2: `.BKPRAM` section is missing the `(NOLOAD)` keyword**\n\nGenerated linker script contains:\n\n```\n\n.BKPRAM :\n\n{\n\n. = ALIGN(4);\n\nKEEP (*(.BKPRAM))\n\n. = ALIGN(4);\n\n} >BKPRAM\n\n```\n\nThe `(NOLOAD)` keyword is missing. Without it, the GCC linker creates a load memory address (LMA) in flash and the startup code attempts to copy BKPRAM contents from flash to address 0x40036400 at boot. This fails because:\n\n1. BKPSRAM at 0x40036400 is a peripheral-bus-mapped memory — it cannot be accessed via the C-AHB code bus used during the startup copy\n\n2. The DBP bit (PWR\\_DBPCR) and BKPRAM clock (RCC) are not yet enabled at the time of the startup copy\n\n3. BKPSRAM is intended to retain data across resets — overwriting it at startup defeats its purpose\n\nExpected:\n\n```\n\n.BKPRAM (NOLOAD) :\n\n{\n\n. = ALIGN(4);\n\nKEEP (*(.BKPRAM))\n\n. = ALIGN(4);\n\n} >BKPRAM\n\n```\n\n`NOLOAD` is the correct GCC linker keyword to mark a section as not initialized from flash.\n\n**Impact**\n\nBoth issues affect the generated file `STM32H523RETX_FLASH_MMT_TEMPLATE.ld`. Using the generated linker script without manual correction results in a HardFault or a failed debug session when BKPRAM variables are declared with `__attribute__((section(\".BKPRAM\")))`.\n\nCould you please advise **whether there is a way** to configure STM32CubeMX to generate the correct linker script content? If not, please report these these two issues as a bug.\n\nThank you in advance.\n\nRegards, Vit",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/708158be-a21b-4183-9f14-11f4aa67b683.png"
+            ],
+            "author": "vit.triska",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107483\">@vit.triska</user-mention> </p><p>Let me thank you for posting and welcome to the ST Community.</p><p>For more investigation, I recommend that you provide your Ioc.File.</p><p>Thanks.</p><p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, sure, the “fw.ioc” file attached. Thanks, Vit</p></div>",
+                    "author": "vit.triska",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107483\">@vit.triska</user-mention> </p><p>Let me thank you for bringing this behavior to our attention.</p><p>An internal ticket has been reported to the dedicated team (Ticket Number: CDM0063847).</p><p>Thanks.</p><p>Mahmoud</p><p> </p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div><p>Hello,</p><p><br/>Do you have any estimate when this issue might be fixed?</p><p>Any tentative timeline when this issue will be resolved in STM32CubeMX?</p><p>Can I follow your “Ticket Number CDM0063847”, or be informed about progress?</p><p> </p><p>Regards,</p><p>Vit</p><p> </p></div></div>",
+                    "author": "vit.triska",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107483\">@vit.triska</user-mention> </p><p>I'll let you know as soon as the problem is resolved.</p><p>Thanks.</p><p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163760",
+            "publicId": "163760",
+            "title": "STM32F303 maximum ADC sampling rate",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f303-maximum-adc-sampling-rate-163760",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F3 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-13T09:36:10+00:00",
+            "views": 431,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nas @mƎALLEm explained, no \"quadruple mode\" .\n\nBut you could try:\n\n- set all 4 ADC to max. speed settings (sampling time, one ch conversion), on trigger mode\n\n- set TIM1 to 144 MHz ; use 4 signals (TRG, TRG2 ; compare 2 , 3 ) as start/trigger for the 4 adcs\n\n- set for all adc DMA channels\n\n- now , set/separate the delays to equal values, so starting the timer giving a sequence of triggers\n\nShould work, to get a combined sample rate of 18 Msps.\n\nWith little overclocking:\n\nAt 80M core, 160M on TIM1 , ( arr 32 ) with 8 ticks spacing between triggers, could reach 20 Ms.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi everyone,\n\nI am currently looking into the STM32F303CCT6 and I'm a bit confused by the ADC specifications. [ST's website](https://www.st.com/en/microcontrollers-microprocessors/stm32f3-series.html) mentions it can achieve up to 18 MSPS in interleaved mode. However, looking through the [Datasheet](https://www.st.com/resource/en/datasheet/stm32f303cb.pdf) and the [Reference Manual (RM0316)](https://www.st.com/resource/en/reference_manual/rm0316-stm32f303xbcde-stm32f303x68-stm32f328x8-stm32f358xc-stm32f398xe-advanced-armbased-mcus-stmicroelectronics.pdf), I don't see a clear way to hit 18 MSPS at 12-bit resolution.\n\nI realize the hardware interleaved mode is only dual (e.g., ADC1/2 and ADC3/4). Since the documentation mentions dual mode can reach up to 9 MSPS at 12-bit, and there is no native quad-interleaved mode, I suspect one of two things:\n\n1. There is a way to manually coordinate the two dual pairs (using all 4 ADCs) to reach 18 MSPS at 12-bit.\n\n2. The 18 MSPS claim strictly refers to running a dual interleaved setup at a reduced 6-bit resolution.\n\nI would deeple appreciate some insight regarding if 18 MSPS at 12-bit is actually possible on this MCU, or if I am limited to the dual mode specs?\n\nThanks in advance!",
+            "images": [],
+            "author": "Mercadei",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105074\">@Mercadei</user-mention> and welcome to the ST community.</p>\n<p>There is no “Quadruple” mode available. Only Dual mode. Where:<br/>ADC1 is a master and ADC2 is its slave. </p>\n<p>ADC3 is a master and ADC4 is its slave.</p>\n<p>Not possible to synchronise all the ADCs as in quadruple mode. So not possible to reach 18MSPS at 12 bit resolution.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>as <user-mention data-id=\"499\">@mƎALLEm</user-mention> explained, no \"<span>quadruple mode\" .</span></p><p> </p><p><span>But you could try: </span></p><p><span>- set all 4 ADC to max. speed settings (sampling time, one ch conversion), on trigger mode</span></p><p><span>- set TIM1 to 144 MHz ; use 4 signals (TRG, TRG2 ; compare 2 , 3 ) as start/trigger for the 4 adcs</span></p><p><span>- set for all adc DMA channels</span></p><p><span>- now , set/separate the delays to equal values, so starting the timer giving a sequence of triggers </span></p><p><span>Should work, to get a combined sample rate of 18 Msps.</span></p><p><span>With little overclocking:</span></p><p><span>At 80M core, 160M on TIM1 , ( arr 32 ) with 8 ticks spacing between triggers, could reach 20 Ms.</span></p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\"><div class=\"\"><p>Hello all,</p><p>Thank you both for your answers, and apologies for the delayed response, I wanted to test the HW before getting back to you.</p><p>After a couple tests with the <span class=\"\">NUCLEO-F303RE DK, </span>I managed to achieve a clean and stable 18 MSPS at 12-bit resolution by synchronizing the four ADCs independently (just as <user-mention data-id=\"34409\">@AScha.3</user-mention> said).</p></div></div></div>",
+                    "author": "Mercadei",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

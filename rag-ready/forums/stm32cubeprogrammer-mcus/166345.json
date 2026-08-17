@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "166324",
+            "publicId": "166345",
+            "title": "How to program software to a custom board using a Nucleo board",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/how-to-program-software-to-a-custom-board-using-a-nucleo-board-166345",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer"
+            ],
+            "published_at": "2026-06-23T00:36:37+00:00",
+            "views": 96,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Removing the daughterboard fixed the problem.",
+            "best_answer_author": "gocchan",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello,\n\nI'm trying to program a custom board equipped with an STM32WBA23CE.\n\nI've tried wiring it from a Nucleo board (MB1801D), but the programming is failing.\n\nCN3 pin5 -> Custom Board VDD\n\npin9 -> PA13\n\npin11 -> PA14\n\nEven when I press Connect in CubeProgrammer, an error dialog appears.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea258b89-1f69-4506-8dfe-b6fb49c1e530.png)\n\nIt works normally when I disconnect the wiring to the custom board, so it doesn't seem to be an issue with the application or the Nucleo board.\n\nThe custom board does not have 32 kHz support.\n\nAre there any resources or descriptions that might be helpful regarding this method?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea258b89-1f69-4506-8dfe-b6fb49c1e530.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/66789c86-c87c-42ac-836f-d01cd3412359.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8fb27fe2-a0f5-40f4-88b5-8d47c2a6b8a9.png"
+            ],
+            "author": "gocchan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"46797\">@gocchan</user-mention>,</p><p>I think power shouldn’t be going to the on Nucleo MCU. Try setting JP1 to 5V_VIN. Also try connecting GND between the custom board and the Nucleo board.</p><p>PS: If you’re not connecting the reset pin, HW reset isn’t triggered =&gt; it’s better to change the reset mode in this case.</p><p>Aziz</p><p> </p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum</p><p>As it’s a custom board, you’ll need to share the schematic - Please see <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></em> </p><p> </p><p>Have you ever been able to program this board before?</p><p>Are you sure that it is working <em>at all </em>?</p><p> </p><p>Similar question here, only yesterday:</p><oembed url=\"https://community.st.com/stm32-mcus-products-25/unable-to-connect-to-stm32f373c-via-swd-using-stm32f072b-discovery-as-st-link-166336\"></oembed><p> </p><p><strong>TL;DR </strong></p><p>While it should be possible, this does come with a few issues which complicate things.</p><p>Therefore I would strongly recommend that you <strong>get a genuine standalone STLink.</strong></p><p> </p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ensure SWD connections include shared GND correct NRST/BOOT0 state, and JP1 set to 5V VIN on the Nucleo, as ST Link detection failures usually stem from reset or power domain mismatch.</p></div>",
+                    "author": "hafiznasir",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello everyone,<br/>Thank you for your comments.<br/>The evaluation board I'm using is a NUCLEO-WBA25CE1. The IC mounted on the custom board is an STM32WBA23KE.<br/>I tried changing JP1 from 5V_STLK to VIN, but I couldn't connect.<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/66789c86-c87c-42ac-836f-d01cd3412359.png\"/></figure><p><br/>Changing the reset mode to Software Reset didn't solve the problem either.<br/>GND is wired from CN12 to the custom board.<br/>I also wired NRST (CN3 pin14) to the custom board, but that didn't solve the problem either.<br/>The custom board is a very new prototype, and I haven't programmed or worked with it yet. I'm sorry, but I'm not allowed to disclose the schematic.<br/>If I can't resolve this after further investigation, I will consider obtaining a genuine standalone STLink.</p></div>",
+                    "author": "gocchan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've attached a screenshot because the response was different when JP1 was set to VIN.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8fb27fe2-a0f5-40f4-88b5-8d47c2a6b8a9.png\"/></figure><p> </p></div>",
+                    "author": "gocchan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Removing the daughterboard fixed the problem.</p></div>",
+                    "author": "gocchan",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

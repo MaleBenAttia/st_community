@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "165469",
+            "publicId": "165469",
+            "title": "Stm32h743iit6 preload at boot image background using LibJPeg",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h743iit6-preload-at-boot-image-background-using-libjpeg-165469",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "JPEG",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-07T08:33:53+00:00",
+            "views": 180,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello @KNaim.1\n\nPlease refer to the examples below:\n\n[STM32CubeH7/Projects/STM32H743I-EVAL/Applications/LibJPEG at master · STMicroelectronics/STM32CubeH7](https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Applications/LibJPEG)",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Here is the config:\n\nmcu stm32h743iit6\n\nflash 4 lines 1 bank 32mb W25Q256JV\n\nsdram 32mb W9825G6KH\n\nhere is the flow\n\n1 read image background from qspi\n\n2 decode image with axi sram at\n\n#define JPEG\\_WORKSPACE\\_BASE 0x24040000 // AXI SRAM (fast)\n\n#define JPEG\\_WORKSPACE\\_SIZE (256 \\* 1024) // 512KB (up from 256KB)\n\n3 copy buffer to external sdram\n\n4 dma2d copy and display image .\n\nscenario1 is ok\n\n```\n\nLIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW6, IMG_NEW6_SIZE, (uint32_t*)DECODE_BUFFER1);\n\nuint32_t decode_time = HAL_GetTick() - start;\n\nprintf(\"✅ JPEG decode: %lu ms\\n\", decode_time);\n\n// Test 3: Display the image\n\nstart = HAL_GetTick();\n\n//Display_ImageAt_Fast((uint32_t*)DECODE_BUFFER1, 1024, 600, 0, 0);\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER1, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\nClear_SDRAM();\n\nLIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW8, IMG_NEW8_SIZE, (uint32_t*)DECODE_BUFFER3);\n\n// uint32_t decode_time = HAL_GetTick() - start;\n\nprintf(\"✅ JPEG decode: %lu ms\\n\", decode_time);\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER3, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\nClear_SDRAM();\n\n```\n\nscenario2 not ok predecode all images and copy to define sdram buffers\n\n```\n\n/* LIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW6, IMG_NEW6_SIZE, (uint32_t*)DECODE_BUFFER1);\n\nprintf(\"✓ IMG_NEW6 -> BUFFER1\\n\");\n\nSCB_CleanDCache_by_Addr((uint32_t*)DECODE_BUFFER1, 1024*600*3);\n\nHAL_Delay(1000);\n\nLIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW8, IMG_NEW8_SIZE, (uint32_t*)DECODE_BUFFER3);\n\nprintf(\"✓ IMG_NEW8 -> BUFFER3\\n\");\n\nSCB_CleanDCache_by_Addr((uint32_t*)DECODE_BUFFER3, 1024*600*3);\n\nHAL_Delay(1000);\n\nLIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW7, IMG_NEW7_SIZE, (uint32_t*)DECODE_BUFFER2);\n\nprintf(\"✓ IMG_NEW7 -> BUFFER2\\n\");\n\nSCB_CleanDCache_by_Addr((uint32_t*)DECODE_BUFFER2, 1024*600*3);\n\nHAL_Delay(1000);\n\nLIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW9, IMG_NEW9_SIZE, (uint32_t*)DECODE_BUFFER4);\n\nprintf(\"✓ IMG_NEW9 -> BUFFER4\\n\");\n\nSCB_CleanDCache_by_Addr((uint32_t*)DECODE_BUFFER4, 1024*600*3);\n\nHAL_Delay(1000);\n\nLIBJPEG_DecodeToBuffer((uint32_t)IMG_NEW10, IMG_NEW10_SIZE, (uint32_t*)DECODE_BUFFER5);\n\nSCB_CleanDCache_by_Addr((uint32_t*)DECODE_BUFFER5, 1024*600*3);\n\nprintf(\"✓ IMG_NEW10 -> BUFFER5\\n\");\n\nHAL_Delay(1000);\n\nClear_SDRAM();\n\nFlush all buffers\n\nClear_SDRAM();\n\nprintf(\"\\n=== DISPLAYING IMAGES ===\\n\");\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER1, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\nClear_SDRAM();\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER3, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\nClear_SDRAM();\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER2, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\nClear_SDRAM();\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER4, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\nClear_SDRAM();\n\nDisplay_ImageAt((uint32_t*)DECODE_BUFFER5, 1024, 600, 0, 0);\n\nHAL_Delay(4000);\n\n```\n\nif some of the community have face this problem and have some ideas please share i am stuck",
+            "images": [],
+            "author": "KNaim.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"51065\">@KNaim.1</user-mention> </p>\n<p>Please refer to the examples below: </p>\n<p><a href=\"https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Applications/LibJPEG\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">STM32CubeH7/Projects/STM32H743I-EVAL/Applications/LibJPEG at master · STMicroelectronics/STM32CubeH7</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The example below can't help me is not the same configuration reading from sd card !</p></div>",
+                    "author": "KNaim.1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"51065\">@KNaim.1</user-mention> wrote:<br/>\n<p>The example below can't help me is not the same configuration reading <strong>from sd card</strong> !</p>\n<hr/></blockquote>\n<p>Sorry to intervene here:</p>\n<p>In your first post you said \"<span>1 read image background<strong> from qspi</strong> </span>\"</p>\n<p>Now you are saying you are reading it from SDcard.</p>\n<p>You need to stick in one configuration and provide more details of your use case. Maybe also the complete project so others can help you efficiently.</p>\n<p>Thank you for your understanding.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The example link you give read from sdcard i am in qspi configuration so the flow is not the same</p></div>",
+                    "author": "KNaim.1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The flow is not the same but the principle is the same: reading from a source and display it into a destination.</p>\n<p>We don't provide example for each scenario. So try to split your issue into two parts:</p>\n<p>- Fetching the image from the source.</p>\n<p>- Display the fetched image in the destination.</p>\n<p>Inspire from the the example provided by <user-mention data-id=\"1684\">@Saket_Om</user-mention> and adapt it to your needs.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

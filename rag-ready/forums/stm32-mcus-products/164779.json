@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "164779",
+            "publicId": "164779",
+            "title": "Problem to set FDCAN2 in STM32CubeMX for STM32H562RGT6",
+            "url": "https://community.st.com/stm32-mcus-products-25/problem-to-set-fdcan2-in-stm32cubemx-for-stm32h562rgt6-164779",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FDCAN",
+                "Bug-report",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-04-15T13:45:50+00:00",
+            "views": 300,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nGetting back to you regarding this topic:\n\nFDCAN2 is not available on STM32H562 devices even FDCAN2 pins are there but the instance is deactivated internally inside the chip.\n\nHope that answers your question.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am planning to use STM32H562RGT6 in my product to communicate and update my firmware via CAN FD.\n\nTo plan that, I am using STM32CubeMX 6.17.0, the datasheet and the AN2606 (Rev 70).\n\nAnd I would like to use only one CAN FD to communicate and to update my firmware in this MCU. But it is impossible to do this in STM32CubeMX. I have only access to FDCAN1. And there are no FDCAN2 on the pins.\n\n![x314159_1-1776260323976.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/26a972e4-16ab-971b-8f41-c5e4973a0b19.png \"x314159_1-1776260323976.png\")\n\n![x314159_2-1776260360172.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7cf9f03c-3b5c-da52-b8df-6ec77c0a3e0a.png \"x314159_2-1776260360172.png\")![x314159_3-1776260415863.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/39ec16cc-0c8e-68a8-dcaf-629961c77c23.png \"x314159_3-1776260415863.png\")\n\nSo, is it a problem in STM32CubeMX ? Or should we use FDCAN1 to do firmware updates via FDCAN for this MCU ?\n\nPS: it is the same problem with the MCU STM32H562VGT6 (and maybe other similar MCUs)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e75474e-77e6-e122-6ddf-61c32c5c8ad2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/39ec16cc-0c8e-68a8-dcaf-629961c77c23.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7073a33b-e9e9-336d-0811-e088cfd68031.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/26a972e4-16ab-971b-8f41-c5e4973a0b19.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76bdebea-78c5-acc6-3ca8-5bd8138c7f1e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7cf9f03c-3b5c-da52-b8df-6ec77c0a3e0a.png"
+            ],
+            "author": "x314159",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106131\">@x314159</user-mention> and welcome to the ST community,</p>\n<p>From the datasheet:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776261365673.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776261365673.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e75474e-77e6-e122-6ddf-61c32c5c8ad2.png\" title=\"mALLEm_0-1776261365673.png\"/></span></p>\n<p>Only one FDCAN instance is available which is FDCAN1. So you can't use FDCAN bootloader as you need FDCAN2 instance available on the chip.</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok by referring to Table 14., FDCAN2 is available in LQFP64 package.</p>\n<p>Need to check internally what is wrong here!</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1776261654472.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1776261654472.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76bdebea-78c5-acc6-3ca8-5bd8138c7f1e.png\" title=\"mALLEm_1-1776261654472.png\"/></span></p>\n<p>Which is not the case of CubeMx which showing only FDCAN1 instance:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776261775544.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776261775544.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7073a33b-e9e9-336d-0811-e088cfd68031.png\" title=\"mALLEm_0-1776261775544.png\"/></span></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Getting back to you regarding this topic:</p>\n<p>FDCAN2 is not available on STM32H562 devices even FDCAN2 pins are there but the instance is deactivated internally inside the chip.</p>\n<p>Hope that answers your question.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

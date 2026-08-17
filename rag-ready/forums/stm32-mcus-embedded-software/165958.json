@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "165946",
+            "publicId": "165958",
+            "title": "STM32U545 lpuart not working in stop mode",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u545-lpuart-not-working-in-stop-mode-165958",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "LPUART",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-06-09T10:24:06+00:00",
+            "views": 94,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi Vale\\_d,\n\nDid you used the correct DMA? because as its reference manual:\n\nIn Stop 0 and Stop 1 modes, the autonomous peripherals are ADC4, DAC1, LPTIMx\n\n(x = 1 to 4), USARTx (x = 1 to 5), LPUART1, SPIx (x = 1 to 3), I2Cx (x = 1 to 4), MDF1,\n\nADF1, GPDMA1 and LPDMA1:\n\n• LPUART1 is autonomous only with LPDMA1 and SRAM4.",
+            "best_answer_author": "EXUE.2",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am trying to make the lpuart1+dma\\_linked\\_list transferring data in stop1 mode.\n\nMy setup is like this:\n\nSPI1 + GPDMA: // SPI clocked from HSI\n\nStart transfer\n\nEnter STOP\n\nSCK continues toggling\n\nDMA continues\n\nTransfer completes\n\nDMA irq wakes from stop\n\nLPUART1 + GPDMA: // LPUART clocked from LSE\n\nStart transfer\n\nEnter STOP\n\nTX line freezes\n\nDMA stops progressing\n\nExit STOP\n\nTX resumes\n\nBoth peripherals are using dma in linked list mode in a similar manner.\n\nMy understanding is that since both peripherals are “autonomous” they should work in a similar way. I have no problem with the SPI1 working during stop1 mode but the LPUART seems to behave differently.\n\nThis is my LPUART1 init code:\n\n```\n\nvoid bsp_lpuart_init(void)\n\n{\n\nbsp_lpuart1_reset_hard();\n\nLL_LPUART_SetPrescaler(LPUART1, LL_LPUART_PRESCALER_DIV1);\n\n// Disable before configuration\n\nLL_LPUART_Disable(LPUART1);\n\nwhile (LL_LPUART_IsEnabled(LPUART1));\n\nLPUART1->BRR = 3495; //419430\n\nLL_LPUART_SetDataWidth(LPUART1, LL_LPUART_DATAWIDTH_8B);\n\nLL_LPUART_SetParity(LPUART1, LL_LPUART_PARITY_NONE);\n\nLL_LPUART_SetStopBitsLength(LPUART1, LL_LPUART_STOPBITS_1);\n\nLL_LPUART_SetTransferDirection(LPUART1,LL_LPUART_DIRECTION_TX);\n\nLL_LPUART_EnableInStopMode(LPUART1);\n\nLL_LPUART_ClearFlag_TC(LPUART1);\n\n//LL_LPUART_EnableIT_TC(LPUART1);\n\nLL_LPUART_Enable(LPUART1);\n\nLL_LPUART_EnableDMAReq_TX(LPUART1);\n\nwhile (!(LPUART1->ISR & USART_ISR_TEACK));\n\n}\n\n```\n\nthe lpuatr1 dma linked list works in run mode but when stop1 is entered i can see that the TX pin is frozen and when stop1 exits data transmission continues. The SMEN for lpuart1 is set. LSE is running which i can confirm because the RTC is running fine.\n\nI can’t figure out what is missing.",
+            "images": [],
+            "author": "vale_d",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Vale_d,</p><p>Did you used the correct DMA? because as its reference manual:</p><p>In Stop 0 and Stop 1 modes, the autonomous peripherals are ADC4, DAC1, LPTIMx<br/>(x = 1 to 4), USARTx (x = 1 to 5), LPUART1, SPIx (x = 1 to 3), I2Cx (x = 1 to 4), MDF1,<br/>ADF1, GPDMA1 and LPDMA1:<br/>• LPUART1 is autonomous only with LPDMA1 and SRAM4.</p></div>",
+                    "author": "EXUE.2",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was using GPDMA1 which is OK for the SPI1 but not for LPUART1. </p><p>Everything works now.</p></div>",
+                    "author": "vale_d",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "EXUE.2",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

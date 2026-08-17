@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163377",
+            "publicId": "163377",
+            "title": "ETH Level 3 and 4 filters",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/eth-level-3-and-4-filters-163377",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Ethernet",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-03T10:28:52+00:00",
+            "views": 205,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @Bebbelin, and welcome to ST Community!\n\nYour understanding is correct. The hardware pairs L3 and L4 filters into two combined filter contexts, not four independent ones. This means you cannot mix L3\\_FILTER\\_0 with L4\\_FILTER\\_1 or vice versa.\n\nL3/L4 filters are mainly used for:\n\n* Offloading certain traffic to specific DMA queues.\n\n* Dropping unwanted traffic in hardware.\n\nThey are not strictly required to support multiple IPs and ports functionally. If your goal is simply to handle the same two TCP ports on two different IPs, you do not necessarily need L3/L4 hardware filtering. Instead, let your TCP/IP stack listen on:\n\n* IP\\_A:Port1\n\n* IP\\_A:Port2\n\n* IP\\_B:Port1\n\n* IP\\_B:Port2\n\nThe stack will distinguish flows by the 4-tuple (source IP, source port, destination IP, destination port) in software.\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I have a STM32H732 processor connected to a ethernet switch with port based VLAN support.\n\nI use the processor to connect to two different interfaces which are separated in the switch.\n\nI wanted to be able to access the same two TCP ports in the processor from both interfaces.\n\nSo I configured ETH\\_L3\\_FILTER\\_0 and ETH\\_L3\\_FILTER\\_1 with the two different IP-addresses used on the two interfaces\n\nAnd the ETH\\_L4\\_FILTER\\_0 and ETH\\_L4\\_FILTER\\_1 with the two different ports.\n\nBut that did not work as I hoped.\n\nIt looks like the L3\\_FILTER\\_0 and L4\\_FILTER\\_0 are used as one filter. and FILTER\\_1 as another.\n\nAnd maybe that is as intented but it is not super clear in the documentation.\n\nI may have to add that I have found and read...\n\nIs this correct or is there perhaps a way to use the L3 and L4 as separate filters so that I can get four different filters allowing two IPs and two Ports in any combination of ports and IP?\n\nBest regards",
+            "images": [],
+            "author": "Bebbelin",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have a look at Errata of your chip - you will find what works and what not and why.</p><p>Please mark as solution if you agree.</p><p>Thanks</p><p>Mike</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104315\">@Bebbelin</user-mention>, and welcome to ST Community!</p>\n<p>Your understanding is correct. The hardware pairs L3 and L4 filters into two combined filter contexts, not four independent ones. This means you cannot mix L3_FILTER_0 with L4_FILTER_1 or vice versa.</p>\n<p>L3/L4 filters are mainly used for:</p>\n<ul>\n<li>Offloading certain traffic to specific DMA queues.</li>\n<li>Dropping unwanted traffic in hardware.</li>\n</ul>\n<p>They are not strictly required to support multiple IPs and ports functionally. If your goal is simply to handle the same two TCP ports on two different IPs, you do not necessarily need L3/L4 hardware filtering. Instead, let your TCP/IP stack listen on:</p>\n<ul>\n<li>IP_A:Port1</li>\n<li>IP_A:Port2</li>\n<li>IP_B:Port1</li>\n<li>IP_B:Port2</li>\n</ul>\n<p>The stack will distinguish flows by the 4-tuple (source IP, source port, destination IP, destination port) in software.</p>\n<p><span>Best regards,</span></p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Super thank you!</p><p>I disabled L3 and just made two L4 filters listening on the ports to get some basic filtering from the HW.<br/><br/></p></div>",
+                    "author": "Bebbelin",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

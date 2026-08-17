@@ -1,0 +1,143 @@
+{
+    "forum": [
+        {
+            "id": "163865",
+            "publicId": "163865",
+            "title": "STM32H7 HSE not starting on some boards",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h7-hse-not-starting-on-some-boards-163865",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-16T22:49:03+00:00",
+            "views": 1182,
+            "reply_count": 9,
+            "best_answer": true,
+            "best_answer_content": "So - a bit of follow-up, not in any particular order.\n\nRegarding LL libraries, they are not \"obscure\" and have proven to work well while being lightweight (compared to the very bloated HAL). Directly using registers is always possible, but takes a lot more time and the LL layer helps making porting to other STM32 families much easier while also being much easier to read than directly accessing registers. So, that part is irrelevant. Of course, like all libraries, they can have their own quirks, such as these macros not being symmetric between LL\\_RCC\\_GetSysClkSource() and LL\\_RCC\\_SetSysClkSource(). All libraries have quirks.\n\nJust to give a bit more context, I did not have direct access to the \"failing\" boards, so that made it more difficult to debug remotely. As mentioned, I first suspected HSE\\_RDY not getting set (while the oscillator was looking like it at least oscillated), but it turned out to be something else. Indeed the\n\n```\n\nwhile (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_HSE)\n\n```\n\ntest used the wrong macro, which should have been LL\\_RCC\\_SYS\\_CLKSOURCE\\_STATUS\\_HSE rather than LL\\_RCC\\_SYS\\_CLKSOURCE\\_HSE. Obvious in hindsight but close enough not to be picked up when you're right in the middle of debugging something. Typos happen.\n\nSo that explained why the switch to HSE appeared not to work in the minimal test firmware, and that was misleading. But after fixing that, the root issue (that triggered the write of this minimal test firmware to begin with) was finally found. As I said, not having direct access to the boards made it a bit hard to locate exactly the cause. It turned out to be unrelated to the HSE or PLLs, but to the LSE.\n\nIndeed, in the original firmware, there was the initialization of the LSE, but on the tested boards, we had not equipped them with LSE crystals, the pins were just meant to be used as spare GPIOs. So when enabling (due to a config error) the LSE, the OSC32\\_IN/OUT pins were just floating. The unexpected here (that was misleading as to the cause) is that in 8 boards out of 10, the LSE init code was getting out of the wait loop (for LSE\\_RDY) without a problem even without any crystal on the OSC32 pins. I certainly wasn't expecting that. My best guess as of now is that slight differences in MCU silicon and possibly flux residues on the boards,etc, could make it pick up noise on the apparently \"good\" boards that would make the LSE logic set the LSE\\_RDY flag, even if just from noise, while on other boards (the \"failing\" ones), LSE\\_RDY was never set. While it could be just seen as an oddity, could be interesting for someone to test it and see what happens (attempting to enable the LSE with nothing connected to OSC32\\_IN/OUT) on STM32H7's. Not that it should be seen as a problem either way, just again an oddity but that made me miss this issue at first.\n\nAnd while debugging this, as we can read various stories of HSE oscillator designs being marginal and not working on all boards, and even that the STM32H7 was supposedly more finicky with its HSE, I also investigated this part, but it was unrelated in my case. I can even tell you that that it looks more forgiving than many seem to say.\n\nSo, case closed. With a bit of this odd LSE\\_RDY thing, which, while it was misleading during this debug session, is of course of no consequence otherwise.",
+            "best_answer_author": "OpusOne",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello all,\n\nI've designed a board around a STM32H743 (LQFP-100) and am running into the following issue.\n\nOn 2 boards out of 10, the HSE seems not to start properly. The HSE\\_RDY flag is never set after enabling HSE. I have checked it's not in bypass mode. On the other boards, it works perfectly.\n\nThe crystal is a ABM3B-8.000MHZ-10-1-U-T and the load caps are 10 pF. We checked possible soldering issues, tested different load cap values just to see, and even replaced the crystal on the failing boards - to no avail.\n\nLooking at the OSC\\_IN/OSC\\_OUT signals (PH0/PH1) on a scope does not show a significant difference between the working and non-working boards. Maybe just a very slight difference in p-p amplitude.\n\nI have looked at the AN2867 app note, and the gain margin seems sufficient according to the formulas given there. I have heard that this crystal may have a bit too high ESR (200 ohm) for the STM32H7 HSE, but again, the gain margin seems alright.\n\nAny idea? I have tested with a minimal firmware that just sets up the power config, turns on HSE and waits (forever) for the HSE\\_RDY flag. It never gets out of the loop on the failing boards (works fine on the working boards). If using HSI instead on the failing boards, everything seems to work ok, so it's definitely just a problem with the HSE.\n\nThanks!",
+            "images": [],
+            "author": "OpusOne",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>With a failure rate of 20% (well, with a batch of 10 boards, that is still statistically very imprecise), at least one of the possible problems definitely exists: incorrect load capacitors and/or unfavorable layout.</p>\n<p>In the <a href=\"https://abracon.com/Resonators/abm3b.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_self\">data sheet</a> of the crystal, the following data are mentioned:</p>\n<ul>\n<li>ESR = 200 ohms</li>\n<li>C0 = 7pF</li>\n<li>CL = 18pF</li>\n</ul>\n<p>According to AN2867 and the Knowledge Base article <a href=\"https://community.st.com/t5/stm32-mcus/how-to-select-a-compatible-crystal-and-load-capacitors-for-stm32/ta-p/780236\" target=\"_self\"><span>How to select a compatible crystal and load capacitors for STM32 with layout guidelines</span></a>, about 18pF results for CL1 and CL2.</p>\n<p>Both AN2867 and the mentioned KB article provide guidance for the layout. For example, it is possible that signals with steep edges couple into the crystal leads and prevent clean operation.</p>\n<p>One more note about measuring at the crystal: it is not a good idea to measure directly at the OSC_IN and OSC_OUT pins because normal oscilloscope probes have too high an input capacitance for this.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, this crystal comes in several load capacitance variants and the one I use is the 10 pF one. Now, it's not completely impossible that the assembler may have used the wrong variant - I'm not sure it can be seen on the crystal marking itself, to check. But in any case, we tried with higher capacitance and lower, and neither made the HSE start properly on the failing boards.</p><p>The layout looks alright - there is no signal toggling near the crystal traces. On this package, PH0/PH1 are conveniently placed between a 3V3 pin and the RESET pin, so it helps. No fast edge nearby.</p><p>Indeed, directly measuring at OSC_IN and OSC_OUT is not ideal and can influence the oscillator, but that's the only way of seeing if the oscillator is at least oscillating and how (outputting the clock on a MCO pin wouldn't do much, I think, as the HSE_RDY flag doesn't get set, so I don't think MCO can output a HSE clock if the HSE is not detected as valid by the MCU).</p><p>And it is indeed oscillating at 8 MHz on the failing boards. The reason it's not detected valid by the MCU is puzzling. The amplitude of the oscillation may not be enough (which would indicate a gain margin issue?), but it's indeed a bit hard to tell by putting a scope probe on there. But at least, the oscillator oscillates and at the right frequency - it's not flat-lining or oscillating at an harmonic.</p><p>Unless there is a problem with the PCBs on the failing boards that we haven't seen, since we tried swapping crystals, the only thing left that seems different between working and non-working boards are the MCUs themselves, which we didn't attempt to replace.</p><p>In terms of gain margin, my calculations from the app note gave about 12.8, and the minimum is 5, if I'm not mistaken. It may not be hugely above the minimum (I think I've seen gain margins of over 100 in some designs) but it should be enough?</p><p>Any other idea of what to try? Thinking of trying a different crystal reference in the same package, with a lower ESR. Not sure what else to try.</p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; Any other idea of what to try?</p><p>Write some absolutely minimal code, which does NOTHING else but - by direct register writes - enables HSE, sets the MCO pin and sets MCO?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did do that - it just enables the HSE, checks for HSE_RDY in an infinite loop. That's all. And then, if it gets out of the loop  (starting properly), I set the system clock to HSE and make a LED blink. But on the failing boards, it never gets out of the wait loop for HSE_RDY (despite the oscillator apparently oscillating at least from what can be seen on a scope).</p><p>On HSI, the MCU seems to operate fine. Diagnostics is really the above: HSE_RDY never gets set, in spite of hte oscillator apparently oscillating, at the correct frequency (but again possibly with too low an amplitude to pass the internal thresholds? Though, I don't quite understand how it could actually oscillate in that case, as that shows the oscillator inverter is at least toggling, so the amplitude must be high enough for its own thresholds.)</p><p> </p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I said, output onto MCO, not wait for HSE_RDY.</p><p>Also, show your code.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; Any other idea of what to try? </em></p><p>Move a crystal from a working board to the non-working board.</p><p> </p><p>Also sounds like you could have a cold solder joint.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Did that (and conversely): crystal from a working board to non-working board, and crystal from non-working board to working board.</p><p>The non-working board still refused to start the HSE, while the working board still worked fine. So, as I said, looks like only the MCU itself is the difference. Yes, could be a bad solder joint, but the relevant solder joints were all checked. Of course we could have missed something. Or the PCB may have a fabrication defect that we didn't see.</p><p> </p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I said what I was currently doing. And I was under the assumption that the HSE clock would never go to MCO if it's not detected ready by the MCU, but reading the RM, it's absolutely unclear. So that could be tried. (Only the MCO2 could be used in my case. I'll have to configure it.)</p><p>Just to see what I was previously doing (and that normally works just fine) just after startup:</p><pre class=\"lia-code-sample language-c\"><code>LL_PWR_ConfigSupply(LL_PWR_LDO_SUPPLY);\nLL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);\nwhile (! LL_PWR_IsActiveFlag_VOS()) {}\n\nLL_RCC_HSE_Enable();\nwhile (! LL_RCC_HSE_IsReady()) {} // Would block here on non-working boards.</code></pre><p> </p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You :</p><p>&gt;<span>Looking at the OSC_IN/OSC_OUT signals (PH0/PH1) on a scope does not show a significant difference between the working and non-working boards.</span></p><p>But then on both -<span>working and non-working boards- you see the 8M signal ??</span></p><p><span>-&gt; so all have working clocks , just the css \"is_ready\" check not working... - right ?</span></p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"34409\">@AScha.3</user-mention> wrote:<br/><p>You :</p><p>&gt;<span>Looking at the OSC_IN/OSC_OUT signals (PH0/PH1) on a scope does not show a significant difference between the working and non-working boards.</span></p><p>But then on both -<span>working and non-working boards- you see the 8M signal ??</span></p><p><span>-&gt; so all have working clocks , just the css \"is_ready\" check not working... - right ?</span></p><hr/></blockquote><p>Well, after more testing, things get more interesting: it turns out that HSE_RDY gets set and the flag itself seems \"stable\" after enabling HSE, but that's the following switch to HSE as system clock that gets stuck.</p><p>Basically just that:</p><pre class=\"lia-code-sample language-c\"><code>LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSE);\nwhile (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_HSE) {}</code></pre><p>The busy loop gets stuck.</p><p>And, I have also enabled HSE on MCO2, and it seems to output it properly.</p><p>So: MCU runs fine on HSI, HSE is enabled, but LL_RCC_GetSysClkSource() never returns LL_RCC_SYS_CLKSOURCE_HSE after LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSE);</p><p>So the switching to HSE for system clock fails, but the HSE otherwise \"seems\" to operate normally.</p><p>Curious to understand what is really happening. </p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Reflowing the pins or swapping the MCU between working and non-working boards seems like a logical next step as well.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"8205\">@TDK</user-mention> wrote:<br/><p>Reflowing the pins or swapping the MCU between working and non-working boards seems like a logical next step as well.</p><hr/></blockquote><p>Reflowing has been attempted, but swapping the MCU, not yet. I agree it would be an interesting next step.</p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What Jan said, don't use the obscure LL_ functions, but read / write the registers directly.</p><p>Or at least check the used LL_ functions.</p><p>That it fails with LL_ might indicate there's a #define problem, there are lots of #if in the basic controller defines for registers and bits. Maybe you copied stuff from another STM32 type?</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So - a bit of follow-up, not in any particular order.</p><p>Regarding LL libraries, they are not \"obscure\" and have proven to work well while being lightweight (compared to the very bloated HAL). Directly using registers is always possible, but takes a lot more time and the LL layer helps making porting to other STM32 families much easier while also being much easier to read than directly accessing registers. So, that part is irrelevant. Of course, like all libraries, they can have their own quirks, such as these macros not being symmetric between LL_RCC_GetSysClkSource() and LL_RCC_SetSysClkSource(). All libraries have quirks.</p><p>Just to give a bit more context, I did not have direct access to the \"failing\" boards, so that made it more difficult to debug remotely. As mentioned, I first suspected HSE_RDY not getting set (while the oscillator was looking like it at least oscillated), but it turned out to be something else. Indeed the </p><pre>while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_HSE)</pre><p>test used the wrong macro, which should have been LL_RCC_SYS_CLKSOURCE_STATUS_HSE rather than LL_RCC_SYS_CLKSOURCE_HSE. Obvious in hindsight but close enough not to be picked up when you're right in the middle of debugging something. Typos happen.</p><p>So that explained why the switch to HSE appeared not to work in the minimal test firmware, and that was misleading. But after fixing that, the root issue (that triggered the write of this minimal test firmware to begin with) was finally found. As I said, not having direct access to the boards made it a bit hard to locate exactly the cause. It turned out to be unrelated to the HSE or PLLs, but to the LSE.</p><p>Indeed, in the original firmware, there was the initialization of the LSE, but on the tested boards, we had not equipped them with LSE crystals, the pins were just meant to be used as spare GPIOs. So when enabling (due to a config error) the LSE, the OSC32_IN/OUT pins were just floating. The unexpected here (that was misleading as to the cause) is that in 8 boards out of 10, the LSE init code was getting out of the wait loop (for LSE_RDY) without a problem even without any crystal on the OSC32 pins. I certainly wasn't expecting that. My best guess as of now is that slight differences in MCU silicon and possibly flux residues on the boards,etc, could make it pick up noise on the apparently \"good\" boards that would make the LSE logic set the LSE_RDY flag, even if just from noise, while on other boards (the \"failing\" ones), LSE_RDY was never set. While it could be just seen as an oddity, could be interesting for someone to test it and see what happens (attempting to enable the LSE with nothing connected to OSC32_IN/OUT) on STM32H7's. Not that it should be seen as a problem either way, just again an oddity but that made me miss this issue at first.</p><p>And while debugging this, as we can read various stories of HSE oscillator designs being marginal and not working on all boards, and even that the STM32H7 was supposedly more finicky with its HSE, I also investigated this part, but it was unrelated in my case. I can even tell you that that it looks more forgiving than many seem to say.</p><p>So, case closed. With a bit of this odd LSE_RDY thing, which, while it was misleading during this debug session, is of course of no consequence otherwise.</p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hold on, you said you're using this code:</p><pre>while (! LL_RCC_HSE_IsReady()) {} // Would block here on non-working boards.</pre><p>which definitely uses the right macros:</p><p><a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/1501be883dae6f202c1d3f856ee6b11407dc257d/Inc/stm32h7xx_ll_rcc.h#L1688\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/1501be883dae6f202c1d3f856ee6b11407dc257d/Inc/stm32h7xx_ll_rcc.h#L1688</a></p><p> </p><p>But then you actually were using something different? Why post code you're not using?</p><p> </p><p>Defend LL if you want, but the obfuscation of what it's doing certainly contributed to the problem here. HAL would have worked correctly, \"bloated\" or not. Direct register access with CMSIS would have also worked.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You're confusing two steps. Enabling the LSE (and checking for readiness) and switching the system clock to HSE. One comes obviously before the other. Enabling the LSE and checking with LL_RCC_HSE_IsReady() worked (I was mistakenly assuming it didn't on some boards due to having to \"remotely\" debug this, but it did work, as I explained earlier). It's the test after switching to HSE for sys clock LL_RCC_SetSysClkSource() -&gt; while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_HSE) which was using the wrong macro, and that's actually where it was blocking, in the minimal test firmware.</p><p>The root cause was unrelated to this, so this was a small typo that made the minimal test look misleading, but it eventually made me point to something else entirely which was the LSE, as I explained above. That happens.</p><p>As to CMSIS, I could have used the wrong macro for checking RCC_SYS as well as the \"status\" and \"set\" bits are separate. That would have made no difference. Typos happen. </p><p> </p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"87979\">@OpusOne</user-mention> ,</p><p>Thanks for coming back with the solution. Please mark your post as Solution so that the thread is marked as solved.</p><p>I also want to congratulate you to finding the raw cause. Remote debugging is quite a challenge and I personally always struggle with that. It's so much easier when things are at one's desk... :)</p><p>With regards to Cube/LL, IMO it's mostly just renaming of the terms and registers/bits/bitfield names in RM, creating an unnecessary obstacle (and in that sense, indeed, obscuring) to mapping actions from code to RM and vice versa.</p><p>The real reason why users do use it, is, IMO, that ST provides examples and the clicky generator for it.</p><p>Unfortunately, ST refuses to provide raw examples, in part pointing out that resources are being spent on the Cubes. The illusion of easy migration and quick coding by clicking of course also makes a nice appeal to the managerial side of their customers. And of course there's also the factor of locking in the users in some way.</p><p>But then I despise Cube/HAL, for much the same reasons, too. :)</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi JW,</p><p>NP - embedded debugging can be tricky especially when doing it remotely. Main thing is to eventually pinpoint the issues while making sure we haven't missed any possible related problem that could resurface at a later point.</p><p>Regarding this session, the final oddity was again to find that the LSE_RDY flag could get set after enabling the LSE even if no crystal is present. Just the noise on floating pins is probably enough to make it detect enough toggling. I've seen other MCUs a bit more strict with their oscillator detectors, but that's just a detail.</p><p>Regarding ST tools, I have never used any generator. The HAL is bloated but I don't fully blame ST devs, it's meant to be a general-purpose solution to abstract hardware and it almost always ends up like this, because those libraries must cover a lot of various cases.</p><p>I use the \"cube\" distributions (taken from ST's git repo) strictly as a SDK, and mostly use only CMSIS and LL files. I actually find their LL layer reasonable compared to many SDKs of other vendors. I personally don't overly like CMSIS code style and find LL definitions easier to read, but of course YMMV. Another plus is that most functions it exposes are actual inline functions, while CMSIS mostly exposes only macros. inline functions are usually as efficient and at least, type-safe. I've otherwise written my own such lightweight layers for other MCUs, but this can be very time-consuming (but at least you get exactly what you want and need).</p><p>In any case, I always recommend separating the low-level parts in any firmware as much as possible to make it easier to maintain and easier to port. After that, your pick of the very low-level header files for CPU and register definitions is often a matter of preferences.</p></div>",
+                    "author": "OpusOne",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

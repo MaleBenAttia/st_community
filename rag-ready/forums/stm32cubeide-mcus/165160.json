@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "165160",
+            "publicId": "165160",
+            "title": "Unknown destination type (ARM/Thumb) link error in CubeIDE v2.1.1 (GNU tools 14.3.1)",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/unknown-destination-type-arm-thumb-link-error-in-cubeide-v2-1-1-gnu-tools-14-3-1-165160",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-04-27T13:48:06+00:00",
+            "views": 1259,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi Andrew ,\n\nI have installed version  [13.3.rel1, clean the files and re compile the code :](https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119)\n\nI have a different error from linker \"undefined reference to the same function\" although the function referenced in the files.\n\n\"\n\nC:/ST/STM32CubeIDE\\_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32\\_1.0.100.202509120712/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32u0xx\\_hal\\_msp.o: in function `HAL\\_PCD\\_MspInit':\n\nC:/Users/../Electronics/../Software/USB\\_CDC\\_U0/USB\\_CDC\\_U0/Debug/../Core/Src/stm32u0xx\\_hal\\_msp.c:102:(.text.HAL\\_PCD\\_MspInit+0x4c): undefined reference to `MX\\_USB\\_CDC\\_Init'\n\ncollect2.exe: error: ld returned 1 exit status\n\nmake: \\*\\*\\* [makefile:65: USB\\_CDC\\_U0.elf] Error 1\n\n\"make -j12 all\" terminated with exit code 2. Build might be incomplete.\n\n15:33:51 Build Failed. 2 errors, 0 warnings. (took 13s.995ms)\n\nUVC100",
+            "best_answer_author": "UVC100",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi\n\nI am using latest CubeMx Ver 16.7.0 and CubeIde Ver 2.1.1\n\nwhile trying to compile a USB CDC code this error shows once i linked the code :\n\n\"\n\nC:/Users/../../Hardware - General/../Electronics/../Software/USB\\_CDC\\_U0/USB\\_CDC\\_U0/Debug/../Core/Src/stm32u0xx\\_hal\\_msp.c:102:(.text.HAL\\_PCD\\_MspInit+0x4c): undefined reference to `MX\\_USB\\_CDC\\_Init'\n\nC:/ST/STM32CubeIDE\\_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32\\_1.0.100.202602081740/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/bin/ld.exe: (MX\\_USB\\_CDC\\_Init): Unknown destination type (ARM/Thumb) in ./Core/Src/stm32u0xx\\_hal\\_msp.o\n\nC:/Users/../../Hardware - General/../Electronics/../Software/USB\\_CDC\\_U0/USB\\_CDC\\_U0/Debug/../Core/Src/stm32u0xx\\_hal\\_msp.c:102:(.text.HAL\\_PCD\\_MspInit+0x4c): dangerous relocation: unsupported relocation\n\ncollect2.exe: error: ld returned 1 exit status\n\nmake: \\*\\*\\* [makefile:65: USB\\_CDC\\_U0.elf] Error 1\n\n\"\n\nthe called the function \"MX\\_USB\\_CDC\\_Init\" exist in the USB/Class/CDC  dir, and the H file hold the function prototype and referenced from the \"stm32u0xx\\_hal\\_msp.c\" file\n\nI have attached the project\n\nPlease help",
+            "images": [],
+            "author": "UVC100",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I think this is the key:</p><p> </p><blockquote><hr/><user-mention data-id=\"106477\">@UVC100</user-mention> wrote:<br/><div><div><p><span>Core/Src/stm32u0xx_hal_msp.c:102:(.text.HAL_PCD_MspInit+0x4c): dangerous relocation: unsupported relocation</span></p></div></div><hr/></blockquote><p>See recent threads: </p><p><a href=\"https://community.st.com/t5/forums/searchpage/tab/message?advanced=false&amp;allow_punctuation=false&amp;q=dangerous%20relocation:%20unsupported%20relocation\" target=\"_blank\">https://community.st.com/t5/forums/searchpage/tab/message?advanced=false&amp;allow_punctuation=false&amp;q=dangerous%20relocation:%20unsupported%20relocation</a></p><p> </p><p>Seems to relate to a recent Assembler change:</p><p><a href=\"https://community.st.com/t5/stm32cubeide-mcus/cubeide-2-1-0-system-stm32wl3x-o-dangerous-relocation/m-p/883259/highlight/true#M41183\" target=\"_blank\">https://community.st.com/t5/stm32cubeide-mcus/cubeide-2-1-0-system-stm32wl3x-o-dangerous-relocation/m-p/883259/highlight/true#M41183</a></p><p> </p><p>Proposed Solution:</p><p><a href=\"https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119\" target=\"_blank\">https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi</p><p>I have read all the similar solution before and try all of them: </p><p>1. update the CubeIde .</p><p>2. Update CubeMx. </p><p>3. There was a suggestion to update the GCC tools - I have the latest GCC tools (according to the tool manager in the CubeIDE) </p><p>4. There was a suggestion to delete some system files and re-generate them with the CubeMx - not working  </p><p>Sorry, not working for me</p><p> </p></div>",
+                    "author": "UVC100",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106477\">@UVC100</user-mention> wrote:<br/><p>3. There was a suggestion to update the GCC tools</p><hr/></blockquote><p>Specifically, GNU Tools for STM32 (13.3.rel1) - is that the version you have ?</p><p><user-mention data-id=\"62758\">@Mahmoud Ben Romdhane</user-mention> <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Andrew ,</p><p>Thank you for the fast replay, </p><p>I have 14.3rel1 gnu tools installed in my CUBEIDE - as I understand the tool version is newer and suppose to include all the changes and updates done in 13.3rel1?  </p><p>UVC100</p></div>",
+                    "author": "UVC100",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Looking back at that thread where <span><a href=\"https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119\" target=\"_blank\">13.3.rel1 was accepted as the solution</a>, the original problem was reported <a href=\"https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119:~:text=GNU%20tools%C2%A0for%20STM32%2014.3.1\" target=\"_blank\">with GNU tools for STM32 14.3.1</a>.</span></p><p> </p><p><span>So it's 14.3.1 which <em>introduces</em> the problem - therefore you need to <em>downgrade</em> to 13.3.1 to fix it.</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Andrew ,</p><p>I have installed version  <span><a href=\"https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119\" target=\"_blank\">13.3.rel1, clean the files and re compile the code :</a></span></p><p><span>I have a different error from linker \"undefined reference to the same function\" although the function referenced in the files. </span></p><p><span> \" </span></p><div><div><p><span>C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.100.202509120712/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32u0xx_hal_msp.o: in function `HAL_PCD_MspInit':</span></p><p><span>C:/Users/../Electronics/../Software/USB_CDC_U0/USB_CDC_U0/Debug/../Core/Src/stm32u0xx_hal_msp.c:102:(.text.HAL_PCD_MspInit+0x4c): undefined reference to `MX_USB_CDC_Init'</span></p><p><span>collect2.exe: error: ld returned 1 exit status</span></p><p><span>make: *** [makefile:65: USB_CDC_U0.elf] Error 1</span></p><p><span>\"make -j12 all\" terminated with exit code 2. Build might be incomplete.</span></p><p> </p><p><span>15:33:51 Build Failed. 2 errors, 0 warnings. (took 13s.995ms)</span></p></div></div><p> </p><p>UVC100   </p></div>",
+                    "author": "UVC100",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Probably time to <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" target=\"_blank\">mark this thread as solved</a>, and start a new thread for the other error?</p><p>Give a link here to the new thread;</p><p>Include a link in the new thread back to this one, for reference, if you think it helps.</p><hr/><p><font color=\"#0000FF\">The new thread is here: <span><em><a href=\"https://community.st.com/t5/stm32cubeide-mcus/stm32-gnu-tools-version-13-3-rel1-undefined-reference-linker/m-p/896218\" target=\"_blank\">stm32 gnu tools version 13.3.rel1 undefined reference linker error</a></em> - and now solved.</span></font></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

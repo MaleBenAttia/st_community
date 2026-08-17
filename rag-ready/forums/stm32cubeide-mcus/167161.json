@@ -1,0 +1,90 @@
+{
+    "forum": [
+        {
+            "id": "167135",
+            "publicId": "167161",
+            "title": "STM32F777 impossible to move data to SRAM1",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/stm32f777-impossible-to-move-data-to-sram1-167161",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32F7 series"
+            ],
+            "published_at": "2026-07-22T14:43:41+00:00",
+            "views": 86,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "> Is it OK to do such thing :\n\n>\n\n> ![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png)\n\n>\n\n> It looks good in the Memory Details tab :\n\n>\n\n> ![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png)\n\nYes it’s OK\n\nNo issue to put heap and stack anywhere in the internal RAM including SRAM2. The CPU is accessing all the memory resources in the product. For performance reasons, need to activate the cache for that region (heap and stack): enable the cache and ensure SRAM2 is cacheable with MPU.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone.\n\nI will use my MCU to acquire big amounts of analog data and transfer them to a host using UDP.\n\nAs DTCM is 128K and SRAM1 is 368K I would like to store those data in SRAM1. As an exercice I’m trying to configure LwIP in SRAM1.\n\nI’ve followed many tutorials (MPU is, I beleive, set correctly) :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6e2b61-d31b-4eb6-bf61-7bf4991df33c.png)\n\nwith a cache protected region where all the LwIP data should be (normally it should only matter when I’ll run this program)\n\nI’ve also configure ETH to point to this area :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf41ae96-9c2f-49f1-9677-a6a79429a932.png)\n\nAnd Lwip is also configured with this same area\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61ba1c72-38df-4126-b1f6-4c417c422d0e.png)\n\nAnd the flash script is also set :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83f38286-6522-49ff-a99d-0862eb696baa.png)\n\nBut when I compile the code directly after importing from cubeMX, I get :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3a2bb75-92b9-4b16-81fd-b8a3034621ad.png)\n\nData are not in SRAM1, they are in the DTCM.\n\nAm I missing something ? Do I have to set some options in the compiler ?\n\nAlso I’m a bit surprised to see that 4 descriptors x 32 bits = 0xa0 (0d160) ??? Or F777 descriptors are 40 bits ?\n\nThanks to anyone who will take some time to help me.\n\nBest regards",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6e2b61-d31b-4eb6-bf61-7bf4991df33c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/faad7373-ac63-4bdf-af63-45742bec56d6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3a2bb75-92b9-4b16-81fd-b8a3034621ad.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf41ae96-9c2f-49f1-9677-a6a79429a932.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83f38286-6522-49ff-a99d-0862eb696baa.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61ba1c72-38df-4126-b1f6-4c417c422d0e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/edf3f2e1-e8a1-4e10-9bfb-c1f624818f93.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42f99c0b-3fdc-43e2-8d49-e438cf494c3f.png"
+            ],
+            "author": "Haarkon",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108462\">@Haarkon</user-mention> and welcome to the ST community,</p><p>What is the definition of RAM here:</p><pre><code class=\"language-c\">  } &gt;RAM</code></pre><p>What’s the origin defined in the linker file? in the DTCM or in the SRAM1?</p><p>For example from this <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/tree/master/Projects/STM32F769I_EVAL/Applications/LwIP/LwIP_HTTP_Server_Socket_RTOS\" rel=\"noreferrer noopener\" target=\"_blank\">example </a> this is how it was implemented in the linker file:</p><pre><code class=\"language-c\">MEMORY<br/>{<br/>FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 2048K<br/>RAM (xrw)        : ORIGIN = 0x20000000, LENGTH = 499K<br/>Memory_B1(xrw)   : ORIGIN = 0x2007C000, LENGTH = 0xA0<br/>Memory_B2(xrw)   : ORIGIN = 0x2007C0A0, LENGTH = 0xA0<br/>}</code></pre><p>Then: </p><pre><code class=\"language-c\">  .ARM.attributes 0 : { *(.ARM.attributes) }<br/>  .RxDecripSection (NOLOAD) : { *(.RxDescripSection) } &gt;Memory_B1<br/>  .TxDescripSection (NOLOAD) : { *(.DMATxDscrTab_section) } &gt;Memory_B2 </code></pre><p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"mƎALLEm\"><div class=\"content-quote-content\"> <p>Hello ​<user-mention data-id=\"108462\">@Haarkon</user-mention> and welcome to the ST community,</p> <p>What is the definition of RAM here:</p> <pre><code class=\"language-c\">  } &gt;RAM</code></pre> <p>What’s the origin defined in the linker file? in the DTCM or in the SRAM1?</p> <p>For example from this <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/tree/master/Projects/STM32F769I_EVAL/Applications/LwIP/LwIP_HTTP_Server_Socket_RTOS\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">example </a> this is how it was implemented in the linker file:</p> <pre><code class=\"language-c\">MEMORY<br/>{<br/>FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 2048K<br/>RAM (xrw)        : ORIGIN = 0x20000000, LENGTH = 499K<br/>Memory_B1(xrw)   : ORIGIN = 0x2007C000, LENGTH = 0xA0<br/>Memory_B2(xrw)   : ORIGIN = 0x2007C0A0, LENGTH = 0xA0<br/>}</code></pre> <p>Then: </p> <pre><code class=\"language-c\">  .ARM.attributes 0 : { *(.ARM.attributes) }<br/>  .RxDecripSection (NOLOAD) : { *(.RxDescripSection) } &gt;Memory_B1<br/>  .TxDescripSection (NOLOAD) : { *(.DMATxDscrTab_section) } &gt;Memory_B2 </code></pre> <p> </p> </div></content-quote><p>The RAM (and FLASH) definition are the one that CubeMX/Cube IDE produce :</p><div><div><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/faad7373-ac63-4bdf-af63-45742bec56d6.png\"/></figure><p>It’s OK, as memories DTCM, SRAM1 and SRAM2 are abutting</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/edf3f2e1-e8a1-4e10-9bfb-c1f624818f93.png\"/></figure><p> </p><p>Is it OK to do such thing :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png\"/></figure><p> </p></div></div><p>It looks good in the Memory Details tab :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png\"/></figure><p>I believe that in this case, my stack and my heap are now in the RAM section and no longer in SRAM2 ?</p><p>Is it OK to move the Heap and the stack, back in SRAM2 using </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42f99c0b-3fdc-43e2-8d49-e438cf494c3f.png\"/></figure><p>One more time thank you.</p></div>",
+                    "author": "Haarkon",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><blockquote><p>Is it OK to do such thing :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8ddc255-fdd4-4a51-84ef-0cd515b54abb.png\"/></figure><p> </p><p>It looks good in the Memory Details tab :</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d076cd08-7361-4daa-8fba-d036b62939ee.png\"/></figure><p> </p></blockquote><p>Yes it’s OK</p><p> </p><p>No issue to put heap and stack anywhere in the internal RAM including SRAM2. The CPU is accessing all the memory resources in the product. For performance reasons, need to activate the cache for that region (heap and stack): enable the cache and ensure SRAM2 is cacheable with MPU.</p><p> </p><p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>“. = ABSOLUTE(...)” doesn’t do what you want it to. It looks to be a vibe coded suggestion. Creating two linker sections and placing the variables there will work.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your answers. it works !</p><p>I’ve got one last question : Can those memories overlap themselves ?</p><p>Best regards</p></div>",
+                    "author": "Haarkon",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>If your question has been answerd please mark as Best Answer the post that provided you the solution (not this one).</p><p>New question = new post. There, please tell what do you mean by “overlap themselves”? in software or by hardware ?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

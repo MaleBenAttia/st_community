@@ -1,0 +1,88 @@
+{
+    "forum": [
+        {
+            "id": "164269",
+            "publicId": "164269",
+            "title": "STM32H743IIK6: Some questions relating hardware design",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h743iik6-some-questions-relating-hardware-design-164269",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Documentation",
+                "Power",
+                "USB",
+                "ADC"
+            ],
+            "published_at": "2026-03-29T11:00:57+00:00",
+            "views": 554,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Thanx",
+            "best_answer_author": "ELI_HAIT",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nDuring the design with the STM32H743IIK6 MCU few questions arise:\n\n(1)  While designing a PCB with the STM32H743IIK6 (UFBGA176+25 package) with VDD=3.3V or 2.8V, I am unable to locate the VCCLDO pin, which is expected to be connected to external capacitor. Am i missing something in the pinout, or does the internal LDO in this specific package rely solely on the capacitors on the VCAP pins?\n\n(2) There are two sets of QUADSPI I/O sets: BK1 and BK2 (i intend to use the BK2). However, I do not see any separate clock pins for each. Do both channels share the same QUADSPI\\_CLK signal for both banks?\n\n(3) Regarding the USB interface: I see a VDD33USB pin, but there is no VDD5USB pin. Does this require an external 3.3V DC input, or is it an internal signal output that only requires a decoupling capacitor?\n\nAdditionally, I am unable to locate the USB\\_DP and USB\\_DM pins on the UFBGA176 package. Is there specific hardware documentation / example schema that clarifies the physical locations for the USB connection out of the MCU?\n\n(4) Does the embedded ADC can operate in SE mode (without connecting the \\_N pins)?\n\nThanx,\n\nEli.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6666ebd3-4a15-e66f-0f1b-61048f13d552.png"
+            ],
+            "author": "ELI_HAIT",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>1) You mean VDDLDO? Per the datasheet: \"When it is not available on a package, the VDDLDO pin is internally tied to VDD.\"</p><p>2) Yes</p><p>3) In the datasheet, \"When it is not available on a package, the VDD50USB pin is internally tied to VDD33USB.\"</p><p>4) Yes</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, TDK, </p><p>Thank you for your responses and assistance. </p><p>I’d like to double-check my understanding of the following:</p><p>(1) According to the datasheet, a capacitor should be connected between VDDLDO and GND - i assume it is required for LDO stability. However, in the 176+25UFBGA package this voltage remains internal and utilizes the capacitors connected to VCAP?</p><p>(2) When both VDD50USB and VDD33USB are routed to pins, is VDD50USB the input and VDD33USB an <strong>output</strong> which is internally generated from VDD50USB that requires a capacitor to GND?<br/>But, if only VDD33USB is routed to a pin (without VDD50USB), the VDD33USB an <strong>input</strong> that should be connected externally to 3.3VDC?</p><p>(3) To interface the USB externally, is it sufficient to connect the OTG_FS_DP and OTG_FS_DM pins to the connector with only TVS protection or something else is required?</p><p> </p><p>Thanx,</p><p>Eli.</p><p> </p></div>",
+                    "author": "ELI_HAIT",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>1) The caps on VDDLDO and VCAP are for different rails, but they both stabilize voltage. If VDDLDO doesn't exist (is tied to VDD internally), it'll use the caps on VDD for stability.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-30 083518.png\" style=\"width: 243px;\"><img alt=\"Screenshot 2026-03-30 083518.png\" height=\"146\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6666ebd3-4a15-e66f-0f1b-61048f13d552.png\" title=\"Screenshot 2026-03-30 083518.png\" width=\"243\"/></span></p><p>2) Yes.</p><p>3) GND also needs connected. If the device is self-powered, VBUS needs connected and monitored. If the device is bus-powered, VBUS needs connected in order to obtain power.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, TDK, last question (i believe... :))</p><p>Decoupling caps for VDD:</p><p>BGA 0.65mm pitch allow to put only 0201 capacitors close to pins on the bottom side + bulk capacitors outside the BGA or in the unpopulated areas under it.</p><p>But there is an option to locate 0402 capacitors little bit farer from there.... additional few mm... in many other devices it is allowed.</p><p>Is there any application note about this - if the 0402 option is acceptable or i should use the 0201 capacitors?</p></div>",
+                    "author": "ELI_HAIT",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>0402 a few mm away will work fine. Look at the nucleo board for an example layout.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI <user-mention data-id=\"71344\">@ELI_HAIT</user-mention> </p>\n<p>worth to look to <a class=\"st-link st-link--grey with-icon\" data-di-id=\"di-id-a5d69f2d-21783b29\" data-file-name=\"Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development\" data-tooltip-custom-content=\"\" href=\"https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><span class=\"st-font--bold st-margin--all-r-1 st-title\" data-translation-app-exclude=\"\">AN4938</span> <span class=\"st-margin--all-r-1 st-desc\">Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development</span></a></p>\n<p><span class=\"st-margin--all-r-1 st-desc\">Patrick</span></p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanx</p></div>",
+                    "author": "ELI_HAIT",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"71344\">@ELI_HAIT</user-mention> Can you please mark the reply that helped you the most as the solution, rather than you own?</p><p>This helps other users find the answer to similar questions when they search or use the forum.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

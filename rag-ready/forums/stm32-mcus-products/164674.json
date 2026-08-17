@@ -1,0 +1,85 @@
+{
+    "forum": [
+        {
+            "id": "164674",
+            "publicId": "164674",
+            "title": "DAC: maximum output voltage = 1 / 2 VDDA",
+            "url": "https://community.st.com/stm32-mcus-products-25/dac-maximum-output-voltage-1-2-vdda-164674",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "DAC",
+                "STM32F0 series"
+            ],
+            "published_at": "2026-04-12T16:39:39+00:00",
+            "views": 467,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "LMV342 is not specified to drive 50 Ohm load. DS says 2-10 kOhm",
+            "best_answer_author": "MasterT",
+            "best_answer_author_role": "Lead II",
+            "content_text": "Hi,\n\nI'm using a STM32F072's DAC to output a SIN and a COS wave. The problem is I can only output values up to approx. VDDA / 2. The DAC drives unity gain amplifiers to drive a 50 Ohm load. The DAC is connected directly to the amps, using the buffer does not help. VDDA = 3.3 V.\n\n![scope.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da9a61a7-25ae-0fd7-0025-929784e64dd8.png \"scope.png\")\n\nHere, CH4 is connected directly to the DAC output via a 10:1 probe. The black things on the scope inputs are 50 Ohm termination, so the CH2 and CH3 signals having only half the amplitude of CH4 is expected. All channels are DC coupled.\n\nI'm writing to the DAC using the DHR12L1/2 registers (using the STM32Cube HAL):\n\n```\n\nuint16_t value = (uint16_t) (ltbDacSinLut(ltb_dac_ch1_counter_) ^ 0x8000) & 0xFFF0;\n\nHAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_L, (uint32_t)value);\n\n```\n\nwhere ltbDacSinLut returns values in the range of [-32768, 32767].\n\n![GChri2_1-1776011274161.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7fa54a5f-546c-46b0-5395-5095da38a0ff.png \"GChri2_1-1776011274161.png\")\n\nDividing the value by 2 before writing to the DAC results in undistorted SIN / COS output, but of course the output swing is then limited to ~1.6 V.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a2325f33-cae2-9fef-f014-8223fe97cd57.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7fa54a5f-546c-46b0-5395-5095da38a0ff.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8e2d2f1e-975c-b0b1-7aa8-c89ae985d4e3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6bd1af13-c9ed-2f77-ee1b-77063479a0b2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7f72d94d-9fc9-9178-2eba-312ec56f69df.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da9a61a7-25ae-0fd7-0025-929784e64dd8.png"
+            ],
+            "author": "GChri.2",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Can you show the circuit for the unity gain amplifiers? I'd measure the voltage upstream of those to eliminate that as the problem. Put out a DC value and verify with multimeter. Or the oscilloscope if convenient.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GChri2_0-1776016848476.png\" style=\"width: 400px;\"><img alt=\"GChri2_0-1776016848476.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a2325f33-cae2-9fef-f014-8223fe97cd57.png\" title=\"GChri2_0-1776016848476.png\"/></span></p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GChri2_1-1776016997789.png\" style=\"width: 400px;\"><img alt=\"GChri2_1-1776016997789.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8e2d2f1e-975c-b0b1-7aa8-c89ae985d4e3.png\" title=\"GChri2_1-1776016997789.png\"/></span></p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GChri2_2-1776017854218.png\" style=\"width: 400px;\"><img alt=\"GChri2_2-1776017854218.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6bd1af13-c9ed-2f77-ee1b-77063479a0b2.png\" title=\"GChri2_2-1776017854218.png\"/></span></p><p> </p><p>CH4 was connected to the \"uC_DAC0\" net, directly at the F072's output. The trace is less than 10mm long. </p></div>",
+                    "author": "GChri.2",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>LMV342 is not specified to drive 50 Ohm load. DS says 2-10 kOhm</p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your DAC data formatting is likely wrong: you are writing a 12-bit left-aligned value using DAC_ALIGN_12B_L, but your code only prepares a shifted 16-bit style value: you appear to be generating a sine wave with values from [-32768, 32767], converting it to offset-binary representation using ^0x8000, and then masking it with 0xfff0. That is not the correct scaling for a 12-bit DAC. The DAC may therefore be receiving an effective waveform centred around mid-scale and not using the full range correctly.</p>\n<p>Use a proper unsigned 12-bit DAC code in the range 0..4095 for HAL_DAC_SetValue(..., DAC_ALIGN_12B_R, ...), or if you keep left alignment, make sure the value is shifted to match the DAC’s expected left-aligned format.</p>\n<p>Also, the STM32F0 DAC can only swing from ~0V to ~VDDA. If you generate a sine directly in the DAC, a centred waveform must be biased at mid-scale.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, </p><blockquote><hr/><user-mention data-id=\"2379\">@Peter BENSCH</user-mention> wrote:<br/><p>you are writing a 12-bit left-aligned value using DAC_ALIGN_12B_L, but your code only prepares a shifted 16-bit style value: you appear to be generating a sine wave with values from [-32768, 32767], converting it to offset-binary representation using ^0x8000, and then masking it with 0xfff0. </p><hr/></blockquote><p>correct. this generates a bit pattern that the DHR12L1/2 registers expect: </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GChri2_3-1776018436535.png\" style=\"width: 400px;\"><img alt=\"GChri2_3-1776018436535.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7f72d94d-9fc9-9178-2eba-312ec56f69df.png\" title=\"GChri2_3-1776018436535.png\"/></span></p><p> </p><blockquote><hr/><user-mention data-id=\"2379\">@Peter BENSCH</user-mention> wrote:<br/><p>The DAC may therefore be receiving an effective waveform centred around mid-scale and not using the full range correctly.</p><hr/></blockquote><p>This is intentional. Since the DAC cannot output negative voltages, the mean of the SIN must bei at VDD / 2, if the full range is to be used. </p><blockquote><hr/><user-mention data-id=\"2379\">@Peter BENSCH</user-mention> wrote:<br/><p>or if you keep left alignment, make sure the value is shifted to match the DAC’s expected left-aligned format.</p><hr/></blockquote><p>I checked with the debugger, the values range from 0 to 65520, which is the correct range for a left aligned 12-bit value with the lower 4 bits cleared. </p><p>Dividing the value by 2 creates a perfect SIN wave centered around VDD / 2. </p></div>",
+                    "author": "GChri.2",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Op amp specifies typical 7 mV from rail at 10 kOhm load, and 32 mV from rail at 2 kOhm load. Extrapolate that down to 50 Ohm (or 100?) load--much higher. That's likely where your issue is. Everything else seems okay. Remove the load and it pro</p><p>Good spot by <user-mention data-id=\"43295\">@MasterT</user-mention> </p><p> </p><p>Not really half VDDA, just kinda close. 54%. Just coincidence. If it were exactly have then scaling issues would be likely.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Considering clipped output, I would suspect the DAC values as problem, as poster <user-mention data-id=\"2379\">@Peter BENSCH</user-mention> .</p><p>To make sure, I would suggest to check the DAC output (= opamp input) with a scope, on the MCU pin.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

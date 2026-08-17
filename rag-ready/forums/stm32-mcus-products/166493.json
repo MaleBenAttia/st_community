@@ -1,0 +1,110 @@
+{
+    "forum": [
+        {
+            "id": "166470",
+            "publicId": "166493",
+            "title": "stm32u575 Low power consumption",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u575-low-power-consumption-166493",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Power",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-06-29T01:34:39+00:00",
+            "views": 186,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello @xukong\n\nDid you try one of the firmware examples to test the hardware, or at least use one as a reference for the project?\n\nThe following [example](https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/NUCLEO-U575ZI-Q/Examples/PWR/PWR_ModesSelection) supports shutdown mode on an STM32U575.\n\nThe example should at least help determine whether the issue is related to hardware or software.\n\nBR\n\nGyessine",
+            "best_answer_author": "Gyessine",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "When using this microcontroller, after entering low-power mode via the HAL\\_PWREx\\_EnterSHUTDOWNMode() function, I found that there is a 0.9V voltage on VCAP. But the program indeed did not continue performing the reset operation.Do I need to turn off anything before entering this mode? I have used peripherals such as DMA (linked list in circular mode), SPI, USART, ADC, and GPIO.\n\nThe following is my function for entering low power mode.\n\n```\n\nstatic void DevLowerKeyInit(uint8_t *index) {\n\n(void)index;\n\nosDelay(200);\n\nvTaskSuspendAll();\n\nSysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;\n\nfor (uint32_t i = 0; i < 16; i++) {\n\nNVIC->ICER[i] = 0xFFFFFFFF;\n\nNVIC->ICPR[i] = 0xFFFFFFFF;\n\n}\n\nHAL_DBGMCU_DisableDBGStandbyMode();\n\nHAL_DBGMCU_DisableDBGStopMode();\n\nextern void MX_GPIO_ALL_ANALOG_Init(void);\n\nMX_GPIO_ALL_ANALOG_Init();\n\n__HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG2);\n\n__HAL_PWR_CLEAR_FLAG(PWR_FLAG_STOPF);\n\n__HAL_PWR_CLEAR_FLAG(PWR_FLAG_SBF);\n\n__DSB();\n\n__DSB();\n\n__DSB();\n\nHAL_PWREx_EnterSHUTDOWNMode();\n\nHAL_PWREx_DisablePullUpPullDownConfig();\n\nNVIC_SystemReset();\n\nSysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;\n\nxTaskResumeAll();\n\n}\n\nvoid MX_GPIO_ALL_ANALOG_Init(void)\n\n{\n\nGPIO_InitTypeDef GPIO_InitStruct = {0};\n\n/* GPIO Ports Clock Enable */\n\n__HAL_RCC_GPIOA_CLK_ENABLE();\n\n__HAL_RCC_GPIOB_CLK_ENABLE();\n\n__HAL_RCC_GPIOC_CLK_ENABLE();\n\n__HAL_RCC_GPIOD_CLK_ENABLE();\n\n__HAL_RCC_GPIOE_CLK_ENABLE();\n\n__HAL_RCC_GPIOH_CLK_ENABLE();\n\nGPIO_InitStruct.Pin = GPIO_PIN_ALL;\n\nGPIO_InitStruct.Mode = GPIO_MODE_ANALOG;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nHAL_GPIO_Init(GPIOB, &GPIO_InitStruct);\n\nHAL_GPIO_Init(GPIOC, &GPIO_InitStruct);\n\nHAL_GPIO_Init(GPIOD, &GPIO_InitStruct);\n\nHAL_GPIO_Init(GPIOH, &GPIO_InitStruct);\n\nHAL_GPIO_Init(GPIOA, &GPIO_InitStruct);\n\nHAL_GPIO_Init(GPIOE, &GPIO_InitStruct);\n\n}\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/db1fa494-c401-4e5f-a864-80e580a92d39.png"
+            ],
+            "author": "xukong",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"72667\">@xukong</user-mention> </p><p>Did you try one of the firmware examples to test the hardware, or at least use one as a reference for the project?</p><p>The following <a href=\"https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/NUCLEO-U575ZI-Q/Examples/PWR/PWR_ModesSelection\" rel=\"noreferrer noopener\" target=\"_blank\">example</a> supports shutdown mode on an STM32U575.</p><p>The example should at least help determine whether the issue is related to hardware or software.<br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am using srm32u575VGT6.</p></div>",
+                    "author": "xukong",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After searching for several days, I finally found the cause.</p></div>",
+                    "author": "xukong",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"72667\">@xukong</user-mention> <br/>Can you share the root cause of the issue so that other ST community users who encounter the same issue can see it? This information can help many other developers.<br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In the end, I suspect it was caused by a pending interrupt in EXIT. By clearing the pending interrupt during low power, the voltage on VCAP indeed dropped from 0.9V to 0V, and the power consumption indeed decreased from about 400uA to below 1uA for the entire circuit. However, I am not clear for now why this phenomenon occurs.<br/> </p></div>",
+                    "author": "xukong",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"72667\">@xukong</user-mention> ,</p><p>Did you read the tips before posting?</p><p>This pop-up is showing-up when you start a thread:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/db1fa494-c401-4e5f-a864-80e580a92d39.png\"/></figure><p>Please kindly follow the community rules while posting: <a href=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\" rel=\"noreferrer\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></p><p>Thank you for your understanding</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, I didn't notice those things. I was in a real rush back then and spent days searching but couldn't find the problem.</p></div>",
+                    "author": "xukong",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Now it has recurred with a small probability (discovered during on-site testing: after entering low power mode, the current sometimes fails to drop). Can you tell me which pending interrupts could affect the microcontroller entering shutdown mode? Or, is there a proven piece of code to recover from this?</p></div>",
+                    "author": "xukong",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"72667\">@xukong</user-mention> </p><p>It is not easy to find the root cause from the information provided. Testing and debugging are required.</p><p>First, re-enable debugging in low-power mode bits to check whether the value of the LPMS bits in the PWR_CR1 register is equal to shutdown mode (11x).</p><p>Then, ensure that no peripheral causes an interrupt, even occasionally. The easiest way is to keep only one peripheral enabled at a time and check whether the issue still appears with one peripheral, with multiple peripherals, or disappears completely.</p><p>Before this test, test with no peripheral enabled to ensure that the issue does not come from a peripheral.<br/>well, you can add this line of code just to make sure if not already implemented:</p><pre><code class=\"language-c\">__disable_irq();<br/></code></pre><p>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've optimized the logout function under low power consumption and haven't found any issues so far.</p></div>",
+                    "author": "xukong",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

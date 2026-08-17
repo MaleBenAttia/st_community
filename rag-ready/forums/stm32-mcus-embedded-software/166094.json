@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "166080",
+            "publicId": "166094",
+            "title": "NUCLEO-H7S3L8 USB_OTG_HS Host Issue: TXERR during EP0 SETUP",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/nucleo-h7s3l8-usb-otg-hs-host-issue-txerr-during-ep0-setup-166094",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "USB"
+            ],
+            "published_at": "2026-06-12T05:27:40+00:00",
+            "views": 89,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@wooseong\n\nApologies for the delayed response, and thank you for sharing the minimal firmware package.\n\nThis is very helpful. Can you confirm `CDC_Standalone` example in host mode is working as expected on the Nucleo H7S3?\n\nI found two ST reference examples that may be useful as a baseline for the **USB Host MSC** path:\n\n* **X-CUBE-AZRTOS-H7RS /**`Projects/STM32H7S78-DK/Applications/USBX/Ux_Host_MSC`\n\n* **STM32CubeH7RS /**`Projects/STM32H7S78-DK/Applications/USB_Host/MSC_RTOS`\n\nThese examples are for **STM32H7S78-DK**, not NUCLEO-H7S3L8, but they should still help you compare the USB host, USBX, and MSC initialization sequence.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am currently using the NUCLEO-H7S3L8 CN2 Type-C port as a USB\\_OTG\\_HS embedded PHY host/source.\n\nThe TCPP03 source path opens successfully, and both the USB stick attachment and port reset are working. After the reset, `HPRT` reads `0x00001005`, which seems to indicate `speed=HS` and that the port is enabled.\n\nHowever, during the first EP0 SETUP GET\\_DESCRIPTOR request:\n\n* `HAL_HCD_HC_SubmitRequest()` = `HAL_OK`\n\n* `HAINT` = `0x00000001`\n\n* `HCINT` = `0x00000080`\n\n* `TXERR` = `1`\n\n* `xfer_count` = `0`\n\nThe exact same issue occurs even during a raw HAL EP0 smoke test, prior to involving USBX/FileX.\n\nI would like to verify the following points:\n\n1. What is the mandatory clock/power initialization sequence when using the USB\\_OTG\\_HS embedded PHY host on the H7S3L8?\n\n2. Is it acceptable to use HSI → PLL3Q for the USBPHYC clock, or is an HSE strictly required?\n\n3. What are the necessary settle/wait conditions after enabling `USBHSREG`?\n\n4. Are there any required CC/UCPD configurations for the CN2 Type-C/TCPP03 source setup, apart from the PM9 PWR\\_EN + TCPP03 provider gate?\n\n5. Is the state where `HPRT` = `0x00001005` and `HCFG` = `0x00000201` considered normal under these conditions?",
+            "images": [],
+            "author": "wooseong",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Update:</p><p>I tested the USBPHY reference clock and USB HS regulator related points suggested by similar H7RS/N6 USBPHYC issues.</p><p>Current HSI -&gt; PLL3Q -&gt; USBPHYC path:</p><ul><li> <p>USBPHY clock source: PLL3Q</p> </li> <li> <p>USBREF forced/logged as 24 MHz</p> </li> <li> <p>CCIPR1 = 0x00002a40</p> </li> <li> <p>USBPHYCSEL = 0x00002000</p> </li> <li> <p>USBREFCKSEL = 0x00000a00</p> </li> <li> <p>USBHSREGEN = 1</p> </li> <li> <p>USB33RDY = 1</p> </li> <li> <p>GOTGCTL after HAL_HCD_Start() = 0x002c0000</p> </li></ul><p>However, the first EP0 SETUP still fails with:</p><ul><li> <p>HAINT = 0x00000001</p> </li> <li> <p>HCINT = 0x00000080</p> </li> <li> <p>TXERR = 1</p> </li> <li> <p>xfer_count = 0</p> </li></ul><p>I also tested HSE-based USBPHYC clock presets.</p><p>HSE preset:</p><ul><li> <p>HSERDY = 0</p> </li> <li> <p>PLL3RDY = 0</p> </li> <li> <p>USBPHYC clock setup failed with HAL status 0x03</p> </li></ul><p>HSE bypass preset:</p><ul><li> <p>HSERDY = 0</p> </li> <li> <p>PLL3RDY = 0</p> </li> <li> <p>USBPHYC clock setup failed with HAL status 0x03</p> </li></ul><p>So I could not yet verify USBPHYC using the board HSE. The current working-but-failing path is still HSI -&gt; PLL3Q -&gt; USBPHYC 24 MHz, where the first EP0 SETUP fails with TXERR.</p><p>According to UM3276, the NUCLEO-H7S3L8 default HSE source should be the on-board 24 MHz X1 crystal. Is there any board revision, solder bridge, boot configuration, or power condition that would make HSERDY stay 0 on a default NUCLEO-H7S3L8?</p><p>Also, is HSI -&gt; PLL3Q -&gt; USBPHYC 24 MHz expected to be reliable enough for USB_OTG_HS embedded PHY host mode, or should HSE be considered mandatory in practice?</p></div>",
+                    "author": "wooseong",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107391\">@wooseong</user-mention> </p><p>Would you attach minimum firmware to reproduce the issue?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thank you for your reply.</p><p>I prepared and attached a minimum firmware package to reproduce the issue.</p><p>The intended test flow is:</p><ol><li> <p>bring up CN2 as USB Host/Source,</p> </li> <li> <p>enumerate and mount the USB MSC device,</p> </li> <li> <p>open <code>INPUT.WAV</code> from the USB stick,</p> </li> <li> <p>copy it byte-for-byte to <code>OUTPUT.WAV</code>.</p> </li></ol><p>The WAV file is not parsed or processed; it is only used as a normal test file. The purpose is to isolate the USB Host MSC / USBX / HCD / Type-C path from the original application.</p><p>A few notes for reproducing:</p><ul><li> <p>Board: NUCLEO-H7S3L8</p> </li> <li> <p>STM32Cube_FW_H7RS_V1.3.0</p> </li> <li> <p><code>XSPI2_HSLV=1</code> option byte is required</p> </li> <li> <p>The official <code>CDC_Standalone</code> example enumerates correctly on CN2 as a USB serial device on my board</p> </li> <li> <p>This minimum firmware uses HSE 24 MHz for USBPHYC</p> </li> <li> <p>CN2 VBUS/source path is enabled through PM9/TCPP03</p> </li> <li> <p>TCPP03 is detected on I2C3 at address <code>0x68</code></p> </li></ul><p>Current result:</p><ul><li> <p><code>HSERDY=1</code></p> </li> <li> <p>USBPHYC HSE/24 MHz clock setup succeeds</p> </li> <li> <p>TCPP03 source path setup succeeds</p> </li> <li> <p>The USB root port detects the device connection and the port reset completes</p> </li> <li> <p>USBX reports <code>UX_DEVICE_CONNECTION</code></p> </li> <li> <p>Enumeration then fails before VID/PID are read</p> </li> <li> <p>The failure happens around the EP0 control transfer / SET_ADDRESS stage</p> </li> <li> <p>HCD channel 0 ends with <code>URB_ERROR</code>, <code>xfer_count=0</code></p> </li></ul><p>So the firmware currently does not reach the FileX mount or the actual <code>INPUT.WAV</code> copy step because USB enumeration fails first.</p><p>If ST already has a USB Host MSC example for the NUCLEO-H7S3L8 board, even a simple one that reads a file from a USB stick, I would be very grateful if you could share it or point me to it. I can then compare my initialization sequence against the official reference.</p></div>",
+                    "author": "wooseong",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107391\">@wooseong</user-mention> </p><p>Apologies for the delayed response, and thank you for sharing the minimal firmware package.</p><p>This is very helpful. Can you confirm <code>CDC_Standalone</code> example in host mode is working as expected on the Nucleo H7S3?</p><p>I found two ST reference examples that may be useful as a baseline for the <strong>USB Host MSC</strong> path:</p><ul><li> <p><strong>X-CUBE-AZRTOS-H7RS /</strong><code>Projects/STM32H7S78-DK/Applications/USBX/<a href=\"https://github.com/STMicroelectronics/x-cube-azrtos-h7rs/tree/main/Projects/STM32H7S78-DK/Applications/USBX/Ux_Host_MSC\" rel=\"noreferrer noopener\" target=\"_blank\">Ux_Host_MSC</a></code></p> </li> <li> <p><strong>STM32CubeH7RS /</strong><code>Projects/STM32H7S78-DK/Applications/USB_Host/<a href=\"https://github.com/STMicroelectronics/STM32CubeH7RS/tree/main/Projects/STM32H7S78-DK/Applications/USB_Host/MSC_RTOS\" rel=\"noreferrer noopener\" target=\"_blank\">MSC_RTOS</a></code></p> </li></ul><p>These examples are for <strong>STM32H7S78-DK</strong>, not NUCLEO-H7S3L8, but they should still help you compare the USB host, USBX, and MSC initialization sequence.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

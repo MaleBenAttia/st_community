@@ -1,0 +1,45 @@
+{
+    "forum": [
+        {
+            "id": "164546",
+            "publicId": "164546",
+            "title": "CubeMX 6.17.0: Incorrect ISR generation (HAL_UART_IRQHandler for IrDA) in Shared IRQ",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/cubemx-6-17-0-incorrect-isr-generation-hal-uart-irqhandler-for-irda-in-shared-irq-164546",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "LPUART",
+                "Bug-report",
+                "UART-USART",
+                "STM32U0 series"
+            ],
+            "published_at": "2026-04-08T04:26:12+00:00",
+            "views": 238,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Fumihiko\n\nLet me thank you for bringing this issue to our attention.\n\nThe issue has been escalated to the development team under this internal ticket : **CDM0061487**\n\nAS Workaround, I suggest that you change the code manually.\n\nI'll let you know as soon as the issue is fixed.\n\nThanks.\n\nMahmoud",
+            "best_answer_author": "Mahmoud Ben Romdhane",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**Description**:\n\nIn STM32U083 series, when multiple UART/LPUART instances share the same NVIC interrupt vector (e.g., `USART3\\_LPUART1\\_IRQn`), STM32CubeMX incorrectly generates `HAL\\_UART\\_IRQHandler` for all instances, even if one of them is configured in **IrDA mode**.\n\nThis leads to a compilation error because:\n\n1. The handle for the IrDA instance is generated as *IRDA\\_HandleTypeDef hirdax;* (correct).\n\n2. However, in *stm32u0xx\\_it.c*, it attempts to call ***HAL\\_UART\\_IRQHandler(&huartx)***; using an undefined ***huartx*** handle.\n\n**Environment:**\n\n* STM32CubeMX Version: 6.17.0\n\n* OS: Ubuntu 24.04 LTS\n\n* MCU: STM32U083RCTx\n\n* Firmware Package: STM32Cube FW\\_U0 V1.3.0\n\n**Steps to Reproduce:**\n\n1. Create a new project for STM32U083RCTx.\n\n2. Configure USART3 mode as IrDA.\n\n3. Configure LPUART1 mode as Asynchronous.\n\n4. In the NVIC Settings tab, enable the interrupt for \"USART3 + LPUART1 global interrupt\".\n\n5. Generate the code.\n\n6. Check `stm32u0xx\\_it.c`.\n\n**Actual Result:**\n\nThe generated ISR code looks like this:\n\n```\n\n/**\n\n* @brief This function handles USART3 (combined with EXTI 24) + LPUART1 global interrupt (combined with EXTI lines 28).\n\n*/\n\nvoid USART3_LPUART1_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN USART3_LPUART1_IRQn 0 */\n\n/* USER CODE END USART3_LPUART1_IRQn 0 */\n\nHAL_UART_IRQHandler(&huart3);\n\nHAL_UART_IRQHandler(&hlpuart1);\n\n/* USER CODE BEGIN USART3_LPUART1_IRQn 1 */\n\n/* USER CODE END USART3_LPUART1_IRQn 1 */\n\n}\n\n```\n\nAs a result, the compiler throws an error: \"huart3 undeclared\" because the handle was correctly defined as *hirda3.*\n\n**Expected Result:**\n\nThe generator should recognize the peripheral mode and call the appropriate HAL handler:\n\n```\n\n/**\n\n* @brief This function handles USART3 (combined with EXTI 24) + LPUART1 global interrupt (combined with EXTI lines 28).\n\n*/\n\nvoid USART3_LPUART1_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN USART3_LPUART1_IRQn 0 */\n\n/* USER CODE END USART3_LPUART1_IRQn 0 */\n\nHAL_IRDA_IRQHandler(&hirda3);\n\nHAL_UART_IRQHandler(&hlpuart1);\n\n/* USER CODE BEGIN USART3_LPUART1_IRQn 1 */\n\n/* USER CODE END USART3_LPUART1_IRQn 1 */\n\n}\n\n```\n\nPlease check the attached ioc file.\n\nBest Regards,\n\nfumihiko",
+            "images": [],
+            "author": "Fumihiko",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"94258\">@Fumihiko</user-mention> </p>\n<p>Let me thank you for bringing this issue to our attention.</p>\n<p><span>The issue has been escalated to the development team under this internal ticket : <strong>CDM0061487</strong></span></p>\n<p>AS Workaround, I suggest that you change the code manually.</p>\n<p>I'll let you know as soon as the issue is fixed.</p>\n<p>Thanks.</p>\n<p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

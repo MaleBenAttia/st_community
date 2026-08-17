@@ -1,0 +1,90 @@
+{
+    "forum": [
+        {
+            "id": "163765",
+            "publicId": "163765",
+            "title": "HW Guidelines to configure USB OTG with STM32H563VIT6",
+            "url": "https://community.st.com/stm32-mcus-products-25/hw-guidelines-to-configure-usb-otg-with-stm32h563vit6-163765",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "USB",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-13T11:11:16+00:00",
+            "views": 568,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @POLessard\n\nabout Dual role switching using USBX\n\n>but most of the parameters are not present, such as USB\\_OTG\\_HS under connectivity\n\nYes you are correct about this point , STM32H723 is ST middleware native and uses USB\\_OTG\\_FS as instance while STM32H563 is USBX native and uses USB\\_DRD\\_FS as instance so they do not have the same method.\n\nTo implement USB DRD in a product that uses USBX and USB\\_DRD\\_FS like STM32H563 or STM32U545\n\n-You need first to implement all necessary files for both USB classes. The easiest way is to create two separate projects: one with the required USB device class and another with the required USB host class. Test each project separately to ensure correct configuration and proper operation. Then, merge the files from one project into the other to create a project that contains the necessary files for both modes. From a personal point of view, it is recommended to use the USB host project as the base and add the device files from the device project since Device mode have generally less files than host mode.\n\nhere is list of files that need to be transferred (source and header).\n\n**Critical:** follow the same original structure when pasting files.\n\n-app\\_usbx\\_device\n\n-ux\\_device\\_cdc\\_acm (ex: if device class is cdc\\_acm)\n\n-middleware/usbx/common/core/src&inc folder files\n\n-usbx device classes folder\n\n-usbxstm32 device controllers folder\n\n-stm32h5xx\\_hal\\_pcd and pcd\\_ex\n\n\\*don’t forget to add the added include folders to include paths in the GCC assembler and GCC compiler or bunch of errors will be generated\n\nNow for code developing part:\n\nYou can use the already mentioned [H7A3\\_USBX\\_DualRole](https://github.com/ST-TOMAS-Examples-USB/H7A3_USBX_DualRole) as a base to determine which files must be modified and how to implement the switch mechanism between both modes. de-initialization of the host class, disable the drive VBUS, and switch the USB instance used in the IRQ handler. here is an example:\n\n```\n\nvoid USB_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN USB_IRQn 0 */\n\n/* USER CODE END USB_IRQn 0 */\n\nif (g_usb_role == 1)\n\n{\n\nHAL_HCD_IRQHandler(&hhcd_USB_DRD_FS); // host mode\n\n}\n\nelse\n\n{\n\nHAL_PCD_IRQHandler(&hpcd_USB_DRD_FS); // device mode\n\n}\n\n/* USER CODE BEGIN USB_IRQn 1 */\n\n/* USER CODE END USB_IRQn 1 */\n\n}\n\n```\n\nAdditionally, initialization of the device class. Ensure a proper implementation of the device class memory pool size in app\\_azure\\_rtos.c.\n\nthis example also uses the USBX middleware, the only difference is the instance naming( USB\\_OTG\\_FS instead of USB\\_DRD\\_FS) and some other stuff like device class configuration\n\nhere is an example that should work on the STM32H563\n\n```\n\nHAL_PCDEx_PMAConfig(&hpcd_USB_DRD_FS, 0x00, PCD_SNG_BUF, 0x14);\n\nHAL_PCDEx_PMAConfig(&hpcd_USB_DRD_FS, 0x80, PCD_SNG_BUF, 0x54);\n\nHAL_PCDEx_PMAConfig(&hpcd_USB_DRD_FS, USBD_CDCACM_EPOUT_ADDR, PCD_SNG_BUF, 0x94);\n\nHAL_PCDEx_PMAConfig(&hpcd_USB_DRD_FS, USBD_CDCACM_EPIN_ADDR, PCD_SNG_BUF, 0x98);\n\nHAL_PCDEx_PMAConfig(&hpcd_USB_DRD_FS, USBD_CDCACM_EPINCMD_ADDR, PCD_SNG_BUF, 0x9C);\n\n```\n\n\\*Don't forget to increase dedicated memory pool size for threadX and both classes of USBX or errors related to memory allocation will occur.\n\nAlso, don't forget to enable\n\n```\n\n#define HAL_PCD_MODULE_ENABLED\n\n```\n\nin stm32h5xx\\_hal\\_conf.h if your base project is configured as host mode.\n\nHope that helps\n\nBR\n\nGyessine",
+            "best_answer_author": "Gyessine",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nis there any HW guidelines to configure a USB OTG port with STM32H563VIT6 with VBUS detection?",
+            "images": [],
+            "author": "POLessard",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105078\">@POLessard</user-mention> </p>\n<p>Please refer to:</p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/management-of-vbus-sensing-for-usb-device-design/ta-p/49485\" target=\"_blank\">Management of VBUS sensing for USB device design - STMicroelectronics Community</a></p>\n<p>AN4879: <a href=\"https://www.st.com/resource/en/application_note/an4879-introduction-to-usb-hardware-and-pcb-guidelines-using-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">Introduction to USB hardware and PCB guidelines using STM32 MCUs</a></p>\n<p> </p>\n<p>Br,</p></div>",
+                    "author": "NesrynELMK",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the follow up;</p><p>Based on the attached image (found in AN4879), the STM32H563 appears to be only USB device or host, no support for OTG. Is that correct?</p><p>If so, is there a way to switch between host and device mode with some HW / SW?</p></div>",
+                    "author": "POLessard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; STM32H563 appears to be only USB device or host, no support for OTG. Is that correct?</em></p><p>Correct. No ID pin negotiation.</p><p><em>&gt; If so, is there a way to switch between host and device mode with some HW / SW?</em></p><p>You can switch between device and host in software by de-initializing the device interface and initializing the host interface (or the opposite).</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105078\">@POLessard</user-mention></p>\n<p>I suggest you to refer to the reference design in Nucleo and discovery board <a href=\"https://www.st.com/en/evaluation-tools/nucleo-h563zi.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_blank\">NUCLEO-H563ZI</a></p>\n<p>Maybe this article <a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-stm32-as-usb-dual-role/ta-p/805806\" target=\"_blank\">How to configure STM32 as USB dual role</a> can be helpful.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the feedback, I followed the steps from the article above, the article refers to the NUCLEO-H<strong>723</strong>ZG and I was able to reproduce the steps, it seems to be straight forward but our device is the <span>STM32H<strong>563</strong>VIT6. I tried to reproduce the steps using the NUCLEO-H<strong>563</strong>ZG but most of the parameters are not present, such as USB_OTG_HS under connectivity, etc... Do you have any example of USB dual mode support from the STM32H5 series?</span></p></div>",
+                    "author": "POLessard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105078\">@POLessard</user-mention> </p>\n<p>Dual role is not supported using CubeMX, you need to copy stack resources manually (either USBX or classic core middleware). This example might be helpful <a href=\"https://github.com/ST-TOMAS-Examples-USB/H7A3_USBX_DualRole\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">H7A3_USBX_DualRole</a> using USBX.  <user-mention data-id=\"88547\">@Gyessine</user-mention> may help you on this. </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105078\">@POLessard</user-mention> <br/>about Dual role switching using USBX<br/>&gt;<span>but most of the parameters are not present, such as USB_OTG_HS under connectivity</span><br/>Yes you are correct about this point , STM32H723 is ST middleware native and uses USB_OTG_FS as instance while STM32H563 is USBX native and uses USB_DRD_FS as instance so they do not have the same method.<br/>To implement USB DRD in a product that uses USBX and USB_DRD_FS like STM32H563 or STM32U545<br/>-You need first to implement all necessary files for both USB classes. The easiest way is to create two separate projects: one with the required USB device class and another with the required USB host class. Test each project separately to ensure correct configuration and proper operation. Then, merge the files from one project into the other to create a project that contains the necessary files for both modes. From a personal point of view, it is recommended to use the USB host project as the base and add the device files from the device project since Device mode have generally less files than host mode.<br/>here is list of files that need to be transferred (source and header).<br/><strong>Critical:</strong> follow the same original structure when pasting files.<br/>-app_usbx_device<br/>-ux_device_cdc_acm (ex: if device class is cdc_acm)<br/>-middleware/usbx/common/core/src&amp;inc folder files<br/>-usbx device classes folder<br/>-usbxstm32 device controllers folder<br/>-stm32h5xx_hal_pcd and pcd_ex<br/> *don’t forget to add the added include folders to include paths in the GCC assembler and GCC compiler or bunch of errors will be generated</p>\n<p>Now for code developing part:<br/>You can use the already mentioned <a href=\"https://github.com/ST-TOMAS-Examples-USB/H7A3_USBX_DualRole\" rel=\"nofollow noopener noreferrer\" target=\"_self\">H7A3_USBX_DualRole</a> as a base<span> to determine which files must be modified and how to implement the switch mechanism between both modes. de-initialization of the host class, disable the drive VBUS, and switch the USB instance used in the IRQ handler. here is an example:<br/></span></p>\n<pre class=\"lia-code-sample language-c\"><code>void USB_IRQHandler(void)\n{\n /* USER CODE BEGIN USB_IRQn 0 */\n\n /* USER CODE END USB_IRQn 0 */\n\t if (g_usb_role == 1)\n\t {\n\t HAL_HCD_IRQHandler(&amp;hhcd_USB_DRD_FS); // host mode\n\t }\n\t else\n\t {\n\t HAL_PCD_IRQHandler(&amp;hpcd_USB_DRD_FS); // device mode\n\t }\n /* USER CODE BEGIN USB_IRQn 1 */\n\n /* USER CODE END USB_IRQn 1 */\n}</code></pre>\n<p><span>Additionally, initialization of the device class. Ensure a proper implementation of the device class memory pool size in app_azure_rtos.c.</span><br/>this example also uses the USBX middleware, the only difference is the instance naming( USB_OTG_FS instead of USB_DRD_FS) and some other stuff like device class configuration<br/>here is an example that should work on the STM32H563</p>\n<pre class=\"lia-code-sample language-c\"><code> HAL_PCDEx_PMAConfig(&amp;hpcd_USB_DRD_FS, 0x00, PCD_SNG_BUF, 0x14);\n HAL_PCDEx_PMAConfig(&amp;hpcd_USB_DRD_FS, 0x80, PCD_SNG_BUF, 0x54);\n HAL_PCDEx_PMAConfig(&amp;hpcd_USB_DRD_FS, USBD_CDCACM_EPOUT_ADDR, PCD_SNG_BUF, 0x94);\n HAL_PCDEx_PMAConfig(&amp;hpcd_USB_DRD_FS, USBD_CDCACM_EPIN_ADDR, PCD_SNG_BUF, 0x98);\n HAL_PCDEx_PMAConfig(&amp;hpcd_USB_DRD_FS, USBD_CDCACM_EPINCMD_ADDR, PCD_SNG_BUF, 0x9C);</code></pre>\n<p>*Don't forget to increase dedicated memory pool size for threadX and both classes of USBX or errors related to memory allocation will occur.<br/>Also, don't forget to enable </p>\n<div style=\"background-color: #ffffff; padding: 0px 0px 0px 2px;\">\n<div style=\"color: #000000; background-color: #ffffff; font-family: 'Consolas'; font-size: 10pt; white-space: pre;\"><pre class=\"lia-code-sample language-c\"><code>#define HAL_PCD_MODULE_ENABLED</code></pre>\n<p style=\"margin: 0;\"><font face=\"arial,helvetica,sans-serif\"> in stm32h5xx_hal_conf.h</font> <font face=\"arial,helvetica,sans-serif\">if your base project is configured as host mode.</font></p>\n</div>\n</div>\n<p>Hope that helps<br/>BR<br/>Gyessine<br/><br/></p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "NesrynELMK",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

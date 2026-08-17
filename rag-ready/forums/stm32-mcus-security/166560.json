@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "166539",
+            "publicId": "166560",
+            "title": "What is NVSTATE in RM0481 rev 4?",
+            "url": "https://community.st.com/stm32-mcus-security-36/what-is-nvstate-in-rm0481-rev-4-166560",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "Documentation",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-06-30T19:44:32+00:00",
+            "views": 123,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "This is a feedback for the team:\n\n*“Based on the content of section 3.8.2 Embedded flash memory write protection of RM0481, the WRP is intended to prevent any unwanted write or erase operation on specific Flash areas, and this protection follows a content immutability logic. The WRP configuration can no longer be modified when the product is in PRODUCT\\_STATE = TZ-Closed, Closed or Locked, and in particular it is no longer dynamically modifiable in CLOSED state.\n\nWhen a firmware is defined as immutable, the WRP is set together with the CLOSED state, which means that it is no longer possible to modify either that code or the WRP configuration afterward. In such a case, a firmware update can only be performed in a Flash area that is not write-protected.*\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3257b99-b780-4fc6-92e4-168d309601a2.png)\n\n*”*",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "In RM0481 rev 4 April 2025 I find the following text:\n\n> 7.6.8 Write protection\n\n>\n\n> A write-protected group of sectors cannot be erased nor programmed. As a result, a bank\n\n> erase cannot be performed if one group of sectors is write-protected, unless a NVSTATE\n\n> transition to OPEN is triggered (erasing the whole user flash memory).\n\n**It is not clear what NVSTATE is in this context. Is this a left-over from documentation of a different MCU?**\n\nI don’t think it is PRODUCT\\_STATE. Because to my understanding you can have a PRODUCT\\_STATE > OPEN and not enable TrustZone and then write to FLASH\\_WRP1R\\_PRG to turn off write protection - you should be able to do a bank erase on bank 1. You can set initial values with an OB but I can’t see any documentation that this also makes changing FLASH\\_WRP1R\\_PRG illegal and the relevant OBs are not protected by PRODUCT\\_STATE the same way as e.g. SECWM and HDP.\n\nSame reasoning for flash bank 2.\n\nAnd if you enable TrustZone, it is stated that FLASH\\_WRP[1, 2]R\\_PRG is non-secure. So as long as you don’t set part of the flash to secure watermarked, bank erase should work.\n\nAlso note that a AFAIK a regression of PRODUCT\\_STATE do not restore the WRP OBs to their default state.\n\nThe only other place NVSTATE is mentioned in RM0481 is in *Table 507 TAMP interconnection*:\n\n> tamp\\_itamp6     JTAG/SWD access when NVSTATE ? OPEN\n\n**Here, “NVSATE” should be “PRODUCT\\_STATE”?**\n\nBest regards, Jesper",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3257b99-b780-4fc6-92e4-168d309601a2.png"
+            ],
+            "author": "JesperEC",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>This is a feedback for the team:</p><p><span style=\"color:#3300ff;\"><em>“Based on the content of section 3.8.2 Embedded flash memory write protection of RM0481, the WRP is intended to prevent any unwanted write or erase operation on specific Flash areas, and this protection follows a content immutability logic. The WRP configuration can no longer be modified when the product is in PRODUCT_STATE = TZ-Closed, Closed or Locked, and in particular it is no longer dynamically modifiable in CLOSED state.<br/>When a firmware is defined as immutable, the WRP is set together with the CLOSED state, which means that it is no longer possible to modify either that code or the WRP configuration afterward. In such a case, a firmware update can only be performed in a Flash area that is not write-protected.</em></span></p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3257b99-b780-4fc6-92e4-168d309601a2.png\"/></figure><p><span style=\"color:#3300ff;\"><em>”</em></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Non-volatile ?</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I would think so, too.</p><p>The abbreviation NVM for any memory technology retaining it’s state during power-off is very common in the industry.</p><p>I don’t know the H5 reference manual in any detail, but I would start with searching the whole document for said term. Perhaps the name of a bit in some peripheral config or status register.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>I don’t know the H5 reference manual in any detail, but I would start with searching the whole document for said term.</p></blockquote><p> </p><p>Already done. There are exactly 2 occurrences and both of them are listed in my post. 😎 </p><p>It is possible that the text exists in some bitmap image as well and then can’t be found by a standard pdf-viewer, but I consider that unlikely.</p><p> </p><p>I think this needs to be addressed by someone from ST and I presume they need to correct the document.</p><p> </p><p>    Best regards, Jesper</p><p> </p></div>",
+                    "author": "JesperEC",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

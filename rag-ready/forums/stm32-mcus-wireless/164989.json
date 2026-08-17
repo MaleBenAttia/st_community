@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "164989",
+            "publicId": "164989",
+            "title": "How to implement button interrupts in STM32WBA65I-DK1",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/how-to-implement-button-interrupts-in-stm32wba65i-dk1-164989",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "GPIO-EXTI",
+                "Interrupt",
+                "STM32WBA series"
+            ],
+            "published_at": "2026-04-22T06:30:23+00:00",
+            "views": 199,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "For the [STM32WBA65I-DK1](https://www.st.com/en/evaluation-tools/stm32wba65i-dk1.html) an external button (e.g. the center button of the blue joystick B1) would need to be handled either by GPIO polling or via GPIO EXTI interrupt configuration.\n\nFor a simple button input, polling is often the more practical approach. It avoids the additional interrupt load caused by contact bounce and is generally easier to implement and validate.\n\nYou could use one of the following methods:\n\n* **Polling**: if its frequency is chosen appropriately, explicit debouncing may not be necessary for very simple applications. However, for a more robust solution, a small software debounce filter is usually recommended.\n\n* **Interrupts**: a valid approach when a fast, event-driven response is required. In that case, it is best practice to keep the ISR very short and handle the actual button action in the main context or in a task.\n\nIf you still want to try it with an interrupt, you can define the USER\\_Button (PA3) as EXTI with falling edge (there is already an external pull-ip R56) and enable EXTI3 in the NVIC. The EXTI callback can then be used to set a flag in software, while the actual button action is handled in the main loop:\n\n```\n\n/* USER CODE BEGIN PV */\n\nvolatile uint8_t user_button_pressed = 0; // example flag\n\n/* USER CODE END PV */\n\n/* USER CODE BEGIN 0 */\n\nvoid HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)\n\n{\n\nif (GPIO_Pin == GPIO_PIN_3) user_button_pressed = 1;\n\n}\n\n/* USER CODE END 0 */\n\n```\n\nIn your while loop you could add something like:\n\n```\n\nwhile (1)\n\n{\n\nif (user_button_pressed)\n\n{\n\nuser_button_pressed = 0; // reset the flag\n\n// ... some button action ...\n\n}\n\n}\n\n```\n\nIf you also want to use the four other buttons on the blue joystick B1, then instead of the method described below, analogue polling of all 5 buttons via the ADC is more appropriate.\n\nHope that helps?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm developing using the STM32WBA65I-DK1.\n\nI'd like to know how to implement interrupt handling for button presses.\n\nIt appears that stm32wba65i\\_discovery.h does not contain any APIs related to button presses (which is perhaps to be expected since the DK does not have push buttons).\n\nThe sample code I'm using is BLE\\_HeartRate\\_Thread. If you have any source code that might be helpful, please let me know.",
+            "images": [],
+            "author": "gocchan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This feature is called EXTI on STM32. Check this example:</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeWBA/tree/main/Projects/NUCLEO-WBA55CG/Examples/GPIO/GPIO_EXTI\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">STM32CubeWBA/Projects/NUCLEO-WBA55CG/Examples/GPIO/GPIO_EXTI at main · STMicroelectronics/STM32CubeWBA</a></p></div>",
+                    "author": "Mikk Leini",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For the <a href=\"https://www.st.com/en/evaluation-tools/stm32wba65i-dk1.html\" rel=\"noopener noreferrer\" target=\"_self\">STM32WBA65I-DK1</a> an external button (e.g. the center button of the blue joystick B1) would need to be handled either by GPIO polling or via GPIO EXTI interrupt configuration.</p>\n<p>For a simple button input, polling is often the more practical approach. It avoids the additional interrupt load caused by contact bounce and is generally easier to implement and validate.</p>\n<p>You could use one of the following methods:</p>\n<ul>\n<li><strong>Polling</strong>: if its frequency is chosen appropriately, explicit debouncing may not be necessary for very simple applications. However, for a more robust solution, a small software debounce filter is usually recommended.</li>\n<li><strong>Interrupts</strong>: a valid approach when a fast, event-driven response is required. In that case, it is best practice to keep the ISR very short and handle the actual button action in the main context or in a task.</li>\n</ul>\n<p>If you still want to try it with an interrupt, you can define the USER_Button (PA3) as EXTI with falling edge (there is already an external pull-ip R56) and enable EXTI3 in the NVIC. The EXTI callback can then be used to set a flag in software, while the actual button action is handled in the main loop:</p>\n<pre class=\"lia-code-sample language-c\"><code>/* USER CODE BEGIN PV */\nvolatile uint8_t user_button_pressed = 0; // example flag\n/* USER CODE END PV */\n\n/* USER CODE BEGIN 0 */\nvoid HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)\n{\n if (GPIO_Pin == GPIO_PIN_3) user_button_pressed = 1;\n}\n/* USER CODE END 0 */</code></pre>\n<p> In your while loop you could add something like:</p>\n<pre class=\"lia-code-sample language-c\"><code>while (1)\n{\n if (user_button_pressed)\n {\n user_button_pressed = 0; // reset the flag\n // ... some button action ...\n }\n}</code></pre>\n<p>If you also want to use the four other buttons on the blue joystick B1, then instead of the method described below, analogue polling of all 5 buttons via the ADC is more appropriate.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you all very much.</p><p>I will use your comments as a reference as I proceed with development.</p></div>",
+                    "author": "gocchan",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

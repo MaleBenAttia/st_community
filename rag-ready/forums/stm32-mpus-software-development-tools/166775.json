@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "166751",
+            "publicId": "166775",
+            "title": "Error on SDK build for stm32mp21-disco for scarthgap (and possibly others)",
+            "url": "https://community.st.com/stm32-mpus-software-development-tools-138/error-on-sdk-build-for-stm32mp21-disco-for-scarthgap-and-possibly-others-166775",
+            "category": "STM32 MPUs Software development tools",
+            "tags": [
+                "GitHub",
+                "Yocto"
+            ],
+            "published_at": "2026-07-08T13:14:04+00:00",
+            "views": 73,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Final Solution is what you proposed and it will be integrated in next releases (first on v7.0.0).\n\nThanks a lot for your contribution !!",
+            "best_answer_author": "Bernard PUEL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "<https://github.com/STMicroelectronics/meta-st-stm32mp/blob/scarthgap/recipes-bsp/trusted-firmware-m/tf-m-stm32mp.inc#L263> and the following cp commands preserve the ownership of the file which is a problem for yocto.\n\nWhen I build the sdk, I am getting the following error:\n\n> Exception: Exception: KeyError: 'getpwuid(): uid not found: <my-uid-here>'\n\n> Path <path-to-build-folder>/tmp/work/x86\\_64-nativesdk-<distro-sdk-name>-linux/nativesdk-tf-m-stm32mp-scripts/v2.1.4-stm32mp-r2.1/sstate-build-package/package/usr/local/oe-sdk-hardcoded-buildpath/sysroots/x86\\_64-<distro-sdk-name>-linux/usr/share/tf-m/scripts/wrapper/imgtool/\\_\\_init\\_\\_.py is owned by uid <my-uid-here>, gid <my-gid-here>, which doesn't match any user/group on target. This may be due to host contamination.\n\nThe fix is quite easy, any instance of “cp -a” needs to be replaced by “cp -a --no-preserve=ownership”. So you copy every other attribute but the ownership.\n\nI fixed it in a .bbappend but that would be nice to fix it in the source code directly: <https://github.com/STMicroelectronics/meta-st-stm32mp/blob/scarthgap/recipes-bsp/trusted-firmware-m/tf-m-stm32mp.inc#L263>",
+            "images": [],
+            "author": "mathieu.jadin",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108071\">@mathieu.jadin</user-mention> ,<br/>Could you please precise which OpenSTLinux version you build, as well as your host machine OS setup (Ubuntu version ?).</p><p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>And did you well follow this article ? <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_create_an_SDK_for_OpenSTLinux_distribution\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_create_an_SDK_for_OpenSTLinux_distribution</a> </p></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I could not reproduce on my side the issue but your proposal makes sens anyway (whatever the root cause is) and we may also propose another better (more generic) solution. Our integration team is looking at it ... stay tuned.</p></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Final Solution is what you proposed and it will be integrated in next releases (first on v7.0.0).</p><p>Thanks a lot for your contribution !!</p></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

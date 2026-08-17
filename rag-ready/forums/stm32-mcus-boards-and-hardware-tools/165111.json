@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "165111",
+            "publicId": "165111",
+            "title": "Did I break my Nucleo-C092RC ?",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/did-i-break-my-nucleo-c092rc-165111",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32C0 series",
+                "ST boards"
+            ],
+            "published_at": "2026-04-25T10:33:37+00:00",
+            "views": 252,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nIn which condition you did measure the resistivity on JP5?: the board is powered on? you should measure the resistivity with the board completely pored of: need to disconnect all the stuff from it: all the external cables and wiring. If you find 2 ohm on JP5, unfortunately there is something broken on the board.\n\n![mALLEm_0-1777287590332.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e2e4844-db35-18b9-944c-7c53011ac08b.png \"mALLEm_0-1777287590332.png\")\n\nTo find what happened to your board:\n\n1- Test U10: the 5V regulator. Remove JP1 and connect VIN between 7 to 12V max and find if you have 5V on JP1 pin 3 like indicated in the above image. If 5 volt is available, U10 chip is OK.\n\n2- Test U9: the 3.3V regulator. If U10 is OK, put JP1 on position 3-4 to select the external source over VIN as power source and remove JP5. Do you get 3.3V? on the regulator side as indicated in the above photo? If yes, I can suspect the MCU is gone.. You can confirm that by removing JP5 and test the resistivity on JP5 pin / MCU side. if it's very low, the MCU is broken..",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone\n\ni am currently working on a project with a NUCLEO-C092RC Board. With this Board i want to send OBD-II Frames to my car and receive reponses with data. I also use a LCD Display via SPI. But now i have a problem. i connected CANH/L with the Board. I also connected 12V and GND from the OBD-II-Port to a buck converter, which steps the voltage down to 7 V for VIN on the Board, which should be within spec. Then i tried to send a frame, but i did not get a response, when the Board was only powered by 12V via buck converter. After that i think i broke my MCU, because then i connected my PC with the Board and switched the power source back from VIN to ST-Link with a jumper. I was able to debug my programm. but when i also disconnected CANL and CANH from the Board or switching the jumper from VIN to ST-Link (i am nor sure anymore), the red LED from STMPS2141STR came on. It only turns off, if i disconnect VDD from 3V3 Volt with pulling JP5. I also measured from what i think is the VDD header pin of JP5 to GND what showed 2 ohms....\n\nI also measured between this VDD pin and MCU pin 7 (VREF+) which showed also almost 0 ohms. But when i measure between pin 8 (VDD/VDDA) of the MCU and pin 7 OR VDD pin of JP5 it is not a short circuit.\n\nSo now i am not sure, if i killed my MCU and if so, why it happend. Maybe because VIN was the main source but i was also plugged in with USB-C cable (maybe for 1 min max)? or because the CAN was still connected but GND was GND of my PC? But CAN is differential......\n\nhere is the Baord: [NUCLEO-C092RC | Product - STMicroelectronics](https://www.st.com/en/evaluation-tools/nucleo-c092rc.html)\n\nan the MCU: [STM32C092RC | Product - STMicroelectronics](https://www.st.com/en/microcontrollers-microprocessors/stm32c092rc.html#cad-resources)\n\ni am very thankful for help :)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e2e4844-db35-18b9-944c-7c53011ac08b.png"
+            ],
+            "author": "MaxiTaxi11",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>In which condition you did measure the resistivity on JP5?: the board is powered on? you should measure the resistivity with the board completely pored of: need to disconnect all the stuff from it: all the external cables and wiring. If you find 2 ohm on JP5, unfortunately there is something broken on the board.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1777287590332.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1777287590332.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e2e4844-db35-18b9-944c-7c53011ac08b.png\" title=\"mALLEm_0-1777287590332.png\"/></span></p>\n<p>To find what happened to your board:</p>\n<p>1- Test U10: the 5V regulator. Remove JP1 and connect VIN between 7 to 12V max and find if you have 5V on JP1 pin 3 like indicated in the above image. If 5 volt is available, U10 chip is OK.</p>\n<p>2- Test U9: the 3.3V regulator. If U10 is OK, put JP1 on position 3-4 to select the external source over VIN as power source and remove JP5. Do you get 3.3V? on the regulator side as indicated in the above photo? If yes, I can suspect the MCU is gone.. You can confirm that by removing JP5 and test the resistivity on JP5 pin / MCU side. if it's very low, the MCU is broken..</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p> </p><p>on saturday i measured the resistance between JP5 VDD and one of the GND pins without power. it showed a short circuit. There was also 3V3 between the 2 pins of JP5. I still have power but i killed my MCU. Now i will order parts and won't try messing with two GND potenzial at the same time.... I was not feeling good, when i did this, but now i know for sure, that it was a bad idea.</p><p> </p><p>Thank you for your support</p></div>",
+                    "author": "MaxiTaxi11",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

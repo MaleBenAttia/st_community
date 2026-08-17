@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "164270",
+            "publicId": "164270",
+            "title": "A question about the UART irq code generate by cubemx",
+            "url": "https://community.st.com/stm32-mcus-products-25/a-question-about-the-uart-irq-code-generate-by-cubemx-164270",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32CubeMX",
+                "STM32H7 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-03-29T11:04:11+00:00",
+            "views": 169,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "HAL assumes SysTick (or whatever is being used to drive HAL\\_GetTick) has a higher priority than functions it is called from. It's up to you to ensure this is the case.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "**When a USART is configured without a clock, the code generator treats it as a UART and assigns HAL\\_UART\\_IRQHandler as the interrupt handler. However, within this handler, there is a blocking operation during the idle process:(void)HAL\\_DMA\\_Abort(huart->hdmarx);**\n\n**When certain error conditions occur, the code can become stuck in HAL\\_GetTick(). This happens because the SysTick priority is lower than that of the UART interrupt. I have observed this behavior multiple times, particularly when noise is present on the UART signal line.**\n\n**Has Anyone seen this situation before?**",
+            "images": [],
+            "author": "NoobE",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HAL assumes SysTick (or whatever is being used to drive HAL_GetTick) has a higher priority than functions it is called from. It's up to you to ensure this is the case.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

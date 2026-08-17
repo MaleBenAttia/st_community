@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "163786",
+            "publicId": "163786",
+            "title": "NUCLEO-WL55JC2: TouchGFX never displaying anything to screen",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/nucleo-wl55jc2-touchgfx-never-displaying-anything-to-screen-163786",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "STM32CubeMX",
+                "TouchGFX"
+            ],
+            "published_at": "2026-03-13T19:38:06+00:00",
+            "views": 287,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Well, typically the controlling MCU needs to have enough RAM so that, besides other data, at least one frame of the display can fit inside, because the frame is generated within the MCU. So, whether a frame fits into the RAM depends on the number of pixels of the display and the desired colour depth.\n\nThe topic of colour depth would probably go beyond the scope of this thread, but you can already educate yourself online, for example on topics as [Colour Depth](https://en.wikipedia.org/wiki/Color_depth) or [High Colour](https://en.wikipedia.org/wiki/High_color).\n\nIn my humble opinion, you should either drastically reduce the display size so that its frame still fits into the RAM, for example to an OLED with 128x64 pixels, or choose an MCU with more RAM.",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hey all, I've used this tutorial: <https://youtu.be/suMytEyQTP4?si=jLtyF5uH1Qd6zpYv>\n\nto run TouchGFX on several different MCUs/boards such as the black pill or NUCLEO-F446RE. However, I simply cannot get anything to display when I setup TouchGFX on my NUCLEO-WL55JC2. I'm unsure if there is something I'm missing that makes it unfeasible or much more difficult to get it running on the board, but I'm at my wit's end after debugging for hours and finding no issue. The code compiles and programs to the board fine, and I've verified all connections as well as parameters, and I am at a loss as to what to do. If anyone could help I would greatly appreciate it. (Note: I've tried in single core setup to get it to work as well and that did not seem to solve the issue.)",
+            "images": [],
+            "author": "Fadude",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"105094\">@Fadude</user-mention>, to the community!</p>\n<p>What kind of display do you want to connect to the poor little STM32WL55JC?</p>\n<p>Are you aware that even with a fairly small QVGA display with 320x240 resolution and a colour depth of 16 colours (4-bit) as in the example from ControllersTech, you already need 153'600 bytes of SRAM, but the STM32WL55JC only has a total of 65'536 bytes, which you will surely need for other purposes as well?</p>\n<p>And are you also aware that e.g. an STM32F446 can operate at 180MHz, whereas the STM32WL55JC only runs at a maximum of 48MHz, offering just almost a quarter of the processing power?</p>\n<p>And now you might also want to achieve a frame rate of perhaps only 15 frames per second, which means you have to <span>squeeze </span>a continuous data stream of 153,600 bytes * 8 bits/byte * 15 frames = 18,432,000 bits per second through the SPI channel - just for the screen and at a 48MHz clock. Is that really sensible?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It's an ILI9341 display over SPI. I am aware of the severe limitations of the board when it comes to SRAM and while you would need to use partial framebuffers to get anything to display, I don't need anything crazy to be done with the touchscreen besides displaying a small amount of data every few seconds. I did go with the WL55 since I want the LoRa support built into the board. If getting anything to display is not achievable, would it be better to simply scrap the idea altogether or maybe I could try a different STM32 with more SRAM to use that can communicate with the Nucleo board (via UART or SPI or any type of protocol) I already have? I'm relatively new to the embedded world so there are definitely a lot of factors and parameters I miss or are completely unaware of.</p></div>",
+                    "author": "Fadude",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well, typically the controlling MCU needs to have enough RAM so that, besides other data, at least one frame of the display can fit inside, because the frame is generated within the MCU. So, whether a frame fits into the RAM depends on the number of pixels of the display and the desired colour depth. <br/>The topic of colour depth would probably go beyond the scope of this thread, but you can already educate yourself online, for example on topics as <a href=\"https://en.wikipedia.org/wiki/Color_depth\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Colour Depth</a> or <a href=\"https://en.wikipedia.org/wiki/High_color\" rel=\"nofollow noopener noreferrer\" target=\"_self\">High Colour</a>. <br/>In my humble opinion, you should either drastically reduce the display size so that its frame still fits into the RAM, for example to an OLED with 128x64 pixels, or choose an MCU with more RAM.</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

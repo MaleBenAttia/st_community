@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "165034",
+            "publicId": "165034",
+            "title": "Setting GPIO bits nondestructively - HAL or LL? (Using an STM32F103CBT6 - Blue Pill board)",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/setting-gpio-bits-nondestructively-hal-or-ll-using-an-stm32f103cbt6-blue-pill-board-165034",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-04-23T07:04:56+00:00",
+            "views": 252,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I'd recommend to consult the reference manual.\n\nThe F103 has a BSRR register for setting and resetting of individual bits, and a BRR for resetting bits.\n\nSection 9.2.5 and 9.2.6 in RM008 : <https://www.st.com/resource/en/reference_manual/rm0008-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf>",
+            "best_answer_author": "Ozone",
+            "best_answer_author_role": "Principal",
+            "content_text": "This is probably an old hat to most of you here but I'm facing this problem momentarily:\n\nUsing an STM32F103CBT6 (Blue Pill) where GPIOB Port is used already with the following\n\nPB3 - SPI1\\_SCK\n\nPB5 - SP1\\_MOSI\n\nPB6 - Some Interface Function (OUTPUT)\n\nPB7 - Some Interface Function (OUTPUT)\n\nI want to use PB0, PB1, PB4, PB8, PB12,PB13,PB14,PB15 for a keyboard matrix scan and output\n\na running pattern to these pins. Writing the bits should be nondestructive what the remaining bits is concerned.\n\nAt the back of my mind I recall something like BSRR, but could someone help me to get on the right track?\n\nI'm using HAL in this app (under STM32CubeIDE).",
+            "images": [],
+            "author": "chriskuku",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'd recommend to consult the reference manual.<br/>The F103 has a BSRR register for setting and resetting of individual bits, and a BRR for resetting bits.<br/>Section 9.2.5 and 9.2.6 in RM008 : <a href=\"https://www.st.com/resource/en/reference_manual/rm0008-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/reference_manual/rm0008-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf</a></p><p> </p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"34394\">@chriskuku</user-mention></p>\n<p>And additionally, I would like to point out once again that the Bluepills have contained almost exclusively fakes for years, which we cannot support. It would make more sense to contact the manufacturer of the counterfeits.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>LL_GPIO_SetOutputPin</strong> sets individual pins or masks of pins on the same port using lower 16 bits of <span><strong>BSRR</strong>: <strong>BSy</strong>:</span>.</p><p><span><strong>LL_GPIO_ResetOutputPin</strong> clears individual pins or masks of pins on the same port using upper 16 bits of <strong>BSRR</strong>: <strong>BRy</strong>.</span></p><p><span><strong>HAL_GPIO_WritePin</strong> sets or clears individual pins or masks of pins on the same port using <strong>BSRR</strong>.</span></p><p>If you want to set and clear multiple pins on the same port in one operation you need to write to <strong>BSRR </strong>yourself: </p><pre class=\"lia-code-sample language-c\"><code>BSRR = (pinsToClear&lt;&lt;16) | pinsToSet;</code></pre><p><span><br/><br/></span></p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

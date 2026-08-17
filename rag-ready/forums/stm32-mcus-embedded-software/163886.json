@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163886",
+            "publicId": "163886",
+            "title": "USB PD SINK application with APDO",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-pd-sink-application-with-apdo-163886",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB",
+                "STM32G0 series",
+                "USB Type-C and power delivery"
+            ],
+            "published_at": "2026-03-17T13:10:11+00:00",
+            "views": 209,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "I solved this problem (with AI help ;) )\n\nIn file main.c I added the tas, which periodically send request, as below:\n\n```\n\nvoid StartPeriodTask1(void const * argument)\n\n{\n\n/* USER CODE BEGIN StartPeriodTask1 */\n\n/* Infinite loop */\n\nfor(;;)\n\n{\n\nUSBPD_PE_Send_Request(USBPD_PORT_0, PDO_Parameters, APDO_Position);\n\nosDelay(12000);\n\n}\n\n/* USER CODE END StartPeriodTask1 */\n\n}\n\n```\n\nIn main.h:\n\n```\n\nextern uint32_t PDO_Parameters;\n\nextern uint8_t APDO_Position;\n\n```\n\nAnd in usbpd\\_dpm\\_user.c:\n\n```\n\nuint8_t If_APDO=1U;\n\nuint32_t PDO_Parameters=0U;\n\nuint8_t APDO_Position=0U;\n\n```\n\nAnd:\n\n```\n\nvoid USBPD_DPM_SNK_EvaluateCapabilities(uint8_t PortNum, uint32_t *PtrRequestData, USBPD_CORE_PDO_Type_TypeDef *PtrPowerObjectType)\n\n{\n\n/* USER CODE BEGIN USBPD_DPM_SNK_EvaluateCapabilities */\n\n//DPM_USER_DEBUG_TRACE(PortNum, \"ADVICE: update USBPD_DPM_SNK_EvaluateCapabilities\");\n\nUSBPD_SNKRDO_TypeDef rdo;\n\nif(If_APDO==1)\n\n{\n\nrdo.d32=0U;\n\nrdo.ProgRDO.ObjectPosition=6U;\n\nrdo.ProgRDO.OutputVoltageIn20mV=1050U; //24V\n\nrdo.ProgRDO.OperatingCurrentIn50mAunits=60U; //3A\n\nrdo.ProgRDO.NoUSBSuspend=USBPD_ENABLE;\n\nrdo.ProgRDO.USBCommunicationsCapable=USBPD_ENABLE;\n\n*PtrPowerObjectType=USBPD_CORE_PDO_TYPE_APDO;\n\n*PtrRequestData=rdo.d32;\n\nPDO_Parameters=rdo.d32;\n\nAPDO_Position=rdo.ProgRDO.ObjectPosition;\n\n}\n\nelse\n\n{\n\nrdo.d32=0U;\n\nrdo.FixedVariableRDO.ObjectPosition=5U;\n\nrdo.FixedVariableRDO.MaxOperatingCurrent10mAunits=300U;\n\nrdo.FixedVariableRDO.OperatingCurrentIn10mAunits=300U;\n\nrdo.FixedVariableRDO.USBCommunicationsCapable=USBPD_ENABLE;\n\nrdo.FixedVariableRDO.NoUSBSuspend=USBPD_ENABLE;\n\nrdo.FixedVariableRDO.CapabilityMismatch=USBPD_DISABLE;\n\n*PtrPowerObjectType=USBPD_CORE_PDO_TYPE_FIXED;\n\n*PtrRequestData=rdo.d32;\n\n}\n\n/* USER CODE END USBPD_DPM_SNK_EvaluateCapabilities */\n\n}\n\n```\n\nMaybe it will help someone :)",
+            "best_answer_author": "Jaroslaw_T",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello everybody\n\nI'm building the device with power delivery sink function. I need the 21V (PPS). I done the configuration with STM32CubeMX and wrote some code in STM32CubeIDE. Unfortunately, after about 14 s of estabilishing connection, the source send hardware reset. What is the problem? In the attached file is the trase from STM32CubeMonitor-UCPD. I use STM32CubeIDE v. 2.1.1 and STM32CubeMX v. 6.17.0.\n\n```\n\nvoid USBPD_DPM_SNK_EvaluateCapabilities(uint8_t PortNum, uint32_t *PtrRequestData, USBPD_CORE_PDO_Type_TypeDef *PtrPowerObjectType)\n\n{\n\n/* USER CODE BEGIN USBPD_DPM_SNK_EvaluateCapabilities */\n\n//DPM_USER_DEBUG_TRACE(PortNum, \"ADVICE: update USBPD_DPM_SNK_EvaluateCapabilities\");\n\nUSBPD_SNKRDO_TypeDef rdo;\n\nrdo.d32=0U;\n\nrdo.ProgRDO.ObjectPosition=6U;\n\nrdo.ProgRDO.OutputVoltageIn20mV=1050U; //21V\n\nrdo.ProgRDO.OperatingCurrentIn50mAunits=60U; //3A\n\nrdo.ProgRDO.NoUSBSuspend=USBPD_ENABLE;\n\nrdo.ProgRDO.USBCommunicationsCapable=USBPD_ENABLE;\n\n*PtrPowerObjectType=USBPD_CORE_PDO_TYPE_APDO;\n\n*PtrRequestData=rdo.d32;\n\n/* USER CODE END USBPD_DPM_SNK_EvaluateCapabilities */\n\n}\n\n```\n\nBest regards",
+            "images": [],
+            "author": "Jaroslaw_T",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I solved this problem (with AI help ;) )</p><p>In file main.c I added the tas, which periodically send request, as below:</p><pre class=\"lia-code-sample language-c\"><code>void StartPeriodTask1(void const * argument)\n{\n /* USER CODE BEGIN StartPeriodTask1 */\n /* Infinite loop */\n for(;;)\n {\n\n\t USBPD_PE_Send_Request(USBPD_PORT_0, PDO_Parameters, APDO_Position);\n\t osDelay(12000);\n }\n /* USER CODE END StartPeriodTask1 */\n}</code></pre><p> </p><p>In main.h:</p><pre class=\"lia-code-sample language-c\"><code>extern uint32_t PDO_Parameters;\nextern uint8_t APDO_Position;</code></pre><p> </p><p>And in usbpd_dpm_user.c:</p><pre class=\"lia-code-sample language-c\"><code>uint8_t If_APDO=1U;\nuint32_t PDO_Parameters=0U;\nuint8_t APDO_Position=0U;</code></pre><p>And:</p><pre class=\"lia-code-sample language-c\"><code>void USBPD_DPM_SNK_EvaluateCapabilities(uint8_t PortNum, uint32_t *PtrRequestData, USBPD_CORE_PDO_Type_TypeDef *PtrPowerObjectType)\n{\n/* USER CODE BEGIN USBPD_DPM_SNK_EvaluateCapabilities */\n //DPM_USER_DEBUG_TRACE(PortNum, \"ADVICE: update USBPD_DPM_SNK_EvaluateCapabilities\");\n\tUSBPD_SNKRDO_TypeDef rdo;\n\n\tif(If_APDO==1)\n\t{\n\t\trdo.d32=0U;\n\t\trdo.ProgRDO.ObjectPosition=6U;\n\t\trdo.ProgRDO.OutputVoltageIn20mV=1050U; //24V\n\t\trdo.ProgRDO.OperatingCurrentIn50mAunits=60U; //3A\n\t\trdo.ProgRDO.NoUSBSuspend=USBPD_ENABLE;\n\t\trdo.ProgRDO.USBCommunicationsCapable=USBPD_ENABLE;\n\n\t\t*PtrPowerObjectType=USBPD_CORE_PDO_TYPE_APDO;\n\t\t*PtrRequestData=rdo.d32;\n\t\tPDO_Parameters=rdo.d32;\n\t\tAPDO_Position=rdo.ProgRDO.ObjectPosition;\n\t}\n\telse\n\t{\n\t\trdo.d32=0U;\n\t\trdo.FixedVariableRDO.ObjectPosition=5U;\n\t\trdo.FixedVariableRDO.MaxOperatingCurrent10mAunits=300U;\n\t\trdo.FixedVariableRDO.OperatingCurrentIn10mAunits=300U;\n\t\trdo.FixedVariableRDO.USBCommunicationsCapable=USBPD_ENABLE;\n\t\trdo.FixedVariableRDO.NoUSBSuspend=USBPD_ENABLE;\n\t\trdo.FixedVariableRDO.CapabilityMismatch=USBPD_DISABLE;\n\n\t\t*PtrPowerObjectType=USBPD_CORE_PDO_TYPE_FIXED;\n\t\t*PtrRequestData=rdo.d32;\n\t}\n\n/* USER CODE END USBPD_DPM_SNK_EvaluateCapabilities */\n}</code></pre><p> </p><p>Maybe it will help someone :)</p></div>",
+                    "author": "Jaroslaw_T",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105213\">@Jaroslaw_T</user-mention>,</p>\n<p>Thanks for sharing your findings and workaround, this is very valuable for others.</p>\n<p>Calling USBPD_PE_Send_Request() from your own task bypass the PD policy engine and lead to requests to be sent out of sequence. In general, it’s better to let the PD stack drive the protocol and decide when to send requests, using USBPD_DPM_SNK_EvaluateCapabilities() to build the RDO when the core asks for it.</p>\n<p>Your solution will definitely help others avoid the same pitfall.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

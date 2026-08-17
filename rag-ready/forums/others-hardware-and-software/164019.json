@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "164019",
+            "publicId": "164019",
+            "title": "STSAFE-A110 Key establishment (NIST P-256)",
+            "url": "https://community.st.com/others-hardware-and-software-57/stsafe-a110-key-establishment-nist-p-256-164019",
+            "category": "Others: hardware and software",
+            "tags": [
+                "Other hardware",
+                "Other software tools"
+            ],
+            "published_at": "2026-03-20T10:16:06+00:00",
+            "views": 324,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Thanks for the I2C dump.\n\nThe response of the StSafeA\\_EstablishKey() is encrypted. As the data is formatted with 2 bytes length + the shared secret, this ciphertext is then padded to 48 bytes.\n\nYou need to decrypt the response to get the shared secret.\n\nYou have the reference code in the STSAFE-A middleware.\n\nBest Regards,\n\nBenjamin",
+            "best_answer_author": "Benjamin BARATTE",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI'm trying to implement the Key Establishment workflow on my hardware based on STM32U5 MCU and STSAFE-A110 secure chip. The ephemeral key pair generation (*StSafeA\\_GenerateKeyPair*) works fine and the establishing key (*StSafeA\\_EstablishKey*) with the ephemeral private key and the remote host public key gives me a 48-byte shared secret by using NIST P-256 as curve ID.\n\nIn the ST library provided, it is mentioned that the *StSafeA\\_EstablishKey* function provides a shared secret. In cryptography, a key agreement should return a shared secret on 32 bytes for NIST P-256 curve ID and then this shared secret may be used to compute a 48-byte shared key using HKDF with SHA-256 for example by providing salt and info.\n\nSo what does exactly return the *StSafeA\\_EstablishKey* function of library? A shared secret or a shared key?\n\nRemote-side (Linux-OS computer), if I compute a key agreement using the remote private key and the STSAFE ephemeral public key, I get a 32-bytes shared secret (with OpenSSL tool) but nothing matches between the computed secret of remote and stsafe. Do I have to use a stsafe remote-side?\n\nBest regards,\n\nAlex",
+            "images": [],
+            "author": "adegrandcourt",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"101570\">@adegrandcourt</user-mention> ,</p><p> </p><p>The StSafeA_EstablishKey() function is using ECDH algorithm to generate a shared secret. The shared secret is the size of the ECC curve used.</p><p>Therefore with NIST P-256, the size of the shared secret is 32 bytes.</p><p>Generally this is used as a seed to KDF function to derive key material.</p><p>You mention you have a 48 bytes value with NIST P-256 curve ID, could you share your code example ?</p><p>STSAFE-A110 may return 48 bytes value only with NIST P-384 curve ID.</p><p>Best Regards,</p><p>Benjamin</p></div>",
+                    "author": "Benjamin BARATTE",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"659\">@Benjamin BARATTE</user-mention> </p><p>I cannot share my code because I rewrote the library because of library size and integration in my company own OS but I can share i2c frames exchanged.</p><p>Note that I didn't share the getting of the host C-MAC sequence counter but it is well done before key establishment.</p><p><em>* Generation of ECDH key pair on ephemeral slot</em></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><font size=\"2\">Tag: STSAFEA_CMD_GENERATE_KEY (0x11)</font><br/><font size=\"2\">(Len: 16)</font><br/><font size=\"2\">Value: STSAFEA_TAG_PRIVATE_KEY_SLOT (0x13)</font><br/><font size=\"2\">           Slot number: 0xFF (ephemeral)</font><br/><font size=\"2\">           Time limit (more significant byte): 0x00</font><br/><font size=\"2\">           Time limit (least significant byte): 0x01 (will be still 1 for ephemeral key)</font><br/><font size=\"2\">           Operation mode (more significant byte)): 0x00</font><br/><font size=\"2\">           Operation mode (least significant byte): 0x01 -&gt; Key Establishment enabled </font><br/><font size=\"2\">           Curve identifier length (more significant byte): 0x00</font><br/><font size=\"2\">           Curve identifier length (least significant byte): 0x08 for NIST P-256</font><br/><font size=\"2\">           Curve identifier -&gt; \"\\x2A\\x86\\x48\\xCE\\x3D\\x03\\x01\\x07\" for NIST P-256 OID</font></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><font size=\"2\">CRC16</font></p><pre class=\"lia-code-sample language-c\"><code>I2C write\n11 13 FF 00 01 00 01 00 08 2A 86 48 CE 3D 03 01 |.........*.H.=..|\n07 2C 29 |.,) |\n\nI2C read\n00 00 47 04 00 20 CB 54 7C 39 84 94 27 1D 48 C7 |..G.. .T|9..'.H.|\nF1 D2 94 C3 87 BD A1 3A B9 18 A1 53 0C 6C 96 A7 |.......:...S.l..|\n33 6E 3D 49 D5 A5 00 20 3D 43 3B EC 33 D1 00 33 |3n=I... =C;.3..3|\n7C 68 A6 BE D8 8F EC EC E0 6C 34 F3 46 2D 8E 57 ||h.......l4.F-.W|\n1B A2 E9 7E 30 D6 E1 36 EF 51 |...~0..6.Q |</code></pre><p>The response well provides a public key with format <strong>04[len_of_x][x][len_of_y][y]</strong>.</p><p>x=CB547C398494271D48C7F1D294C387BDA13AB918A1530C6C96A7336E3D49D5A5<br/>y=3D433BEC33D100337C68A6BED88FECECE06C34F3462D8E571BA2E97E30D6E136</p><p> </p><p><em>* Establishment of a key agreement between the stsafe's private key and the remote host's public key</em></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><font size=\"2\">Tag: STSAFEA_CMD_ESTABLISH_KEY (0x18) | HOST_CMAC (0xA0)</font><br/><font size=\"2\">(Length: 70)</font><br/><font size=\"2\">Value: Slot number: 0xFF (ephemeral)</font><br/><font size=\"2\">           STSAFEA_POINT_REPRESENTATION_ID (0x04)</font></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><font size=\"2\">           Remote public key X coordinate length: 0x0020 (32)</font><br/><font size=\"2\">           Remote public key X coordinate: 6e84544bb8724c0b4b9822603369f06cc214b15359fcea36758b2a6b5e9ec397</font><br/><font size=\"2\">           Remote public key Y coordinate length: 0x0020 (32)</font><br/><font size=\"2\">           Remote public key Y coordinate: e1954664f30fc2ce7d999456e48d0cd2842609be05a22d48c8f0e55d248e5f76</font><br/><font size=\"2\">CMAC</font></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><font size=\"2\">CRC16</font></p><pre class=\"lia-code-sample language-c\"><code>I2C write\nB8 FF 04 00 20 6E 84 54 4B B8 72 4C 0B 4B 98 22 |.... n.TK.rL.K.\"|\n60 33 69 F0 6C C2 14 B1 53 59 FC EA 36 75 8B 2A |`3i.l...SY..6u.*|\n6B 5E 9E C3 97 00 20 E1 95 46 64 F3 0F C2 CE 7D |k^.... ..Fd....}|\n99 94 56 E4 8D 0C D2 84 26 09 BE 05 A2 2D 48 C8 |..V.....&amp;....-H.|\nF0 E5 5D 24 8E 5F 76 28 16 5F FA 18 78 |..]$._v(._..x |\n\nI2C read\n00 00 32 4D B6 F6 54 68 EE 55 90 6B 9D 62 C6 DE |..2M..Th.U.k.b..|\nB0 A1 01 47 27 9D 1A 32 21 05 85 85 6A 18 20 98 |...G'..2!...j. .|\n3C A1 6C 66 B5 51 B9 FE 3B 64 8A 95 1D 5A FB C4 |&lt;.lf.Q..;d...Z..|\nE1 EA 11 C1 05 |..... |</code></pre><p>The response gives a status code to 0 (OK) and provides a secret on 48 bytes (0x32 minus the crc length(2)) i.e. 4DB6F65468EE55906B9D62C6DEB0A10147279D1A32210585856A1820983CA16C66B551B9FE3B648A951D5AFBC4E1EA11</p><p> </p><p>Best regards,</p><p>Alex</p></div>",
+                    "author": "adegrandcourt",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the I2C dump.</p><p> </p><p>The response of the StSafeA_EstablishKey() is encrypted. As the data is formatted with 2 bytes length + the shared secret, this ciphertext is then padded to 48 bytes.</p><p>You need to decrypt the response to get the shared secret.</p><p>You have the reference code in the STSAFE-A middleware.</p><p>Best Regards,</p><p>Benjamin</p><p> </p></div>",
+                    "author": "Benjamin BARATTE",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Benjamin BARATTE",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Benjamin BARATTE",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

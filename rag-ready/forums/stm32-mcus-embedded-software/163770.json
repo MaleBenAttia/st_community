@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "163770",
+            "publicId": "163770",
+            "title": "Timer triggered DMA Memory to GPIO output on the STM32G070RB",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/timer-triggered-dma-memory-to-gpio-output-on-the-stm32g070rb-163770",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "GPIO-EXTI",
+                "DMA",
+                "STM32G0 series",
+                "HAL"
+            ],
+            "published_at": "2026-03-13T12:58:15+00:00",
+            "views": 252,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "This can't be done. The GPIO ports are not accessible to the DMA on the STM32G0x0.\n\n![Screenshot 2026-03-13 090805.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/98d829e5-7227-1015-eaa0-648725e35665.png \"Screenshot 2026-03-13 090805.png\")",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hello, I have used DMA for timer outputs, input compares, memory to memory, etc. and all has worked fine, however I can't seem to get a timer-triggered DMA from memory to GPIO outputs (as [this post](https://community.st.com/t5/stm32cubeide-mcus/how-to-setup-dma-to-gpio-transfer-using-hal-in-the-cubeide/td-p/247662) seems to have managed).\n\nI have tried using the ODR register, the BSRR register, 16 bit transfers, 32 bit transfers, reordering the initialisation of different components, setting TIM1->DIER = TIM\\_DIER\\_UDE in different places, etc. etc. The timer is definitely incrementing and resetting correctly and I am getting a TEIF1 on DMA1.\n\nI am less familiar with DMAMUX (I used the F401 previously) so I may be making a mistake there.\n\n```\n\n#include <stdio.h>\n\n#include \"main.h\"\n\n#include \"stm32g0xx_hal_tim.h\"\n\nvoid SystemClock_Config(void);\n\nstatic TIM_HandleTypeDef htim1 = {0};\n\nstatic DMA_HandleTypeDef hdma = {0};\n\n#define GPIO_BUF_LEN 4\n\nstatic uint32_t gpio_buf[GPIO_BUF_LEN] = {\n\n0xFFFFFFFF,\n\n0x00000000,\n\n0xFFFFFFFF,\n\n0x00000000,\n\n};\n\nstatic void Init_GPIO(void) {\n\n__HAL_RCC_GPIOA_CLK_ENABLE();\n\n__HAL_RCC_TIM1_CLK_ENABLE();\n\n__HAL_RCC_DMA1_CLK_ENABLE();\n\nGPIO_InitTypeDef gpio = {\n\n.Pin = GPIO_PIN_5,\n\n.Mode = GPIO_MODE_OUTPUT_PP,\n\n.Pull = GPIO_NOPULL,\n\n.Speed = GPIO_SPEED_FREQ_MEDIUM,\n\n};\n\nHAL_GPIO_Init(GPIOA, &gpio);\n\nhdma.Instance = DMA1_Channel1;\n\nhdma.Init.Request = DMA_REQUEST_TIM1_UP;\n\nhdma.Init.Direction = DMA_MEMORY_TO_PERIPH;\n\nhdma.Init.PeriphInc = DMA_PINC_DISABLE;\n\nhdma.Init.MemInc = DMA_MINC_ENABLE;\n\nhdma.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;\n\nhdma.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;\n\nhdma.Init.Mode = DMA_CIRCULAR;\n\nhdma.Init.Priority = DMA_PRIORITY_HIGH;\n\nHAL_DMA_Init(&hdma);\n\n__HAL_LINKDMA(&htim1, hdma[TIM_DMA_ID_UPDATE], hdma);\n\nhtim1.Instance = TIM1;\n\nhtim1.Init.Prescaler = 3200 - 1;\n\nhtim1.Init.CounterMode = TIM_COUNTERMODE_UP;\n\nhtim1.Init.Period = 10000 - 1;\n\nhtim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;\n\nhtim1.Init.RepetitionCounter = 0;\n\nhtim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;\n\nHAL_TIM_Base_Init(&htim1);\n\n__HAL_TIM_ENABLE_DMA(&htim1, TIM_DMA_UPDATE);\n\nHAL_DMA_Start(&hdma,\n\n(uint32_t)gpio_buf,\n\n(uint32_t)&GPIOA->ODR,\n\nGPIO_BUF_LEN);\n\nHAL_TIM_Base_Start(&htim1);\n\n}\n\nint main(void)\n\n{\n\nHAL_Init();\n\nSystemClock_Config();\n\nInit_GPIO();\n\nwhile (1)\n\n{\n\nprintf(\"%i\\n\", DMA1->ISR);\n\n// GPIOA->BSRR = (GPIO_PIN_5 << 16);\n\n// HAL_Delay(500);\n\n// GPIOA->BSRR = GPIO_PIN_5;\n\n// HAL_Delay(500);\n\n// HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (TIM1->CNT < 5000) ? GPIO_PIN_SET : GPIO_PIN_RESET);\n\n// HAL_Delay(500);\n\n}\n\n}\n\n```\n\nThanks!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/98d829e5-7227-1015-eaa0-648725e35665.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/458423ec-d58e-8947-95ef-8664415c3a05.png"
+            ],
+            "author": "robert-m-lucas",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This can't be done. The GPIO ports are not accessible to the DMA on the STM32G0x0.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-13 090805.png\" style=\"width: 402px;\"><img alt=\"Screenshot 2026-03-13 090805.png\" height=\"253\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/98d829e5-7227-1015-eaa0-648725e35665.png\" title=\"Screenshot 2026-03-13 090805.png\" width=\"402\"/></span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Do you know where this can be found in the datasheet / reference manual, so that I can check whether other CPUs support this?</p></div>",
+                    "author": "robert-m-lucas",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Search for \"system architecture\" in the Reference Manual.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-13 131401.png\" style=\"width: 496px;\"><img alt=\"Screenshot 2026-03-13 131401.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/458423ec-d58e-8947-95ef-8664415c3a05.png\" title=\"Screenshot 2026-03-13 131401.png\"/></span></p><p>I misread this as being connected to AHB 🤦</p></div>",
+                    "author": "robert-m-lucas",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

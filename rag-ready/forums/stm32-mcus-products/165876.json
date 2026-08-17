@@ -1,0 +1,40 @@
+{
+    "forum": [
+        {
+            "id": "165876",
+            "publicId": "165876",
+            "title": "Is it safe to reuse USB D+/D- (PA11/PA12) as GPIO after one-time DFU programming?",
+            "url": "https://community.st.com/stm32-mcus-products-25/is-it-safe-to-reuse-usb-d-d-pa11-pa12-as-gpio-after-one-time-dfu-programming-165876",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "GPIO-EXTI",
+                "USB",
+                "STM32C0 series"
+            ],
+            "published_at": "2026-05-21T15:53:03+00:00",
+            "views": 150,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "You should have shown the USB connector, too.\n\n> Is this the correct approach to guarantee the host does not detect the microcontroller as a peripheral — i.e., ensuring it never attempts enumeration, thereby guaranteeing zero interference with the P-MOS switching\n\nNo.\n\nHost observes the DP/DM pins and as soon as one of them goes high (DP for FullSpeed and DM for LowSpeed), it starts the enumeration by pulling both pins low. And it is even worse in your case than just \"interference with MOS switching\": in the normal USB setting, this initial DP/DM pulling up is through a 1k5 resistor which limits current flowing from + to host's transistor pulling the bus low; but here if you switch DP/DM to high as GPIO Output, there's nothing which would limit this current, potentially leading to damage.\n\nI'd recommend you to use two physical jumpers or any other form of physical disconnect for the initial programming. Another and maybe better option would be to use some other means for connecting USB for initial programming than using the connector which you intend to use for charging during usage; that connector then can have DM/DP unconnected.\n\nI also encourage you to experiment using the respective Nucleo board; but avoid the conflict outlined above.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi,\n\nI'm using the STM32C071K8U6's built-in USB DFU bootloader for one-time production programming. After flashing, PA11/PA12 (USB D+/D-) are used as regular GPIO outputs to control two P-MOSFETs (each with their 100kΩ gate pull-ups to 4.2V).\n\nThe USB functionality is not used by the end customer, but the USB connector remains accessible for charging. This means a PC's USB cable may be connected during normal use allowing for potential signal injected into those traces resulting into the PMOS being turned on/off by the PC if it detects there is a USB device connected and tries to enumerate it.\n\n**The two core issues:**\n\na) When a user plugs into a PC for charging, **we need to guarantee the host does not attempt enumeration**, and that nothing the host does on D+/D- interferes with our GPIO-driven MOSFET gates.\n\nb) because the PA11 and PA12 traces also go all over the PCB - i.e. they form very long stubs - we need to make sure this does not prevent the USB from working properly during that one time DFU happens in production.\n\n**Questions:**\n\n1. Attached is the schematic of how I am thinking of implementing this. Is this the correct approach to guarantee the host does not detect the microcontroller as a peripheral — i.e., **ensuring it never attempts enumeration, thereby guaranteeing zero interference with the P-MOS switching** — while still allowing **reliable DFU programming** during production?\n\n2. if that is correct, are the values in my schematic correct (100% safe to achieve the goals)?\n\n3. I am fairly certain of the following but would like confirmation: despite using the USB pins for DFU during production, because PA11 and PA12 are used only as GPIOs at runtime, we should configure them as GPIOs in CubeMX from the outset — rather than configuring them as USB and then changing them to GPIO in firmware. Is that correct?\n\nThank you as always!\n\n![Ricko_0-1779378108139.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a5e3186-bd3b-38a5-28f9-5ed126501642.png \"Ricko_0-1779378108139.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a5e3186-bd3b-38a5-28f9-5ed126501642.png"
+            ],
+            "author": "Ricko",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You should have shown the USB connector, too.</p><p>&gt; Is this the correct approach to guarantee the host does not detect the microcontroller as a peripheral — i.e., ensuring it never attempts enumeration, thereby guaranteeing zero interference with the P-MOS switching</p><p>No.</p><p>Host observes the DP/DM pins and as soon as one of them goes high (DP for FullSpeed and DM for LowSpeed), it starts the enumeration by pulling both pins low. And it is even worse in your case than just \"interference with MOS switching\": in the normal USB setting, this initial DP/DM pulling up is through a 1k5 resistor which limits current flowing from + to host's transistor pulling the bus low; but here if you switch DP/DM to high as GPIO Output, there's nothing which would limit this current, potentially leading to damage.</p><p>I'd recommend you to use two physical jumpers or any other form of physical disconnect for the initial programming. Another and maybe better option would be to use some other means for connecting USB for initial programming than using the connector which you intend to use for charging during usage; that connector then can have DM/DP unconnected.</p><p>I also encourage you to experiment using the respective Nucleo board; but avoid the conflict outlined above.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

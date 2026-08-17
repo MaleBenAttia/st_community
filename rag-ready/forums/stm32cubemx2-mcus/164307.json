@@ -1,0 +1,100 @@
+{
+    "forum": [
+        {
+            "id": "164307",
+            "publicId": "164307",
+            "title": "STM32CubeMX2 + NUCLEO-C562RE - you need AI?",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/stm32cubemx2-nucleo-c562re-you-need-ai-164307",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeMX2",
+                "HAL2"
+            ],
+            "published_at": "2026-03-30T14:29:15+00:00",
+            "views": 1092,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hello @KPort\n\nWe hear you on the Release configuration issue. That's being fixed in an upcoming update. You'll be able to choose Debug, Release, or both when generating your project.\n\nYour points on HAL bloat and linker file accessibility are on our radar too. We're working to optimize these areas and make them less friction-heavy. On family support—for now, new chip families will be added to CubeMX2 going forward, while existing families remain supported in CubeMX.\n\nWe appreciate the constructive suggestions and will keep you posted on improvements.",
+            "best_answer_author": "MorkBeck",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Finally was able to test STM32CubeMX2 with a NUCLEO-C562RE board.\n\nSimple LED blinking project, and here's what I found out.\n\n**Project bloat:**\n\nSTM32CubeMX2: 26.2 MB of generated data and when compiled 41.1 MB (NUCLEO-C562RE)\n\nSTM32CubeMX: 4.6 MB generated and compiled 15.7 MB (NUCLEO-C031C6, same functionality)\n\nThe old STM32CubeMX included only the HAL libraries actually used.\n\nThe new one dumps everything in.\n\nThat's a 5.7x increase for a blink LED.\n\n**Missing Release configuration:**\n\nGenerated CMake project contains only Debug configuration - No Release.\n\nInteresting, because the official \"MOOC STM32CubeMX2\" video at 4:53 clearly shows both configurations.\n\nEither something changed or the video is misleading.\n\nCreating Release configuration manually requires editing multiple CMake files, including inside the cmake folder — supposedly overwritten on regeneration (in practice, changed only at project creation).\n\nNot trivial if you're not a CMake expert.\n\nI did it once manually, but then ended up using Claude Code AI to do it quickly again.\n\n**Linker files buried deep:**\n\nThe .ld linker files are now hidden under several directory layers (previously at project root).\n\nIf you need separate linker configurations for Debug and Release — different memory layouts, for instance — good luck doing that without solid CMake knowledge.\n\nAgain, I had to ask AI for help. It's doable, but shouldn't be this complicated.\n\n**Bottom line:**\n\nThe tools work.\n\nIf you don't have some CMake experience, will add extra friction.\n\nBut basic tasks like Release builds and linker customization shouldn't require AI assistance.\n\nThe new interface is fine, just needs getting used to — many settings have moved around.\n\nBut a designer tool should better handle these common workflows, not make them this complicated.\n\n**Suggestions:**\n\nGenerate both Debug and Release configurations by default\n\nInclude only required HAL driver files\n\nMake linker file customization more accessible",
+            "images": [],
+            "author": "KPort",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"19326\">@KPort</user-mention> wrote:<br/><p>STM32CubeMX2: 26.2 MB of generated data and when compiled 41.1 MB (NUCLEO-C562RE)<br/>STM32CubeMX: 4.6 MB generated and compiled 15.7 MB (NUCLEO-C031C6, same functionality)</p><hr/></blockquote><p>What, exactly, are you referring to here?</p><p>A C031C6 only has 32<strong>K</strong> flash - so the compiled image can't be 15.7 <strong>M</strong>B - surely?!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Andrew, I was not measuring the compiled MCU image size.<br/>I was measuring the disk space occupied after STM32CubeMX/MX2 file generation (before compilation) and after compiling for the first time.<br/>That is, how much disk space was occupied in the generated projects.<br/>Conclusion: STM32CubeMX2 creates LOTS of extra and totally unnecessary files.</p></div>",
+                    "author": "KPort",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I see.</p><p> </p><p>In MX1 there was an option whether to copy <em>all</em> HAL files, or just the required ones.</p><p> </p><p>Also, MX1 would download the entire FW pack the first time you used a part from that pack;  it just didn't put it all into the Project - it had a separate local \"repository\"</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"19326\">@KPort</user-mention> Interesting!</p><p>Now that you're at it...</p><p>Have you compared the resulting image size? Does HAL 2 already blow up simple projects ?</p><p>Although this comparison would make more sense with the exactly same MCU.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My tests showed that, yes, it does compile significantly smaller. Mostly because the clock setup functions are not as general as they are in HAL/CubeMX. Can't do a 1:1 comparison of course. If your bootloader configures the clock and it's no longer in the default state when the application tries to configure it, it may fail with HAL2/MX2 code.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You don't compare STM32C031 to C56, do you? STM32C56 is a CM33, with trustzone and lot of components. C0 is a small CM0+.</p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was not trying to compare head-to-head the run-time performance of these 2 MCUs.<br/>I selected 2 families that could be configured with MX1 and MX2 (and I have both NUCLEO boards).<br/>In MX2 you currently have only the STM32C5 family available, all the rest is in MX1.</p><p>I also wanted to select a family without TrustZone, since also STM32C5 does NOT have TrustZone!<br/>Maybe I could have selected the STM32H5 for comparison, it's Cortex-M33 but with TrustZone.</p><p>Comparing STM32C5 to another family would not change much regarding the 3 observations in my post.</p></div>",
+                    "author": "KPort",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"19326\">@KPort</user-mention> </p><p>We hear you on the Release configuration issue. That's being fixed in an upcoming update. You'll be able to choose Debug, Release, or both when generating your project.</p><p>Your points on HAL bloat and linker file accessibility are on our radar too. We're working to optimize these areas and make them less friction-heavy. On family support—for now, new chip families will be added to CubeMX2 going forward, while existing families remain supported in CubeMX.</p><p>We appreciate the constructive suggestions and will keep you posted on improvements.</p></div>",
+                    "author": "MorkBeck",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"19326\">@KPort</user-mention> </p>\n<p>As a complement to <user-mention data-id=\"98273\">@MorkBeck</user-mention> 's reply, <span>I’d like to confirm that we have an internal tracker open for the topic you raised: missing Release configuration.</span></p>\n<p>Internal ticket numbers:<strong> CDM0061318</strong>.</p>\n<p>I will keep you posted on its progress and on any updates that make it into upcoming releases.</p>\n<p>Thank you again for your valuable feedback.</p>\n<p>Sara.</p>\n<p> </p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As much as I love seeing the positive feedback of “it’s coming” is there a tentative release date on this?  Such as, Q3-2026 versus, next year Q4-2027 (very far away).</p><p>The reason I’m inquiring is because we’re standup up a new suite of projects which heavily rely on CubeMX2, and each base generated project is ~41 MB in size. It would be nutty a bunch of +80 MB base repos containing both the Bootloader and App projects (40+40=80MB).</p><p>Considering, the 3rd-party common HAL/Drivers/Middleware code should be stored in a reusable shareable space. This would make repos/projects a more realistic ~130 KB (main.c/h + cmake files). When I build a C/C++/C# the 3rd-party libraries are in a volatile and re-downloadable folder. That would be ideal, even as an option.</p><p>Best regards</p></div>",
+                    "author": "Suess",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "MorkBeck",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

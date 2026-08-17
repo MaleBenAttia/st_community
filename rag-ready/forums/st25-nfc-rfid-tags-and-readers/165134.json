@@ -1,0 +1,91 @@
+{
+    "forum": [
+        {
+            "id": "165134",
+            "publicId": "165134",
+            "title": "ST25R3911B-DISCO for RFID mid-range in a box with constraints",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r3911b-disco-for-rfid-mid-range-in-a-box-with-constraints-165134",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Readers – ST25R391x series"
+            ],
+            "published_at": "2026-04-26T17:55:30+00:00",
+            "views": 209,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hi MelioNB,\n\nAfter installing the EVAL GUI you can navigate to the example folder and also browse the Protocol description between the PC and the board. See below:\n\n![Examples.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d113fb9f-7171-1dda-0b14-4953c7a142eb.png \"Examples.png\")\n\nUsing the APIs provided one can issue individual commands/frames at will.\n\nIn your case, for ISO15693 / NFC-V a plethora of commands can be performed, eg:\n\n```\n\nrfalISO15693TransceiveAnticollisionFrame\n\nrfalISO15693TransceiveEOFAnticollision\n\nrfalISO15693TransceiveEOF\n\nrfalNfcvPollerInitialize\n\nrfalNfcvPollerCheckPresence\n\nrfalNfcvPollerInventory\n\nrfalNfcvPollerCollisionResolution\n\nrfalNfcvPollerSleepCollisionResolution\n\nrfalNfcvPollerSleep\n\nrfalNfcvPollerSelect\n\nrfalNfcvPollerReadSingleBlock\n\nrfalNfcvPollerExtendedReadSingleBlock\n\nrfalNfcvPollerReadMultipleBlocks\n\nrfalNfcvPollerExtendedReadMultipleBlocks\n\nrfalNfcvPollerWriteSingleBlock\n\nrfalNfcvPollerExtendedWriteSingleBlock\n\nrfalNfcvPollerWriteMultipleBlocks\n\nrfalNfcvPollerExtendedWriteMultipleBlocks\n\nrfalNfcvPollerLockBlock\n\nrfalNfcvPollerExtendedLockSingleBlock\n\nrfalNfcvPollerGetSystemInformation\n\nrfalNfcvPollerExtendedGetSystemInformation\n\n// RFAL High Layer\n\nrfalNfcInitialize\n\nrfalNfcDiscover\n\nrfalNfcGetState\n\nrfalNfcGetDevicesFound\n\nrfalNfcGetActiveDevice\n\nrfalNfcSelect\n\nrfalNfcDataExchangeStart\n\nrfalNfcDataExchangeGetStatus\n\nrfalNfcDeactivate\n\n```\n\nA ready to use Python example is available, but unfortunately currently the GUI Installer STEVAL25R200SA (v1.1) seems not to contain it. We'll try to update the package meanwhile.\n\nKind regards\n\nGP",
+            "best_answer_author": "Grégoire Poulain",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am a French engineering student working on a startup project as part of my MBA. We are developing an interactive musical box for children aged 3 to 7 years old.\n\nThe core feature of the product relies on RFID detection: small figurines shaped like musical instruments are placed on a circular rotating tray (15 cm diameter). Each figurine has an RFID tag under its base. When a figurine is placed on the tray, the reader must detect it and trigger the corresponding audio track.\n\nHere are our technical constraints:\n\n- The reader will be fixed under the tray, at a very short vertical distance (1 to 2 cm at most)\n\n- The detection zone must cover the full surface of the tray, meaning a lateral radius of 7.5 cm\n\n- The tags will be in slow rotational movement\n\n- The reader must be connectable to a PC via USB for prototyping purposes, so we can retrieve detected tag UIDs in real time via a Python or JavaScript script\n\n- Budget constraint: under 100€\n\nAfter research, we identified the ST25R3911B-DISCO evaluation kit as a potential candidate, notably for its ISO 15693 long-range support and its USB connectivity.\n\nOur question is: would the ST25R3911B-DISCO, paired with an appropriately sized antenna, be able to reliably detect ISO 15693 tags across a 15 cm diameter surface at a very short vertical distance? And if so, what antenna size and configuration would you recommend for this use case?\n\nThank you very much for your time and support.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d113fb9f-7171-1dda-0b14-4953c7a142eb.png"
+            ],
+            "author": "MelioNB",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span> Hello MelioNB,</span></p><p> </p><p><span>in terms of cost efficiency I would recommend to look into the X-NUCLEO-NFC05A1 board and a <span class=\"\">NUCLEO-L476RG. </span></span></p><p><span><span class=\"\">The advantage is that the NUCLEO-L476RG embeds already the programmer an more IOs then the DISCO board. But it is required to do your own software.</span></span></p><p><span><span class=\"\">The ST25R3911B can perfectly do the job, but there are newer products (including more features) like the ST25R210 (X-NUCLEO-NFC13A1) which might be also interesting for you. </span></span></p><p><span><span class=\"\">I would recommend to disconnect the antenna of the X-NUCLEO-NFC__A1 and replace it by an wire-wound antenna. Such an approach has already been done in this post: </span></span></p><p><span><span class=\"\"><a href=\"https://community.st.com/t5/st25-nfc-rfid-tags-and-readers/design-questions-around-st25r3911b/m-p/370090\" target=\"_blank\">https://community.st.com/t5/st25-nfc-rfid-tags-and-readers/design-questions-around-st25r3911b/m-p/370090</a></span></span></p><p><span><span class=\"\">From antenna matching perspective the same approach (strong capacitive matching) as mentioned in <em><strong>AN6092</strong> </em>can be applied on both devices (R3911B and R210). Otherwise the antenna matching guide for ST25R3911B is AN4974.</span></span></p><p><span><span class=\"\">Key aspect will be the tag antenna size. At a 15cm diameter antenna, there will be a weak spot in the center of the antenna. If a conventional NFC antenna (2-3 Turns at the 15cm diameter perimeter) is not sufficient also other tricks can be used. A wire-wound antenna offers the advantage of easily changing the geometry, rematching the board, and evaluating the result again.</span></span></p><p><span><span class=\"\">Please let me know if you have additional questions.</span></span></p><p><span><span class=\"\">BR Travis</span></span></p><p> </p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello MelioNB,<br/><br/>Complementing Travis answer, another option under ST25R portfolio is the ST25R200 and ST25R100.<br/>These devices are very cost-effective and seem to suit well your use case (ISO15693 Reader mode).<br/><br/>As for the demo boards, all ST25R boards interface with PC via USB.</p><ul><li>The older devices use a proprietary communication on top of USB HID Class.</li><li>The newer demos (since ST25R200) use USB connection, but over a virtual COM port (ST-Link).<br/>Through it, a defined ST protocol is exchanged which could be used for your use case.</li></ul><p>Kits available:</p><ul><li><a href=\"https://www.st.com/en/evaluation-tools/steval-25r200sa.html\" rel=\"noopener noreferrer\" target=\"_self\">STEVAL-25R200SA</a> Kit allows easy prototyping with different antenna options/geometries.<br/>A PC GUI (<a href=\"https://www.st.com/en/embedded-software/stsw-st25r019.html\" rel=\"noopener noreferrer\" target=\"_self\">STSW-ST25R019</a>) which connects to the board over USB (ST-Link) can be used for prototyping<br/><br/></li><li><a href=\"https://www.st.com/en/evaluation-tools/x-nucleo-nfc09a1.html\" rel=\"noopener noreferrer\" target=\"_self\">X-NUCLEO-NFC09A1</a> / <a href=\"https://www.st.com/en/evaluation-tools/x-nucleo-nfc10a1.html\" rel=\"noopener noreferrer\" target=\"_self\">X-NUCLEO-NFC10A1</a> NUCLEO Shield also available.<br/>No PC GUI available by default on NUCLEO demo (targeted for embedded) but is possible to run the the STEVAL FW directly on the NUCLEO STM32G0 board to connect with the GUI (in this case on <a href=\"https://www.st.com/en/evaluation-tools/nucleo-g0b1re.html\" rel=\"noopener noreferrer\" target=\"_self\"><span>NUCLEO-G0B1RE</span></a>).</li></ul><p> </p><p>Concerning integration into development environments, C and Pythion examples are provided.<br/>After installing STEVAL GUI, look into MyDocuments\\STMicroelectronics\\ST25Rxxx_Eval_GUI</p><p> </p><p>Hope it helps<br/>GP</p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Travis and Grégoire,</p><p>Really appreciate you both taking the time to answer.</p><p>After looking into the options you mentioned, I'm going with the STEVAL-25R200SA because it ticks all the boxes for us: right budget, ISO 15693, USB connection to PC, and the different antenna options will be great for testing.</p><p>Thanks again, I'll come back if I encounter any problems</p></div>",
+                    "author": "MelioNB",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey again,</p><p>Sorry for the late follow-up, it took a bit of time to align with my teammates!</p><p>Before we order the STEVAL-25R200SA, one last question: is it possible to simply read ISO 15693 tag UIDs in real time from a Python script via the USB COM port? Is there a ready-to-use example for this specific use case?</p><p>Thanks!<br/>MelioNB</p></div>",
+                    "author": "MelioNB",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi MelioNB,<br/><br/>After installing the EVAL GUI you can navigate to the example folder and also browse the Protocol description between the PC and the board. See below:    </p><p>     <span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Examples.png\" style=\"width: 556px;\"><img alt=\"Examples.png\" height=\"463\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d113fb9f-7171-1dda-0b14-4953c7a142eb.png\" title=\"Examples.png\" width=\"556\"/></span></p><p> </p><p>Using the APIs provided one can issue individual commands/frames at will.<br/>In your case, for ISO15693 / NFC-V a plethora of commands can be performed, eg:</p><pre class=\"lia-code-sample language-c\"><code>rfalISO15693TransceiveAnticollisionFrame\nrfalISO15693TransceiveEOFAnticollision\nrfalISO15693TransceiveEOF\nrfalNfcvPollerInitialize\nrfalNfcvPollerCheckPresence\nrfalNfcvPollerInventory\nrfalNfcvPollerCollisionResolution\nrfalNfcvPollerSleepCollisionResolution\nrfalNfcvPollerSleep\nrfalNfcvPollerSelect\nrfalNfcvPollerReadSingleBlock\nrfalNfcvPollerExtendedReadSingleBlock\nrfalNfcvPollerReadMultipleBlocks\nrfalNfcvPollerExtendedReadMultipleBlocks\nrfalNfcvPollerWriteSingleBlock\nrfalNfcvPollerExtendedWriteSingleBlock\nrfalNfcvPollerWriteMultipleBlocks\nrfalNfcvPollerExtendedWriteMultipleBlocks\nrfalNfcvPollerLockBlock\nrfalNfcvPollerExtendedLockSingleBlock\nrfalNfcvPollerGetSystemInformation\nrfalNfcvPollerExtendedGetSystemInformation\n\n// RFAL High Layer\nrfalNfcInitialize\nrfalNfcDiscover\nrfalNfcGetState\nrfalNfcGetDevicesFound\nrfalNfcGetActiveDevice\nrfalNfcSelect\nrfalNfcDataExchangeStart\nrfalNfcDataExchangeGetStatus\nrfalNfcDeactivate</code></pre><p> <br/>A ready to use Python example is available, but unfortunately currently the GUI Installer STEVAL25R200SA (v1.1) seems not to contain it. We'll try to update the package meanwhile.<br/><br/>Kind regards<br/><span>GP</span></p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey again,</p><p>One last question about the antenna: I have no background in electronics or RF engineering. Given that, would you recommend I try to make a simple wire-wound antenna myself to connect to the flexible antenna interface, or would it be easier and more reliable to just buy a ready-made 50-ohm SMA antenna from the market and plug it into the SMA connector on the board?</p><p>The goal is just to test detection range over a 15cm diameter I don't need a perfect result.</p><p>Thanks!<br/>MelioNB</p></div>",
+                    "author": "MelioNB",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello MelioNB,</p><p> </p><p>The <span>STEVAL-25R200SA offers several possibilities.</span></p><p><span>You can use: </span></p><ul><li><span>a differential antenna (simple, straight forward)</span></li><li><span>one or two single ended antennas (similar like the differential but less output power)</span></li><li><span>a dedicated antenna connected via (coaxial) cable (in case the reader PCB is further away from the antenna (maybe not your use-case)</span></li></ul><p><span>The different approaches are discussed in AN5592 (</span><span class=\"\">ST25R single ended antenna matching</span><span>), which can also be applied for the R200. If I understand your application correctly you want to cover a surface of 15cm diameter and ~4cm height. A 15cm diameter antenna (equal to your detection area) in differential configuration should be the best fit.</span></p><p><span>The general antenna matching application note (AN6065) describes how to design and match an antenna.</span></p><p><span>If everything can be put on one PCB (antenna + ST25R + MCU), there is no need to purchase an antenna. </span></p><p><span>The size you require may even not be available (15cm diameter).</span></p><p><span>I would consider prototyping a 2 loop wire wound antenna which can be replaced by a PCB etched antenna later. </span></p><p><span>In case of questions, feel free to come back to us.</span></p><p><span>br Travis</span></p><p><span> </span></p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

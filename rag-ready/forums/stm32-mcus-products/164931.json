@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164931",
+            "publicId": "164931",
+            "title": "STM32U3: 3V3 tolerant GPIO at 1V8 supply ?",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u3-3v3-tolerant-gpio-at-1v8-supply-164931",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "GPIO-EXTI",
+                "STM32U3 series"
+            ],
+            "published_at": "2026-04-20T15:03:39+00:00",
+            "views": 228,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Look at *pin/ball definitions* table in Datasheet, that lists all pins together with their input/output structure.\n\nNow look at *General operating conditions* table, that gives the permissible range of voltages for each type of pin. For TT\\_xx pins, it's generally up to its VDDIO (which except some PGx pins and USB pins is identical to VDD) supply voltage; for FT\\_xx pins (\"five-volt tolerant\"), it's up generally up to VDDIO+3.6V or 5.5V, whichever is less.\n\nPA8 is listed as FT\\_h, so it should be OK if it is turned to input and 3.3V is applied to it. It won't be able to source 3.3V when VDD is 1.8V, though.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi,\n\nI am using STM32U385CGU6 with 1.8V supply. My GSM peripheral using the 3.3V Uart port for a dedicated time (2sec) then turn back to 1.8V level of UART.\n\nCould you offer 3.3V tolerant pin? I am using PA8 to communicate with GSM module.\n\nthank you & best regards,\n\nferamuz karşil",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9150b7bc-268b-3df2-b8ae-631b6f899b2a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ffc80512-ac26-0d43-5ec1-7001eee627b1.png"
+            ],
+            "author": "FERAMUZ",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>From the datasheet (<a href=\"https://www.st.com/resource/en/datasheet/stm32u385cg.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">DS14830 - Rev 3)</a> / Table 27. General operating conditions</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_3-1776699335371.png\" style=\"width: 400px;\"><img alt=\"mALLEm_3-1776699335371.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9150b7bc-268b-3df2-b8ae-631b6f899b2a.png\" title=\"mALLEm_3-1776699335371.png\"/></span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_2-1776699293959.png\" style=\"width: 622px;\"><img alt=\"mALLEm_2-1776699293959.png\" height=\"28\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ffc80512-ac26-0d43-5ec1-7001eee627b1.png\" title=\"mALLEm_2-1776699293959.png\" width=\"622\"/></span></p>\n<p>That depends on what you are using as power supply.</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Look at <em>pin/ball definitions</em> table in Datasheet, that lists all pins together with their input/output structure.</p><p>Now look at <em>General operating conditions</em> table, that gives the permissible range of voltages for each type of pin. For TT_xx pins, it's generally up to its VDDIO (which except some PGx pins and USB pins is identical to VDD) supply voltage; for FT_xx pins (\"five-volt tolerant\"), it's up generally up to VDDIO+3.6V or 5.5V, whichever is less.</p><p>PA8 is listed as FT_h, so it should be OK if it is turned to input and 3.3V is applied to it. It won't be able to source 3.3V when VDD is 1.8V, though.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi JW,</p><p> </p><p>thank you for your feedback.</p><p> </p><p> </p><p>best regards,</p></div>",
+                    "author": "FERAMUZ",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

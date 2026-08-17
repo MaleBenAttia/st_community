@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164879",
+            "publicId": "164879",
+            "title": "NUCLEO-WB09KE + Zephyr: CONFIG_BT=y may cause intermittent boot failure",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/nucleo-wb09ke-zephyr-config-bt-y-may-cause-intermittent-boot-failure-164879",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Zephyr",
+                "BLE",
+                "STM32WB0 series"
+            ],
+            "published_at": "2026-04-18T01:51:32+00:00",
+            "views": 354,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Are you using latest release of [STM32CubeWB0](https://www.st.com/en/embedded-software/stm32cubewb0.html) MCU package?\n\nMaybe you have issue with Zephyr, so try with the [revision](https://github.com/zephyrproject-rtos/zephyr/pull/107999) shared in github.",
+            "best_answer_author": "Imen.D",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**Board / SoC**\n\n* Board: NUCLEO-WB09KE\n\n* SoC: STM32WB09\n\n**Software**\n\n* Zephyr version: v4.4.0-rc2-41-g149c8b1758a8\n\n* Toolchain / build system: West + Zephyr standard build flow\n\n**Issue summary**\n\nWhen building a very small Zephyr application for NUCLEO-WB09KE, simply enabling:\n\n```\n\nCONFIG_BT=y\n\n```\n\ncan cause intermittent boot failure.\n\nThe failure happens very early in boot:\n\n* no UART output\n\n* no boot banner\n\n* no application printk()\n\n* main() appears to never run in failed boots\n\nThis happens even when the application does not call any Bluetooth API.\n\n**Minimal application**\n\nmain.c\n\n```\n\n#include <zephyr/kernel.h>\n\n#include <zephyr/sys/printk.h>\n\nint main(void)\n\n{\n\nwhile (1) {\n\nprintk(\"M\\n\");\n\nk_busy_wait(100000);\n\n}\n\nreturn 0;\n\n}\n\n```\n\n**Minimal project configuration**\n\nprj.conf\n\n```\n\nCONFIG_BT=y\n\nCONFIG_CONSOLE=y\n\nCONFIG_UART_CONSOLE=y\n\nCONFIG_EARLY_CONSOLE=y\n\nCONFIG_PRINTK=y\n\nCONFIG_ASSERT=y\n\nCONFIG_ASSERT_VERBOSE=y\n\nCONFIG_LOG=n\n\nCONFIG_PM=n\n\n```\n\n**Observed behavior**\n\n1. With Bluetooth disabled, the board boots and repeatedly prints:\n\n```\n\nM\n\nM\n\nM\n\n...\n\n```\n\n2. With CONFIG\\_BT=y enabled, boot becomes intermittent:\n\n* successful boots: system starts normally\n\n* failed boots: absolutely no UART output at all\n\n3. In failed cases:\n\n* no printk(\"M\\n\")\n\n* no Zephyr boot banner\n\n* no log output\n\n* this strongly suggests failure occurs before main()",
+            "images": [],
+            "author": "Eyck-Huang",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Are you using latest release of <a href=\"https://www.st.com/en/embedded-software/stm32cubewb0.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeWB0</a> MCU package?</p>\n<p>Maybe you have issue with Zephyr, so try with the<span> <a href=\"https://github.com/zephyrproject-rtos/zephyr/pull/107999\" rel=\"nofollow noopener noreferrer\" target=\"_self\">revision</a> shared in github. </span></p>\n<p> </p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106143\">@Eyck-Huang</user-mention> ,</p>\n<p><span>This may be caused by hardware bootloader activation.</span></p>\n<p><span>Did you check the jumper settings and hardware reset sequence to ensure the bootloader is running and UART is enabled? </span></p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"431\">@Imen.D</user-mention> ,</p><p>Yes, I’ve checked all the configurations you mentioned above. This issue only occurs when <strong>CONFIG_BT=y</strong>. If <strong>CONFIG_BT=n</strong>, everything works normally.</p></div>",
+                    "author": "Eyck-Huang",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106143\">@Eyck-Huang</user-mention> ,</p>\n<p>Did you try to run another project on the same boards, not a zephyr one. This is to identify if it is a hardware issue or a Zephyr issue. You cant try a BLE example from CubeWB0 package.</p>\n<p>What is the error log that you have?</p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"431\">@Imen.D</user-mention> ,</p><p>I have tried running the STM32 PAwR example, and I did not encounter any issues. So I suspect the problem is related to Zephyr.</p></div>",
+                    "author": "Eyck-Huang",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

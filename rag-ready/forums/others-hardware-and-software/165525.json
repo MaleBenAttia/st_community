@@ -1,0 +1,111 @@
+{
+    "forum": [
+        {
+            "id": "165525",
+            "publicId": "165525",
+            "title": "STM8S using TIM4 interrupts",
+            "url": "https://community.st.com/others-hardware-and-software-57/stm8s-using-tim4-interrupts-165525",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STM8 MCUs"
+            ],
+            "published_at": "2026-05-09T02:04:36+00:00",
+            "views": 456,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "@Peter BENSCH your [reply on another thread](https://community.st.com/t5/others-hardware-and-software/stm8s-tim4-vs-tim2/m-p/898769/highlight/true#M46721) also applies here, and it is the solution here as well - I am attempting to set the prescaler on TIM4 as if it takes a 4 bit value, when in fact it is taking a 3 bit value, so I'm losing the most significant bit when setting the prescaler. All other timing is off because of that. Thank you for your help!",
+            "best_answer_author": "whitehorsesoft",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Greetings, I'm trying to set up TIM4 per the reference manual (RM0016).\n\nWith the clock set to LSI at 128kHz, the following code causes the PD2 output pin to appear constantly high visually via a wired LED. I would expect it would be blinking once per second. I don't have access to a scope so I can't see what is actually happening. Anyone spot anything I'm doing incorrectly?\n\n```\n\nsim\n\n; F_Master Prescalar tim clk\n\n; 128_000 Hz / 1024 = 125\n\nmov TIM4_PSCR, #0b1010 ; 2 ** 0b1010 = 1024 prescaler\n\n; ARR at 0x7d = 125\n\nmov TIM4_ARR, #0x7d\n\nbset TIM4_IER, #0 ; UIE: Update interrupt enable\n\nbset TIM4_CR1, #0 ; CEN: Counter enable\n\n```\n\n...and the interrupt code:\n\n```\n\ntim4_up_isr:\n\n; PD2 blinks once per second\n\n; from TIM4\n\nbres TIM4_SR, #0 ; UIF: Update interrupt flag\n\nbcpl PD_ODR, #2\n\niret\n\n```\n\n...fwiw when I set line 5 of the interrupt code to use bres PD\\_ODR, #2, the output appears low visually.",
+            "images": [],
+            "author": "whitehorsesoft",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I think the clock is still the default HSI 16 MHz. Due to this the LED blinks very fast and it seems it is always on.</p><p>Are you sure the clock is LSI 128 KHz?</p><p> </p></div>",
+                    "author": "AA1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the double-check but yes it is LSI 128 kHz. I omitted the code setting the clock, to focus on just the TIM4 code.</p><p>I'm wondering if maybe I'm not setting something in the correct order, or if another register should be set that I've missed? FYI I'm using RM0016 and DS7147.</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You have code to set the clock to LSI 128 KHz, but this doesn't prove that the clock is LSI 128 KHz. The code can be wrong. You need to verify that the clock is really 128 KHz. Did you read the clock registers to confirm it?</p><p> </p></div>",
+                    "author": "AA1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The master clock is not the issue, it truly is at 128 kHz.</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Which is the value of CLK_CMSR register?</p><p> </p></div>",
+                    "author": "AA1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the review. I'm curious what you mean by global interrupts being enabled in \"but one thing to check is whether global interrupts are actually enabled\"?</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry <user-mention data-id=\"119831\">@unknown</user-mention> now I see what you mean. I did not include it in the code sample, but there is a wfi instruction further down. That will enable global interrupts (RIM instruction not needed with WFI).</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>WFI only makes the CPU wait; it does not enable global interrupts. So for TIM4 to wake the MCU and run the ISR, you still need:</p>\n<ul>\n<li>TIM4_IER.UIE = 1</li>\n<li>global interrupts enabled via RIM</li>\n</ul>\n<p>Without RIM, the timer may keep running and set its flag, but the interrupt will not be serviced as expected.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>To followup, I added the RIM instruction, but no change in behavior.</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK for RIM, but in your code visible here, you apparently want to enable the interrupt for TIM4, but you set UIE to 0:</p>\n<pre class=\"lia-code-sample language-c\"><code>bset TIM4_IER, #0 ; UIE: Update interrupt enable</code></pre>\n<p><br/>RM0016, section 17.7.5:</p>\n<p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><strong>UIE:</strong> Update interrupt enable<br/>0: Update interrupt disabled<br/>1: Update interrupt enabled</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; but you set UIE to 0:...<br/><br/>no, that would be a bres instruction to set to 0. the bset instruction sets it to 1 - in this case, the 0th bit (LSB) is set to 1. The \"0\" indicates the bit order, not the value being set. Ref bres and bset in PM0044.</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2379\">@Peter BENSCH</user-mention> your <a href=\"https://community.st.com/t5/others-hardware-and-software/stm8s-tim4-vs-tim2/m-p/898769/highlight/true#M46721\" target=\"_blank\">reply on another thread</a> also applies here, and it is the solution here as well - I am attempting to set the prescaler on TIM4 as if it takes a 4 bit value, when in fact it is taking a 3 bit value, so I'm losing the most significant bit when setting the prescaler. All other timing is off because of that. Thank you for your help!</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

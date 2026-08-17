@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "163664",
+            "publicId": "163664",
+            "title": "Using TouchGFX+ThreadX with Ethernet+NETXDuo on STM32N6570-DK board",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/using-touchgfx-threadx-with-ethernet-netxduo-on-stm32n6570-dk-board-163664",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-03-10T20:38:40+00:00",
+            "views": 410,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nAs mentioned by @Osman SOYKURT, using RMII mode does not create pin conflicts between peripherals, and that is the mode that should be selected.\n\nThe reason you are getting a blank screen is most likely due to Ethernet buffers overlapping with TouchGFX's. To solve this, I suggest following an STM32N6 NetXDuo example from the repository. This will add the proper function calls and configurations needed to allocate data pools, create necessary threads, and initialize protocols. An example such as [NX\\_MQTT\\_Client](https://github.com/STMicroelectronics/STM32CubeN6/tree/main/Projects/STM32N6570-DK/Applications/NetXDuo/Nx_MQTT_Client) could help. Make sure that Ethernet descriptors and buffers do not overlap with the TGFX application.\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I have a simple question. Is it possible to use TouchGFX+ThreadX with enabled Ethernet and NETXDuo SNTP client at a same time in STM32N6570-DK board? In other words: take the TouchGFX ClockExample then in CUBEMX enable the Ethernet port with NETXDuo-SNTP server. Will it cause pin conflict? I mean the Ethernet uses the same pins as LTDC.\n\nI enabled the Ethernet in ClockExample project and I got blank screen and the app was frozen. After removing Ethernet from the project, the analog and digital clocks appeared again on the display.\n\nThanks,\n\nLouis",
+            "images": [],
+            "author": "Louie88",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"48389\">@Louie88</user-mention> ,<br/><br/>I'm not a specialist with ETH and <span>NETXDuo but when I try to enable those from STM32CubeMX with the N6 TBS that we provide (ThreadX version), I don't get conflicts (at least when I use RMII mode for ETH, which I believe is the correct setting? <user-mention data-id=\"93235\">@STackPointer64</user-mention> could you help?)</span></p></div>",
+                    "author": "Osman SOYKURT",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"48389\">@Louie88</user-mention> , have you been able to resolve your issue?</p></div>",
+                    "author": "Osman SOYKURT",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Hello,</p>\n<p>As mentioned by <user-mention data-id=\"1301\">@Osman SOYKURT</user-mention>, using RMII mode does not create pin conflicts between peripherals, and that is the mode that should be selected.</p>\n<p>The reason you are getting a blank screen is most likely due to Ethernet buffers overlapping with TouchGFX's. To solve this, I suggest following an STM32N6 NetXDuo example from the repository. This will add the proper function calls and configurations needed to allocate data pools, create necessary threads, and initialize protocols. An example such as <a href=\"https://github.com/STMicroelectronics/STM32CubeN6/tree/main/Projects/STM32N6570-DK/Applications/NetXDuo/Nx_MQTT_Client\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">NX_MQTT_Client</a> could help. Make sure that Ethernet descriptors and buffers do not overlap with the TGFX application.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Osman SOYKURT",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Osman SOYKURT",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

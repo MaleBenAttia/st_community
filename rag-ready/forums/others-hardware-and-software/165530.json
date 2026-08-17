@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "165530",
+            "publicId": "165530",
+            "title": "SG3525AN spice circuit",
+            "url": "https://community.st.com/others-hardware-and-software-57/sg3525an-spice-circuit-165530",
+            "category": "Others: hardware and software",
+            "tags": [
+                "Other hardware"
+            ],
+            "published_at": "2026-05-09T13:06:46+00:00",
+            "views": 134,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I'm afraid I have to tell you that there isn't a Spice model for such an old-timer from the last millennium.\n\nIt’s a shame I can’t give you a more positive answer.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi, there is a way to found the spice model for the IC: SG3525AN?",
+            "images": [],
+            "author": "SMusc.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm afraid I have to tell you that there isn't a Spice model for such an old-timer from the last millennium.</p>\n<p>It’s a shame I can’t give you a more positive answer.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks anyway but I managed to find the template on the web and I'm attaching it in case anyone needs it</p><pre class=\"lia-code-sample language-c\"><code>* PSpice Model Editor - Version 16.6.0\n\n*$\n* \n.subckt sg3525a INV NI SYN OSC CT RT DCH SS CMP SHD OUA GND VC OUB VIN VRF\nA1 N017 0 N009 0 0 N017 N020 0 DFLOP Vhigh=5.1 Trise=20n Rout=30\nA2 N018 N019 N009 0 N020 N005 N011 0 OR Vhigh=5.1 Trise=400n Rout=30\nA3 N017 N009 0 N019 N018 N023 N022 0 OR Vhigh=5.1 Trise=400n Rout=30\nS1 OUA N004 N005 0 HOUT\nS2 N012 OUA N011 0 LOUT\nS3 OUB N021 N023 0 HOUT\nS4 N028 OUB N022 0 LOUT\nI1 N031 0 21m\nD1 0 N031 IDEAL\nR1 N029 N031 8.93\nR2 N029 0 22.6\nD2 N029 N032 D1_75\nD3 0 N032 IDEAL\nI2 N032 0 188m\nR3 N032 0 2.28\nD4 N028 N029 IDEAL\nI3 N014 0 21m\nD5 0 N014 IDEAL\nR4 N013 N014 8.93\nR5 N013 0 22.6\nD6 N013 N015 D1_75\nD7 0 N015 IDEAL\nI4 N015 0 188m\nR6 N015 0 2.28\nD8 N012 N013 IDEAL\nD9 VC N021 IDEAL\nD10 VC N004 IDEAL\nG1 0 N024 NI N027 table=(-70m -100u,0 0,70m 100u)\nR7 N024 0 4meg\nC1 N024 0 100p\nR8 N024 CMP 30\nR9 INV 0 1meg\nR10 NI 0 1meg\nI7 0 VRF 80m\nR11 VRF 0 170\nD11 0 VRF Z5_1\nD12 0 VC Z40\nA4 VIN 0 0 0 0 N001 0 0 SCHMITT Vhigh=5.1 Vlow=0.45 Trise=20n Vt=7.25 Vh=0.25\nI8 VIN 0 TBL(0 0 3 3.8m 7 19m 8 20m 40 24.1m)\nD13 N030 N024 Z5_6\nV1 N030 0 0.2\nR12 N036 0 5k\nR13 SHD N002 5k\nQ1 SS N002 N036 0 NPN\nD14 N002 0 D1_2\nR14 N001 N002 60k\nD15 0 SS Z5_1\nI9 0 SS 50µ\nA5 N002 0 0 0 0 0 N019 0 SCHMITT Vhigh=5.1 Trise=400n Vt=634m Vh=1m\nA6 N026 N009 0 0 0 0 N018 0 SRFLOP Vhigh=5.1 Trise=20n Rout=30\nA7 0 N025 N019 0 0 0 N026 0 OR Vhigh=5.1 Trise=20n Rout=30\nA8 CT N034 0 0 0 0 N025 0 SCHMITT Vhigh=5.1 Trise=20n Vt=0 Vh=10m\nE1 N033 0 N024 0 1\nE2 N035 0 SS 0 1\nR15 N033 N034 500\nD16 N034 N035 IDEAL\nR16 INV N027 1k\nC2 NI N027 40p\nR17 SYN 0 2k\nR18 OSC N016 250\nV2 N003 0 3.64\nF1 0 CT V2 -1\nD17 N003 RT IDEAL\nR19 N016 0 3k\nD18 N009 N016 D1_6\nS5 0 DCH N009 0 LSW\nD19 0 CT Z5_1\nA9 N008 N010 0 0 0 0 N009 0 SRFLOP Vhigh=5.1 Ref=0.9 Trise=150n Tfall=250n\nA10 N006 N007 0 0 0 0 N008 0 OR Vhigh=5.1 Trise=20n\nA11 CT 0 0 0 0 0 N006 0 BUF Vhigh=5.1 Ref=3.2 Trise=20n\nA12 CT 0 0 0 0 N010 0 0 BUF Vhigh=5.1 Ref=0.9 Trise=20n\nA13 SYN 0 0 0 0 0 N007 0 BUF Vhigh=5.1 Ref=2 Trise=20n\n.model NPN NPN\n.model PNP PNP\n.model HOUT SW(Ron=2.7 Roff=175k Vt=2.8 Vh=-2.1 Vser=1.1 Ilimit=0.6)\n.model LOUT SW(Ron=10m Roff=175k Vt=2.8 Vh=-2.1 Vser=0 Ilimit=0.6)\n.model IDEAL D(Ron=0 Roff=1G Vfwd=0)\n.model D1_75 D(Ron=1.57 Roff=1G Vfwd=1.75)\n.model D1_6 D(Ron=0 Roff=1G Vfwd=1.6)\n.model Z5_1 D(Ron=1 Roff=1G Vrev=5.075)\n.model Z40 D(Ron=0 Roff=175k Vrev=40)\n.model Z5_6 D(Ron=1 Roff=1G Vrev=5.6)\n.model D1_2 D(Ron=0 Roff=1G Vfwd=1.2)\n.model LSW SW(Vt=2.55 Vh=-0.5 Ron=50 Roff=1meg Vser=0.3 Ilimit=50ma)\n.ends sg3525a\n*\n*$</code></pre></div>",
+                    "author": "SMusc.1",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

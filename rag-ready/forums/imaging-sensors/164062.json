@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "164062",
+            "publicId": "164062",
+            "title": "Estimated_reflectance and range_sigma in VL53L5 and L8",
+            "url": "https://community.st.com/imaging-sensors-49/estimated-reflectance-and-range-sigma-in-vl53l5-and-l8-164062",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Time of flight"
+            ],
+            "published_at": "2026-03-22T21:42:33+00:00",
+            "views": 282,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I'm sure Bin doesn't want to give away secrets, but your questions aren't that specific.\n\nSo the easy one. Yes, ST does the radial to perpendicular calculation for you. If you put the sensor 1 meter from a wall and exactly perpendicular you will get all the zones equal to 1 meter.\n\nReflectance starts out as the number of photons detected during the ranging period and multiplied to give photons per second. Call this the signal strength. But the sensor can adjust the number of SPADs - so it doesn't waste power when there are tons of photons being returned. So a good measure of the brightness of an object is Signal per SPAD.\n\nThat way one can compare targets no matter how many SPADS are enable.\n\nI'm not sure how scientifically accurate 'Reflectance' is. I'd guess ST took a bunch of targets of different reflectivities and and ranges and compared the signal strengths. But clear that with your FAE. This is just how I did it.\n\nThe first thing the sensor has to do is subtract the ambient. So the ambient is not part of the reflectivity calculation.\n\nThe sensor is not fast enough to measure photon times directly. (The speed of light is 6.6pico seconds per mm if you account for the out and back.) So the sensor uses statistics. And with statistics you get a range rather than one answer. So read the result as the range value, with a Sigma. If the signal is nice and strong, the sigma will be low. But if the signal is weak the sigma will be higher.\n\nThe sensor will flag a error in RangeStatus if the Sigma is over a certain amount - the threshold that you set. But there is no reason you have to use this feature. Just read the sigma and make your own decision. Or set it to your liking. It should be in mm.\n\nAs for not getting a sigma in the 4x4 mode - I'm pretty sure you have a coding error.",
+            "best_answer_author": "John_Kvam",
+            "best_answer_author_role": "Graduate",
+            "content_text": "I have questions regarding estimated\\_reflectance and range\\_sigma in VL53L5 and L8\n\n* The reflectance: how is it calculated? Is it R=signal\\_rate\\_per\\_spads\\*depth^2/K? the number\\_of sapds\\_enabled seems a useless parameter for a user? Can we know this calibrated constant K?\n\n* The ambient\\_light has nothing to do with the R calculation?\n\n* For these multi zone TOF, if we place a flat target in front of TOF, it shall give the same R. ST’ already does the internal compensation for the depth and for the angle of incidence. Right??  I can not find this kind of info in ST’s doc. Can only guess. If it has, please point out the Docs source\n\n* The range\\_sigma: for L5, if the resolution is 4 x 4, the readout is zero. I can read out  this parameter if it is 8 x8\n\n* What is the default sigma\\_threshold for distance in L5? Is it the same for resolution  8x8 and 4 x4? Also, when I change this threshold, it is unclear if this threshold, e.g.,100mm shall multiply with a scale factor 128. Please confirm that\n\nThanks in advance if ST or anyone can give me the answers!",
+            "images": [],
+            "author": "Yunlion",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p><p>May I ask if this is a project or self-study？ The<span> questions you raised above are confidential and not convenient to share. Really sorry for that. However, if it is a specific project, you can contact our FAE and get the answer. Thank you</span></p><p>Best Regards,</p><p>Bin FAN</p></div>",
+                    "author": "Bin",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thank you for the reply! It is a project. I will contact the FAE.  BR/Yunlion</p></div>",
+                    "author": "Yunlion",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm sure Bin doesn't want to give away secrets, but your questions aren't that specific.</p><p>So the easy one. Yes, ST does the radial to perpendicular calculation for you. If you put the sensor 1 meter from a wall and exactly perpendicular you will get all the zones equal to 1 meter. </p><p>Reflectance starts out as the number of photons detected during the ranging period and multiplied to give photons per second. Call this the signal strength. But the sensor can adjust the number of SPADs - so it doesn't waste power when there are tons of photons being returned. So a good measure of the brightness of an object is Signal per SPAD. </p><p>That way one can compare targets no matter how many SPADS are enable. </p><p>I'm not sure how scientifically accurate 'Reflectance' is. I'd guess ST took a bunch of targets of different reflectivities and and ranges and compared the signal strengths. But clear that with your FAE. This is just how I did it. </p><p>The first thing the sensor has to do is subtract the ambient. So the ambient is not part of the reflectivity calculation.</p><p>The sensor is not fast enough to measure photon times directly. (The speed of light is 6.6pico seconds per mm if you account for the out and back.) So the sensor uses statistics. And with statistics you get a range rather than one answer. So read the result as the range value, with a Sigma. If the signal is nice and strong, the sigma will be low. But if the signal is weak the sigma will be higher.</p><p>The sensor will flag a error in RangeStatus if the Sigma is over a certain amount - the threshold that you set. But there is no reason you have to use this feature. Just read the sigma and make your own decision. Or set it to your liking. It should be in mm.</p><p>As for not getting a sigma in the 4x4 mode - I'm pretty sure you have a coding error. </p><p> </p></div>",
+                    "author": "John_Kvam",
+                    "role": "Graduate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Great, Thanks, it is very helpful!</p></div>",
+                    "author": "Yunlion",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Bin",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

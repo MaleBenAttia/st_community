@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "166706",
+            "publicId": "166731",
+            "title": "How to implement a custom object detection onnx model on STM32N6570-DK",
+            "url": "https://community.st.com/edge-ai-134/how-to-implement-a-custom-object-detection-onnx-model-on-stm32n6570-dk-166731",
+            "category": "Edge AI",
+            "tags": [
+                "ST Edge AI Core",
+                "STM32N6 series",
+                "Neural-ART Accelerator"
+            ],
+            "published_at": "2026-07-07T06:11:06+00:00",
+            "views": 67,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@vedantgg,\n\nThe STM32cube AI Studio behavior is a bit strange…\n\nI would suggest to use ST Model Zoo services to retrain an Object detection model and quantize it.\n\nThen import your new model in STM32Cube AI Studio. All Model Zoo model are tested so you should not get an error.\n\nThen you should be able to click ‘generate the code’ to get a simple application running on the target.\n\nHere is a tutorial to retrain yolo models. I tested v11n, v8n and 26n up to a 320x320 input size and got no issues, with the activation fitting in NPU ram (for best inference time).\n\n[AI:How to deploy Ultralytics YOLO models to STM32N6 - stm32mcu](https://wiki.st.com/stm32mcu/wiki/AI:How_to_deploy_Ultralytics_YOLO_models_to_STM32N6)\n\nhave a good day,\n\nJulian",
+            "best_answer_author": "Julian E.",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "hey i am struggling to flash by custom onnx model on stm32N6570-DK . I tired using the stm32 cube ai cloud website but it only gives me option to generate c code and not a project or elf file . So i shifted to stm32cube Ai studio but it keeps me throwing this error -\n\n(\\*) 'input'/'output' buffers are allocated in the activations buffer\n\nRunning the ONNX model...\n\nRunning the ST.AI c-model (AI RUNNER)...(name=network, mode=TARGET)\n\nE200(ValidationError): TARGET: Unable to bind the ST.AI runtime with \"network\" c-model: []\n\nE801(HwIOError): Invalid firmware - COM3:115200\n\ncan anyone help me to get started with the same",
+            "images": [],
+            "author": "vedantgg",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108014\">@vedantgg</user-mention>,</p><p> </p><p>The STM32cube AI Studio behavior is a bit strange…</p><p>I would suggest to use ST Model Zoo services to retrain an Object detection model and quantize it. </p><p>Then import your new model in STM32Cube AI Studio. All Model Zoo model are tested so you should not get an error.</p><p><br/>Then you should be able to click ‘generate the code’ to get a simple application running on the target.</p><p> </p><p>Here is a tutorial to retrain yolo models. I tested v11n, v8n and 26n up to a 320x320 input size and got no issues, with the activation fitting in NPU ram (for best inference time).</p><p><a href=\"https://wiki.st.com/stm32mcu/wiki/AI:How_to_deploy_Ultralytics_YOLO_models_to_STM32N6\" rel=\"noopener noreferrer\" target=\"_blank\">AI:How to deploy Ultralytics YOLO models to STM32N6 - stm32mcu</a></p><p> </p><p>have a good day,</p><p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hey thanks ,</p><p>I went with - <a href=\"https://github.com/STMicroelectronics/stm32ai-modelzoo-services/tree/main\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/stm32ai-modelzoo-services/tree/main</a> approach, used the python build and flash support for flashing my custom onnx model onto the board , after which i was also able to edit the generated camera+lcd pipeline to build a custom application.</p><p>I followed this document - <a href=\"https://github.com/STMicroelectronics/stm32ai-modelzoo-services/blob/main/object_detection/docs/README_DEPLOYMENT_STM32N6.md\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/stm32ai-modelzoo-services/blob/main/object_detection/docs/README_DEPLOYMENT_STM32N6.md</a> </p><p> </p><p>Just putting it up here for people who are getting started with stm32n6 </p></div>",
+                    "author": "vedantgg",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For future readers:</p><p> </p><p>This could also have been an issue of the N6Cube Firmware 1.4.0</p><p>The team developing it broke something we use for AI.</p><p> </p><p>In the new version of the CubeAI Studio, we fixed it while waiting for a fix (v1.4.1).</p><p>Either use the latest version of Cube AI studio or the N6cube Firmware v1.3.0</p><p> </p><p>Have a good day,</p><p>Julian</p><p> </p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

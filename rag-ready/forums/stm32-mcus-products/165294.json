@@ -1,0 +1,92 @@
+{
+    "forum": [
+        {
+            "id": "165294",
+            "publicId": "165294",
+            "title": "STM32H753: Cannot enter/connect to Bootloader using USART1",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h753-cannot-enter-connect-to-bootloader-using-usart1-165294",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-01T13:18:39+00:00",
+            "views": 462,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "Turns out it was a dead Chip...\n\nPopulated a new Board with the One from Digikey and it works right away using the UART Bridge and SWD...\n\nBut thank you for the Debugging Help!",
+            "best_answer_author": "luroe",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello everyone,\n\nthis is my first time building an STM32 Based Board myself.\n\nI am trying to talk to the Chip Using a CP2102 UART Bridge connected to PA9 & 10.\n\nFor Reset and Boot 0 ive connected Reset (NRST) to RTS of the UART Bridge and Boot0 to its GPIO0 Pin and configured that Pin in the Bridge. I have however also tried just pulling Boot0 High and Jumping NRST to GND and then immediately connecting using STM32CubeProgrammer.\n\nUsing an Oscilloscope ive found that the Magic Packet is sent to the STM32 (0x7F, 115200 Baud, Even Parity, 1 Stop) but there is no response (Tx of the STM32 stays high all the Time).\n\nPB15 is left floating, I am using the VIT6 Variant (The LQFP100 Package), its a Brand new Chip, is there any configuration required before this works?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1ca9cf3-b464-2ae8-7320-b352acaad91b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1b5019af-f537-d710-82a4-b53eb395b667.png"
+            ],
+            "author": "luroe",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span>For Reset and Boot 0 ive connected Reset (NRST) to RTS of the UART Bridge</span></p><p>Do you release NRST? It should not be held in active state forever.</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, for the Manual Test im using a 10K PullUp to 3V3 and momentarily short NRST to GND right before hitting Connect on Cube Programmer...</p><p>Ive also checked that the RTS Circuit momentarily pulls NRST low and immediately releases it.</p></div>",
+                    "author": "luroe",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Does connection via SWD work? Can you connect CubeProgrammer and read content of the flash, or program some binary? This is to check if the chip isn't dead.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I dont currently have any SWD Debugger - ive ordered an stlink v2 which should show up tomorrow, will try that then.</p><p>On another note: Ive measured VCAP at both exposed Caps and it was \"only\" 1V0. Many Sources online say that it should be at least 1V1, would this be another thing to look into or is this fine for this chip?</p></div>",
+                    "author": "luroe",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>according to AN2606, the boot pattern for STM32H753 is </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"ShirleyYe_0-1777717587726.png\" style=\"width: 400px;\"><img alt=\"ShirleyYe_0-1777717587726.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1b5019af-f537-d710-82a4-b53eb395b667.png\" title=\"ShirleyYe_0-1777717587726.png\"/></span></p><p>You need to program the option byte of BOOT_ADD1(if bootpin is high) or the BOOT_ADD0 (if bootpin is low).</p></div>",
+                    "author": "Shirley.Ye",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The <span>default factory-programmed value of <strong>BOOT_ADD1 </strong>is the address of the system bootloader, which is</span><span> </span><strong>0x1FF0 0000</strong><span>.  So BOOT0 high should work even on unprogrammed chip... if it isn't dead yet.</span></p><p>\"VCAP refers to the external core voltage supply pin(s) on the STM32H753. These pins are used to connect external capacitors required for the internal voltage regulator. Minimal VCAP voltage depends on the voltage scaling mode (from 0.98 V to 1.37 V). </p><p>The initial power-scaling mode after power-up or system reset is VOS3. The voltage scaling mode can be changed on-the-fly by software after startup if higher performance is required.\" So your voltage on VCAP looks OK.</p><p><span>(thanks to the AI assistant ;)  </span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"PavelA_0-1777737676689.png\" style=\"width: 400px;\"><img alt=\"PavelA_0-1777737676689.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1ca9cf3-b464-2ae8-7320-b352acaad91b.png\" title=\"PavelA_0-1777737676689.png\"/></span></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So my STLink just showed up and it seems like the Chip is unfortunately dead.</p><p>After Hooking up SWD (to PA13), SWC (to PA14) and GND as per the Docs nothing happens upon connect. (See the attached Screenshot)</p><p> </p><p>Im not quite sure about the Source of the Chip (as ive received it from a friend who had one left) but ive since ordered one from digikey which will show up next week. I dont think there is any Fault in my PCB as each Power In is connected and decoupled using a 100nF Cap. Reset is at 3V3 and VCAP is present and thats all thats required from what I understand.</p><p>There are a few peripherials connected to UARTs, I2C etc but that should not be an Issue at least for getting Communication via SWD correct?</p><p> </p></div>",
+                    "author": "luroe",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If the ST-LINK connection mode is \"under reset\" (and NRST is properly wired to the ST-LINK) these peripherals won't get in the way.</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Turns out it was a dead Chip...</p><p>Populated a new Board with the One from Digikey and it works right away using the UART Bridge and SWD...</p><p>But thank you for the Debugging Help!</p></div>",
+                    "author": "luroe",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Shirley.Ye",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

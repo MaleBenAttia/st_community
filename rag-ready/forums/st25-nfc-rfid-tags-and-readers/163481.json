@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "163481",
+            "publicId": "163481",
+            "title": "ST25R3916B NFC Detection",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r3916b-nfc-detection-163481",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Readers – ST25R391x series"
+            ],
+            "published_at": "2026-03-05T09:46:26+00:00",
+            "views": 401,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nwe don't have a guide on porting to ThreadX. What you describe sounds like it could be a concurrency problem: Main/task level and interrupt level both executing I2C and not being properly protected. Please review your platformProtect\\*() macro implementations.\n\nBR, Ulysses",
+            "best_answer_author": "Ulysses HERNIOSUS",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am currently trying to port the ST25R3916B driver to a platform that uses the ThreadX RTOS, but I am encountering some issues. I have previously ported it to a platform using Zephyr, and that process went smoothly.\n\nI have already implemented the platform-specific files responsible for I2C communication, IRQ handling, and software timers. The initialization process completes without any errors. However, in the main thread—where I call rfalWorker()—the NFC tag is not detected.\n\nBelow are some relevant code snippets:\n\n```\n\nInit()\n\n{\n\n/* Initialize RFAL platform */\n\nrc_st = rfalNfcInitialize();\n\n}\n\n```\n\n```\n\nDiscover()\n\n{\n\n/* Retrieve default discovery parameters */\n\nrfalNfcDefaultDiscParams(&m_discParam);\n\nm_discParam.notifyCb = m_fncPollNotification;\n\nm_discParam.p2pNfcaPrio = true;\n\nm_discParam.totalDuration = 1000;\n\nm_discParam.techs2Find = flags;\n\nm_pollDuration = duration;\n\nReturnCode rc = rfalNfcDiscover(&m_discParam);\n\n}\n\n```\n\n```\n\nwhile (1)\n\n{\n\nrfalNfcWorker();\n\nstate = rfalNfcGetState();\n\n/* Verify if a device was detected */\n\nif (rfalNfcIsDevActivated(state))\n\n{\n\nLOG_MESSAGE(\"NFC dev detected\\n\");\n\nm_pollingActive = false;\n\n}\n\n_sleep(10);\n\n}\n\n```\n\nI printed the IRQ status values on both boards, and they are the same while RFAL is running in the **idle** state. However, when I tap the phone, the values become different.\n\nI will attach screenshots of the logs (values shown in hexadecimal):\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/723b1410-29af-a803-1df3-a46e9b1060e4.png \"image.png\")Bbb\n\n![image (1).png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35952636-5272-43cc-2859-1005a7b81b64.png \"image (1).png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/723b1410-29af-a803-1df3-a46e9b1060e4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35952636-5272-43cc-2859-1005a7b81b64.png"
+            ],
+            "author": "JPortilha",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi JPortilha,</p>\n<p>hard to say what actually is happening. It looks like an NFC-A card being received and then some error happening during AntiCollision. The error is not signaled from the NFC chip. I recommend to attach a logic analyzer and trace SPI lines + IRQ. This will allow much more educated suggestions on the root cause.</p>\n<p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Hello, I got an update:</span></p><p class=\"\"><span>I am currently working with the STM32WBA65RI and the X-CUBE-NFC6 software package.</span></p><p class=\"\"><span>I was able to successfully run the provided demo application in bare-metal and detect my smartphone without issues. However, when I enable ThreadX and attempt to run the same demo within the RTOS environment, the application stops working.</span></p><p class=\"\"><span>Specifically, when the code enters </span><span>demoCycle()</span><span>, the system enters in HardFault. The fault appears to occur during the </span><span>I2CTx()</span><span> function.</span></p><p class=\"\"><span>As part of the porting process to ThreadX, I have already replaced time primitives such as </span><span>HAL_Delay()</span><span> with </span><span>tx_thread_sleep()</span><span>. Despite these changes, the issue persists.</span></p><p class=\"\"><span>Do you know if additional modifications are required to run X-CUBE-NFC6 with ThreadX? Is there a recommended porting approach or example available for integrating this middleware with an RTOS?</span></p><p><span>Any guidance would be greatly appreciated.</span></p></div>",
+                    "author": "JPortilha",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>we don't have a guide on porting to ThreadX. What you describe sounds like it could be a concurrency problem: Main/task level and interrupt level both executing I2C and not being properly protected. Please review your platformProtect*() macro implementations.</p>\n<p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

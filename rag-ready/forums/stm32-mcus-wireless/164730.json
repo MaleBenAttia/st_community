@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164730",
+            "publicId": "164730",
+            "title": "Flash Erase Operation Stuck During BLE Scanning on STM32WB55",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/flash-erase-operation-stuck-during-ble-scanning-on-stm32wb55-164730",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "BLE",
+                "Flash",
+                "STM32WB series"
+            ],
+            "published_at": "2026-04-14T09:02:43+00:00",
+            "views": 230,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nIt is recommended to manage the FLASH accesses under a scheduler task.\n\nYou can see an example of FLASH management with RF activity in the stm32wb\\_M4\\_Firmware\\Firmware\\Projects\\P-NUCLEO-WB55.Nucleo\\BLE\\_RfWithFlash.\n\nLet me know if it helps you.\n\nBest regards.",
+            "best_answer_author": "EMECH",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Dear ST Support,\n\nI am using the STM32WB55 series and have encountered an issue where the Flash erase operation gets stuck when BLE scanning is active. Specifically, the Flash erase call (SHCI\\_C2\\_FLASH\\_EraseActivity(ERASE\\_ACTIVITY\\_ON)) does not proceed as long as the BLE scan procedure is running, even if the scan interval and window are configured with minimal values (e.g., SCAN\\_P = 0x320 and SCAN\\_L = 0x10). It seems that as long as BLE scanning is ongoing, the Flash operation remains blocked.\n\nFrom my understanding, the BLE stack on the M0 core occupies some resources during the scan procedure, and Flash operations are blocked until all BLE activities are terminated. This behavior persists even when BLE is only actively scanning for a small portion of the interval.\n\nCould you please clarify:\n\n1. Is it expected that Flash erase/write operations cannot be performed during any ongoing BLE activity, regardless of scan interval/window settings?\n\n2. Is there a recommended method to safely perform Flash operations when BLE scanning is required, without stopping BLE completely?\n\nThank you for your support.",
+            "images": [],
+            "author": "xz_zk",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>On STM32WB MCUs to execute the erase operation when BLE is running, the application must ensure that there is a radio idle time longer than 25 ms.<br/>For more details please refer to the chapter \"4.7.3 Conflict between RF activity and flash memory management\" of the AN5289 Application note How to build wireless applications with STM32WB MCUs.<br/><br/>Best regards.<br/><br/><br/></p></div>",
+                    "author": "EMECH",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear EMECH,</p><p>Thank you very much for your support.</p><p>According to the recommendations in the AN5289 document, I have set the BLE scan interval to 500ms and the scan window to 10ms. Specifically, I am using the following API call:</p><p>result = aci_gap_start_general_discovery_proc(0x640, 0x10, CFG_BLE_ADDRESS_TYPE, 1);<br/>As I understand it, this configuration should provide 490ms of RF idle time, which is much greater than the required 25ms. However, in practice, I am still experiencing issues where the Flash erase operation cannot be performed.</p><p>Could you please advise on possible reasons for this issue under these settings? Are there any other configurations or specific APIs that need to be called to ensure the RF is completely idle during the Flash erase operation?<br/>If you have any best practices or recommended procedures for reliably performing Flash erase, I would greatly appreciate your sharing them.</p><p>Thank you again for your valuable time and assistance.</p><p>Best regards.</p></div>",
+                    "author": "xz_zk",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/>It is recommended to manage the FLASH accesses under a scheduler task.<br/>You can see an example of FLASH management with RF activity in the stm32wb_M4_Firmware\\Firmware\\Projects\\P-NUCLEO-WB55.Nucleo\\BLE_RfWithFlash.<br/>Let me know if it helps you.<br/><br/>Best regards.</p></div>",
+                    "author": "EMECH",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thank you for your suggestion.<br/>I have checked the BLE_RfWithFlash example, and managing FLASH accesses under a scheduler task solved my problem.<br/>Your advice was very helpful.</p><p>Best regards.</p></div>",
+                    "author": "xz_zk",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/><br/>You're welcome.<br/><br/>Best regards.</p></div>",
+                    "author": "EMECH",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "EMECH",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "EMECH",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "EMECH",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

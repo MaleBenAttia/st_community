@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "165641",
+            "publicId": "165641",
+            "title": "Read Vcore Channel (ADC4) with USE TEMPERATURE BASED RADIO CALIBRATION active",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/read-vcore-channel-adc4-with-use-temperature-based-radio-calibration-active-165641",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "ADC",
+                "BLE",
+                "STM32WBA series"
+            ],
+            "published_at": "2026-05-13T09:23:27+00:00",
+            "views": 117,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello Carlos,\n\nYou did not mention how often you would like to check the voltage, or whether you have any specific constraints. Based on that, I would suggest considering these two options:\n\n1. **Use the existing adc\\_ctrl module**\n\nThis module is already available in your project for the temperature-based radio calibration. It also includes the ADCCTRL\\_RequestCoreVoltage function.\n\nIf you would like to see an example of how it is used, you can look at the TEMPMEAS\\_RequestTemperatureMeasurement function, which periodically measures the temperature for calibration purposes.\n\n2. **Handle the ADC manually**\n\nYou can also manage the ADC yourself. In this case, you would need to include the temperature sensor reading in your ADC conversion sequence and store the measured value. Then, when the low-level (LL) driver requests the temperature value, you can simply return the stored value instead of starting a new ADC conversion at that moment.\n\nThis approach gives you full control over the ADC while keeping the temperature measurement from affecting other ADC operations.\n\nPlease let me know if you would like to discuss either option further or if you have any additional questions.",
+            "best_answer_author": "Petr DAVID",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nI'm using the STM32WBA54KG microcontroller to comunicate by BLE.\n\nIn STM32CubeMX (v6.13.0), I have actived the STM32\\_WPAN packet and the configuration \"USE\\_TEMPERATURE\\_BASED\\_RADIO\\_CALIBRATION\" is \"YES\".\n\nI need to read the Vcore channel to know if the battery is low.\n\nHow can I do it?\n\nThanks.",
+            "images": [],
+            "author": "Carlos_Aperton",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Carlos,</p><p>You did not mention how often you would like to check the voltage, or whether you have any specific constraints. Based on that, I would suggest considering these two options:</p><ol><li><p><strong>Use the existing<span> </span>adc_ctrl<span> </span>module</strong><br/>This module is already available in your project for the temperature-based radio calibration. It also includes the<span> </span>ADCCTRL_RequestCoreVoltage<span> </span>function.<br/>If you would like to see an example of how it is used, you can look at the<span> </span>TEMPMEAS_RequestTemperatureMeasurement<span> </span>function, which periodically measures the temperature for calibration purposes.</p></li><li><p><strong>Handle the ADC manually</strong><br/>You can also manage the ADC yourself. In this case, you would need to include the temperature sensor reading in your ADC conversion sequence and store the measured value. Then, when the low-level (LL) driver requests the temperature value, you can simply return the stored value instead of starting a new ADC conversion at that moment.<br/>This approach gives you full control over the ADC while keeping the temperature measurement from affecting other ADC operations.</p></li></ol><p>Please let me know if you would like to discuss either option further or if you have any additional questions.</p></div>",
+                    "author": "Petr DAVID",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you so much.</p><p> </p><p>I have used the adc_ctrl module and I have read the Vref channel.</p></div>",
+                    "author": "Carlos_Aperton",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Petr DAVID",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "163389",
+            "publicId": "163389",
+            "title": "Access otp memory NUCLEO-H563ZI with command line interface",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/access-otp-memory-nucleo-h563zi-with-command-line-interface-163389",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-03T15:21:15+00:00",
+            "views": 223,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "*> Error: OTP programming commands are not supported with STLINK interfaces for this device.*\n\nIf it's not supported, it's not supported. The error message looks rather explicit. I don't think you're missing anything.\n\nYou may be able to read/write by specifying the addresses explicitly. In the case of writing, you should also specify a 16-bit word size.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi ST Community,\n\nI try to write the OTP Memory on NUCLEO-H563ZI Board with STM\\_Programmer\\_CLI (Debian Linux).\n\nWith STM32CubeProgrammer GUI application I can access OTP memory (beginning 0x08FF\\_F000).\n\nWhen I try to access the otp memory via CLI:\n\n```\n\n./STM32_Programmer_CLI -c port=SWD mode=HOTPLUG -otp displ\n\n```\n\nI receive:\n\n```\n\nError: OTP programming commands are not supported with STLINK interfaces for this device.\n\n```\n\nWith lsusb I can see my STLINK-V3:\n\n```\n\nBus 001 Device 011: ID 0483:xxxx STMicroelectronics STLINK-V3\n\n```\n\nBut also with the command (port=usb1 or usb0):\n\n```\n\n./STM32_Programmer_CLI -c port=usb1 mode=HOTPLUG -otp displ\n\n```\n\nI receive:\n\n```\n\nError: Target device not found.\n\nEstablishing connection with the device failed.\n\n```\n\nDo you have any ideas/hints what I am mistaking here?\n\nThanks in advance!",
+            "images": [],
+            "author": "tommy1976",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; Error: OTP programming commands are not supported with STLINK interfaces for this device.</em></p><p>If it's not supported, it's not supported. The error message looks rather explicit. I don't think you're missing anything.</p><p>You may be able to read/write by specifying the addresses explicitly. In the case of writing, you should also specify a 16-bit word size.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK, simple -r32  / -w32 operation works well - I overcomplicated things:</p><pre class=\"lia-code-sample language-c\"><code>./STM32_Programmer_CLI -c port=swd -r32 0x08FFF000 0x400</code></pre><p> </p></div>",
+                    "author": "tommy1976",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

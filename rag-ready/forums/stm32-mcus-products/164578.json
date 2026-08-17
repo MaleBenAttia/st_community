@@ -1,0 +1,92 @@
+{
+    "forum": [
+        {
+            "id": "164578",
+            "publicId": "164578",
+            "title": "G431pin-multiplexing-in-fdcan1: in Different GPIO Port",
+            "url": "https://community.st.com/stm32-mcus-products-25/g431pin-multiplexing-in-fdcan1-in-different-gpio-port-164578",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FDCAN",
+                "STM32G4 series"
+            ],
+            "published_at": "2026-04-08T15:13:52+00:00",
+            "views": 717,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "> In fact, in Ext.LoopbackMode, it can send msg correctly. this has already inferred that the PA12 is correctly connected.\n\n>\n\n> ---\n\nAs PA12 is toggling as expected and the loopback mode works correctly but not in normal mode, that's either a hardware issue: broken transceiver, bad wiring or wrong/bad connections.. VIO pin of the transceiver connected to VDD of STM32? You need to inspect all the CAN bus you have.\n\nOr bit timing issue: (but this is not the case since it works with PB9.\n\nSo double check again your hardware ... Probe PA12, probe PB9 with a logic analyzer or an oscilloscope and check the differences.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "As addicated in DataSheet and CubeMX, there are two FDCAN1\\_Tx and two FDCAN1\\_RX in STM32G431CBT6. In my Prj, I used PA12 for Tx and PB8-BOOT0 for Rx, and my chip can only work in FDCAN\\_MODE\\_Ext.\\_Loopback, and without any receive func be implemented. After I changed the FDCAN pin from PA12&PB8 to PB9&PB8 and adjusted my wire routing, the problem has be handled. so If the STM32G4 can use FDCAN pin from different port in some case? If not. I think it should be fixed in CubeMX, because CubeMX allows users to select CAN pin from different ports without any warning.​",
+            "images": [],
+            "author": "HL_Efeng",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105889\">@HL_Efeng</user-mention> and welcome to the ST community,</p>\n<p>The problem is not clear. You need to elaborate more..</p>\n<p>In which case is not working: Normal mode? Loopback mode? etc .. are you using a CAN tranceiver..</p>\n<p>Not possible to help you with the description you've provided.</p>\n<p>My preliminary answer: you can use any combination of alternate functions of CAN_Tx/CAN_Rx.</p>\n<p>PS: I didn't understand this statements:</p>\n<p><font color=\"#000080\"><em>\"and my chip can only work in FDCAN_MODE_Ext._Loopback, and without any receive func be implemented.\"</em></font></p>\n<p><font color=\"#000080\"><em>\"After I changed the FDCAN pin from PA12&amp;PB8 to PB9&amp;PB8 and adjusted my wire routing, the problem has be handled\"</em></font></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry for my unclear description.</p><p>My design uses PA12 and PB8 as CAN_Tx and CAN_Rx, and I used a <span>tranceiver correctly. the CAN only work in ExtLoopbackMode(Data can be send out correctly, but can not receive).</span></p><p><span>in Normal Mode, It works like this performance：When I first call the Func AddTxFifo in my program, the CAN tranceiver will send out an \"000\" and nothing later, and this 000 is consindered as CAN_ID by my CAN analyser. When I Second or more call it, it will send an \"01F\" and nothing later, also consindered as CAN_ID.</span></p><p><span>FDCAN will enter bus_off after 16th call, and no more data be sendout anymore, until I reinit FDCAN or reset my board.</span></p><p><span>After I edited my design, and uses PB9&amp;PB8 as CAN_Tx and CAN_Rx, It works correctly both in Normal and Loopback mode.</span></p><p><span>Thankyou for timely reply.</span></p><p> </p></div>",
+                    "author": "HL_Efeng",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Still not clear.</p>\n<p>In Normal mode, did you connect another CAN node to the CAN bus? if not, that couldn't work. You need to establish a complete CAN node where at least two CAN nodes are present on the CAN bus.</p>\n<p>Do you have a condition where the Normal mode is working? if yes please describe the environment.</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105889\">@HL_Efeng</user-mention> wrote:<br/><p> PB8-BOOT0 for Rx</p><hr/></blockquote><p>Do you need to take special measures to disable the BOOT0 function on that pin?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I used CubeProg to set Boot1bit by software.</p></div>",
+                    "author": "HL_Efeng",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>edited my post description.Sorry for my unclear des.</p></div>",
+                    "author": "HL_Efeng",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote> <span>In fact, in Ext.LoopbackMode, it can send msg correctly. this has already inferred that the PA12 is correctly connected.</span><hr/></blockquote>\n<p>As PA12 is toggling as expected and the loopback mode works correctly but not in normal mode, that's either a hardware issue: broken transceiver, bad wiring or wrong/bad connections.. VIO pin of the transceiver connected to VDD of STM32? You need to inspect all the CAN bus you have.</p>\n<p>Or bit timing issue: (but this is not the case since it works with <span>PB9.</span></p>\n<p><span>So double check again your hardware ... Probe PA12, probe PB9 with a logic analyzer or an oscilloscope and check the differences.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>At this point, it seems it can only be attributed to the bad PCB wiring. maybe the signal integrity has bad enough that STM32 cannot read a bit.</span></p><p><span>Wait. Maybe PB8 has broken? Maybe PA12 has transmitted a bit, but PB8 had not received. Let me check it by GPIO_Input. I will reply here in some days.</span></p><p><span>Thankyou for your patience.</span></p></div>",
+                    "author": "HL_Efeng",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

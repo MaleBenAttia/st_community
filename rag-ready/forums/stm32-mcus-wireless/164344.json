@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164344",
+            "publicId": "164344",
+            "title": "Clarification on LoRa FHSS vs LR-FHSS Support in STM32WLE5",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/clarification-on-lora-fhss-vs-lr-fhss-support-in-stm32wle5-164344",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32WL series",
+                "LoRa"
+            ],
+            "published_at": "2026-03-31T10:54:51+00:00",
+            "views": 324,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Vimukthi-Wathudura and welcome to the Community,\n\nRegarding **LoRa FHSS support :**\n\nThe STM32WL55 does not implement frequency hopping LoRa FHSS in its firmware. The LoRaWAN stack does not use this feature, and the radio IP (shared with Semtech sx126x) does not provide built-in support for frequency hopping as seen in older SX127x chips.\n\nFrequency can be changed manually using the Radio.SetChannel(frequency) API between transmissions or receptions, but this must be managed at the application level.\n\nFor **LR-FHSS Support:** You can refer to the [LR-FHSS](https://github.com/STMicroelectronics/STM32CubeWL/tree/main/Projects/NUCLEO-WL55JC/Applications/SubGHz_Phy/SubGHz_Phy_LrFhss) example on [STM32CubeWL](https://github.com/STMicroelectronics/STM32CubeWL/tree/main) package :\n\n[STM32CubeWL/Projects/NUCLEO-WL55JC/Applications/SubGHz\\_Phy/SubGHz\\_Phy\\_LrFhss · GitHub](https://github.com/STMicroelectronics/STM32CubeWL/tree/main/Projects/NUCLEO-WL55JC/Applications/SubGHz_Phy/SubGHz_Phy_LrFhss)\n\nAbout **US915 Compatibility:**Compatibility with LoRaWAN gateways is managed by the LoRaWAN stack on STM32WL using channel masks and network commands. LoRa frequency hopping spread spectrum (FHSS) does not manage this compatibility.\n\nFor FCC certification under Part 15.247, there is no strict requirement for the device to operate in frequency hopping mode during testing. Please find here the FCC Test Report: [5514243.pdf](https://fcc.report/FCC-ID/YCPMB1389001/5514243.pdf)\n\nI hope this information is helpful.",
+            "best_answer_author": "Imen.D",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi all,\n\nI am currently working with the STM32WLE5JC for a LoRa/LoRaWAN-based IoT node and would like to clarify some points regarding **LoRa FHSS and LR-FHSS support**.\n\nFrom several discussions in the STMicroelectronics Community, I noted the following statements from ST employees and contributors:\n\n* *“There is no way to activate the frequency hopping as the LoRa stack does not offer this feature on the STM32WL.”*\n\n* *“After further investigation, it appears that the Semtech SX1262 does not support LoRa FHSS, (but supports for LR FHSS). This is a hardware limitation rather than a driver limitation.”*\n\n* *“There is no reference to LoRa FHSS in the driver code or documentation.”*\n\nIt is also understood that:\n\n* Semtech SX1262 RF IP (which the STM32WLE5 is based on) does **not support LoRa FHSS** from a hardware perspective\n\nBased on this, my understanding is that:\n\n:backhand\\_index\\_pointing\\_right: **STM32WLE5JC does not support LoRa FHSS**\n\nHowever, I would like clarification on the following:\n\n### 1. LoRa FHSS Support\n\n* Can you confirm definitively whether STM32WLE5JC has **any level of support for LoRa FHSS**?\n\n* Is it strictly a **hardware limitation (due to SX1262 architecture)**, or is there any possibility via firmware/stack-level implementation?\n\n### 2. LR-FHSS Support\n\nSince LR-FHSS is part of newer LoRaWAN specifications:\n\n* Does STM32WLE5JC **support LR-FHSS PHY mode** (either fully or partially)?\n\n* If yes, is this supported at:\n\n+ Hardware level\n\n+ Or via LoRaWAN stack (e.g., middleware updates)?\n\n### 3. US915 Compatibility\n\nIf LoRa FHSS is not supported:\n\n* Can STM32WLE5-based nodes still be **fully compatible with LoRaWAN gateways operating in the US915 band**?\n\n* Since US915 involves channel hopping requirements, how is this handled without LoRa FHSS?\n\n### 4. Future Support / Roadmap\n\nAre there any:\n\n* Planned **enhancements or updates** to enable support for LoRa-FHSS on STM32WLE5?\n\n* Any potential **support or enablement** for LoRa FHSS, or is this permanently not supported due to hardware constraints?\n\n* Any possible **workarounds or alternative approaches** to achieve compatibility where FHSS mechanisms are required?\n\nMy main goal is to ensure that a design based on STM32WLE5JC remains compliant and interoperable, especially in regions like US915 where hopping mechanisms are relevant.\n\nAny clarification or guidance from ST experts or the community would be greatly appreciated.\n\nThank You",
+            "images": [],
+            "author": "Vimukthi-Wathudura",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105625\">@Vimukthi-Wathudura</user-mention> and welcome to the Community,</p>\n<p>Regarding <strong>LoRa FHSS support : </strong></p>\n<p><span data-teams=\"true\">The STM32WL55 does not implement frequency hopping LoRa FHSS in its firmware. The LoRaWAN stack does not use this feature, and the radio IP (shared with Semtech sx126x) does not provide built-in support for frequency hopping as seen in older SX127x chips.<br/>Frequency can be changed manually using the Radio.SetChannel(frequency) API between transmissions or receptions, but this must be managed at the application level.</span></p>\n<p><span data-teams=\"true\"><br/></span>For <strong>LR-FHSS Support: </strong>You can refer to the <a href=\"https://github.com/STMicroelectronics/STM32CubeWL/tree/main/Projects/NUCLEO-WL55JC/Applications/SubGHz_Phy/SubGHz_Phy_LrFhss\" rel=\"nofollow noopener noreferrer\" target=\"_self\">LR-FHSS</a> example on <a href=\"https://github.com/STMicroelectronics/STM32CubeWL/tree/main\" rel=\"nofollow noopener noreferrer\" target=\"_self\">STM32CubeWL</a> package :</p>\n<p><a href=\"https://github.com/STMicroelectronics/STM32CubeWL/tree/main/Projects/NUCLEO-WL55JC/Applications/SubGHz_Phy/SubGHz_Phy_LrFhss\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">STM32CubeWL/Projects/NUCLEO-WL55JC/Applications/SubGHz_Phy/SubGHz_Phy_LrFhss · GitHub</a></p>\n<p> </p>\n<p>About<strong> US915 Compatibility: </strong>Compatibility with LoRaWAN gateways is managed by the LoRaWAN stack on STM32WL using channel masks and network commands. LoRa frequency hopping spread spectrum (FHSS) does not manage this compatibility. </p>\n<p>For FCC certification under Part 15.247, there is no strict requirement for the device to operate in frequency hopping mode during testing. Please find here the FCC Test Report: <a href=\"https://fcc.report/FCC-ID/YCPMB1389001/5514243.pdf\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">5514243.pdf</a></p>\n<p> </p>\n<p>I hope this information is helpful.</p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

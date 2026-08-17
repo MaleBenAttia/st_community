@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "164126",
+            "publicId": "164126",
+            "title": "STM32H7 SDMMC2 Init Fails -- Get Status Data Reads fail to populate FIFO",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h7-sdmmc2-init-fails-get-status-data-reads-fail-to-populate-fifo-164126",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "SDIO-SDMMC",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-25T01:05:53+00:00",
+            "views": 243,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I found that my ESD protection IC (EMIF04-1005M8) blocks the data line signals from getting from the MCU to the SD card.  I put a jumper from the D0 pin of the MCU to the D0 pin of the SD card and successful data reads and writes occured.  After some troubleshooting, I discovered that the ground pad of the UDFN-8 package of the ESD protection IC had too much solder on it, so it blobbed over and shorted my data line to ground.  I wicked the solder off, resoldered the IC, and now it works great.  Problem solved.",
+            "best_answer_author": "ReaganHammond",
+            "best_answer_author_role": "Associate",
+            "content_text": "I've developed my own PCB using an STM32H723ZGT6 microcontroller.  I'd like to store data to a microSD card that's onboard, and I've designed it to use SDMMC2 for the better transmission rate.  I have no external pullup resistors, but I have enabled the internal pullup resistors (found to be 38kOhms using a multimeter) on each of the data lines and the CMD line.  I have ESD protection inline using the EMIF04-1005M8.  The bus is configured in 1-bit mode until successful connection is made.  Additionally, I've tried two different micro SD cards, a 32GB SanDisk, and an 8GB Gigastone micro SD card.\n\nI run into issues in HAL\\_SD\\_Init, which is called in the MX\\_SDMMC2\\_SD\\_Init.  I've stepped through the code using the ST-Link and have found the issue to be in this loop:\n\n```\n\nwhile (!__HAL_SD_GET_FLAG(hsd, SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL | SDMMC_FLAG_DTIMEOUT | SDMMC_FLAG_DATAEND)) { if (__HAL_SD_GET_FLAG(hsd, SDMMC_FLAG_RXFIFOHF)) { for (count = 0U; count < 8U; count++) { *pData = SDMMC_ReadFIFO(hsd->Instance); pData++; } }\n\nif ((HAL_GetTick() - tickstart) >= SDMMC_SWDATATIMEOUT) { return HAL_SD_ERROR_TIMEOUT; } }\n\n```\n\nThe while loop never reads true, so it always executes the while loop.  The first if statement never reads true, so it skips to this line: if ((HAL\\_GetTick() - tickstart) >= SDMMC\\_SWDATATIMEOUT).  It repeatedly just executes that getTick line.\n\nI changed the MX\\_SDMMC2\\_SD\\_Init code to bypass the GetCardStatus function.  When I do that, I get hung up in this function, which loops endlessly:\n\n```\n\nstatic uint32_t SDMMC_GetCmdError(SDMMC_TypeDef *SDMMCx) { /* 8 is the number of required instructions cycles for the below loop statement. The SDMMC_CMDTIMEOUT is expressed in __ms__ */ uint32_t count = SDMMC_CMDTIMEOUT * (SystemCoreClock / 8U / 1000U);\n\ndo { if (count-- == 0U) { return SDMMC_ERROR_TIMEOUT; }\n\n} while (!__SDMMC_GET_FLAG(SDMMCx, SDMMC_FLAG_CMDSENT));\n\n/* Clear all the static flags */ __SDMMC_CLEAR_FLAG(SDMMCx, SDMMC_STATIC_CMD_FLAGS);\n\nreturn SDMMC_ERROR_NONE; }\n\n```\n\nI could just continue to bypass these functions, but that seems to be useless and only detrimental in the long term.  Any help figuring out why these get status reads are failing would be magnificent and greatly appreciated!  I've attached images of my circuitry, in the off chance it's an issue with my board design.",
+            "images": [],
+            "author": "ReaganHammond",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found that my ESD protection IC (<span>EMIF04-1005M8) blocks the data line signals from getting from the MCU to the SD card.  I put a jumper from the D0 pin of the MCU to the D0 pin of the SD card and successful data reads and writes occured.  After some troubleshooting, I discovered that the ground pad of the UDFN-8 package of the ESD protection IC had too much solder on it, so it blobbed over and shorted my data line to ground.  I wicked the solder off, resoldered the IC, and now it works great.  Problem solved.</span></p></div>",
+                    "author": "ReaganHammond",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

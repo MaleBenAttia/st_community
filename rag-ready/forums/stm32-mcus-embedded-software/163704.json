@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "163704",
+            "publicId": "163704",
+            "title": "STM32H753I-EVAL2 USB FS Host Mass Storage Example with ThreadX, USBX, and FileX",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h753i-eval2-usb-fs-host-mass-storage-example-with-threadx-usbx-and-filex-163704",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeMX",
+                "AzureRTOS",
+                "STM32H7 series",
+                "USBX",
+                "ThreadX",
+                "FileX"
+            ],
+            "published_at": "2026-03-11T15:18:24+00:00",
+            "views": 290,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "My Bad.\n\nUSB drive was originally formatted with GPT (GUID Partition Table) instead of the classic MBR partition table.\n\nProperly formatting the USB drive solved the issue",
+            "best_answer_author": "pranavps",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I’m trying to get a USB Full-Speed Host Mass Storage example running on the STM32H753I-EVAL2 using ThreadX, USBX, and FileX.\n\nI’ve generated the base project from CubeMX, but I’m running into a few issues:\n\nVBUS Enable/Detection:\n\n* VBUS is not being enabled correctly via the MFX (IO expander).\n\n* Even when manually configuring, the stack doesn’t seem to handle VBUS properly in host mode.\n\nMemory Pool & Stack Sizes:\n\n* Default memory pool size and system/stack sizes seem insufficient, causing failures with Mass Storage class. tried increasing but did not succeed and ended up in memfaults\n\nI’m looking for:\n\n* A working USB FS Host Mass Storage example for STM32H753I-EVAL2 with ThreadX, USBX, and FileX.\n\n* Guidance on properly enabling VBUS via MFX or directly on the board.\n\n* Recommended USBX memory pool and stack sizes for Mass Storage class.\n\n* BSP package for STM32H753I-EVAL2\n\nAny example projects, tips, or guidance would be greatly appreciated.\n\nThanks in advance!",
+            "images": [],
+            "author": "pranavps",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105005\">@pranavps</user-mention>   &amp; welcome to ST Community,</p>\n<ol>\n<li>Would you explain in details what's missing for VBUS management in host mode related to this board?</li>\n<li>About default memory pool size, I agree. CubeMX code generated sets default value just as a given example to be adjusted by developer according to the application. But I agree it doesn't take into account the host role and class being used as input to predict reasonable memory size.</li>\n<li>As of now, I suggest you taking a look at the following <a href=\"https://github.com/STMicroelectronics/x-cube-azrtos-h7/tree/main/Projects/STM32H735G-DK/Applications/USBX/Ux_Host_MSC\" rel=\"nofollow noopener noreferrer\" style=\"font-family: inherit; background-color: #ffffff;\" target=\"_blank\">example</a><span>.</span></li>\n<li><span>For BSP pack, I assume this board is similar to the following <a href=\"https://github.com/STMicroelectronics/stm32h743i-eval-bsp/tree/28b6d55893e5565d68b33a5f9d6b7d7bc7c4ec87\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">package</a> MB1246 since <a href=\"https://www.st.com/en/evaluation-tools/stm32h743i-eval.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_blank\">first</a> version is obsolete.</span></li>\n</ol></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><br/>Hi</p><p>Thank you for the response.</p><p>Regarding VBUS management, on the STM32H753I-EVAL2 board the VBUS power switch is controlled through the MFX IO expander and not directly by a GPIO. Initially, VBUS was not getting enabled properly in host mode.</p><p>To resolve this, I had to initialize the MFX device through I2C and enable the VBUS power switch using the BSP IO driver. After adding the proper BSP initialization sequence, VBUS started enabling correctly and the USB device could be detected.</p><p>Once this was fixed, the USB MSC device enumeration works correctly, and I get the following output:</p><p> </p><p>**** USB OTG FS MSC Host ****<br/>USB Host library started.<br/>Starting MSC Application<br/>Connect your MSC Device<br/>STarting msc_process_thread_entry</p><p>USB Mass Storage Device Plugged<br/>PID: 0x2003<br/>VID: 0x3f0</p><p>*** Start Files operations ***</p><p>ERROR: !! Could Not Create TEST.TXT File !!</p><p>While debugging further, I found that the failure occurs in FileX when creating the file. The error originates from _fx_file_create() returning FX_MEDIA_NOT_OPEN:</p><p>if (media_ptr -&gt; fx_media_id != FX_MEDIA_ID)<br/>{<br/>/* Return the media not opened error. */<br/>return(FX_MEDIA_NOT_OPEN);<br/>}</p><p>So it appears that the FileX media is not successfully opened before the file operation, even though the USB device is detected and enumerated.</p><p>For memory configuration, I am currently using:</p><p><br/>#define USE_STATIC_ALLOCATION 1<br/>#define TX_APP_MEM_POOL_SIZE 1024<br/>#define FX_APP_MEM_POOL_SIZE (1024 * 2)<br/>#define UX_APP_MEM_POOL_SIZE (1024 * 64)<br/>#define UX_HOST_APP_THREAD_STACK_SIZE 1024<br/>#define UX_MSC_APP_THREAD_STACK_SIZE (1024 * 2)</p><p>The implementation is adapted from the STM32H735G-DK USBX MSC Host example in the X-CUBE-AZRTOS-H7 repository.</p><p>Also attaching the main and ld file</p><p>Please let me know if you suspect this could be related to:</p><p>FileX media initialization</p><p>memory pool size</p><p>Thanks again for the guidance.</p></div>",
+                    "author": "pranavps",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My Bad.</p><p>USB drive was originally formatted with GPT (GUID Partition Table) instead of the classic MBR partition table.</p><p>Properly formatting the USB drive solved the issue</p></div>",
+                    "author": "pranavps",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

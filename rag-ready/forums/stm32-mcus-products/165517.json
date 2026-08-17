@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "165517",
+            "publicId": "165517",
+            "title": "3.3V stm32u5 and 1.8V PSRAM",
+            "url": "https://community.st.com/stm32-mcus-products-25/3-3v-stm32u5-and-1-8v-psram-165517",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "GPIO-EXTI",
+                "OctoSPI",
+                "QSPI",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-08T13:44:37+00:00",
+            "views": 312,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "No I said only the GPIOG [2 ..15] are in VDDIO2 power domain. So if you don't have all the alternate functions related to the interface you need to use on GPIOG [2 ..15], you can't do that. You should have all the alternate functions mapped on GPIOG [2 ..15].",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi!\n\nI'm trying to design a project that will use an stm32u5, and I would like to add PSRAM to it. Most higher-capacity PSRAMs seem to want to run at 1.8V rather than 3.3V, from what I can tell.\n\nThe particular U5 I've tentatively selected (the U595), has a VDDIO2 power pin, which I understand that I can run at 1.8V while running the rest of the MCU at 3.3V. This feature seems specifically designed to address this use case (and Claude and Gemini insist that it's possible with the right u5 variant, though I'm well aware how confidently wrong AI tools can be). The datasheet says that VDDIO2 affects Pin Bank G. However, I can't quite seem to figure out how I might actually connect to a PSRAM chip exclusively with this bank.\n\nI haven't been in these waters before, so it's possible I'm overlooking something straightforward - a lot of the configuration options for PSRAM are new to me. It seems I could use FMC or SPI to connect to the PSRAM chip, but playing around in cubeMX with all the SPI peripherals and the FMC controller options, I can't seem to find a permutation that exclusively uses pin bank G pins (and therefore 1.8V I/O).\n\nAm I misunderstanding how this VDDIO2 feature is intended to be used? Is it possible for it to be used in this way? Do the peripherals on Pin Bank G differ throughout the U5 variants (maybe I've just gotten unlucky and chosen one that doesn't have PSRAM capabilities on that bank)?\n\nBeing unable to use VDDIO2 to address this seems to throw me over onto the path of running VDD as a whole at 1.8V (or compromising with a lower-capacity PSRAM IC).\n\nI feel a little silly asking this question, but I'm having trouble understanding how to solve it...",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/25ed1ab3-73f5-658d-0480-cdb872f18048.png"
+            ],
+            "author": "sb_st",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>From the datasheet, only PG[15:2] could be independently power supplied by another voltage source that could be 1.8V:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1778249172098.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1778249172098.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/25ed1ab3-73f5-658d-0480-cdb872f18048.png\" title=\"mALLEm_0-1778249172098.png\"/></span></p>\n<p>I don't think PG[15:2] pins contain all the FMC alternate functions you need. So not possible.</p>\n<p>Check if PG[15:2] contains all the alternate functions needed for QSPI or other type of memory interface.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"499\">@mƎALLEm</user-mention>;</p><p>Thank you, yes, the PG[15:2] is what I observe in the datasheet as well. Regarding: </p><p> </p><blockquote><p>Check if PG[15:2] contains all the alternate functions needed for QSPI or other type of memory interface.</p><hr/></blockquote><p>I guess that's what I'm asking. I notice your title says you're an ST Employee, are you able to say whether PG[15:2] can indeed be used to run a PSRAM IC? I'm unable to figure out how to do it myself, and am hoping to find either a definitive \"No, VDDIO2 was not designed to be used for this specific use case\" or \"Yes, here's an example of how it can be done\". It certainly SEEMS like it could be a useful feature, but the actual peripherals connected to PG[15:2] seem oddly-chosen to me, it's a mishmash of GPIOs and what seems like 'half' peripherals. I can't quite understand it, and am certain that I'm far less clever than ST's engineers, so I'm sure I'm overlooking something obvious...</p></div>",
+                    "author": "sb_st",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No I said only the GPIOG [2 ..15] are in VDDIO2 power domain. So if you don't have all the alternate functions related to the interface you need to use on GPIOG [2 ..15], you can't do that. You should have all the alternate functions mapped on GPIOG [2 ..15]. </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>To check your intended use case, just set in CubeMX: select your CPU, then select the interface you want to use for the psram and you see, which pins will be used.</p><p>If all in the gpiog2..15 , fine. If not, you can try by pressing Ctrl and click with mouse on a pin, which alternative pins can be selected for this function. So you can try the design and see: will it be possible to have all pins in the 1v8 supplied gpiog - or not.</p><p>If not possible, still you could supply all on 1v8, if ok for your design.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>+ just to compare a design: look at circuit of similar cpu with external ram....i found <span class=\"\">STM32U5G9J-DK1 -&gt;</span></p><p><a href=\"https://www.st.com/resource/en/schematic_pack/mb1829-u5g9njq-b02-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/schematic_pack/mb1829-u5g9njq-b02-schematic.pdf</a></p><p><a href=\"https://www.st.com/resource/en/schematic_pack/mb1835-vdd1v8-b01-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/schematic_pack/mb1835-vdd1v8-b01-schematic.pdf</a></p><p> </p><p>As i see it, you should have the cpu at 1v8 VDD.</p><p> </p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

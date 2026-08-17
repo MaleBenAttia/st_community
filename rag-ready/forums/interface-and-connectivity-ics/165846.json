@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "165846",
+            "publicId": "165846",
+            "title": "STEVAL-MKBOXPRO BLUENRG-LP Transmit Power cannot be changed ... in practice",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/steval-mkboxpro-bluenrg-lp-transmit-power-cannot-be-changed-in-practice-165846",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "Low power RF solutions"
+            ],
+            "published_at": "2026-05-20T16:31:14+00:00",
+            "views": 137,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi Andrew,\n\nyes, you’re right, i must help others to understand this issue.\n\nAs you know, i’m using MKBP with some BLEMLC code, modified for my specific application.\n\nSo, i tried to increase/decrease the RF ouput power of the STM32WB07KC chip (BlueNRG-LP) with the  aci\\_hal\\_set\\_tx\\_power\\_level function.\n\nBut in this code (originally BLEMLC) there is one line to fix TX power for advertising and another one to fix TX power for transmitted data … and i just changed in the past the 2nd one.\n\nSo, with my smartphone i detected principally/observe the TX power of advertising … not the other one.\n\nSo, in conclusion, i’ve no problem … the aci\\_hal\\_set\\_tx\\_power\\_level function works perfectly.\n\nI also experimented PHY\\_LE\\_1M, PHY\\_LE\\_2M and also PHY\\_LE\\_CODED, all that works perfectly.\n\nAnd for my application PHY\\_LE\\_CODED is very interesting since i multiplie by 2-3 my BLE distance range.\n\nAlso, i may observe that the printed antenna of the STBP and the filter … etc. absorbe about 20dBm (not really certified measures). An external ANT2 may be helpful.\n\nI keep available if you need additional comments.\n\nBest regards, Christian",
+            "best_answer_author": "dufaza",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\ni experimented the following configuration STEVAL-MKBOXPRO with BLEMLC code available within FP-SNS-STBOX1 package. For my specific application, i want to increase the BLE transmit power of the BlueNRG-LP chip of the MKBOXPRO. So i modified the code with the aci\\_hal\\_set\\_tx\\_power\\_level(1,31) +8dBm (since default value was  aci\\_hal\\_set\\_tx\\_power\\_level(1,4) -16dBm). Everything is fine with compilation with Cube IDE.\n\nBut in practice with the app ST BLE Sensor v5.2.6, the real connection distance still remains about 25m, with a disconnect when RSSI is about -92dBm. These values are correct but what is not correct is that any tries to change aci\\_hal\\_set\\_tx\\_power\\_level with different \"theoretical\" power levels (from -54dBm to +8dBm) do not change anything in practice. It looks like aci\\_hal\\_set\\_tx\\_power\\_level has no effect on \"real\" transmitted poser.\n\nAny help will be welcomed to this topic.\n\nThanks reading et thanks in advance or your help. Christian",
+            "images": [],
+            "author": "dufaza",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I solved this problem … but i don’t know how to close this topic !</p></div>",
+                    "author": "dufaza",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>i don’t know how to close this topic</p></blockquote><p>Tell us how you solved the problem, and then <a href=\"https://community.st.com/community-guidelines-160/help-others-to-solve-their-issues-118630\" rel=\"noreferrer nofollow ugc\" target=\"_self\">mark that post as the solution</a>.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"77693\">@dufaza</user-mention> you didn’t say how you solved the problem!</p><p>It would be helpful for other users who may be having the same issue, and are searching for the solution.</p><p> </p><oembed url=\"https://community.st.com/community-guidelines-160/help-others-to-solve-their-issues-118630\"></oembed><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"sr-only\">Hi Andrew,</p><p class=\"sr-only\">yes, you’re right, i must help others to understand ths issue.</p><p class=\"sr-only\">As you know, i’m using MKBP with some BLEMLC code, modified for my specific application.</p><p class=\"sr-only\">So, i tried to increase/decrease the RF ouput power of the STM32WB07KC chip (BlueNRG-LP) with the  aci_hal_set_tx_power_level function.</p><p class=\"sr-only\">But in this code (originally BLEMLC) there is one line to fix TX power for advertising and another one to fix TX power for transmitted data … and i just changed in the past the 2nd one.</p><p class=\"sr-only\">So, with my smartphone i detected principally/observe the TX power of advertising … not the other one.</p><p class=\"sr-only\">So, in conclusion, i’ve no problem … the aci_hal_set_tx_power_level function works perfectly.</p><p class=\"sr-only\">I also experimented PHY_LE_1M, PHY_LE_2M and also PHY_LE_CODED, all that works perfectly.</p><p class=\"sr-only\">And for my application PHY_LE_CODED is very interesting since i multiply by 2-3 my BLE distance range.</p><p class=\"sr-only\">Also, i may observe that the printed antenna of the STBP and the filter … etc. absorbe about 20dBm (not really certified measures). n externam ANT2 may be helpful.</p><p class=\"sr-only\">I keep available if you need additional comments.</p><p class=\"sr-only\">Best regards, Christian</p></div>",
+                    "author": "dufaza",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Andrew,<br/>yes, you’re right, i must help others to understand this issue.<br/>As you know, i’m using MKBP with some BLEMLC code, modified for my specific application.<br/>So, i tried to increase/decrease the RF ouput power of the STM32WB07KC chip (BlueNRG-LP) with the  aci_hal_set_tx_power_level function.<br/>But in this code (originally BLEMLC) there is one line to fix TX power for advertising and another one to fix TX power for transmitted data … and i just changed in the past the 2nd one.<br/>So, with my smartphone i detected principally/observe the TX power of advertising … not the other one.<br/>So, in conclusion, i’ve no problem … the aci_hal_set_tx_power_level function works perfectly.<br/>I also experimented PHY_LE_1M, PHY_LE_2M and also PHY_LE_CODED, all that works perfectly.<br/>And for my application PHY_LE_CODED is very interesting since i multiplie by 2-3 my BLE distance range.<br/>Also, i may observe that the printed antenna of the STBP and the filter … etc. absorbe about 20dBm (not really certified measures). An external ANT2 may be helpful.<br/>I keep available if you need additional comments.<br/>Best regards, Christian</p></div>",
+                    "author": "dufaza",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for posting the solution. The clarification about changing the TX power for advertising versus transmitted data is very helpful. I can see how that could lead to confusing test results when measuring signal strength with a smartphone.</p><p>Your observations on PHY_LE_CODED are also valuable. Thanks for sharing your findings with the community.</p></div>",
+                    "author": "Alex911",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

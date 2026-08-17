@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "164534",
+            "publicId": "164534",
+            "title": "Internal bootloader - UART further timing specs / info",
+            "url": "https://community.st.com/stm32-mcus-products-25/internal-bootloader-uart-further-timing-specs-info-164534",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bootloader"
+            ],
+            "published_at": "2026-04-07T14:04:13+00:00",
+            "views": 252,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> c) This is working with interrupts (it seems), so basically if the STM32 is in bootloader mode, all IOs are quiet, and then some time comes the start byte over UART once, it will switch to UART?*\n\nIt doesn't use interrupts except for USB DFU. Otherwise, yes.\n\n*> d) From the AN3155 description it looks the start byte must come only once, so it gets the timing right?*\n\n*Or would it be okay to send out the start byte in intervals (which probably should be longer than the minimum baud rate x9) until an ACK is received?*\n\nSending it out repeatedly is fine. It will respond to the first one. If it doesn't respond, it's either not in the bootloader or a peripheral has already been selected so any pulses sent will either be ignored or look like an invalid command.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Heyho,\n\nI think I need some more info about the internal bootloader (\"BL\") which I didn't find in AN2606 or AN3155 (UART).\n\na) Are all BL interfaces active / scanned at the same time, and any interface finding any change in level will be \"chosen\"?\n\nFrom what I have found, it is crucial to keep unused IOs \"quiet\".\n\nb) Does the BL have some \"start-up timeout\", meaning that it will stop scanning the IOs, and / or jump to the application?\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64a5f8cc-8dab-3c13-40bb-7e169f3df926.png"
+            ],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>a:</p><p>There were request before  to ST to document the bootloader better but all that is pubished to long is in AN2606 and 3155. So bootloader related pins not quiet can result in unexpected behaviour. Use your own bootloader if documented behaviour is needed.</p><p>b:</p><p>I never saw a timeout and I suspect that such a behaviour would be documented.</p></div>",
+                    "author": "Uwe Bonnes",
+                    "role": "Chief"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>a) Yes, they're scanned in serial. If you are using one, you will need the others to be quiet. This is for the C0 which has only two devices but the others are similar.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-04-07 103606.png\" style=\"width: 482px;\"><img alt=\"Screenshot 2026-04-07 103606.png\" height=\"356\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64a5f8cc-8dab-3c13-40bb-7e169f3df926.png\" title=\"Screenshot 2026-04-07 103606.png\" width=\"482\"/></span></p><p>b) No, there is not a timeout. It scans forever, as you can see in the flowchart.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks so far!</p><p>The flowcharts in AN2606, forgot about / overlooked these.</p><p>It looks like using ST's bootloader might not be faster than building my own...</p><p> </p><p>Nevertheless, more questions about the IO scanning:</p><p>c) This is working with interrupts (it seems), so basically if the STM32 is in bootloader mode, all IOs are quiet, and then some time comes the start byte over UART once, it will switch to UART?</p><p>d) From the AN3155 description it looks the start byte must come only once, so it gets the timing right?<br/>Or would it be okay to send out the start byte in intervals (which probably should be longer than the minimum baud rate x9) until an ACK is received?</p><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; c) This is working with interrupts (it seems), so basically if the STM32 is in bootloader mode, all IOs are quiet, and then some time comes the start byte over UART once, it will switch to UART?</em></p><p>It doesn't use interrupts except for USB DFU. Otherwise, yes.</p><p> </p><p><em>&gt; d) From the AN3155 description it looks the start byte must come only once, so it gets the timing right?</em><br/><em>Or would it be okay to send out the start byte in intervals (which probably should be longer than the minimum baud rate x9) until an ACK is received?</em></p><p>Sending it out repeatedly is fine. It will respond to the first one. If it doesn't respond, it's either not in the bootloader or a peripheral has already been selected so any pulses sent will either be ignored or look like an invalid command.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

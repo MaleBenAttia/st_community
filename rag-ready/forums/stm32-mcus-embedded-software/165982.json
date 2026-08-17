@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "165970",
+            "publicId": "165982",
+            "title": "STM32N6570-DK SD Card Error",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6570-dk-sd-card-error-165982",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-06-09T19:37:46+00:00",
+            "views": 131,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "@Cococarbine\n\nA better method I have found is to:\n\n1. Clean FSBL and Appli projects.\n\n2. Delete all nested projects from STM32CubeIDE (but not from the file system).\n\n3. Close STM32CubeIDE.\n\n4. Update .ioc then Generate Code.  When prompt opens, click Open Project in STM32CubeIDE\n\n5. FSBL and Appli should be able to build without error now.",
+            "best_answer_author": "Cococarbine",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nI have completed this guide successfully:\n\n[How to integrate TouchGFX and camera middleware on an STM32N6570-DK](https://community.st.com/t5/stm32-mcus/how-to-integrate-touchgfx-and-camera-middleware-on-an-stm32n6570/ta-p/859272)\n\nHowever, I am running into an issue when I try to add SDMMC2 or ETH in the .ioc.  After I generate code then build in the IDE, I get the below error:\n\n```\n\nC://TouchGFXProjects/VisionControlboard2/FSBL/Core/Src/main.c:334:(.text.startup.main+0x12c): undefined reference to `HAL_SD_Init'\n\nC:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/bin/ld.exe: (HAL_SD_Init): Unknown destination type (ARM/Thumb) in ./Application/User/Core/main.o\n\nC://TouchGFXProjects/VisionControlboard2/FSBL/Core/Src/main.c:334:(.text.startup.main+0x12c): dangerous relocation: unsupported relocation\n\n```\n\nProject in link below:\n\n<https://app.box.com/s/bdbyzi5eqvqhgib90klxgehmhs8pkyns>\n\nWhat is the best method to get this resolved?  I am using STM32CubeIDE Version 2.1.1, CubeMX Version 6.17.0\n\nThank you",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7f10c5c-19ba-4fc0-adf6-e1163f0f5ea7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c602dba7-a808-4fbd-8391-d6e7167e89d8.png"
+            ],
+            "author": "Cococarbine",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p><user-mention data-id=\"106340\">@Cococarbine</user-mention> <br/><br/>A better method I have found is to:</p><ol type=\"1\"><li>Clean FSBL and Appli projects.</li> <li>Delete all nested projects from STM32CubeIDE (but not from the file system).</li> <li>Close STM32CubeIDE.</li> <li>Update .ioc then Generate Code.  When prompt opens, click Open Project in STM32CubeIDE</li> <li>FSBL and Appli should be able to build without error now.</li></ol></div>",
+                    "author": "Cococarbine",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"106340\">@Cococarbine</user-mention> </p><p>Is HAL_SD_MODULE_ENABLED present in stm32n6xx_hal_conf.h?</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Saket,<br/><br/>The HAL_SD_MODULE_ENABLED definition does enable when I check the SDMMC2 in the .ioc.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7f10c5c-19ba-4fc0-adf6-e1163f0f5ea7.png\"/></figure><p><br/><br/>What I am finding is that the appropriate HAL drivers in the STM32N6xx_HAL_Driver folder (stm32n6xx_hal_sd.c, etc.) do not populate automatically when Generating Code after an STM IDE project has already been generated - I have to delete the STM32Cube IDE project entirely, then Generate Code from the .ioc to get the all the proper drivers loaded.  I confirmed this also happens with the Template_FSBL_LRUN template from the stm32cuben6-v1-3-0 FW as well.  In CubeMX Project Manager - Code Generator I also tried “Copy all used libraries into the project folder” option with no luck.<br/><br/>I can get by with this workaround for now, but it would be good in the long run to be able to enable certain hardware / middleware in the future without having to delete the STM32Cube IDE project.</p></div>",
+                    "author": "Cococarbine",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Edit: A simpler solution is to right click the Drivers/STM32N6xx_HAL_Driver folder for your FSBL &amp; Appli and import the correct drivers manually from the file system.  This also works.  You can see the manually linked files below have a different icon:<br/><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c602dba7-a808-4fbd-8391-d6e7167e89d8.png\"/></figure><p> </p></div>",
+                    "author": "Cococarbine",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "167279",
+            "publicId": "167304",
+            "title": "When using Jlink Debug in STM32CubeIDE for Visual Studio Code, liveWatch cannot be used",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/when-using-jlink-debug-in-stm32cubeide-for-visual-studio-code-livewatch-cannot-be-used-167304",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-07-29T01:30:52+00:00",
+            "views": 113,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "​@GGB1\n\nLive Watch variables are not yet supported for Segger J-Link. This feature is part of the roadmap, but no release date is available at this time.",
+            "best_answer_author": "vincent_grenet",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Under this configuration, the prompt indicates that the attribute \"liveWatch\" is not allowed.\n\n```\n\n{\n\n\"type\": \"jlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"STM32Cube: Launch JLink GDB Server\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n\n\"runEntry\": \"main\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n],\n\n\"liveWatch\": {\n\n\"enabled\": true,\n\n\"samplesPerSecond\": \"4\"\n\n}\n\n},\n\n```\n\nThis is the analysis conducted by GPT.\n\nSTM32CubeIDE for Visual Studio Code 3.10.0\n\nJLinkDebugTargetAdapter correctly creates the Live Watch client.\n\nHowever, the Live Watch client immediately issues\n\n-var-create\n\nwhile the target is running.\n\nSEGGER J-Link GDB Server returns\n\nCannot execute this command while the target is running.\n\nUse the \"interrupt\" command to stop the target and then try again.\n\nTherefore all Live Watch variables remain\n\nNot Available.\n\nThis works with ST-Link GDB Server because it apparently accepts -var-create while the target is running.\n\nIt seems the J-Link adapter should either\n\n1. interrupt the target before issuing -var-create\n\nor\n\n2. create all variable objects before continuing execution.",
+            "images": [],
+            "author": "GGB1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"104606\">@GGB1</user-mention> <br/>Live Watch variables are not yet supported for Segger J-Link. This feature is part of the roadmap, but no release date is available at this time.</p></div>",
+                    "author": "vincent_grenet",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK. I'm really looking forward to this.</p></div>",
+                    "author": "GGB1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"104606\">@GGB1</user-mention> </p><p>I’m not Segger JLink skilled at all so no accurate comment here.</p><p>If you are maybe so called generic debug launch template usage may help you see </p><oembed url=\"https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/native-j-link-over-ip-support-and-persistent-id-handling-167270\"></oembed><p> </p></div>",
+                    "author": "Cartu38 OpenDev",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>谢谢。我回去看看。</p></div>",
+                    "author": "GGB1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You can use the <strong>cortex-debug</strong> extension instead. Here's an example configuration:</p><pre><code class=\"language-json\">{<br/>  \"version\": \"0.2.0\",<br/>  \"configurations\": [<br/>    {<br/>      \"name\": \"Example\",<br/>      \"type\": \"cortex-debug\",<br/>      \"executable\": \"${command:cmake.launchTargetPath}\",<br/>      \"request\": \"launch\",<br/>      \"servertype\": \"jlink\",<br/>      \"device\": \"STM32H753ZI\",<br/>      \"interface\": \"swd\",<br/>      \"armToolchainPath\": \".../arm-gnu-toolchain/15.3.1/bin\",<br/>        \"liveWatch\": {<br/>            \"enabled\": true,<br/>            \"samplesPerSecond\": 20<br/>        },      <br/>    },    <br/>  ]<br/>}<br/></code></pre><p>Alternatively, you can refer to the J-Link <a href=\"https://kb.segger.com/J-Link_Visual_Studio_Code\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">documentation </a>for a more detailed setup guide.</p></div>",
+                    "author": "gabor-budai",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you very much. This looks very interesting.</p></div>",
+                    "author": "GGB1",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "vincent_grenet",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

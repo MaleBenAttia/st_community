@@ -1,0 +1,92 @@
+{
+    "forum": [
+        {
+            "id": "165177",
+            "publicId": "165177",
+            "title": "Can TIMx OC DMA events be used to load DACs from memory?",
+            "url": "https://community.st.com/stm32-mcus-products-25/can-timx-oc-dma-events-be-used-to-load-dacs-from-memory-165177",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G4 series"
+            ],
+            "published_at": "2026-04-28T04:11:58+00:00",
+            "views": 387,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "I personally would do this differently - I would use TIMx Update-triggered DMA to load varying period to TIMx\\_ARR, and then use the same TIMx Update as TRGO source, with setting DAC to be triggered natively from TIMx\\_TRGO; and then would load the DAC data using DAC-triggered DMA. But you do you.\n\nAt any case, debugging starts with reading out and checking relevant registers' content.\n\nBut let me make a wild guess: you've set the DMA into DAC to be [other than a word (32-bit) wide; that would not work](http://www.efton.sk/STM32/gotcha/g246.html).\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "I want to vary the duty cycle of two adjacent DAC values of an STM32G473.  I am using DAC1 channel1 and channel2 for the output. I want to load DAC1s DHR12Rx registers via DMA when TIM3 hits output compare values.  I set up a memory to peripheral transfer for each TIM3 channel and set the CMAR and CPAR registers to the memory location of the DAC values and the peripheral addresses of the DAC DHR12Rx registers.\n\nI have been able to make this configuration work for making the TIM3 OC events trigger loading of TIM20's CCR registers from memory, but so far, the DMA transfer won't load the DHCR12Rx registers for the DACs.  Are there additional configuration settings to make this work?\n\nCubeIDE\\HAL has configuration options for initializing the DAC in DMA mode, but I need multiple triggers the make the duty cycling work.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d99f3f1-2fe6-74af-09b3-efc71d8e7230.png"
+            ],
+            "author": "KHarb.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I personally would do this differently - I would use TIMx Update-triggered DMA to load varying period to TIMx_ARR, and then use the same TIMx Update as TRGO source, with setting DAC to be triggered natively from TIMx_TRGO; and then would load the DAC data using DAC-triggered DMA. But you do you.</p><p>At any case, debugging starts with reading out and checking relevant registers' content.</p><p>But let me make a wild guess: you've set the DMA into DAC to be <a href=\"http://www.efton.sk/STM32/gotcha/g246.html\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">other than a word (32-bit) wide; that would not work</a>.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Wow. Very nice. Changing the data size made it work.  In this mode, only one timer is needed and configuring it is simpler to get the desired behavior. </p></div>",
+                    "author": "KHarb.1",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; I use 16-bit DMA to one DAC channel register, and it works fine.</p><p>In 'G4?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No, a F303.<br/>I haven't worked with a G4 device yet, sounds like this devices have different DAC interface, again. </p><p>The F3xx (at least the F30x) have 16-bit and 8-bit registers for individual DAC channels, and a 32-bit register for both channels to be used in dual mode.<br/><br/></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The difference here lies in the fact, that in the 'F3 DAC is located at the APB bus, and the AHB-to-APB bridge is forgiving, i.e. it does not enforce access width. In contrast, in the 'G4, the DAC - quite inexplicably, to me - is directly at the AHB bus, and it's designed so that it does not support non-word-width accesses, and signals bus error to the master which attempts such access. In case of DMA, it results in Transfer Error and the given Channel being stopped.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_0-1777452153485.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_0-1777452153485.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d99f3f1-2fe6-74af-09b3-efc71d8e7230.png\" title=\"waclawekjan_0-1777452153485.png\"/></span></p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Good to know.<br/>As said, I didn't use a G4 device yet, and haven't looked at the reference manual.<br/>I only hope this topic is properly covered in the G4 manuals...</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Define \"properly\".</p><p>The 'G4 RM says, in <em>DAC registers</em> subchapter:</p><p><em>The peripheral registers have to be accessed by words (32-bit).</em></p><p>But the exact same sentence is also in the <em>DAC registers</em> in RM0316 for 'F3... </p><p>The difference is, that if write 16 bits into DAC registers in 'F3, the AHB/APB bridge takes those 16 bits from AHB and quietly duplicates them to the other halfword to APB and does not assert the transfer error signal. This duplication is somewhat documented in RM0316 in <em>3.1.5 BusMatrix/AHB/APB bridges </em>chapter.</p><p>What is \"improper\" here is the \"integration\" aspect of this - you can find the individual snippets of information which is directly related to the individual \"components\" (such as DMA, bus matrix, DAC), but these snippets are not brought together so it's left to the user to assemble the whole picture... This is the price we pay for the \"lego\"-style using which these chips are designed.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; Define \"properly\".</em></font></p><p><span>I rarely get into such details as inter-bus bridges and restrictions they impose - only if other readings that a project requires link to this chapters.</span></p><p><span>From a plain description of the DAC section with individual 16-bit output registers and the DMA section stating byte, half-word and word capability, this restriction is neither obvious nor makes it sense on this level.</span></p><p><font color=\"#0000FF\"><em>&gt; This is the price we pay for the \"lego\"-style using which these chips are designed.</em></font></p><p>For sure. I ran into similiarly vaguely described issues and differences between F30x variants that did cost me many hours of reading and testing.</p><p>By the way, one example I had based a recent (F303) application on uses the DAC dual mode, and employs 32-bit DMA transfers to the specific dual-mode 32-bit DAC register. Modifying it for 1 channel and 16-bit worked fine.<br/><br/></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; By the way, one example I had based a recent (F303) application on uses the DAC dual mode, and employs 32-bit DMA transfers to the specific dual-mode 32-bit DAC register. Modifying it for 1 channel and 16-bit worked fine.</p><p>So, after the modification, DMA transferred 16 bits into one part of the same 32-bit DAC register, correct?</p><p>Was the other DAC active at the same time? Would you notice if *both* parts of that 32-bit DAC register would be written the same value, instead of just one half of it?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I see, thanks.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

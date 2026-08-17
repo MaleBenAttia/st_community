@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "164851",
+            "publicId": "164851",
+            "title": "L0 I2C slave RX DMA - clean cancel with I2C STOP ?",
+            "url": "https://community.st.com/stm32-mcus-products-25/l0-i2c-slave-rx-dma-clean-cancel-with-i2c-stop-164851",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L0 series",
+                "DMA",
+                "I2C"
+            ],
+            "published_at": "2026-04-17T06:30:28+00:00",
+            "views": 139,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Working nicely!\n\nThe I2C slave's DMA RX is set to maximum buffer size, when an I2C bus STOP (funny wording) is found a flag is set in the I2C IQR, which is then checked by the I2C control function.\n\nThis compares the first received data byte ( = I2C packet length) in the DMA RX buffer with the CNDTR register, which should be buffer max - rx length.\n\nBut boy, there were some \\*\\*\\* mistakes on my side, mostly with the I2C TX test function in the same MCU with another I2C peripheral (e.g. forgot to clear NBYTES in CR2).\n\nAnd 2 big things I found in the L073 errata (2.12.9 Transmission stalled after first byte transfer).\n\nThe other one the minimum clock requirements.\n\nWith DMA this seems to run smoothly at CPU clock 32 MHz (L073 max) even in \"Fast Mode Plus\" (1Mbit) - for now...",
+            "best_answer_author": "LCE",
+            "best_answer_author_role": "Principal II",
+            "content_text": "Heyho,\n\nusing L073 at 32MHz, so even I2C transfers \"seem\" fast, at least in \"fast mode plus\" at SCL 1 MHz. And I don't want to over-use clock stretching.\n\nI'm looking for a way to use I2C **slave receive** with **DMA**, but an ***unknown transfer length***.\n\nRight now it looks to me as if I could do the following:\n\n* I2C & DMA prep: all stuff & addresses set, DMA in I2C enabled\n\n* on I2C **ADDR** match interrupt:\n\n+ set DMA CNDTR to max buffer length\n\n+ enable DMA\n\n* on I2C **STOP** match interrupt:\n\n+ disable DMA\n\nAny problems with that?\n\nHave only 1 device for now...\n\nThanks!",
+            "images": [],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Working nicely!</p><p>The I2C slave's DMA RX is set to maximum buffer size, when an I2C bus STOP (funny wording) is found a flag is set in the I2C IQR, which is then checked by the I2C control function.<br/>This compares the first received data byte ( = I2C packet length) in the DMA RX buffer with the CNDTR register, which should be buffer max - rx length.</p><p>But boy, there were some *** mistakes on my side, mostly with the I2C TX test function in the same MCU with another I2C peripheral (e.g. forgot to clear NBYTES in CR2). </p><p>And 2 big things I found in the L073 errata (2.12.9 Transmission stalled after first byte transfer).<br/>The other one the minimum clock requirements.</p><p>With DMA this seems to run smoothly at CPU clock 32 MHz (L073 max) even in \"Fast Mode Plus\" (1Mbit) - for now...</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

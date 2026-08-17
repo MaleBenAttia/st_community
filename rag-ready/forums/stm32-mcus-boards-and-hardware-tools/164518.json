@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "164518",
+            "publicId": "164518",
+            "title": "Driving 11 LPS27HHTW sensors on a single I3C bus",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/driving-11-lps27hhtw-sensors-on-a-single-i3c-bus-164518",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST boards",
+                "STM32C5 series"
+            ],
+            "published_at": "2026-04-07T09:46:08+00:00",
+            "views": 267,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "One of my former employer solved this issue with hardware (... for I2C).\n\nJust use a multiplexer, taking care that only one bus is enabled at a time.\n\nMultplexing SCL should be sufficient.\n\nOf course this adds complexity, additional code, and requires sequencial processing.\n\nAnd depending on supported features, the multplexer would need to be bidirectional.",
+            "best_answer_author": "Ozone",
+            "best_answer_author_role": "Principal",
+            "content_text": "Hello everyone,\n\nI need to drive up to 11 LPS27HHTW pressure/temperature sensors using an STM32C5 microcontroller. Currently, I'm testing the setup on an NUCLEO-C562RE board with multiple STEVAL-MKI220V1 modules.\n\nAt first glance, using I3C dynamic addressing seemed to solve the bus conflict issue. However, while testing, I realized that all of these sensors share the exact same 48-bit PID (0x020800B30000). This generates a collision when doing an ENTDAA broadcast.\n\nSince the sensors only have 2 possible static I2C addresses (0x5c and 0x5d, depending on the SA0 pin level), I cannot use the SETDASA command for all 11 devices either.\n\nI can't split the sensors across different buses since there are too many of them. I would like to know if there are better architectural options than playing with the CS pin levels using 11 dedicated GPIOs to enable/disable communication on each sensor individually.\n\nAny advice on how you would drive that many sensor using a STM32C5 mcu?\n\nBest regards,\n\nMathias",
+            "images": [],
+            "author": "Matk3z",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That looks bad. With I2C I don't see a solution without extra HW (I'd try to turn off VDD_IO with a p-channel MOSFET per pair of ICs).</p><p>Is there a way that you could use SPI and 11 CS-lines ? (Which also sounds terrible...)</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your answer.</p><p>So we agree that due to the shared 48 bit ID we cannot drive that many I3C sensors even with dynamic addressing (it's the first time I use I3C, I just want to make sure that my understanding is correct here)?</p><p>If there is no other choice we will have to resort to something like SPI or at least the mosfet with pairs of sensor to save GPIOs.</p><p>Out of curiosity, do you see any other way to drive that many pressure/temperature sensors even if we need to change MCU, sensor and bus?</p></div>",
+                    "author": "Matk3z",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I2C Multiplexer ?</p><p>eg, <a href=\"https://www.ti.com/product-category/interface/i2c-i3c-ics/i2c-i3c-switches-multiplexers/overview.html\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://www.ti.com/product-category/interface/i2c-i3c-ics/i2c-i3c-switches-multiplexers/overview.html</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>One of my former employer solved this issue with hardware (... for I2C).<br/>Just use a multiplexer, taking care that only one bus is enabled at a time.<br/>Multplexing SCL should be sufficient.</p><p>Of course this adds complexity, additional code, and requires sequencial processing.<br/>And depending on supported features, the multplexer would need to be bidirectional.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot for your answers. Seems like an I2C multiplexer is the way this will go :)</p></div>",
+                    "author": "Matk3z",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

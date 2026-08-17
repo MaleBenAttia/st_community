@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "166420",
+            "publicId": "166443",
+            "title": "STM32N6 AI Model Memory Sections Wrong",
+            "url": "https://community.st.com/edge-ai-134/stm32n6-ai-model-memory-sections-wrong-166443",
+            "category": "Edge AI",
+            "tags": [
+                "STM32CubeAI",
+                "ST Edge AI Developer Cloud",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-06-25T09:51:59+00:00",
+            "views": 34,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I guess this is what I’ll do for now, it doesn’t seem to break the inference, at least.\n\n```\n\n#define KB_IN_BYTES(N)    (1024UL * (N))\n\n/* set these KB according the STM32Cube AI Studio */\n\n#define AI_NPURAM5_SIZE     KB_IN_BYTES(400)\n\n#define AI_NPURAM4_SIZE     KB_IN_BYTES(192)\n\n__attribute__((section(\".AI_NPURAM5\")))\n\nstatic uint8_t ai_npuram5[AI_NPURAM5_SIZE];\n\n__attribute__((section(\".AI_NPURAM4\")))\n\nstatic uint8_t ai_npuram4[AI_NPURAM4_SIZE];\n\n/****in linker script, sections *****\n\nAXISRAM4 \t      : ORIGIN = 0x34270000, LENGTH = 0x70000\n\nAXISRAM5 \t      : ORIGIN = 0x342E0000, LENGTH = 0x70000\n\n************** after .text **********\n\n.AI_NPURAM4 (NOLOAD): {\n\n. = ALIGN(4);\n\nKEEP(*(.AI_NPURAM4))\n\n. = ALIGN(4);\n\n} >AXISRAM4\n\n.AI_NPURAM5 (NOLOAD): {\n\n. = ALIGN(4);\n\nKEEP(*(.AI_NPURAM5))\n\n. = ALIGN(4);\n\n} >AXISRAM5\n\n*************************************/\n\n```\n\nSince my axisram4 is not filled a lot, I used the rest of that space for something else, and (again) the inference still works. I therefore take this as a confirmation to my assumption that the AI studio/model/exported code simply uses the beginning of that memory… (hopefully)",
+            "best_answer_author": "rphii",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello everyone,\n\nI can run my model through the stedgeai / STM32Cube AI Studio and see the following:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7127922-0c43-4579-9d98-b5126e5a9230.png)\n\nBut when I now go into the resulting application and build it myself, I see these memory sections, which tell a totally different story:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c32bd3f2-cbf0-441c-8ebd-32214adc36dc.png)\n\nHow can I fix this? I added the AXISRAMx sections (they are not provided per default) which results in them being used by 0%, so that also can’t be right.\n\nBest regards, rphii",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c32bd3f2-cbf0-441c-8ebd-32214adc36dc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7127922-0c43-4579-9d98-b5126e5a9230.png"
+            ],
+            "author": "rphii",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I guess this is what I’ll do for now, it doesn’t seem to break the inference, at least.</p><p> </p><pre><code class=\"language-c\">#define KB_IN_BYTES(N)    (1024UL * (N))<br/><br/>/* set these KB according the STM32Cube AI Studio */<br/>#define AI_NPURAM5_SIZE     KB_IN_BYTES(400)<br/>#define AI_NPURAM4_SIZE     KB_IN_BYTES(192)<br/>__attribute__((section(\".AI_NPURAM5\")))<br/>static uint8_t ai_npuram5[AI_NPURAM5_SIZE];<br/>__attribute__((section(\".AI_NPURAM4\")))<br/>static uint8_t ai_npuram4[AI_NPURAM4_SIZE];<br/><br/><br/>/****in linker script, sections *****<br/><br/><br/>  AXISRAM4 \t      : ORIGIN = 0x34270000, LENGTH = 0x70000<br/>  AXISRAM5 \t      : ORIGIN = 0x342E0000, LENGTH = 0x70000<br/><br/><br/>************** after .text **********<br/><br/>  .AI_NPURAM4 (NOLOAD): {<br/>    . = ALIGN(4);<br/>    KEEP(*(.AI_NPURAM4))<br/>    . = ALIGN(4);<br/>  } &gt;AXISRAM4<br/><br/>  .AI_NPURAM5 (NOLOAD): {<br/>    . = ALIGN(4);<br/>    KEEP(*(.AI_NPURAM5))<br/>    . = ALIGN(4);<br/>  } &gt;AXISRAM5<br/><br/><br/>*************************************/</code></pre><p>Since my axisram4 is not filled a lot, I used the rest of that space for something else, and (again) the inference still works. I therefore take this as a confirmation to my assumption that the AI studio/model/exported code simply uses the beginning of that memory… (hopefully)</p></div>",
+                    "author": "rphii",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "164318",
+            "publicId": "164318",
+            "title": "Build outputs and presets in VS Code",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/build-outputs-and-presets-in-vs-code-164318",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-30T19:16:14+00:00",
+            "views": 444,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Similar to @Julien D 's answer, just slightly slimmer. I do like Julien's usage use \"arm-none-eabi-objcopy\" where mine is abstracts it with \"CMAKE\\_OBJCOPY\" .\n\nWhat it's doing below:\n\n1. Set the output files name\n\n2. Create a POST\\_BUILD custom command to generate the HEX file\n\n3. Copy the .HEX file to the \"output\" folder located a few folders up (*folder structure below*)\n\n* \"<root>/source/Project/build/Debug/MYPROJ.hex\"\n\n* \"<root>/output/\"  *<=== copied here, post build*\n\n*\\*\\* Note the \"file(MAKE\\_DIRECTORY...)\" command is commented out, as the OS generates it on copy.*\n\n```\n\n###################\n\n# Generate HEX file\n\nset(HEX_FILENAME \"MYPROJ-${CMAKE_PROJECT_NAME}-v0.0.1.hex\")\n\nadd_custom_command(\n\nTARGET ${CMAKE_PROJECT_NAME}\n\nPOST_BUILD\n\nCOMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${HEX_FILENAME}\n\n# COMMAND ${CMAKE_OBJCOPY} -O binary ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.bin\n\nCOMMENT \"Generating HEX '${HEX_FILENAME}' for '${CMAKE_PROJECT_NAME}'\")\n\n# Copy generated file to project's root \"output\" folder\n\n# file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../BLARG)\n\nadd_custom_command(\n\nTARGET ${CMAKE_PROJECT_NAME}\n\nPOST_BUILD\n\nCOMMAND ${CMAKE_COMMAND} -E copy\n\n\"${CMAKE_CURRENT_BINARY_DIR}/${HEX_FILENAME}\"\n\n\"${CMAKE_CURRENT_SOURCE_DIR}/../../output/${HEX_FILENAME}\"\n\nCOMMENT \"Copying HEX file to output folder.\")\n\n```",
+            "best_answer_author": "Suess",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nI’m trying to understand how the build setup works in VS Code.\n\nCould you advise where and how to configure VS Code so that .bin and .hex files are always generated when building both Debug and Release configurations?\n\nIs this controlled via CMake, or through one of the .json configuration files?\n\nWhichever approach is correct, could you also share **the specific scripts or commands that need to be used?**\n\nThank you :)",
+            "images": [],
+            "author": "Ricko",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"76854\">@Ricko</user-mention>,</p><p>This can be achieved via CMake yes, put something like this in your CMakeLists.txt and probably adapt it to your project:</p><pre class=\"lia-code-sample language-c\"><code>if(CMAKE_BUILD_TYPE STREQUAL \"Debug\")\n add_custom_command(\n TARGET ${YOUR_TARGET_NAME}\n POST_BUILD\n COMMAND ${CMAKE_COMMAND} -E echo Post-build command for Debug: arm-none-eabi-objcopy -O binary $&lt;TARGET_FILE:${YOUR_TARGET_NAME}&gt; \"${CMAKE_BINARY_DIR}/${YOUR_TARGET_NAME}.bin\"\n COMMAND arm-none-eabi-objcopy -O binary $&lt;TARGET_FILE:${YOUR_TARGET_NAME}&gt; \"${CMAKE_BINARY_DIR}/${YOUR_TARGET_NAME}.bin\"\n WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}\n BYPRODUCTS \"${CMAKE_BINARY_DIR}/${YOUR_TARGET_NAME}.bin\"\n VERBATIM\n )\nendif()\n\nif(CMAKE_BUILD_TYPE STREQUAL \"Release\")\n add_custom_command(\n TARGET ${YOUR_TARGET_NAME}\n POST_BUILD\n COMMAND ${CMAKE_COMMAND} -E echo Post-build command for Release: arm-none-eabi-objcopy -O binary $&lt;TARGET_FILE:${YOUR_TARGET_NAME}&gt; \"${CMAKE_BINARY_DIR}/${YOUR_TARGET_NAME}.bin\"\n COMMAND arm-none-eabi-objcopy -O binary $&lt;TARGET_FILE:${YOUR_TARGET_NAME}&gt; \"${CMAKE_BINARY_DIR}/${YOUR_TARGET_NAME}.bin\"\n WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}\n BYPRODUCTS \"${CMAKE_BINARY_DIR}/${YOUR_TARGET_NAME}.bin\"\n VERBATIM\n )\nendif()</code></pre><p>If your commands are the same it should be possible to factorize the 2 add_custom_command() in a single one by removing the if/endif statements.</p></div>",
+                    "author": "Julien D",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Similar to <user-mention data-id=\"573\">@Julien D</user-mention> 's answer, just slightly slimmer. I do like Julien's usage use \"<font face=\"courier new,courier\">arm-none-eabi-objcopy</font>\" where mine is abstracts it with \"CMAKE_OBJCOPY\" .</p><p>What it's doing below:</p><ol><li>Set the output files name</li><li>Create a POST_BUILD custom command to generate the HEX file</li><li>Copy the .HEX file to the \"output\" folder located a few folders up (<em>folder structure below</em>)<ul><li>\"&lt;root&gt;/source/Project/build/Debug/MYPROJ.hex\"</li><li>\"&lt;root&gt;/output/\"  <em>&lt;=== copied here, post build</em></li></ul></li></ol><p><em>** Note the \"file(MAKE_DIRECTORY...)\" command is commented out, as the OS generates it on copy.</em></p><pre class=\"lia-code-sample language-c\"><code>###################\n# Generate HEX file\nset(HEX_FILENAME \"MYPROJ-${CMAKE_PROJECT_NAME}-v0.0.1.hex\")\n\nadd_custom_command(\n TARGET ${CMAKE_PROJECT_NAME}\n POST_BUILD\n COMMAND ${CMAKE_OBJCOPY} -O ihex $&lt;TARGET_FILE:${CMAKE_PROJECT_NAME}&gt; ${HEX_FILENAME}\n # COMMAND ${CMAKE_OBJCOPY} -O binary ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.bin\n COMMENT \"Generating HEX '${HEX_FILENAME}' for '${CMAKE_PROJECT_NAME}'\")\n\n# Copy generated file to project's root \"output\" folder\n# file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../BLARG)\nadd_custom_command(\n TARGET ${CMAKE_PROJECT_NAME}\n POST_BUILD\n COMMAND ${CMAKE_COMMAND} -E copy\n \"${CMAKE_CURRENT_BINARY_DIR}/${HEX_FILENAME}\"\n \"${CMAKE_CURRENT_SOURCE_DIR}/../../output/${HEX_FILENAME}\"\n COMMENT \"Copying HEX file to output folder.\")</code></pre><p> </p></div>",
+                    "author": "Suess",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you <user-mention data-id=\"573\">@Julien D</user-mention> and <user-mention data-id=\"94018\">@Suess</user-mention> </p></div>",
+                    "author": "Ricko",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julien D",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

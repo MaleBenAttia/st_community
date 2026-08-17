@@ -1,0 +1,83 @@
+{
+    "forum": [
+        {
+            "id": "163678",
+            "publicId": "163678",
+            "title": "STM32H5: CubeMX generates USBX device stack init function but never calls it",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32h5-cubemx-generates-usbx-device-stack-init-function-but-never-calls-it-163678",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "USB",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-11T06:06:55+00:00",
+            "views": 672,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @KaiY\n\nYour change request for easier user integration has been escalated to the development team under internal ticket ID **#0060718**.\n\nI will keep you informed of any updates.",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I found what looks like a reproducible STM32CubeMX code generation bug for STM32H5 USBX device projects.\n\nI tested this on a fresh project, so this does not appear to be a migration issue from an older codebase.\n\n**Problem**\n\nCubeMX generates these USBX init functions:\n\n* MX\\_USBX\\_Init()\n\n* MX\\_USBX\\_Device\\_Init()\n\n* MX\\_USBX\\_Device\\_Stack\\_Init()\n\nHowever, the generated call flow only invokes:\n\n* MX\\_USBX\\_Init()\n\n* MX\\_USBX\\_Device\\_Init()\n\nand never calls MX\\_USBX\\_Device\\_Stack\\_Init().\n\nThat is a problem because MX\\_USBX\\_Device\\_Stack\\_Init() contains the actual device stack setup:\n\n* ux\\_device\\_stack\\_initialize(...)\n\n* class registration\n\n* ux\\_dcd\\_stm32\\_initialize(...)\n\nWithout that function running, the USB peripheral can start and receive a reset interrupt, but USBX has not been given valid device framework pointers yet.\n\n**Observed failure**\n\nWhen USB\\_DRD\\_FS\\_IRQHandler() fires and the USB reset path runs, the code eventually reaches:\n\n* HAL\\_PCD\\_ResetCallback()\n\n* \\_ux\\_dcd\\_stm32\\_initialize\\_complete()\n\n* \\_ux\\_utility\\_descriptor\\_parse(...)\n\nand hard faults inside \\_ux\\_utility\\_descriptor\\_parse, because the device framework pointer was never initialized.\n\nIn my case the hard fault occurred at the byte dereference in \\_ux\\_utility\\_descriptor\\_parse().\n\n**Generated code pattern**\n\nMX\\_USBX\\_Init() does:\n\n* ux\\_system\\_initialize(...)\n\n* MX\\_USBX\\_Device\\_Init(...)\n\nbut does not call MX\\_USBX\\_Device\\_Stack\\_Init().\n\nMX\\_USBX\\_Device\\_Stack\\_Init() is generated correctly, but left unused.\n\n**Expected behavior**\n\nThe generated code should call MX\\_USBX\\_Device\\_Stack\\_Init() after ux\\_system\\_initialize(...) and before MX\\_USBX\\_Device\\_Init(...), so the order is effectively:\n\n1. ux\\_system\\_initialize(...)\n\n2. MX\\_USBX\\_Device\\_Stack\\_Init()\n\n3. MX\\_USBX\\_Device\\_Init(...)\n\n4. USB thread configures PMA and starts PCD\n\n**Workaround**\n\nManually add the missing call so that MX\\_USBX\\_Init() does:\n\n```\n\nif (ux_system_initialize(pointer, USBX_MEMORY_STACK_SIZE, UX_NULL, 0) != UX_SUCCESS)\n\n{\n\nreturn UX_ERROR;\n\n}\n\nif (MX_USBX_Device_Stack_Init() != UX_SUCCESS)\n\n{\n\nreturn UX_ERROR;\n\n}\n\nif (MX_USBX_Device_Init(byte_pool) != UX_SUCCESS)\n\n{\n\nwhile(1)\n\n{\n\n}\n\n}\n\n```\n\n**Why I believe this is a CubeMX bug**\n\nI reproduced this with a brand-new test project generated from scratch, not just an upgraded older project.\n\nHas anyone else seen this on STM32H5 + Azure RTOS USBX device projects, and can ST confirm whether this is a known generator issue?\n\nIf needed, I can also post the exact generated files showing the missing call path.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40d87a15-bece-49cd-35d0-3e4283e1df7b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14ba71f7-ccc1-94c9-271b-868bcb34caf9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd02ed54-eabd-dad9-7040-cf2b32b5883d.png"
+            ],
+            "author": "KaiY",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97018\">@KaiY</user-mention> </p>\n<p>Your change request for easier user integration has been escalated to the development team under internal ticket ID<span> </span><strong>#0060718</strong>.</p>\n<p>I will keep you informed of any updates.</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97018\">@KaiY</user-mention> </p>\n<p>I'm currently investigating this behaviour. I will get back to you as well as possible.</p>\n<p>Thx</p>\n<p>Ghofrane </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97018\">@KaiY</user-mention> </p>\n<p>After creating a from scratch IOC using the latest version of STM32CubeMX 6.17.0 and generating the code , the mentioned call above is generated successfully as shown below </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"call_method.png\" style=\"width: 761px;\"><img alt=\"call_method.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd02ed54-eabd-dad9-7040-cf2b32b5883d.png\" title=\"call_method.png\"/></span></p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My test project does not have this code.<br/>Perhaps it's with certain project settings?<br/><br/>Here is a screenshot and my .ioc file</p><div class=\"\"><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-11 144730.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-03-11 144730.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14ba71f7-ccc1-94c9-271b-868bcb34caf9.png\" title=\"Screenshot 2026-03-11 144730.png\"/></span><p> </p></div></div>",
+                    "author": "KaiY",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97018\">@KaiY</user-mention> </p>\n<p>After reviewing your IOC configuration, I compared it with the available examples and found that the<span> </span><strong>Ux_Device_HID</strong><span> </span>example is very similar to your setup.</p>\n<p>In this example, the following code is present in the generated sources:</p>\n<pre class=\"lia-code-sample language-c\"><code> if (MX_USBX_Device_Stack_Init() != UX_SUCCESS)\n {\n /* USER CODE BEGIN MAIN_INITIALIZE_STACK_ERROR */\n Error_Handler();\n /* USER CODE END MAIN_INITIALIZE_STACK_ERROR */\n }</code></pre>\n<p>This check is not inserted automatically by the code generator and must be added manually in the user code section inside app_ux_device_thread_entry, as shown in the following screenshot.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"example.png\" style=\"width: 999px;\"><img alt=\"example.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40d87a15-bece-49cd-35d0-3e4283e1df7b.png\" title=\"example.png\"/></span></p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

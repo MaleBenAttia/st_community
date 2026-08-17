@@ -1,0 +1,39 @@
+{
+    "forum": [
+        {
+            "id": "164811",
+            "publicId": "164811",
+            "title": "STM32H7S78-DK: USBX standalone (CDC ACM + PIMA) works in FS; fails in HS",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h7s78-dk-usbx-standalone-cdc-acm-pima-works-in-fs-fails-in-hs-164811",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "USBX"
+            ],
+            "published_at": "2026-04-16T07:07:23+00:00",
+            "views": 221,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I apologize in advance because this same question has already been answered in another post. I am attaching the link below:\n\n<https://community.st.com/t5/stm32-mcus-embedded-software/usb-hs-on-the-stm32h7s3l8/m-p/740800#M56769>\n\nIn summary, in case you don’t want to read the whole post: to use USB-HS with this microcontroller, it is necessary to enable the USB\\_HS\\_REG. This can be done in CubeMX under the **Power and Thermal** category.\n\n![polEscudero_0-1776324739757.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eea4809f-e18a-157a-02e9-3d2e4aeaa7d0.png \"polEscudero_0-1776324739757.png\")",
+            "best_answer_author": "polEscudero",
+            "best_answer_author_role": "Associate II",
+            "content_text": "in HS, HAL\\_PCD\\_Init fails with timeout in USB\\_CoreReset\n\nHello everyone,\n\nI am working with an STM32H7S78-DK and I’m trying to use USBX in standalone mode for a composite USB device (CDC ACM + PIMA) over USB\\_HS at 480 Mbit/s.\n\nAt the moment, I have only implemented the CDC ACM class. PIMA will be added later.\n\n**Situation:**\n\n* If I configure USB as Full Speed, the peripheral initializes correctly.\n\n* If I switch to High Speed, initialization fails at:\n\nMX\\_USBX\\_Init() -> MX\\_USBX\\_Device\\_Init() -> MX\\_USB\\_OTG\\_HS\\_PCD\\_Init() -> HAL\\_PCD\\_Init(&hpcd\\_USB\\_OTG\\_HS)\n\nThe error occurs at:\n\nif (USB\\_CoreInit(hpcd->Instance, hpcd->Init) != HAL\\_OK) { ... }\n\nBecause inside USB\\_CoreInit, in USB\\_CoreReset, a HAL\\_TIMEOUT is returned while waiting for the CSRST bit in GRSTCTL to clear:\n\n* Core Soft Reset (CSRST) is written\n\n* The bit never clears and eventually times out\n\n**Technical summary:**\n\n* FS works, HS does not\n\n* The timeout occurs right after PHY selection and USB core reset\n\n* The issue seems related to clock/PHY/HS configuration\n\n* I have also tried configuring the HS peripheral but forcing Full Speed operation (12 Mbit/s), and it still does not work\n\nHas anyone successfully configured USB\\_HS with USBX standalone on this family and can confirm which settings are required to avoid this timeout?\n\nIn particular:\n\n* Is an external ULPI PHY mandatory to reach 480 Mbit/s on this board? From what I understand based on the microcontroller datasheet, it should not be strictly necessary, but I would appreciate confirmation.\n\n* Which exact clocks must be enabled for the HS core to complete CSRST?\n\n* Are there any critical settings in CubeMX (PHY selection, VBUS sensing, power/clock domains) that commonly cause CSRST to get stuck?\n\n* Does CDC ACM + PIMA in standalone mode require any special HS initialization sequence?\n\nI’ve attached a ZIP file with the full project for reference.\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eea4809f-e18a-157a-02e9-3d2e4aeaa7d0.png"
+            ],
+            "author": "polEscudero",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I apologize in advance because this same question has already been answered in another post. I am attaching the link below:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/usb-hs-on-the-stm32h7s3l8/m-p/740800#M56769\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-embedded-software/usb-hs-on-the-stm32h7s3l8/m-p/740800#M56769</a></p><p>In summary, in case you don’t want to read the whole post: to use USB-HS with this microcontroller, it is necessary to enable the USB_HS_REG. This can be done in CubeMX under the <strong>Power and Thermal</strong> category.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"polEscudero_0-1776324739757.png\" style=\"width: 400px;\"><img alt=\"polEscudero_0-1776324739757.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eea4809f-e18a-157a-02e9-3d2e4aeaa7d0.png\" title=\"polEscudero_0-1776324739757.png\"/></span></p><p> </p></div>",
+                    "author": "polEscudero",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "163675",
+            "publicId": "163675",
+            "title": "Complementary timer channels are not working in STM8S105.",
+            "url": "https://community.st.com/others-hardware-and-software-57/complementary-timer-channels-are-not-working-in-stm8s105-163675",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STM8 MCUs"
+            ],
+            "published_at": "2026-03-11T03:24:02+00:00",
+            "views": 196,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Complementary channels are only available if enabled in Option Bytes OPT2 AFR5. See STM8S105x4/6 datasheet page 49.\n\nAFR5 Alternate function remapping option 5\n\n0: AFR5 remapping option inactive: Default alternate function.(2)\n\n1: Port B3 alternate function = TIM1\\_ETR; port B2 alternate function = TIM1\\_CH3N; port B1 alternate function = TIM1\\_CH2N; port B0 alternate function = TIM1\\_CH1N.\n\nDid you enable them in Option Bytes?",
+            "best_answer_author": "AA1",
+            "best_answer_author_role": "Senior III",
+            "content_text": "Hi guys,\n\nRecently I have started to do some practical test with STM8S105. While trying to implement  PWM of TIM1 CH1 and CH2 with their complementary channels, it is seen that PWM pulses are generated only on main channels. Complementary channels are silent. Please see the code and suggest the way out.\n\n```\n\n#include \"stm8s.h\"\n\nvoid setup_clock(void) {\n\nCLK->ICKR |= CLK_ICKR_HSIEN; // Enable HSI\n\nwhile (!(CLK->ICKR & CLK_ICKR_HSIRDY));\n\nCLK->CKDIVR = 0x00;\n\nCLK->SWR = 0xE1;\n\n}\n\nvoid setup_gpio(void) {\n\nGPIOC->DDR |= (GPIO_PIN_1 | GPIO_PIN_2);\n\nGPIOC->CR1 |= (GPIO_PIN_1 | GPIO_PIN_2);\n\nGPIOC->CR2 |= (GPIO_PIN_1 | GPIO_PIN_2);\n\nGPIOB->DDR |= (GPIO_PIN_0 | GPIO_PIN_1);\n\nGPIOB->CR1 |= (GPIO_PIN_0 | GPIO_PIN_1);\n\nGPIOB->CR2 |= (GPIO_PIN_0 | GPIO_PIN_1);\n\n}\n\nvoid setup_tim1_complementary_pwm(void) {\n\nTIM1->CR1 &= ~TIM1_CR1_CEN;\n\nCLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER1, ENABLE);\n\nTIM1->PSCRH = 0x00;\n\nTIM1->PSCRL = 0x00;\n\nTIM1->ARRH = 639 >> 8;\n\nTIM1->ARRL = 639 & 0xFF;\n\nTIM1->CCR1H = 100 >> 8;\n\nTIM1->CCR1L = 100 & 0xFF;\n\nTIM1->CCMR1 = 0x68;\n\nTIM1->CCMR1 |= 1<<3;\n\nTIM1->CCER1 |= TIM1_CCER1_CC1E;\n\nTIM1->CCER1 |= TIM1_CCER1_CC1NE;\n\nTIM1->CCR2H = 300 >> 8;\n\nTIM1->CCR2L = 300 & 0xFF;\n\nTIM1->CCMR2 = 0x68;\n\nTIM1->CCMR2 |= 1<<3;\n\nTIM1->CCER1 |= TIM1_CCER1_CC2E;\n\nTIM1->CCER1 |= TIM1_CCER1_CC2NE;\n\nTIM1->DTR = 0x10;\n\nTIM1->BKR |= TIM1_BKR_MOE;\n\nTIM1->EGR |= TIM1_EGR_UG;\n\nTIM1->CR1 |= TIM1_CR1_CEN;\n\n}\n\nvoid main(void) {\n\nsetup_clock();\n\nsetup_gpio();\n\nsetup_tim1_complementary_pwm();\n\nwhile(1) {\n\n}\n\n}\n\n#ifdef USE_FULL_ASSERT\n\nvoid assert_failed(uint8_t* file, uint32_t line)\n\n{\n\nwhile (1)\n\n{\n\n}\n\n}\n\n#endif\n\n```",
+            "images": [],
+            "author": "ankhola",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Complementary channels are only available if enabled in Option Bytes OPT2 AFR5. See STM8S105x4/6 datasheet page 49.</p><p>AFR5 Alternate function remapping option 5<br/>0: AFR5 remapping option inactive: Default alternate function.(2)<br/>1: Port B3 alternate function = TIM1_ETR; port B2 alternate function = TIM1_CH3N; port B1 alternate function = TIM1_CH2N; port B0 alternate function = TIM1_CH1N.</p><p>Did you enable them in Option Bytes?</p><p> </p></div>",
+                    "author": "AA1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks. Enabling relevant Option Bytes, complementary channels are working.</p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

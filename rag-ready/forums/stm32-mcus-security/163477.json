@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163477",
+            "publicId": "163477",
+            "title": "STM32CubeExpansion_SBSFU_V2.8.0 (2_Images_SECoreBin) fails with GNU14.3 Toolchain from CubeIDE",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32cubeexpansion-sbsfu-v2-8-0-2-images-secorebin-fails-with-gnu14-3-toolchain-from-cubeide-163477",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32CubeMX",
+                "Bootloader",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-05T09:20:38+00:00",
+            "views": 415,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @Vinay\\_Shirol ,\n\nI can reproduce your issue with latest STM32CubeIDE 2.1.0 pulling GCC 14.3\n\nI could find a temporary workaround:\n\n1) disable the prebuild adding a # in front of the prebuild.sh in build steps\n\n2) Edit se\\_keys.s\n\nReplace\n\n```\n\n.section .SE_Key_Data,\"a\",%progbits\n\n```\n\nby\n\n```\n\n.section .SE_Key_Data,\"ax\",%progbits\n\n```\n\nreplace\n\n```\n\n.global SE_ReadKey_1\n\nSE_ReadKey_1:\n\n```\n\nby\n\n```\n\n.global SE_ReadKey_1\n\n.thumb_func\n\nSE_ReadKey_1:\n\n```\n\nand same for SE\\_ReadKey\\_1\\_Pub:\n\nAs least link is ok. But didn't check more\n\nBest would be to fix prepareimage.py\n\nWill ask for this fix.\n\nBest regards\n\nJocelyn",
+            "best_answer_author": "Jocelyn RICARD",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi ST team,\n\nI am using X-CUBE-SBSFU V2.8.0, project:\n\n* Device: STM32H753\n\n* Base example: NUCLEO-H753ZI 2\\_Images\n\n* I ported UART pins/port for my H753 EVAL board.\n\n**Problem**\n\n* Build fails in SECoreBin with GNU14.3 toolchain:\n\n* C:/.../2\\_Images\\_SECoreBin/Src/se\\_crypto\\_bootloader.c:222:(.text.SE\\_CRYPTO\\_Decrypt\\_Init+0x16): dangerous relocation: unsupported relocation\n\nHowever , Then i shifted to 13.3 tool chain , then everything works fine for me.\n\nPlease confirm whether this is a known GCC 14.3 compatibility issue for SBSFU v2.8.0 key generation. If yes, could you share an official patch for prebuild.sh / key assembly generation so generated key symbols are fully compatible with newer GNU/binutils?",
+            "images": [],
+            "author": "Vinay_Shirol",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"103898\">@Vinay_Shirol</user-mention> ,</p>\n<p>I can reproduce your issue with latest STM32CubeIDE 2.1.0 pulling GCC 14.3</p>\n<p>I could find a temporary workaround:</p>\n<p>1) disable the prebuild adding a # in front of the prebuild.sh in build steps</p>\n<p>2) Edit se_keys.s</p>\n<p>Replace</p>\n<pre class=\"lia-code-sample language-c\"><code>.section .SE_Key_Data,\"a\",%progbits</code></pre>\n<p>by</p>\n<pre class=\"lia-code-sample language-c\"><code>.section .SE_Key_Data,\"ax\",%progbits</code></pre>\n<p> </p>\n<p>replace</p>\n<pre class=\"lia-code-sample language-c\"><code>\t.global SE_ReadKey_1\n\nSE_ReadKey_1:</code></pre>\n<p>by</p>\n<pre class=\"lia-code-sample language-c\"><code>\t.global SE_ReadKey_1\n\t.thumb_func\n\nSE_ReadKey_1:</code></pre>\n<p>and same for <span>SE_ReadKey_1_Pub:</span></p>\n<p>As least link is ok. But didn't check more</p>\n<p>Best would be to fix prepareimage.py </p>\n<p>Will ask for this fix.</p>\n<p>Best regards</p>\n<p>Jocelyn</p></div>",
+                    "author": "Jocelyn RICARD",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks <user-mention data-id=\"278\">@Jocelyn RICARD</user-mention> ,</p><p>                                    I will try these changes and update here. </p></div>",
+                    "author": "Vinay_Shirol",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Jocelyn RICARD",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

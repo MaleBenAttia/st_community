@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164348",
+            "publicId": "164348",
+            "title": "Migrating .ioc created with Riverdi template 4.1.0 to CubeMX ver 1.16.0 STM32Cube FW_H7 V1.13.0, issues",
+            "url": "https://community.st.com/others-hardware-and-software-57/migrating-ioc-created-with-riverdi-template-4-1-0-to-cubemx-ver-1-16-0-stm32cube-fw-h7-v1-13-0-issues-164348",
+            "category": "Others: hardware and software",
+            "tags": [
+                "Other hardware",
+                "Other software tools"
+            ],
+            "published_at": "2026-03-31T11:49:11+00:00",
+            "views": 177,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Welcome @LT64, to the community!\n\nthank you very much for your contribution!\n\nSince you did not ask a question and it apparently concerns the solution to a problem, your post cannot be marked as the Accepted Solution. Therefore, I will take the liberty of marking my post as the solution instead, but I kindly ask all readers who come here to read @LT64's post as the actual answer.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone,\n\nI want to share some issues and their fixes when migrating the .ioc file that was created for the Riverdi 10\" STM32 display with template 4.1.0 to the newer version of CubeMX ver 1.16.0, STM32Cube FW\\_H7 V1.13.0.\n\nMy environment is:\n\nTarget: Riverdi STM32 10\" Display RVT101HVSNWC00-B\n\nTouchGFX 4.26.0, CubeMX ver 1.16.0 STM32Cube FW\\_H7 V1.13.0, CubeIDE ver. 1.19.0\n\n**1.** The build in CubeIDE fails with multiple errors searching for the \"cmsis\\_os2.h\" file.\n\n**Fix:** Include paths are missing. Manually add the following include paths in both the Include Paths section of MCU GCC Compiler and MCU G++ Compiler (In CubeIDE)\n\n(***Riverdi\\_101STM32H7\\_1\\_6\\_CM7-->Properties-->C/C++ Build--> Settings-->MCU GCC Compiler-->Include Paths***)\n\nThe paths to be included are:     \" ../../../Drivers/CMSIS/RTOS2/Include\" and  \"../../../Drivers/CMSIS/Include\"\n\n**2.**  The \" freertos.c\" file in Application/User/Core/ has a bug that prevents the build in CubeIDE.\n\nIn line 87 has : void vApplicationStackOverflowHook(xTaskHandle xTask, char \\*pcTaskName);\n\nwhile in line 104 has\n\n/\\* USER CODE BEGIN 4 \\*/\n\nvoid vApplicationStackOverflowHook(xTaskHandle xTask, signed char \\*pcTaskName)\n\n**FIX:** Setting line 105 to void vApplicationStackOverflowHook(xTaskHandle xTask, char \\*pcTaskName) (remove the \"signed\") fixes the problem permanently.\n\n**3.**   CM4 ( (Riverdi\\_101STM32H7\\_1\\_6\\_CM4) fails to build. Although the project builds for CM7 and runs, if someone does not feel comfortable with the \"red marks.\"  below is the fix:\n\n**Fix:**  In ***Riverdi\\_101STM32H7\\_1\\_6\\_CM4-->Properties-->C/C++ Build--> Settings-->MCU GCC Compiler-->Preprocessor*** change in Defined symbols \"STM32H747xx\" to \"STM32H757xx\"\n\nDo the same in In ***Riverdi\\_101STM32H7\\_1\\_6\\_CM4-->Properties-->C/C++ Build--> Settings-->MCU G++ Compiler-->Preprocessor***\n\n**4.**  I removed LPTIM2 and DFSDM1 ( I use the pins for other purposes). Build fails asking for the \"stm32h7xx\\_hal\\_lptim.h\" and the \"stm32h7xx\\_hal\\_dfsdm.h\" files.\n\n**Workaround Fix:**\n\nI created a new project, where LPTIM2 and DFSDM1 are present (not disabled).\n\nI manually copied from **NewProject / Drivers / STM32H7xx\\_HAL\\_Driver / src**thestm32h7xx\\_hal\\_lptim.c and stm32h7xx\\_hal\\_dfsdm.c files to **MyProject / Drivers / STM32H7xx\\_HAL\\_Driver / src.**\n\nI have done the same for the \"stm32h7xx\\_hal\\_lptim.h\" and the \"stm32h7xx\\_hal\\_dfsdm.h\" files ( using inc folders, of course).\n\n5. This version of CubeMX, although it starts with TIM2 interrupt priority set to 4, if we change anything in the timers section, then it sets the TIM2 interrupt priority to 15. As a result, the code builds successfully, but you end up with a black screen. So, before generating code in CubeMX, it is good practice to check the TIM2 interrupt priority (In System->NVIC1) and change it to 4 if needed.\n\nFor cases **1,2** and **3**, the fix is permanent. We have to do it only once.\n\nBut for cases **4 and 5,** we have to do it every time we generate the code from CubeMX.\n\nI hope that all the above will be useful to someone.\n\nStay safe and be well.",
+            "images": [],
+            "author": "LT64",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"105656\">@LT64</user-mention>, to the community!</p>\n<p>thank you very much for your contribution!</p>\n<p>Since you did not ask a question and it apparently concerns the solution to a problem, your post cannot be marked as the Accepted Solution. Therefore, I will take the liberty of marking my post as the solution instead, but I kindly ask all readers who come here to read <user-mention data-id=\"105656\">@LT64</user-mention>'s post as the actual answer.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, Peter</p><p>As a new member of the community, I did not know where exactly to share all these.</p><p>Thank you for making it more accessible to other users.</p><p>Regards </p><p>Lazaros</p></div>",
+                    "author": "LT64",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

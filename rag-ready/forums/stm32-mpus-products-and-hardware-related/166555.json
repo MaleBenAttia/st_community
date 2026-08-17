@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "166534",
+            "publicId": "166555",
+            "title": "STM32MP257 & DP83869 fiber link",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257-dp83869-fiber-link-166555",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-06-30T15:35:09+00:00",
+            "views": 56,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nboost and buck converter make a lot of current spikes at their inputs. Poor PCB routing like uncontrolled power/ground paths as well as decoupling could create a lot of troubles.\n\nDid you carefully follow AN5489 for RGMII (including IO delays settings).\n\nMaybe look to <https://wiki.st.com/stm32mpu/wiki/How_to_tune_RGMII_GTX_clock_delay>\n\nsee also recommendation related to STPMIC25 as noise on VIN can also lead to issues on it’s supplies.\n\n[The STPMIC25 PCB layout guidelines](https://www.st.com/resource/en/application_note/an6128-the-stpmic25-pcb-layout-guidelines-stmicroelectronics.pdf)\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am using a STM32MP257 (Karo SOM), RGMII connected to a DP83869 (100Mbps fiber mode).\n\nThis is working well until I start the LVDS screen on my board.\n\n* The screen is powered with 2 regulators :\n\n* Backlight (16V/360mA, dedicated boost)\n\n* Logic (2.7V/500mA, dedicated buck)\n\nThe DP83869 is powered with 3 regulators :\n\n* 1.1V (dedicated buck)\n\n* 2.5V (dedicated LDO)\n\n* 3.3V (shared buck also powering the MP2 SOM)\n\nBelow is the behavior in different configurations:\n\n* Screen unplugged => fiber link OK\n\n* Screen plugged => fiber link KO\n\n+ hot-unplugging the screen makes the link working instantly\n\n* Screen unplugged, flat cable present, with 100ohm R at the end of the LVDS signals => OK\n\n* Screen unplugged,\n\n+ With no current on the BL / logic DC/DC converter => OK\n\n+ Sinking 300mA on the BL => KO\n\n- Removing the sink current makes the link working instantly\n\n+ Sinking 300mA on the logic => KO\n\n- Removing the sink current makes the link working instantly\n\nProbing power rails with a scope show clean signals, in loaded and unloaded conditions.\n\nThe PHY clocks (CLOo, TX/RX CLK) are always clean 25MHz signals.\n\nThe feeling I have is that without screen, the link is \"working by chance\" and a slight noise emited by the screen regulators (when loaded) are making the link to fall. There is probably something wrong on the RGMII timings but I don't know how to check/set that.\n\nOther points :\n\n\\*Where is hidden the GPIO slew rate data of STM32MP2? Nothing on datasheet, nothing in the user manual. Actually the device tree is configuring the MDC slew rate faster than the MDIO (<3> vs <0>).\n\n\\* The DP83869 outputs a nIRQ line, requiring a 2.2k RPU (soldered). When the link is up and idle, this line is 0. When reading the MDIO IRQ registed, there is a pending IRQ (\"link has changed\").\n\n\\*\\* Reading the flag should clear the IRQ line but it is still stuck at 0\n\n\\*\\* The MP2 is configured with IRQ falling edge and should read the register, I shouldn't be able to read anything other than 0 in the IRQ register\n\nAny help appreciated :)\n\nThanks",
+            "images": [],
+            "author": "tarzan2",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Some more informations :</p><ul><li>The screen is working :)</li> <li>The BL is dimable, and the link fall for all duty cycles excepted 0 (= no backight, boost converter in standby)</li></ul><p>Below is the device tree of the fiber link:</p><p> </p><p>&amp;eth2 {<br/>    pinctrl-names = \"default\", \"sleep\";<br/>    pinctrl-0 = &lt;&amp;eth2_rgmii_pins_b&gt;;<br/>    pinctrl-1 = &lt;&amp;eth2_rgmii_sleep_pins_b&gt;;<br/>    phy-mode = \"rgmii-id\";<br/>    max-speed = &lt;100&gt;;<br/>    phy-handle = &lt;&amp;eth2_phy&gt;;<br/>    st,ext-phyclk;<br/>    status = \"okay\";</p><p>    sfp0: sfp {<br/>        compatible = \"sff,sfp\";<br/>        i2c-bus = &lt;&amp;i2c6&gt;;<br/>        mod-def0-gpios = &lt;&amp;gpioh 10 GPIO_ACTIVE_LOW&gt;;<br/>        los-gpios = &lt;&amp;gpioe 1 GPIO_ACTIVE_LOW&gt;;<br/>        tx-fault-gpios = &lt;&amp;gpioe 3 GPIO_ACTIVE_LOW&gt;;<br/>        tx-disable-gpios = &lt;&amp;gpioe 2 GPIO_ACTIVE_HIGH&gt;;<br/>        rate-select0-gpios = &lt;&amp;gpioe 5 GPIO_ACTIVE_LOW&gt;;<br/>    };</p><p>    mdio {<br/>        compatible = \"snps,dwmac-mdio\";<br/>        #address-cells = &lt;1&gt;;<br/>        #size-cells = &lt;0&gt;;</p><p>        eth2_phy: ethernet-phy@0 {<br/>            /* compatible = \"ethernet-phy-id2000.a0f3\"; */<br/>            reg = &lt;0&gt;;</p><p>            clocks = &lt;&amp;rcc CK_KER_ETH2&gt;;<br/>            interrupt-parent = &lt;&amp;gpiog&gt;;<br/>            interrupts = &lt;3 IRQ_TYPE_EDGE_FALLING&gt;;<br/>            reset-gpios = &lt;&amp;gpiob 2 GPIO_ACTIVE_HIGH&gt;;<br/>            reset-assert-us = &lt;50000&gt;;<br/>            reset-deassert-us = &lt;500000&gt;;<br/>            ti,op-mode = &lt;DP83869_RGMII_100_BASE&gt;;<br/>            max-speed = &lt;100&gt;;<br/>            sfp = &lt;&amp;sfp0&gt;;<br/>            modif,quirk-disable-clk-125;<br/>            modif,quirk-leds-cfg1 = &lt;0xd230&gt;;<br/>            modif,quirk-gpio-mux-ctrl = &lt;0x00ba&gt;;<br/>        };<br/>        };<br/>};</p><p>&amp;pinctrl {<br/>    eth2_rgmii_pins_b: eth2-rgmii-1 {<br/>        pins1 {<br/>            pinmux = &lt;STM32_PINMUX('C', 7, AF10)&gt;, /* ETH_RGMII_TXD0 */<br/>                 &lt;STM32_PINMUX('C', 8, AF10)&gt;, /* ETH_RGMII_TXD1 */<br/>                 &lt;STM32_PINMUX('C', 9, AF10)&gt;, /* ETH_RGMII_TXD2 */<br/>                 &lt;STM32_PINMUX('C', 10, AF10)&gt;, /* ETH_RGMII_TXD3 */<br/>                 &lt;STM32_PINMUX('C', 4, AF10)&gt;; /* ETH_RGMII_TX_CTL */<br/>            bias-disable;<br/>            drive-push-pull;<br/>            slew-rate = &lt;3&gt;;<br/>            st,io-retime = &lt;1&gt;;<br/>            st,io-clk-edge = &lt;1&gt;;<br/>        };<br/>        pins2 {<br/>            pinmux = /* &lt;STM32_PINMUX('H', 9, AF10)&gt;, */ /* ETH_RGMII_CLK125 */<br/>                 &lt;STM32_PINMUX('F', 7, AF10)&gt;, /* ETH_RGMII_GTX_CLK */<br/>                 &lt;STM32_PINMUX('G', 4, AF11)&gt;; /* ETH_MDC */<br/>            bias-disable;<br/>            drive-push-pull;<br/>            slew-rate = &lt;3&gt;;<br/>        };<br/>        pins3 {<br/>            pinmux = &lt;STM32_PINMUX('C', 5, AF10)&gt;; /* ETH_MDIO */<br/>            bias-disable;<br/>            drive-push-pull;<br/>            slew-rate = &lt;0&gt;;<br/>        };<br/>        pins4 {<br/>            pinmux = &lt;STM32_PINMUX('G', 0, AF10)&gt;, /* ETH_RGMII_RXD0 */<br/>                 &lt;STM32_PINMUX('C', 12, AF10)&gt;, /* ETH_RGMII_RXD1 */<br/>                 &lt;STM32_PINMUX('F', 9, AF10)&gt;, /* ETH_RGMII_RXD2 */<br/>                 &lt;STM32_PINMUX('C', 11, AF10)&gt;, /* ETH_RGMII_RXD3 */<br/>                 &lt;STM32_PINMUX('C', 3, AF10)&gt;; /* ETH_RGMII_RX_CTL */<br/>            bias-disable;<br/>            st,io-retime = &lt;1&gt;;<br/>            st,io-clk-edge = &lt;1&gt;;<br/>        };<br/>        pins5 {<br/>            pinmux = &lt;STM32_PINMUX('F', 6, AF10)&gt;; /* ETH_RGMII_RX_CLK */<br/>            bias-disable;<br/>        };<br/>    };</p><p>    eth2_rgmii_sleep_pins_b: eth2-rgmii-sleep-1 {<br/>        pins {<br/>            pinmux = &lt;STM32_PINMUX('C', 7, ANALOG)&gt;, /* ETH_RGMII_TXD0 */<br/>                 &lt;STM32_PINMUX('C', 8, ANALOG)&gt;, /* ETH_RGMII_TXD1 */<br/>                 &lt;STM32_PINMUX('C', 9, ANALOG)&gt;, /* ETH_RGMII_TXD2 */<br/>                 &lt;STM32_PINMUX('C', 10, ANALOG)&gt;, /* ETH_RGMII_TXD3 */<br/>                 &lt;STM32_PINMUX('C', 4, ANALOG)&gt;, /* ETH_RGMII_TX_CTL */<br/>                 /* &lt;STM32_PINMUX('F', 8, ANALOG)&gt;, */ /* ETH_RGMII_CLK125 */<br/>                 &lt;STM32_PINMUX('F', 7, ANALOG)&gt;, /* ETH_RGMII_GTX_CLK */<br/>                 &lt;STM32_PINMUX('G', 4, ANALOG)&gt;, /* ETH_MDC */<br/>                 &lt;STM32_PINMUX('C', 5, ANALOG)&gt;, /* ETH_MDIO */<br/>                 &lt;STM32_PINMUX('G', 0, ANALOG)&gt;, /* ETH_RGMII_RXD0 */<br/>                 &lt;STM32_PINMUX('C', 12, ANALOG)&gt;, /* ETH_RGMII_RXD1 */<br/>                 &lt;STM32_PINMUX('F', 9, ANALOG)&gt;, /* ETH_RGMII_RXD2 */<br/>                 &lt;STM32_PINMUX('C', 11, ANALOG)&gt;, /* ETH_RGMII_RXD3 */<br/>                 &lt;STM32_PINMUX('C', 3, ANALOG)&gt;, /* ETH_RGMII_RX_CTL */<br/>                 &lt;STM32_PINMUX('F', 6, ANALOG)&gt;; /* ETH_RGMII_RX_CLK */<br/>        };<br/>    };<br/>};</p></div>",
+                    "author": "tarzan2",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>boost and buck converter make a lot of current spikes at their inputs. Poor PCB routing like uncontrolled power/ground paths as well as decoupling could create a lot of troubles.<br/>Did you carefully follow AN5489 for RGMII (including IO delays settings).<br/>Maybe look to <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_tune_RGMII_GTX_clock_delay\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_tune_RGMII_GTX_clock_delay</a> <br/><br/>see also recommendation related to STPMIC25 as noise on VIN can also lead to issues on it’s supplies.<br/><a href=\"https://www.st.com/resource/en/application_note/an6128-the-stpmic25-pcb-layout-guidelines-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">The STPMIC25 PCB layout guidelines</a></p><p>Regards.<br/> </p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>See also this post as linked to Karo Sw delivery<br/> </p><oembed url=\"https://community.st.com/stm32-mpus-products-and-hardware-related-39/trouble-setting-up-the-ethernet-mac-on-stm32mp255f-failed-to-reset-the-dma-162503\"></oembed><p> </p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

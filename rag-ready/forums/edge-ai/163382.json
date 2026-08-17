@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163382",
+            "publicId": "163382",
+            "title": "deployment model zoo",
+            "url": "https://community.st.com/edge-ai-134/deployment-model-zoo-163382",
+            "category": "Edge AI",
+            "tags": [
+                "Model zoo"
+            ],
+            "published_at": "2026-03-03T13:22:31+00:00",
+            "views": 242,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Dear all,\n\nthe solution is here  : <https://community.st.com/t5/edge-ai/a-bug-with-stm32cube-ide-2-0-0-and-stm32ai-modelzoo-services/td-p/883573>\n\nCheers\n\nEmmanuel",
+            "best_answer_author": "emmanuel_",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Dear all,\n\nI am currently deploying the image\\_classification application.\n\nSo, from stm32ai-modelzoo-services (in my case, it is in the directory stm32ai-modelzoo-services4), I am using the following command with my configuration file:\n\npython .\\stm32ai\\_main.py --config-path . --config-name .\\user\\_deployment\\_n6\\_config.yaml\n\nI added some code in /common/stm32ai\\_local/build.py to help diagnose the programming of the STM32N6570-DK board.\n\nThe programming process seems to complete correctly, but when I restart the kit (with BOOT0 and BOOT1 set to the left), the screen remains black.\n\nHowever, if I launch STM32CubeIDE, import my application, perform a build, and then a Run As, the programming works correctly and the application runs perfectly.\n\nI believe the original goal is, of course, to be able to program and run my application directly using the script:\n\npython .\\stm32ai\\_main.py --config-path . --config-name .\\user\\_deployment\\_n6\\_config.yaml\n\nPlease find attached the execution log of the script.\n\nMany thanks in advance for your help.\n\nEmmanuel",
+            "images": [],
+            "author": "emmanuel_",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi again ,</p><p> </p><p>Here my code <span> /common/stm32ai_local/build.py and the original file ( build_st.py ) </span></p><p> </p><p><span>cheers</span></p><p><span>Emmanuel</span></p></div>",
+                    "author": "emmanuel_",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>Hi,</p><p>I keep trying to make progress…</p><p> </p><p><a href=\"https://github.com/STMicroelectronics/STM32N6-GettingStarted-ObjectDetection\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32N6-GettingStarted-ObjectDetection</a></p><p>in the documentation : </p><p>On STM32N6570-DK:</p><p>export DKEL=\"&lt;STM32CubeProgrammer_N6 Install Folder&gt;/bin/ExternalLoader/MX66UW1G45G_STM32N6570-DK.stldr\"</p><p># First Stage Boot Loader<br/>STM32_Programmer_CLI -c port=SWD mode=HOTPLUG -el $DKEL -hardRst -w FSBL/ai_fsbl.hex</p><p># Adjust build path as needed<br/>STM32_Programmer_CLI -c port=SWD mode=HOTPLUG -el $DKEL -hardRst -w build/Application/STM32N6570-DK/Project_sign.bin 0x70100000</p><p># Network parameters<br/>STM32_Programmer_CLI -c port=SWD mode=HOTPLUG -el $DKEL -hardRst -w Model/STM32N6570-DK/network_data.hex</p><p> </p><p> </p><p>I write a code ( test_bat.bat , please rename test_bat.txt to test_bat.bat )  to program the kit :</p><p><strong> but without a succes....</strong></p><p> </p><p>cheers</p><p> </p><p>Emmanuel</p></div>",
+                    "author": "emmanuel_",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>test_bat.bat</p><p> </p><p><user-mention data-id=\"24788\">@Echo</user-mention> off<br/>set PROG=C:\\ST\\STM32CubeIDE_1.18.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.win32_2.2.300.202508131133\\tools\\bin\\STM32_Programmer_CLI.exe<br/>set EL=C:\\ST\\STM32CubeIDE_1.18.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.win32_2.2.300.202508131133\\tools\\bin\\ExternalLoader\\MX66UW1G45G_STM32N6570-DK.stldr<br/>set SN=0040003D3234511733353533</p><p>rem === FICHIERS GENERES PAR LE SCRIPT PYTHON (VOTRE MODELE) ===<br/>set DEBUG=C:\\Users\\papam\\PycharmProjects\\stm32ai-modelzoo-services4\\application_code\\image_classification\\STM32N6\\Application\\STM32N6570-DK\\STM32CubeIDE\\Debug<br/>set FSBL=C:\\Users\\papam\\PycharmProjects\\stm32ai-modelzoo-services4\\application_code\\image_classification\\STM32N6\\FSBL<br/>set MODEL=C:\\Users\\papam\\PycharmProjects\\stm32ai-modelzoo-services4\\application_code\\image_classification\\STM32N6\\Model\\STM32N6570-DK</p><p>echo ================================================<br/>echo STM32N6570-DK Flash - VOTRE modele custom<br/>echo ================================================<br/>echo.<br/>echo ATTENTION : Carte doit etre en DEV MODE (BOOT0 gauche)<br/>echo.<br/>echo Fichiers utilises :<br/>echo FSBL : %FSBL%\\ai_fsbl.hex<br/>echo Network : %MODEL%\\network_atonbuf.xSPI2.bin<br/>echo App : %DEBUG%\\STM32N6570-DK_GettingStarted_ImageClassification_signed.bin<br/>echo.<br/>pause</p><p>echo === 1/3 Flash FSBL ===<br/>\"%PROG%\" -c port=swd mode=HOTPLUG sn=%SN% --extload \"%EL%\" -hardRst -w \"%FSBL%\\ai_fsbl.hex\"<br/>if %errorlevel% neq 0 ( echo ERREUR Flash FSBL ! &amp; pause &amp; exit /b 1)<br/>echo OK<br/>echo.</p><p>echo === 2/3 Flash Application (VOTRE application) ===<br/>\"%PROG%\" -c port=swd mode=HOTPLUG sn=%SN% --extload \"%EL%\" -hardRst -w \"%DEBUG%\\STM32N6570-DK_GettingStarted_ImageClassification_signed.bin\" 0x70100000<br/>if %errorlevel% neq 0 ( echo ERREUR Flash Application ! &amp; pause &amp; exit /b 1 )<br/>echo OK<br/>echo.</p><p>echo === 2/3 Flash Network Data (VOTRE modele) ===<br/>\"%PROG%\" -c port=swd mode=HOTPLUG sn=%SN% --extload \"%EL%\" -hardRst -w \"%MODEL%\\network_data.hex\"<br/>if %errorlevel% neq 0 ( echo ERREUR Flash Network Data ! &amp; pause &amp; exit /b 1)<br/>echo OK<br/>echo.</p><p> </p><p><br/>echo ================================================<br/>echo Flash termine avec succes !<br/>echo.<br/>echo ETAPES SUIVANTES :<br/>echo 1. BOOT0 -&gt; gauche (rester en DEV MODE)<br/>echo 2. Eteignez completement le kit<br/>echo 3. Rallumez -&gt; VOTRE application demarre !<br/>echo ================================================<br/>pause</p></div>",
+                    "author": "emmanuel_",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear all,</p><p> </p><p> </p><p>the solution is here  : <a href=\"https://community.st.com/t5/edge-ai/a-bug-with-stm32cube-ide-2-0-0-and-stm32ai-modelzoo-services/td-p/883573\" target=\"_blank\">https://community.st.com/t5/edge-ai/a-bug-with-stm32cube-ide-2-0-0-and-stm32ai-modelzoo-services/td-p/883573</a></p><p> </p><p> </p><p>Cheers</p><p> </p><p>Emmanuel</p></div>",
+                    "author": "emmanuel_",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

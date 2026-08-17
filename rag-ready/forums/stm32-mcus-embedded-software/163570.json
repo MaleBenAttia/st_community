@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "163570",
+            "publicId": "163570",
+            "title": "How atomic are the STRD/LDRD instructions on Cortex-M4?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/how-atomic-are-the-strd-ldrd-instructions-on-cortex-m4-163570",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32L4 series",
+                "STM32F3 series",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-08T16:13:50+00:00",
+            "views": 503,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Short answer:\n\n**We find that STRD is interruptible mid-instruction and is restarted rather than resumed when the interrupt returns.**\n\nEvidence:\n\nTo test, let's make a program and see what happens. The test program uses TIM1 as the interrupt source and interrupts execution every 40ish cycles, which get varied a bit in the ISR. This is on an STM32F411RE.\n\nIn the main loop, we modify a uint64\\_t with LDRD/STRD commands so that each half increments by one. The disassembly shows the compiler uses LDRD/STRD instructions for this.\n\n![Screenshot 2026-03-08 121538.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ff0378fa-5c7d-012a-3765-5711a103bae8.png \"Screenshot 2026-03-08 121538.png\")\n\nIn the interrupt handler, we check to see if the two halves are ever out of sync. If they are, save save the value and then reset it to 0 to see if both halves will be re-written (instruction is restarted) or if only the second half is (instruction is resumed). This is then detected in the main loop and the programs stops.\n\nSo what happens?\n\nThe interrupt handler is called between the two 32-bit writes and detects an intermediate state on the uint64\\_t. When this happens, the first uint32\\_t is updated while the second still has the old value, so they differ by 1. **This means STRD is interruptible mid-instruction.**\n\nAfter returning from this intermediate state, the main thread re-writes both halves of the uint64\\_t. **This means STRD is restarted rather than resumed when it gets interrupted.**\n\nHere's the interrupt handler:\n\n```\n\nvoid TIM1_UP_TIM10_IRQHandler(void) {\n\nif (TIM1->SR & TIM_SR_UIF) {\n\nTIM1->SR = ~TIM_SR_UIF;\n\n// vary reload by up to 15 cycles\n\nTIM1->ARR = (TIM1->ARR & 0xFFF0U) + (((TIM1->ARR & 0xFU) + 1) % 16);\n\nuint64_t x = gData2;\n\nif (x >> 32 != (uint32_t)x) {\n\ngMismatch = x;\n\ngData2 = 0;\n\n}\n\n}\n\n}\n\n```\n\nHere's the relevant snippet in main.c:\n\n```\n\nconst uint64_t gDelta = 0x0000000100000001U;\n\nvolatile uint64_t gData2;\n\nvolatile uint64_t gMismatch;\n\n...\n\nvolatile uint64_t before = gData2;\n\nUNUSED(before);\n\ngData2 += gDelta;\n\nif (gMismatch) {\n\nvolatile uint64_t after = gData2;\n\nUNUSED(after);\n\nwhile (1);\n\n}\n\n```\n\nHere's the Expressions tab showing the result:\n\n![Screenshot 2026-03-08 121831.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5669a7c1-0e48-e06f-5f9f-352ae8e052d0.png \"Screenshot 2026-03-08 121831.png\")",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "The STRD/LDRD instructions store and load a 64-bit value. Internally, they are broken up into 2x 32-bit accesses.\n\n![Screenshot 2026-03-08 113823.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/790015ea-3d0b-045b-e53a-a08450acec7a.png \"Screenshot 2026-03-08 113823.png\")\n\nSince the element size is a word and not a double-word, they are not atomic in the same way that a uint32\\_t is atomic.\n\nQuestions are:\n\n**Is this instruction interruptible between the first and second 32-bit accesses?**\n\n**If the instruction does get interrupted, does it restart or resume?**If it restarts, it will re-write the first word, for a total of 3x 32-bit accesses. If it resumes, it will only write the last word.\n\nThe ARM reference manual has this to say on the subject:\n\n![Screenshot 2026-03-08 114246.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/02f173a5-179f-d99b-b6dd-8925d6b428cd.png \"Screenshot 2026-03-08 114246.png\")\n\n<https://developer.arm.com/documentation/ddi0403/latest>\n\nTo me, it seems they are restarted based on this text, but the two \"might\" words here leave ambiguity.\n\nBut let's not rely on manuals or what people say on the internet. What **actually** happens in the hardware?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5669a7c1-0e48-e06f-5f9f-352ae8e052d0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ff0378fa-5c7d-012a-3765-5711a103bae8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/02f173a5-179f-d99b-b6dd-8925d6b428cd.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/790015ea-3d0b-045b-e53a-a08450acec7a.png"
+            ],
+            "author": "TDK",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Short answer:</p><p><strong>We find that STRD is interruptible mid-instruction and is restarted rather than resumed when the interrupt returns.</strong></p><p> </p><p>Evidence:</p><p>To test, let's make a program and see what happens. The test program uses TIM1 as the interrupt source and interrupts execution every 40ish cycles, which get varied a bit in the ISR. This is on an STM32F411RE.</p><p>In the main loop, we modify a uint64_t with LDRD/STRD commands so that each half increments by one. The disassembly shows the compiler uses LDRD/STRD instructions for this.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-08 121538.png\" style=\"width: 499px;\"><img alt=\"Screenshot 2026-03-08 121538.png\" height=\"123\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ff0378fa-5c7d-012a-3765-5711a103bae8.png\" title=\"Screenshot 2026-03-08 121538.png\" width=\"499\"/></span></p><p>In the interrupt handler, we check to see if the two halves are ever out of sync. If they are, save save the value and then reset it to 0 to see if both halves will be re-written (instruction is restarted) or if only the second half is (instruction is resumed). This is then detected in the main loop and the programs stops.</p><p><br/>So what happens?</p><p>The interrupt handler is called between the two 32-bit writes and detects an intermediate state on the uint64_t. When this happens, the first uint32_t is updated while the second still has the old value, so they differ by 1. <strong>This means STRD is interruptible mid-instruction.</strong></p><p>After returning from this intermediate state, the main thread re-writes both halves of the uint64_t. <strong>This means STRD is restarted rather than resumed when it gets interrupted.</strong></p><p><br/>Here's the interrupt handler:</p><pre class=\"lia-code-sample language-c\"><code>void TIM1_UP_TIM10_IRQHandler(void) {\n if (TIM1-&gt;SR &amp; TIM_SR_UIF) {\n TIM1-&gt;SR = ~TIM_SR_UIF;\n // vary reload by up to 15 cycles\n TIM1-&gt;ARR = (TIM1-&gt;ARR &amp; 0xFFF0U) + (((TIM1-&gt;ARR &amp; 0xFU) + 1) % 16);\n uint64_t x = gData2;\n if (x &gt;&gt; 32 != (uint32_t)x) {\n gMismatch = x;\n gData2 = 0;\n }\n }\n}</code></pre><p> </p><p>Here's the relevant snippet in main.c:</p><pre class=\"lia-code-sample language-c\"><code>const uint64_t gDelta = 0x0000000100000001U;\nvolatile uint64_t gData2;\nvolatile uint64_t gMismatch;\n\n...\n\n \tvolatile uint64_t before = gData2;\n \tUNUSED(before);\n \tgData2 += gDelta;\n \tif (gMismatch) {\n \t\tvolatile uint64_t after = gData2;\n \t\tUNUSED(after);\n \t\twhile (1);\n \t}</code></pre><p> </p><p>Here's the Expressions tab showing the result:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-08 121831.png\" style=\"width: 269px;\"><img alt=\"Screenshot 2026-03-08 121831.png\" height=\"79\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5669a7c1-0e48-e06f-5f9f-352ae8e052d0.png\" title=\"Screenshot 2026-03-08 121831.png\" width=\"269\"/></span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well done! Please mark the solution for yourself. :)</p><p>Surely it could not be continued/resumed - no flags present for that. I am surprised it's aborted and restarted.</p><p>Another important feature of LDRD/STRD is the alignment requirement. I run into that problem once - that's why I remembered that these instructions exist in v7-M.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Just another curious moment to it. If you look how u64 type is supported in GNU C++ with stdatomic (ST toolchain 12.3 with g++ <span> v.12.3.1 20230626):  <strong>ATOMIC_LLONG_LOCK_FREE</strong> is defined there as 1 (means: \"sometimes lock-free\") and <strong>ATOMIC_LONG_LOCK_FREE</strong> defined as 2 (\"always lock-free\").</span></p><p><span>The following compiles but fails to link:</span></p><pre class=\"lia-code-sample language-cpp\"><code>#include &lt;stdatomic.h&gt;\n#include &lt;cstdint&gt;\n\nextern \"C\"\nvoid test_cpp()\n{\n#if ATOMIC_LONG_LOCK_FREE\n std::atomic&lt;int32_t&gt; a32{0}\n a32++; // ok\n#endif\n\n#if ATOMIC_LLONG_LOCK_FREE\n std::atomic&lt;int64_t&gt; a64{42}\n a64++; // unresolved lib function!\n#endif\n}</code></pre><p><span>because of unresolved  reference to `<strong>__atomic_fetch_add_8</strong>'</span></p><p><span>So... the bad news is, GCC doesn't miraculously make u64 ops atomic for interrupts.</span></p><p><span>The good news is that the compiler lets you know that 64-bit types on this arch are less atomic than 32-bit or less at compile time, and we even can provide implementation of __atomic_fetch_add_8 that disables interrupts or whatever.</span></p><p><span> </span></p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

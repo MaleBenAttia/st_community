@@ -1,0 +1,118 @@
+{
+    "forum": [
+        {
+            "id": "163367",
+            "publicId": "163367",
+            "title": "Manual Clock Configuration Issue",
+            "url": "https://community.st.com/stm32-mcus-products-25/manual-clock-configuration-issue-163367",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "RCC",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-03T08:02:37+00:00",
+            "views": 718,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "Solved!\n\nHad to enable PLLxPDIV, set PLLxMODSSDIS and PLLxMODSSRST high and PLLxMODDSEN low, as well as enabling ICx - which I had no idea was something you had to enable - through a register somewhere far far into the register list.\n\nFor anyone who ever finds themselves in a similar situation, consider the following checklist:\n\n(Whenever I talk about \"resetting\" a register, do **NOT** just set it to 0x00000000, but rather the specific default value as stated for each register in RM0486!)\n\n* reset RCC\\_CR, leave MSI on (you need two clock sources - HSI & MSI - for clock configuration)\n\n* wait for ready bits on/off in RCC\\_SR\n\n* reset RCC\\_CFGR1\n\n* wait for source confirmation bits in RCC\\_CFGR1\n\n* configure overdrive pin for higher clock speeds (optional - won't go into detail)\n\n* switch to MSI inside RCC\\_CFGR1\n\n* wait for source confirmation bits in RCC\\_CFGR1\n\n* disable HSI\n\n* wait for ready bits on/off in RCC\\_SR\n\n* configure HSI\n\n* enable HSI\n\n* wait for ready bits on/off in RCC\\_SR\n\n* switch to HSI inside RCC\\_CFGR1\n\n* wait for source confirmation bits in RCC\\_CFGR1\n\n* disable MSI\n\n* wait for ready bits on/off in RCC\\_SR\n\n* configure MSI\n\n* enable MSI (optional. we are done using it to configure HSI)\n\n* (wait for ready bits on/off in RCC\\_SR)\n\n* disable all ICx through RCC\\_DIVENCR\n\n* configure PLLx (stick to integer mode if you don't know much about the other modes!)\n\n+ reset RCC\\_PLLxCFGRx (1,2,3)\n\n+ select oscillator (f\\_osc >= 5MHz so you can't use MSI in 4MHz mode!)\n\n+ set DIVM (f\\_DIVMout <= 50MHz)\n\n+ set DIVN (f\\_DIVNout <= 3200MHz)\n\n+ clear RCC\\_PLLxCFGR2 (has to be empty for integer mode)\n\n+ enable PLLxPDIV\n\n+ set PLLxPDIV1 & PLLxPDIV2 to 1\n\n+ set PLLxMODSSDIS high\n\n+ set PLLxMODSSRST high\n\n+ set PLLxMODDSEN low (as well as other unused bits)\n\n+ either enable or bypass PLLx with PLLxON in RCC\\_CR or PLLxBYP in RCC\\_PLLxCFGR1\n\n+ wait for ready bits on/off in RCC\\_SR\n\n* configure ICx through RCC\\_ICxCFGR\n\n+ reset RCC\\_ICxCFGR\n\n+ select PLLx\n\n+ select division factor\n\n+ enable ICx through RCC\\_DIVENSR\n\n* reset RCC\\_CFGR2\n\n* configure TIMPRE, HPRE and PPREx (1,2,4,5)\n\n* select final clock source in RCC\\_CFGR1\n\n* wait for source confirmation bits in RCC\\_CFGR1\n\nHope this helps!\n\nKind regards\n\nLen",
+            "best_answer_author": "Len_Heske",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello,\n\nfirst let me start this post by mentioning that I'm still very much a beginner.\n\nI'm writing my own abstraction layer functions for the N657X0.\n\nWhile running my clock\\_config() function, I ran into an issue that I don't know how to fix. The function works as follows:\n\n- reset RCC->CR, CRGR1, CFGR2\n\n- enable MSI and wait for MSI ready bit\n\n- set CPU & SYS clock source to MSI and wait for clock source confirmation bits\n\n- disable all other oscillators and all PLL\n\n- reset RCC->HSICFGR\n\n- configure HSI\n\n- enable HSI and wait for HSI ready bit\n\n- set CPU & SYS clock source to HSI and wait for clock source confirmation bits\n\n- disable MSI\n\n- reset RCC->MSICFGR\n\n- configure MSI\n\n- enable/disable oscillators (if HSIEN=0 then MSIEN=1 and vice-versa)\n\n- reset RCC->ICxCFGR\n\n- configure ICx\n\n- reset RCC->PLLxCFGRx\n\n- configure PLLx\n\n- enable PLLx and wait for PLLx lock ready bit\n\n- check CPU and SYS clock source selection\n\n- check if source is actually active by checking the corresponding ready bit again\n\n- select CPU and SYS clock sources (IC1 for CPU and IC2 for SYS)\n\n- wait for clock source confirmation bits **<-** **endless wait loop fault here!**\n\nThe fault occurs at the very last link in the chain. I checked the clock source ready bit before when setting the sources to MSI/HSI and it worked then but not at the end. Is my clock\\_config() logic sound at all?",
+            "images": [],
+            "author": "Len_Heske",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>As you are a beginner, I suggest you to use the HAL + CubeMx at the first time at least to inspire from the implementation.</p>\n<p>PS: I'm not forcing you to use the HAL. I'm just suggesting you to accelerate the process, to understand the register configuration sequence and do some debug from your side.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"499\">@mƎALLEm</user-mention>,</p><p>thank you for your answer :)</p><p>Are you suggesting I should look at the HAL function code for inspiration? I should do that. Otherwise, I don't want to use HAL for my projects. I'm writing my own abstraction layer as a way to learn and as a hobby.</p><p>I'm using CubeMX only by looking at its clock config UI. The UI helps me understand how the oscillators and clock sources work. But I don't use CubeMX to setup my projects. I started with a bare bone main.c with nothing but the main function.</p><p>I'm wondering though, if you are seeing any glaring issue with my config logic? I'm not asking for help in regards to code fixing, just whether the overall logic is sound or not.</p><p><span class=\"\"><span class=\"\">Thank you and kind regards,</span></span></p><p><span class=\"\"><span class=\"\">Len</span></span></p></div>",
+                    "author": "Len_Heske",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was anticipating that reply from you and that's why I said:</p>\n<p><font color=\"#0000FF\"><em>\"PS: I'm not forcing you to use the HAL. I'm just suggesting you to accelerate the process, to understand the register configuration sequence and do some debug from your side. \"</em></font></p>\n<p><span>I know you need to do it yourself but N6 is a complex product especially for beginners.  So what I suggest is to start with HAL and inspire from it. May be you find the answers there..</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What values do you actually get in the clock source confirmation bits? And in other RCC registers?</p><p>Could you share your code? You describe yourself as a beginner. It is possible you've made a mistake e.g. in your bitwise operations looking for the confirmation bits</p></div>",
+                    "author": "Danish1",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"15394\">@Danish1</user-mention> and <user-mention data-id=\"8205\">@TDK</user-mention> ,</p><p>thank you very much for your answers!</p><p>Should I send the entire code, i.e. my main.c and my library? Or just the function in question? I work with a lot of structs, so I'm concerned about the readability of it.</p><p>I attached a file with the function in question and some comments. I have no idea what a good code should look like so I'm sorry if it's ugly :D</p><p> </p><p>Btw, this is the definition of the clear() function if you think it could be the culprit:</p><div><div><span>void</span> <span>clear</span><span>(</span><span>volatile</span> <span>uint32_t</span><span>*</span><span>reg</span><span>, </span><span>unsigned</span> <span>bit</span><span>, </span><span>unsigned</span> <span>pos</span><span>)</span></div><div><span>{</span></div><br/><div><span>    </span><span>*</span><span>reg</span> <span>&amp;=</span> <span>~</span><span>(((</span><span>high</span><span>&lt;&lt;</span><span>bit</span><span>)</span><span>-</span><span>high</span><span>)</span><span>&lt;&lt;</span><span>pos</span><span>);</span></div><div><span>}</span></div></div><p> </p><p>Kind regards,</p><p>Len</p></div>",
+                    "author": "Len_Heske",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; The function works as follows: </em></p><p><span>Why not show the function itself?</span></p><p><span>Only translation errors can be introduced by paraphrasing what it's doing.</span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am not familiar with the 'Nx.</p><p>Are you running from FLASH? Do you set<a href=\"http://www.efton.sk/STM32/gotcha/g10.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\"> FLASH waitstates</a> according to the system frequency?</p><p>Also, while others call for showing code, I'd recommend to read out and check/post content of relevant registers.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"17162\">@waclawek.jan</user-mention> ,</p><p>I took some time to read up on what you said.</p><p>In development mode, I load my FSBL program from my debug PC straight into the internal SRAM of the microcontroller. The N657 does not have internal flash memory like other µc. Instead, the programs are loaded into the internal SRAM either from external Octo-SPI flash memory in flash mode or from a debug PC in development mode through an ST-Link connection. The latter making the program not persistent, as I already noticed myself.</p><p>So in conclusion, it is never the goal to run a program from flash memory but to always load it into the SRAM before execution. Which is either done through ST-Link or the BootROM, but - as far as I know - not by the user.</p><p>Since the program is always loaded into SRAM before execution, memory bus configuration and flash wait states are not relevant, I think...</p><p>Kind regards</p><p>Len</p></div>",
+                    "author": "Len_Heske",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You should be more deliberate when changing RCC register values to avoid invalid intermediate states. For example:</p><pre class=\"lia-code-sample language-c\"><code>reset(&amp;rcc.CR);</code></pre><p>This cannot clear the CR register as that would stop all clocks. The CPU needs a clock to run. The hardware is smart enough to avoid letting you do this, but you shouldn't rely on that. The state of CR after this operation is (a) definitely not 0 and (b) dependent upon the current clock configuration.</p><p><em>&gt; RCC_SR_PLL1RDY_Msk</em></p><p>Are these the bits not being set? If so, there's probably a misconfiguration issue. Looking at the RCC register values as <user-mention data-id=\"17162\">@waclawek.jan</user-mention> suggests at the time the issue occurs is probably the best approach to debugging.</p><p>I don't see wait states being set anywhere in here. Could have missed it.</p><p>The checks done in HAL_RCC_OscConfig are done deliberately to ensure the system transitions smoothly to the target state. Your code will need to do the same, or need to ensure the starting state is always the same.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"8205\">@TDK</user-mention> ,</p><p>sorry for the very late reply. I couldn't look into it very much the last few day as I didn't have much time.</p><p>First of all thank you very much for your reply! :)</p><p>Just so you know, the reset() function doesn't clear the register. It only writes the default reset condition word - as specified in the manuals - into that register. Every register has a reset word and the structs \"[REFERENCE].[REGISTER_NAME]\" (like \"rcc.CR\" or \"a.MODER\" for GPIOA) contain a register pointer and the specific reset word like 0x00000008. These writes should not violate any rules as they essentially don't change anything and just make sure the register is in its default state.</p><pre class=\"lia-code-sample language-c\"><code>RCC_SR_PLL1RDY_Msk</code></pre><p>^This is a ST specific mask that I didn't create but is instead a standard constant in the ST libraries. Same goes for any constant names similar to this. There are three types: (1) no ending for single bits or bit position \"_0\", \"_1\", \"_[n]\" to indicate a high bit in that position, (2) \"_Msk\" ending to indicate a mask for that bit segment (relevant if mask is more than one bit) and (3) \"_Pos\" ending to indicate the starting position of the segment. As these are ST constants, I'm very confident that they are not a problem or could cause any issues.</p><pre class=\"lia-code-sample language-c\"><code>HAL_RCC_OscConfig</code></pre><p>Thank you for suggesting this HAL function. I'll look into it and see if I can check its source code for more information.</p><p>I generally cleaned up my code a bit and improved and expanded the error information on return for better troubleshooting. I'll keep you updated and post a fix if I can find it so that I may close this case. I'm always open and glad for more feedback and suggestions. I'm still a beginner after all and need to learn a lot.</p><p>Kind regards,</p><p>Len</p></div>",
+                    "author": "Len_Heske",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; The N657 does not have internal flash memory like other µc.</p><p>Oh. OK, learned that, thanks.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I recently checked the N6, and oh my - what a beast, especially the clock configuration.</p><p>I'm also a big fan of NOT using STM's HAL, but as said before: at least use it for \"inspiration\" how this is set up.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Solved!</p><p>Had to enable PLLxPDIV, set PLLxMODSSDIS and PLLxMODSSRST high and PLLxMODDSEN low, as well as enabling ICx - which I had no idea was something you had to enable - through a register somewhere far far into the register list.</p><p>For anyone who ever finds themselves in a similar situation, consider the following checklist:</p><p>(Whenever I talk about \"resetting\" a register, do <u><strong>NOT</strong></u> just set it to 0x00000000, but rather the specific default value as stated for each register in RM0486!)</p><ul><li>reset RCC_CR, leave MSI on (you need two clock sources - HSI &amp; MSI - for clock configuration)</li><li>wait for ready bits on/off in RCC_SR</li><li>reset RCC_CFGR1</li><li>wait for source confirmation bits in RCC_CFGR1</li><li>configure overdrive pin for higher clock speeds (optional - won't go into detail)</li><li>switch to MSI inside RCC_CFGR1</li><li>wait for source confirmation bits in RCC_CFGR1</li><li>disable HSI</li><li>wait for ready bits on/off in RCC_SR</li><li>configure HSI</li><li>enable HSI</li><li>wait for ready bits on/off in RCC_SR</li><li>switch to HSI inside RCC_CFGR1</li><li>wait for source confirmation bits in RCC_CFGR1</li><li>disable MSI</li><li>wait for ready bits on/off in RCC_SR</li><li>configure MSI</li><li>enable MSI (optional. we are done using it to configure HSI)</li><li>(wait for ready bits on/off in RCC_SR)</li><li>disable all ICx through RCC_DIVENCR</li><li>configure PLLx (stick to integer mode if you don't know much about the other modes!)<ul><li>reset RCC_PLLxCFGRx (1,2,3)</li><li>select oscillator (f_osc &gt;= 5MHz so you can't use MSI in 4MHz mode!)</li><li>set DIVM (f_DIVMout &lt;= 50MHz)</li><li>set DIVN (f_DIVNout &lt;= 3200MHz)</li><li>clear RCC_PLLxCFGR2 (has to be empty for integer mode)</li><li>enable PLLxPDIV</li><li>set PLLxPDIV1 &amp; PLLxPDIV2 to 1</li><li>set PLLxMODSSDIS high</li><li>set PLLxMODSSRST high</li><li>set PLLxMODDSEN low (as well as other unused bits)</li><li><u>either</u> enable or bypass PLLx with PLLxON in RCC_CR or PLLxBYP in RCC_PLLxCFGR1</li><li>wait for ready bits on/off in RCC_SR</li></ul></li><li>configure ICx through RCC_ICxCFGR<ul><li>reset RCC_ICxCFGR</li><li>select PLLx</li><li>select division factor</li><li>enable ICx through RCC_DIVENSR</li></ul></li><li>reset RCC_CFGR2</li><li>configure TIMPRE, HPRE and PPREx (1,2,4,5)</li><li>select final clock source in RCC_CFGR1</li><li>wait for source confirmation bits in RCC_CFGR1</li></ul><p>Hope this helps!</p><p>Kind regards</p><p>Len</p></div>",
+                    "author": "Len_Heske",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

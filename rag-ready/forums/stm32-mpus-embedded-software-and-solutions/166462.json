@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "166439",
+            "publicId": "166462",
+            "title": "Clarification Required: DRAM Block B Necessity with Micron MT53E1G32D2FW 4GB LPDDR4 on STM32MP257",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/clarification-required-dram-block-b-necessity-with-micron-mt53e1g32d2fw-4gb-lpddr4-on-stm32mp257-166462",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "DDR",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-06-26T06:44:16+00:00",
+            "views": 107,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@asadullah4571,\n\nThe test was performed using the MP25-DK board (MB1605) as the reference platform, with a 4 GB, 32-bit LPDDR4 running at 1.2 GHz.\n\nWe created a new configuration by changing only the bus width to 16 bits and the total memory size to 2 GB.\n\nIn the settings file, this results in the following changes:\n\n-#define DDR\\_MEM\\_NAME  \"LPDDR4 1x32Gbits 1x32bits 1200MHz\"\n\n+#define DDR\\_MEM\\_NAME  \"LPDDR4 1x32Gbits 1x16bits 1200MHz\"\n\n-#define DDR\\_MEM\\_SIZE  0x100000000UL\n\n+#define DDR\\_MEM\\_SIZE  0x80000000UL\n\n-#define DDR\\_MSTR 0x01080020U\n\n+#define DDR\\_MSTR 0x01081020U\n\n-#define DDR\\_ADDRMAP1 0x00080808U\n\n+#define DDR\\_ADDRMAP1 0x00070707U\n\n-#define DDR\\_ADDRMAP3 0x00000000U\n\n+#define DDR\\_ADDRMAP3 0x1F000000U\n\n-#define DDR\\_ADDRMAP5 0x070F0707U\n\n+#define DDR\\_ADDRMAP5 0x060F0606U\n\n-#define DDR\\_ADDRMAP6 0x07070707U\n\n+#define DDR\\_ADDRMAP6 0x06060606U\n\n-#define DDR\\_ADDRMAP7 0x00000F07U\n\n+#define DDR\\_ADDRMAP7 0x00000F06U\n\n-#define DDR\\_ADDRMAP9 0x07070707U\n\n+#define DDR\\_ADDRMAP9 0x06060606U\n\n-#define DDR\\_ADDRMAP10 0x07070707U\n\n+#define DDR\\_ADDRMAP10 0x06060606U\n\n-#define DDR\\_ADDRMAP11 0x00000007U\n\n+#define DDR\\_ADDRMAP11 0x00000006U\n\n-#define DDR\\_UIB\\_NUMACTIVEDBYTEDFI1 0x00000002\n\n+#define DDR\\_UIB\\_NUMACTIVEDBYTEDFI1 0x00000000\n\nWith these changes, we are able to boot successfully and pass the tests without any issues.\n\nPS : In the test setup, the DRAM\\_B signals remained connected, and there is therefore a high chance that this would fail during DDR PHY training in your case, because the training is still performed on all four DBYTEs (32 bits), while in the end only two of them (16 bits) are actually used.\n\nBest Regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Dear Team,\n\nI hope this email finds you well.\n\nI am writing to seek your expert clarification on a critical hardware design decision we are currently evaluating for our STM32MP257-based custom board.\n\n--- Current Memory Configuration ---\n\n• SoC         : STM32MP257\n\n• Memory Part : Micron MT53E1G32D2FW-046 WT:C\n\n• Type        : LPDDR4\n\n• Density     : 32 Gbit (4 GB)\n\n• Organization: 1 x32 (Dual Channel — Channel A + Channel B)\n\n--- Our Understanding from ST Documentation ---\n\nBased on our research of the following official ST documents:\n\n1. AN5723 (Rev 3, Aug 2024) :\n\n\"Interface width is 32-bit when full-populated, or 16-bit when half-populated.\"\n\n2. AN5724 — DDR Routing Guide:\n\n\"For the 16-bit LPDDR4 interface, one 16-bit LPDDR4 is used in point-to-point connection. With this configuration it can drive up to 2 Gbyte memory.\"\n\n3. AN5489 (Rev 6, Sep 2025) :\n\nSTM32MP257 supports both 16-bit (half-populated) and 32-bit (full-populated) LPDDR4 configurations.\n\nOur understanding is:\n\n• If using a native x16 LPDDR4 device → DRAM\\_B is NOT required (half-populated, 2 GB)\n\n• If using our current 1x32 device (Micron MT53E1G32D2FW) → DRAM\\_B IS required (full-populated, 4 GB), since it is a dual-channel x32 device that needs both Channel A and Channel B connected simultaneously\n\n--- Clarification Requested ---\n\nCould you kindly confirm or correct the following:\n\n1. With our current Micron MT53E1G32D2FW (x32, 4 GB) device, is it safe and supported to leave DRAM\\_B  unconnected?\n\n2. If DRAM\\_B can be left unconnected with this x32 device, would the DDR PHY training still pass successfully at boot?\n\n3. If DRAM\\_B must be connected for this specific device, would switching to a x16 LPDDR4 device (e.g., Micron MT53E1G16D2FW) be the correct approach to eliminate DRAM\\_B routing?\n\nThis clarification is critical for us before we proceed with PCB routing, as it directly impacts our layer stack-up, routing complexity, and BOM decisions.\n\nThank you very much for your time and guidance. We look forward to your expert advice.",
+            "images": [],
+            "author": "asadullah4571",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"79373\">@asadullah4571</user-mention> </p><p>Why use MT53E1G32D2FW-046 WT:C?</p><p>They are out of stock at the moment.</p><p> </p><p>By the way! I purchased a MT53E1G32D2FW-046 WT:C from Aliexpress, but I could only use 2 GB. It's working very well.</p></div>",
+                    "author": "Windows",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"79373\">@asadullah4571</user-mention>,<br/><br/>A test is currently being prepared to verify this.<br/>If everything is okay, I will post a reply to keep you informed, but in the meantime No, we cannot guarantee that it will work properly at the moment.<br/>The same applies to the second question: we are not sure it will pass the DDR PHY training either.<br/><br/>Therefore, the best option is to use a 16-bit LPDDR4 and leave the MPU balls for the upper 16-bit part unconnected.<br/><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"79373\">@asadullah4571</user-mention>,<br/><br/> </p><p>The test was performed using the MP25-DK board (MB1605) as the reference platform, with a 4 GB, 32-bit LPDDR4 running at 1.2 GHz.</p><p>We created a new configuration by changing only the bus width to 16 bits and the total memory size to 2 GB.</p><p>In the settings file, this results in the following changes:<br/><br/>-#define DDR_MEM_NAME  \"LPDDR4 1x32Gbits 1x32bits 1200MHz\"<br/>+#define DDR_MEM_NAME  \"LPDDR4 1x32Gbits 1x16bits 1200MHz\"<br/>-#define DDR_MEM_SIZE  0x100000000UL<br/>+#define DDR_MEM_SIZE  0x80000000UL<br/>-#define DDR_MSTR 0x01080020U<br/>+#define DDR_MSTR 0x01081020U<br/>-#define DDR_ADDRMAP1 0x00080808U<br/>+#define DDR_ADDRMAP1 0x00070707U<br/>-#define DDR_ADDRMAP3 0x00000000U<br/>+#define DDR_ADDRMAP3 0x1F000000U<br/>-#define DDR_ADDRMAP5 0x070F0707U<br/>+#define DDR_ADDRMAP5 0x060F0606U<br/>-#define DDR_ADDRMAP6 0x07070707U<br/>+#define DDR_ADDRMAP6 0x06060606U<br/>-#define DDR_ADDRMAP7 0x00000F07U<br/>+#define DDR_ADDRMAP7 0x00000F06U<br/>-#define DDR_ADDRMAP9 0x07070707U<br/>+#define DDR_ADDRMAP9 0x06060606U<br/>-#define DDR_ADDRMAP10 0x07070707U<br/>+#define DDR_ADDRMAP10 0x06060606U<br/>-#define DDR_ADDRMAP11 0x00000007U<br/>+#define DDR_ADDRMAP11 0x00000006U<br/>-#define DDR_UIB_NUMACTIVEDBYTEDFI1 0x00000002<br/>+#define DDR_UIB_NUMACTIVEDBYTEDFI1 0x00000000<br/>With these changes, we are able to boot successfully and pass the tests without any issues.<br/><br/>PS : In the test setup, the DRAM_B signals remained connected, and there is therefore a high chance that this would fail during DDR PHY training in your case, because the training is still performed on all four DBYTEs (32 bits), while in the end only two of them (16 bits) are actually used.<br/><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"102796\">@ZAKARIA_C1</user-mention> <br/><br/>Thanks for the quick Response</p><p>I Think It should Work From my side I will try to disconnect the Balls , and then again we should try. As of now it is Production Stage , One’s the hardware revision will change Will try with the same <br/> </p></div>",
+                    "author": "asadullah4571",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163857",
+            "publicId": "163857",
+            "title": "Few questions about the CubeMX2/HAL2 transition?",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/few-questions-about-the-cubemx2-hal2-transition-163857",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeMX2",
+                "HAL2"
+            ],
+            "published_at": "2026-03-16T17:51:53+00:00",
+            "views": 1267,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @lconlcong\n\nI hope the following answers can shed some light on the split and our strategy moving forward.\n\n> ---\n\n>\n\n> * Are older STM32 series expected to stay on HAL1 + CubeMX permanently, or is there an actual plan to migrate them to HAL2 + CubeMX2?\n\n>\n\n> ---\n\nUnfortunately the current plan is that HAL2 and CubeMX2 will only be supported on new series, including the announced STM32V8.\n\n> * What is the long-term support model here?\n\n>   Are these two stacks supposed to coexist for years, or is HAL1/CubeMX effectively going into maintenance mode?\n\n>\n\n> ---\n\nThe support of HAL1 and CubeMX is unchanged, as we will continue our support of HAL1 and CubeMX with new features just as we are doing today.\n\n> * Is there any official migration guide planned?\n\n>   Both for HAL1 → HAL2 API migration and CubeMX project → CubeMX2 project migration.\n\n>\n\n> ---\n\nWe have both a comprehensive guide to support your migration and a tool that can help you identify the HAL1 APIs that needs to be update to HAL2 and the updates needed.\n\nThe guide can be found here: <https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/index.html>\n\nand the tool can be found here: <https://www.st.com/en/development-tools/hal2-migrator.html>\n\n> * How is the VS Code extension supposed to work with both ecosystems in practice?\n\n>   If one project is on CubeMX/HAL1 and another is on CubeMX2/HAL2, what is the intended workflow?\n\n>   Is proper support planned for both, or is the tooling mainly targeting the new stack?\n\n>\n\n> ---\n\n> ---\n\nThe STM32Cube IDE for VS Code, uses cmake as build environment which both CubeMX and CubeMX2 has as a output when generating a project. Therefore can the VS Code IDE support both versions.\n\n> * Where is the actual HAL1 vs HAL2 side-by-side data?\n\n>   Flash usage, RAM usage, performance, code size, same project, same MCU class, comparable build settings.\n\n>\n\n> ---\n\nA good overview of the changes between HA1 and HAL2 can be found here in our migration guide: <https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/docs/markup/drivers_documentation/breaking_concepts/breaking_concepts_toc.html>\n\nYou can also find thorough description on what the big changes are and why they are introduced.\n\nI am more than happy to answer any other question on our new release you might have.\n\nBest regards,\n\nEmil",
+            "best_answer_author": "Emil Damkjaer PETERSEN",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "A few direct questions about the current CubeMX2/HAL2 split.\n\n* Are older STM32 series expected to stay on HAL1 + CubeMX permanently, or is there an actual plan to migrate them to HAL2 + CubeMX2?\n\n* What is the long-term support model here?\n\nAre these two stacks supposed to coexist for years, or is HAL1/CubeMX effectively going into maintenance mode?\n\n* Is there any official migration guide planned?\n\nBoth for HAL1 → HAL2 API migration and CubeMX project → CubeMX2 project migration.\n\n* How is the VS Code extension supposed to work with both ecosystems in practice?\n\nIf one project is on CubeMX/HAL1 and another is on CubeMX2/HAL2, what is the intended workflow?\n\nIs proper support planned for both, or is the tooling mainly targeting the new stack?\n\n* Where is the actual HAL1 vs HAL2 side-by-side data?\n\nFlash usage, RAM usage, performance, code size, same project, same MCU class, comparable build settings.\n\nRight now this looks like a major ecosystem split without a clear migration plan or hard technical justification.",
+            "images": [],
+            "author": "lconlcong",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Also we went from \"Rendering UI\" and Java to Node.JS that take 1GByte of RAM to show just a pin view.</p><p>Still the UI is at least new and dark mode, let's be happy for that?</p></div>",
+                    "author": "vaualbus",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Pin view? This is in CubeMX, not CubeIDE?</p><p><user-mention data-id=\"95426\">@lconlcong</user-mention> AFAIK software for the old products won't be migrated, not soon at least. This would create huge issues for existing users. But the new and old HAL - based projects &amp; libraries will be able to coexist in one IDE workspace.</p><p>Old and new versions already can work side by side.  Yes, \"ecosystem split\" - but not \"major\". TL;DR let this be our worst problem.</p><p>Hope the developers will explain the road plan in the wiki or here.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"95426\">@lconlcong</user-mention> </p>\n<p><br/>I hope the following answers can shed some light on the split and our strategy moving forward.</p>\n<blockquote><hr/>\n<ul>\n<li>\n<p>Are older STM32 series expected to stay on HAL1 + CubeMX permanently, or is there an actual plan to migrate them to HAL2 + CubeMX2?</p>\n</li>\n</ul>\n<hr/></blockquote>\n<p>Unfortunately the current plan is that HAL2 and CubeMX2 will only be supported on new series, including the announced STM32V8.</p>\n<p> </p>\n<blockquote>\n<ul>\n<li>\n<p>What is the long-term support model here?<br/>Are these two stacks supposed to coexist for years, or is HAL1/CubeMX effectively going into maintenance mode?</p>\n</li>\n</ul>\n<hr/></blockquote>\n<p>The support of HAL1 and CubeMX is unchanged, as we will continue our support of HAL1 and CubeMX with new features just as we are doing today.</p>\n<p> </p>\n<blockquote>\n<ul>\n<li>\n<p>Is there any official migration guide planned?<br/>Both for HAL1 → HAL2 API migration and CubeMX project → CubeMX2 project migration.</p>\n</li>\n</ul>\n<hr/></blockquote>\n<p>We have both a comprehensive guide to support your migration and a tool that can help you identify the HAL1 APIs that needs to be update to HAL2 and the updates needed.<br/>The guide can be found here: <a href=\"https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/index.html\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/index.html</a></p>\n<p>and the tool can be found here: <a href=\"https://www.st.com/en/development-tools/hal2-migrator.html\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/development-tools/hal2-migrator.html</a></p>\n<p> </p>\n<blockquote>\n<ul>\n<li>\n<p>How is the VS Code extension supposed to work with both ecosystems in practice?<br/>If one project is on CubeMX/HAL1 and another is on CubeMX2/HAL2, what is the intended workflow?<br/>Is proper support planned for both, or is the tooling mainly targeting the new stack?</p>\n</li>\n</ul>\n<hr/></blockquote>\n<blockquote><hr/></blockquote>\n<p>The STM32Cube IDE for VS Code, uses cmake as build environment which both CubeMX and CubeMX2 has as a output when generating a project. Therefore can the VS Code IDE support both versions.</p>\n<p> </p>\n<blockquote>\n<ul>\n<li>\n<p>Where is the actual HAL1 vs HAL2 side-by-side data?<br/>Flash usage, RAM usage, performance, code size, same project, same MCU class, comparable build settings.</p>\n</li>\n</ul>\n<hr/></blockquote>\n<p>A good overview of the changes between HA1 and HAL2 can be found here in our migration guide: <a href=\"https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/docs/markup/drivers_documentation/breaking_concepts/breaking_concepts_toc.html\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/docs/markup/drivers_documentation/breaking_concepts/breaking_concepts_toc.html</a><br/>You can also find thorough description on what the big changes are and why they are introduced.<br/><br/>I am more than happy to answer any other question on our new release you might have.<br/>Best regards,<br/>Emil<br/><br/></p>\n<p> </p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Emil Damkjaer PETERSEN",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Emil Damkjaer PETERSEN",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

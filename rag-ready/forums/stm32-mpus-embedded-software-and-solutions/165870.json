@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "165870",
+            "publicId": "165870",
+            "title": "With wrynose layer of meta-st-stm32mp, can't set ST_OPTEE_CORE_DEBUG",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/with-wrynose-layer-of-meta-st-stm32mp-can-t-set-st-optee-core-debug-165870",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-05-21T14:21:14+00:00",
+            "views": 180,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nWrynose is not supported yet, latest supported Yocto release is Scarthgap.\n\n**5.0.15-openstlinux-6.6-yocto-scarthgap-mpu-v26.02.18**\n\n<https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ecosystem_release_note#Yocto-based_OpenSTlinux_embedded_software>\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "This might be my misunderstanding of how OVERRIDES work, but I'm building with the recently-released \"wrynose\\_v26.02.18\" branch of meta-st-stm32mp and, for the purpose of debugging, I wanted to set:\n\nST\\_OPTEE\\_CORE\\_DEBUG = \"y\"\n\nso I did that in my local.conf file, but after I set it, it still had the value of \"n\" for the build, so I dumped the value to see how it was (or was not) being set:\n\nbitbake-getvar -r optee-os-stm32mp ST\\_OPTEE\\_CORE\\_DEBUG\n\n... snip ...\n\n# $ST\\_OPTEE\\_CORE\\_DEBUG [3 operations]\n\n# set /home/rpjday/BOARDS/nexus/wrynose/build/conf/local.conf:13\n\n# \"y\"\n\n# set /home/rpjday/Layers/wrynose/st/meta-st-stm32mp/recipes-security/optee/optee-os-stm32mp-common.inc:37\n\n# [\\_defaultval] \"y\"\n\n# override[stm32mp15common]:set? /home/rpjday/Layers/wrynose/st/meta-st-stm32mp/recipes-security/optee/optee-os-stm32mp-common.inc:38\n\n# \"n\"\n\n# pre-expansion value:\n\n# \"n\"\n\nST\\_OPTEE\\_CORE\\_DEBUG=\"n\"\n\nYou can see how the first line seems to show that I am explicitly setting it in my local.conf, then the processing continues through these lines in the file optee-os-stm32mp-common.inc:\n\n# default core debug\n\nST\\_OPTEE\\_CORE\\_DEBUG ??= \"y\"\n\nST\\_OPTEE\\_CORE\\_DEBUG:stm32mp15common ?= \"n\"\n\nBut those lines are both conditional assignments which should not come into play since I have already assigned a value. But the second line has a \"stm32mp15common\" override (which is in effect) and that seems to be setting the value back to \"n\" -- not what I expected.\n\nAm I just misunderstanding how these override assignments work?",
+            "images": [],
+            "author": "rpjday",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>Wrynose is not supported yet, latest supported Yocto release is Scarthgap.<br/><strong>5.0.15-openstlinux-6.6-yocto-scarthgap-mpu-v26.02.18</strong> <br/><a href=\"https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ecosystem_release_note#Yocto-based_OpenSTlinux_embedded_software\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ecosystem_release_note#Yocto-based_OpenSTlinux_embedded_software</a><br/><br/>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I realize wrynose is not \"officially\" supported yet, but there is a pre-release wrynose branch that I'm playing with. In any event, it turns out this has nothing to do with that branch, it was a misunderstanding on my part on how basic overrides and conditional assignments worked together in OpenEmbededed. So we're all good here.</p><p> </p><p>rday</p></div>",
+                    "author": "rpjday",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Very informative thread regarding STM32MP secure boot and OP-TEE integration challenges. Problems related to </span><span>st-optee-core</span><span> settings often come down to layer dependencies, version mismatches, or configuration overrides, so it’s useful to see practical debugging insights shared here. Discussions like this are valuable for embedded Linux developers working on secure and stable MPU deployments.</span></p></div>",
+                    "author": "sonicmenu",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

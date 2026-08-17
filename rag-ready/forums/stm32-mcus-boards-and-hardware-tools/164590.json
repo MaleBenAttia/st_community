@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164590",
+            "publicId": "164590",
+            "title": "Resistors on USB-C CC lines",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/resistors-on-usb-c-cc-lines-164590",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32U5 series",
+                "ST boards"
+            ],
+            "published_at": "2026-04-09T08:52:57+00:00",
+            "views": 235,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi  @AWack\n\nIn STM32 UCPD, FRSTX1 and FRSTX2 are the dedicated FRS transmit signals to **[support fast role swap (FRS) as specified in USB PD spec.](https://community.st.com/t5/stm32-mcus/how-to-manage-fast-role-swap-frs-in-an-stm32/ta-p/748689)**\n\nFRS is designed to allow a sink to react quickly when the current source loses power. The source side advertises the FRS condition by **pulling the active CC line low for a short, spec defined interval**. This signaling is time critical and must be handled with very low latency.\n\nAs described in **AN5225**, the FRS signaling itself must be detected very quickly, typically within **50 µs**, and once detected, the sink prepares to take over the source role. The new source must then resume VBUS delivery within the timing defined by the FRS procedure (within **150 µs)**, to avoid interrupting the connected device.\n\nSo those FETs are used to **drive the CC lines to GND**\n\nAlso in Figure 29. DRP with FRS VBUS = 5 V / 9 V / 15 V connections, the FRSTX1 and FRSTX2 fast role swap signals are wired to external MOSFETs to drive the CC lines.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI´m designing an USB host device (with STM32U5).\n\nTherefore I´ve ha a look at the schematics of the STM32U575I-EV. Could someone explain what the MOSFETs are for?\n\nBest regards,\n\nAchim",
+            "images": [],
+            "author": "AWack",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi  <user-mention data-id=\"45732\">@AWack</user-mention> </p>\n<p>In STM32 UCPD, FRSTX1 and FRSTX2 are the dedicated FRS transmit signals to <strong><a href=\"https://community.st.com/t5/stm32-mcus/how-to-manage-fast-role-swap-frs-in-an-stm32/ta-p/748689\" target=\"_blank\">support fast role swap (FRS) as specified in USB PD spec.</a></strong></p>\n<p> </p>\n<p><span>FRS is designed to allow a sink to react quickly when the current source loses power. The source side advertises the FRS condition by </span><strong>pulling the active CC line low for a short, spec defined interval</strong><span>. This signaling is time critical and must be handled with very low latency.</span></p>\n<p>As described in<span> </span><strong>AN5225</strong>, the FRS signaling itself must be detected very quickly, typically within<span> </span><strong>50 µs</strong>, and once detected, the sink prepares to take over the source role. The new source must then resume VBUS delivery within the timing defined by the FRS procedure (within<span> </span><strong>150 µs)</strong>, to avoid interrupting the connected device.</p>\n<p><span>So those FETs are used to <strong>drive the CC lines to GND</strong></span></p>\n<p>Also in Figure 29. DRP with FRS VBUS = 5 V / 9 V / 15 V connections, the FRSTX1 and FRSTX2 fast role swap signals are wired to external MOSFETs to drive the CC lines.<br/><br/></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

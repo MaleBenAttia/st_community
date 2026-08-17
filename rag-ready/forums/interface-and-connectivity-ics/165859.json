@@ -1,0 +1,87 @@
+{
+    "forum": [
+        {
+            "id": "165859",
+            "publicId": "165859",
+            "title": "STPM34 SPI Communication Issue at Startup – Measurements Stuck at Zero Until Board Restart",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/stpm34-spi-communication-issue-at-startup-measurements-stuck-at-zero-until-board-restart-165859",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "Metrology"
+            ],
+            "published_at": "2026-05-21T09:04:42+00:00",
+            "views": 237,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Dear Aymen,\n\nHere are my comments I had posted on former ST community thread :\n\nIn your schematics, I can not see the anti-aliasing filters to be placed at each ADC input.\n\nAnd we recommend also some filtering on the SPI lines and on EN signal to improve immunity against EFT (Electrical Fast Transients). You can refer to the eval kit schematics as an example.\n\nConcerning your issue, there is no pull-down on SCS: it means that at power-on, it will be floating during your MCU init phase. Nevertheless, as the EN signal is driven by your MCU, you can keep EN low (=STPM34 reset ) until the init phase is achieved (SCS must be set low to select SPI mode), then EN can be set high and you can start normally the init sequence of the STPM34 described in the starting guide.\n\nHave you been able to investigate these points ?",
+            "best_answer_author": "Didier HERROUIN",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello Team,\n\nWe are currently investigating an issue related to the SPI communication between the STPM34 sensor and the STM32F4 microcontroller.\n\nAt system startup, all values measured by the STPM34 remain stuck at zero. Even when voltage and current are injected using an OMICRON test bench, no measurement values are received or displayed.\n\nSeveral tests were performed:\n\n* If we power up the system and confirm that the issue is present, then electrically restart only the board containing the STPM34, the communication recovers correctly and the measured values are no longer stuck at zero.\n\n* We also soldered wires on one of the SPI buses (SPI1). Since there are two STPM34 devices on the board, two SPI instances are used to communicate with each sensor. The purpose was to verify whether the communication between the sensor and the STM32 was correctly established.\n\n+ Interestingly, simply soldering wires on this SPI bus makes the issue disappear for this instance. However, on the second SPI instance, which was not modified, the issue is still present.\n\nAfter reviewing the STPM34 [datasheet](https://www.st.com/resource/en/datasheet/stpm32.pdf), we noticed that in section *5 – Typical Application Example*, resistors and capacitors are recommended on the communication lines. Currently, these components are not implemented on this board.\n\n![MohamedAymen_0-1779354220582.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f3294a3-d57d-cff7-82ac-a8655615e43a.png \"MohamedAymen_0-1779354220582.png\")\n\nCould the absence of these recommended resistors/capacitors on the SPI lines explain this startup communication issue or unstable behavior with the STPM34?\n\nThanks,\n\nAymen",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f3294a3-d57d-cff7-82ac-a8655615e43a.png"
+            ],
+            "author": "Mohamed Aymen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p> </p><p>Why am I no longer able to view the previous replies?</p><p> </p><p>Aymen</p></div>",
+                    "author": "Mohamed Aymen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Because the community was switched to another platform this morning, and all content from the last about 28 days still need to be migrated. This should be completed over the next few days.</p><p>See <a href=\"https://community.st.com/community-blog-161/now-live-your-new-st-community-platform-165935\" rel=\"noreferrer\" target=\"_self\">announcement </a>for details.</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks Peter, for your response, I'll wait for the migration to be completed</p><p> </p><p>Aymen</p></div>",
+                    "author": "Mohamed Aymen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In some devices the MISO may be an open collector output and not push-pull design, so you may need a pull-up resistor on the MISO line. You can quickly verify using the STM32 internal pull-up on the other device that you didn’t solder wires to. If it works, then you should add some external pull-ups especially if running at a high bus speed..</p></div>",
+                    "author": "Karl Yamashita",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Mohamed Aymen,</p><p>My previous answer seems lost during the migration…</p><p>Please share your schematics, and help me to understand how you manage SCS at power-up.</p><p>If SCS is not low before EN, VCC and clock, the chipset will be locked to UART mode instead of SPI.</p><p>Best regards,</p><p>Didier Herrouin</p><p> </p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Aymen,</p><p>Here are my comments I had posted on former ST community thread :<br/>In your schematics, I can not see the anti-aliasing filters to be placed at each ADC input.</p><p>And we recommend also some filtering on the SPI lines and on EN signal to improve immunity against EFT (Electrical Fast Transients). You can refer to the eval kit schematics as an example.</p><p>Concerning your issue, there is no pull-down on SCS: it means that at power-on, it will be floating during your MCU init phase. Nevertheless, as the EN signal is driven by your MCU, you can keep EN low (=STPM34 reset ) until the init phase is achieved (SCS must be set low to select SPI mode), then EN can be set high and you can start normally the init sequence of the STPM34 described in the starting guide.</p><p> </p><p>Have you been able to investigate these points ?</p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"366\">@Didier HERROUIN</user-mention> </p><p> </p><p>Thank you for your response, that was exactly my problem</p><p> </p><p>Regards,</p><p>Aymen</p></div>",
+                    "author": "Mohamed Aymen",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163432",
+            "publicId": "163432",
+            "title": "stm32n6570-dk sd_sel pin not triggering / VENC_SDCard example code",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32n6570-dk-sd-sel-pin-not-triggering-venc-sdcard-example-code-163432",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST boards",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-04T12:48:00+00:00",
+            "views": 222,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nHave you made any progress on that ?\n\nPN12 is on the VDDIO3 power domain which is powered at 1.8v, consequently SD card detect signal is pulled up at 1.8V.\n\nThe example might consider the SD card is always inserted, as the .ioc template that I see in the firmware package doesn't intialize PN12...\n\nPlease try to add the init code for PN12 in the example, maybe in fx\\_stm32\\_sd\\_driver\\_glue.c/HAL\\_SD\\_MspInit().\n\nDon't forget to call HAL\\_PWREx\\_EnableVddIO3() just in case this is not done somewhere else in the code.",
+            "best_answer_author": "Mike_ST",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi all,\n\nI have a small issue with the STM32N6570-DK board and the VENC\\_SDCard example code.\n\nThe PN12 pin has a voltage of 0V (card inserted) or 1.80V (no card inserted); on the MCU side, the GPION data register (IDR) always shows a logic 0 in both situations.\n\nThe VENC\\_SDCard / VENC\\_SDCard\\_ThreadX example code basically jumps over SD Card detection as it assumes a logic level of 0 == card present. If there is no card, mounting fails and aborts further processing.\n\nI have the requirement to react to card inserts / removals, so I'd like to trigger an interrupt or at least be able to read a logic high once in a while but could not find out what exactly is missing in the code.\n\n\\* I tested with an empty CubeMX project and set this PN12 to input; here I do see logic level changes.\n\n\\* I susptected the VDDIO voltage domains to be at 3V3 for that block and manually switched VDDIO\\_SD to be at 1V8, but that did not show a change as well\n\n\\* I did not fiddle with security bit settings...\n\nmaybe one of you has an idea?\n\nSimon",
+            "images": [],
+            "author": "svogl",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Have you made any progress on that ?</p>\n<p>PN12 is on the VDDIO3 power domain which is powered at 1.8v, consequently SD card detect signal is pulled up at 1.8V.</p>\n<p>The example might consider the SD card is always inserted, as the .ioc template that I see in the firmware package doesn't intialize PN12...</p>\n<p>Please try to add the init code for PN12 in the example, maybe in fx_stm32_sd_driver_glue.c/HAL_SD_MspInit().</p>\n<p>Don't forget to call HAL_PWREx_EnableVddIO3() just in case this is not done somewhere else in the code.</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Mike_ST",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ah perfect --- I was missing the power domain. Many thanks!</p></div>",
+                    "author": "svogl",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mike_ST",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164033",
+            "publicId": "164033",
+            "title": "How Can I get 8000mm ranging on the using the stmduino VL53L1 library?",
+            "url": "https://community.st.com/imaging-sensors-49/how-can-i-get-8000mm-ranging-on-the-using-the-stmduino-vl53l1-library-164033",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Documentation",
+                "Need clarification"
+            ],
+            "published_at": "2026-03-20T19:44:05+00:00",
+            "views": 768,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "I found the answer on my own. I needed to be using GetMultiRangingData, not GetRangingData, which for some reason doesn't work with the extended measurements.",
+            "best_answer_author": "gramcracker",
+            "best_answer_author_role": "Associate",
+            "content_text": "I'm using the library here: <https://github.com/stm32duino/VL53L1,> and it seems to stop measuring around 3.2-3.5 meters. I may be wrong, but think that means that it is not using the histogram? I set it to long distance ranging mode.\n\nHere is my code:\n\n```\n\nbool Sensor::ConfigureSensor(TOF &tofSensor)\n\n{\n\nLog.noticeln(\"Configuring [%s]\", tofSensor.name);\n\nif (tofSensor.sensor_object == nullptr)\n\n{\n\nLog.fatal(\"No TOF sensor object initialized.\");\n\nreturn false;\n\n}\n\nVL53L1_Error status;\n\nstatus = tofSensor.sensor_object->InitSensor(tofSensor.address);\n\ndelay(10);\n\nif (status != VL53L1_ERROR_NONE)\n\n{\n\nLog.fatal(\"Failed to initialize %s. Status: %d. Halting.\", tofSensor.name, status);\n\nwhile (1){;}\n\nreturn false;\n\n}\n\nLog.noticeln(\"%s address set to 0x%x\", tofSensor.name, tofSensor.address);\n\nstatus = tofSensor.sensor_object->VL53L1_SetPresetMode(VL53L1_PRESETMODE_RANGING);\n\ndelay(10);\n\nif (status != VL53L1_ERROR_NONE)\n\n{\n\nLog.errorln(\"Failed to set preset mode for %s\", tofSensor.name);\n\nreturn false;\n\n}\n\nstatus = tofSensor.sensor_object->VL53L1_SetDistanceMode(VL53L1_DISTANCEMODE_LONG);\n\ndelay(10);\n\nif (status != VL53L1_ERROR_NONE)\n\n{\n\nLog.errorln(\"Failed to set distance mode for %s\", tofSensor.name);\n\nreturn false;\n\n}\n\nstatus = tofSensor.sensor_object->VL53L1_SetMeasurementTimingBudgetMicroSeconds(200000);\n\ndelay(10);\n\nif (status != VL53L1_ERROR_NONE)\n\n{\n\nLog.errorln(\"Failed to set timing budget for %s\", tofSensor.name);\n\nreturn false;\n\n}\n\nVL53L1_RoiConfig_t roiConfig;\n\nroiConfig.NumberOfRoi = 1;\n\nroiConfig.UserRois[0].TopLeftX = TL_X;\n\nroiConfig.UserRois[0].TopLeftY = TL_Y;\n\nroiConfig.UserRois[0].BotRightX = BR_X;\n\nroiConfig.UserRois[0].BotRightY = BR_Y;\n\nstatus = tofSensor.sensor_object->VL53L1_SetROI(&roiConfig);\n\ndelay(10);\n\nif (status != VL53L1_ERROR_NONE)\n\n{\n\nLog.errorln(\"Failed to set ROI for %s. Status: [%d]\", tofSensor.name, status);\n\nreturn false;\n\n}\n\nstatus = tofSensor.sensor_object->VL53L1_StartMeasurement();\n\ndelay(10);\n\nif (status != VL53L1_ERROR_NONE)\n\n{\n\nLog.errorln(\"Failed to start measurement for %s. Status: [%d]\", tofSensor.name, status);\n\nreturn false;\n\n}\n\nreturn true;\n\n}\n\n```",
+            "images": [],
+            "author": "gramcracker",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>To get 8 meters, absolutely everything has to be exactly right. It's kind of like saying a car can go 100 miles per hour - assuming you are going downhill, with the wind, and you have no luggage.</p><p>That 8-meters is the theoretical maximum, and only really achievable with a large, highly reflective surface.</p><p>It was invented to focus a projector, and really is only practical if you are looking at a projection screen, which is VERY reflective. </p><p>The sensor natively can only do 4 meters, but because the raw data is uploaded into your MCU, the histogram data can be post-processed to get more data out of it.</p><p>But the first thing you must do is insure you have the software for the VL53L1CB and NOT the VL53L1X. That's a pretty subtle difference. </p><p>If you use code that is not ST's, you have to start digging. Look to see if the code uses only the range data from the sensor. That will be limited to 4M max. Look to see if the histogram data is uploaded to the host. That's what you need to start. Then you have to check to see if the histogram is checked for wraparound. </p><p>And it's that last bit that's tricky. </p><p>Generally, the sensor wants to send out as many pulses as it can in the fixed timing budget, and if you only wait for the light to go out 4 meters and come back, you have an issue at say 4.2 meters. The sensor assumes the photons are returning from the most recent flash, when in fact they will be from the N-1 flash. So instead of getting 4.5 meters you are going to get 0.5 meters. It's the actual distance minus the 'wrap around' or aliased distance. </p><p>But the sensor is tricky. It sends light with a wrap point at 4M and another at 4.2 meters. From this the sensor sees a raw distance of 0.5 for the first range and 0.3 for the second. From this, one can work out that the actual distance has to be 4.5. </p><p>But only ST's code does this. If you get your code from somewhere else, it's going to be up to you to insure the unwrapping code is in there. </p><p>Personally, I'd start from the ST code for the VL53L1CB and see if you can adapt the platform.c to your processor. It would be a matter of writing the I2C code for your processor into the code structure of the platform.c file - which is left empty.</p><p>And if you want the full 8 meters, you really are going to need a projection screen. </p><p>Good luck, </p><p>- john</p><p> </p></div>",
+                    "author": "John_Kvam",
+                    "role": "Graduate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks John,<br/>I ended up using the <span>ST code for the VL53L1CB API, and for some reason I cannot get past ~3.33 meters without getting errors OUTOFBOUNDS_FAIL and WRAP_TARGET_FAIL when set like this. Even in a dim room on a white wall:<br/></span></p><pre class=\"lia-code-sample language-c\"><code> VL53L1_SetPresetMode(Dev, VL53L1_PRESETMODE_RANGING);\n VL53L1_SetDistanceMode(Dev, VL53L1_DISTANCEMODE_LONG);\n VL53L1_SetMeasurementTimingBudgetMicroSeconds(Dev, 500000);</code></pre><p>Same results with this:</p><pre class=\"lia-code-sample language-c\"><code> VL53L1_SetPresetMode(Dev, VL53L1_PRESETMODE_RANGING);\n VL53L1_SetDistanceMode(Dev, VL53L1_DISTANCEMODE_MEDIUM);\n VL53L1_SetMeasurementTimingBudgetMicroSeconds(Dev, 500000);</code></pre><p>Autonomous mode gets me up to ~5 meters. but why?</p><pre class=\"lia-code-sample language-c\"><code> VL53L1_SetPresetMode(Dev, VL53L1_PRESETMODE_AUTONOMOUS);\n VL53L1_SetDistanceMode(Dev, VL53L1_DISTANCEMODE_LONG);\n VL53L1_SetMeasurementTimingBudgetMicroSeconds(Dev, 500000);</code></pre></div>",
+                    "author": "gramcracker",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found the answer on my own. I needed to be using <span>GetMultiRangingData, not GetRangingData, which for some reason doesn't work with the extended measurements.</span></p></div>",
+                    "author": "gramcracker",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi</p>\n<p>Glad to hear you have found the root cause, indeed L1 supporting below 3 ranging modes,  </p>\n<ul>\n<li>VL53L1_PRESETMODE_RANGING</li>\n<li>VL53L1_PRESETMODE_MULTIZONES_SCANNING</li>\n<li>VL53L1_PRESETMODE_AUTONOMOUS</li>\n</ul>\n<p>The bare driver provides two functions to select whether single ranging data or multiple ranging data are returned</p>\n<ul>\n<li>The “Get a single data” function is only available in autonomous mode. This function should not be used in ranging and multizone scanning modes.</li>\n<li>The “Get multiple data” function is only available in ranging and multizone scanning modes. This function should not be used in autonomous mode.</li>\n</ul>\n<p> </p>\n<p>You can get more detail from chapter 4.3 <a href=\"https://www.st.com/resource/en/user_manual/um2133-timeofflight-longdistance-ranging-sensor-with-advanced-multizone-and-multiobject-detection-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Time-of-Flight long-distance ranging sensor with advanced multi-zone and multi‑object detection - User manual</a></p>\n<p> </p>\n<p>Br</p>\n<p>Zhiyuan.Han</p>\n<p> </p></div>",
+                    "author": "Zhiyuan.Han",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Zhiyuan.Han",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

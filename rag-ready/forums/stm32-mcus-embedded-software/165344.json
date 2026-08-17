@@ -1,0 +1,91 @@
+{
+    "forum": [
+        {
+            "id": "165344",
+            "publicId": "165344",
+            "title": "SPI3 hangs after some time",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/spi3-hangs-after-some-time-165344",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "DMA",
+                "SPI",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-04T09:45:54+00:00",
+            "views": 283,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Sorry for delay, out of service :(\n\nSystem now seems to be working. The EOTIE bit in SPI\\_IER register enables interrupt not only on EOT, but also on SUSP and TXC flags. As I use TSIZE > 0, the TXC bit is copying EOT, including clear, so it isn't important in this case. The problematic flag is SUSP, it wasn't serviced in my INT handler, but enabled together with EOT. There was a handler for EOT only in my code, and when the SUSP flag was signaled, the endless interrupt could arose.\n\nWorkflow was: if there was a timeout, stop the transfer correctly, i.e. raise SUSP request. But the endless interrupt didn't occur, because the rest of the FW was working. I caught it under the debugger only.\n\nThe effective code was\n\nif(was\\_timeout) {\n\nLL\\_SPI\\_SuspendMasterTransfer(SPI3);\n\n}\n\nSPI3->IFCR = SPI\\_IFCR\\_EOTC | SPI\\_IFCR\\_TXTFC | SPI\\_IFCR\\_UDRC | SPI\\_IFCR\\_OVRC | SPI\\_IFCR\\_CRCEC\n\n| SPI\\_IFCR\\_TIFREC | SPI\\_IFCR\\_MODFC | SPI\\_IFCR\\_SUSPC;\n\n(return from function)\n\nLL\\_SPI\\_DisableIT\\_EOT(SPI3);\n\nLL\\_SPI\\_Disable(SPI3);\n\nNow I am only guessing.\n\nI suppose that the SUSP flag was cleared sooner than it managed to be set, and the device was then disabled without correct flag clear. This is the reason the whole SPI was stuck.\n\nI added: a)  wait for SUSP flag to be set   b) handler for SUSP interrupt   c) reset of DMA channel, and it is now working.\n\nThere is still one problem I don't understand, how can the cca 280us transfer using DMA break the 5ms timeout. I have to further analyze the code if the timeout isn't wrong evaluation only (the system runs under kind of RTOS).\n\nTH",
+            "best_answer_author": "Tomas Hamouz",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I have troubles using SPI3 on STM32U575VG. After some time the transfer hangs and it is not possible to amend it until whole reset.\n\nConfiguration: Only transmit, is feeds LCD display, 240 lines, 54 bytes each.\n\nAPB3 clock 48 MHz. Manual CS handling, SCLK 1.5 MHz.\n\nEverything looks ok, it works, but after some time and on some boards only it hangs. The problem appeared in the start of production.\n\nSymptoms: after configuration and LL\\_SPI\\_Enable(), the DMA transfers 16 bytes to the FIFO. That's ok, DMA works. But after LL\\_SPI\\_StartMasterTransfer(), the transfer doesn't start.\n\nLooking at the pins, SCLK remains low and MOSI contains some data, but very slow, one bit interval seems to be 8 ms.\n\nReset of the SPI doesn't help. Reinit of the whole MCU after STOP2 (without reset), including all clocks doesn't help. The only thing that works is the reset of the whole MCU.\n\nI have no idea where to look at more. The SPI is not overclocked, it doesn't wait for any external signal. It happens sometimes after a few minutes, sometimes after hours.",
+            "images": [],
+            "author": "Tomas Hamouz",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"25914\">@Tomas Hamouz</user-mention> </p>\n<p>You are not enabling the GPIO C clock in <span>SPIDriver</span><span>::</span><span>InitGPIO</span><span>(</span><span>).</span></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm sorry, the posted code is not exactly real source, otherwise I had to post too much files with too much indirection, but the logic and statement order is maintained. GPIO clocks are enabled in standard system startup. I will add the clock enable,  just to be sure.<br/>As I mentioned, the code works after startup, but sometime hangs. </p></div>",
+                    "author": "Tomas Hamouz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Any difference between SPI and relevant GPIO and RCC registers' content (I'd look also at PB3) between working and non-working cases?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>All SPI, relevant RCC (APB3 clock, SPI3 kernel clock) and GPIO registers checked and without any change and difference to working state. There is LPUART1 sitting also on the APB3 and working without change.</p></div>",
+                    "author": "Tomas Hamouz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Can it be a DMA fault with \"halt on DMA error\" enabled? This can explain why reset of the SPI does not help. It's the DMA.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'll try tomorrow morning.</p><p>But the DMA halt is in contrary with the fact that when the SPI is enabled, DMA fills the FIFO in SPI. At least the cached bytes should be sent, right?</p></div>",
+                    "author": "Tomas Hamouz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Primary use LED on GPIO to measure valid clk. For example set blink on every 1sec, but by sw not by timer.</p><p>If MCU fallback to HSI maybe...</p><p>Next try debug issue = leave debuger connected to arrive problem.</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This:</p><p>&gt; Looking at the pins, SCLK remains low and MOSI contains some data, but very slow, one bit interval seems to be 8 ms.</p><p>is what puzzles me the most.</p><p>I suggested looking at PB3's GPIO registers settings, because it's SPI3_SCK, too; and would that be set to AF for SPI3, those signals would probably OR together, potentially resulting in a bogus SPI_SCK input to the SPI module. And, at least in the older STM32, SPI's shift registers are known to work out of the SCK's *input* even if it's master.</p><p>It sounds that you are able to debug a hung device. If it is so, I'd personally stop the processor and proceed by manipulating registers entirely manually in the debugger. I'd try first switching SCK and MOSI to Output in GPIO, wiggle (and observe); then I'd try to switch back to AF and try to get SPI3 transmitting anything, without DMA (maybe I'd try this to do manually in the non-hung state first, to have a \"known-good\" procedure at hand to be used in the hung state). If desperate, I'd may even try also getting it to be slave (by manipulating the internal SSI) while toggling SCK using GPIO_PUPDR, while observing MOSI behaviour and the SPI flags.</p><p>Another approach could be the divide-and-conquer method: I doubt the SPI3 in itself is the culprit, and suspect, it's something else in your program, which I suspect is extensive. So maybe trying to remove some parts of that program would also remove the problem, in which case that part of program may - or may not - be treated with suspicion.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry for delay, out of service :(</p><p>System now seems to be working. The EOTIE bit in SPI_IER register enables interrupt not only on EOT, but also on SUSP and TXC flags. As I use TSIZE &gt; 0, the TXC bit is copying EOT, including clear, so it isn't important in this case. The problematic flag is SUSP, it wasn't serviced in my INT handler, but enabled together with EOT. There was a handler for EOT only in my code, and when the SUSP flag was signaled, the endless interrupt could arose. </p><p>Workflow was: if there was a timeout, stop the transfer correctly, i.e. raise SUSP request. But the endless interrupt didn't occur, because the rest of the FW was working. I caught it under the debugger only.</p><p>The effective code was</p><p>  if(was_timeout) {<br/>    LL_SPI_SuspendMasterTransfer(SPI3);<br/>  } <br/>  SPI3-&gt;IFCR = SPI_IFCR_EOTC | SPI_IFCR_TXTFC | SPI_IFCR_UDRC | SPI_IFCR_OVRC | SPI_IFCR_CRCEC<br/>| SPI_IFCR_TIFREC | SPI_IFCR_MODFC | SPI_IFCR_SUSPC;<br/>  (return from function)<br/>  LL_SPI_DisableIT_EOT(SPI3); <br/>  LL_SPI_Disable(SPI3);</p><p>Now I am only guessing.<br/>I suppose that the SUSP flag was cleared sooner than it managed to be set, and the device was then disabled without correct flag clear. This is the reason the whole SPI was stuck. </p><p>I added: a)  wait for SUSP flag to be set   b) handler for SUSP interrupt   c) reset of DMA channel, and it is now working.</p><p>There is still one problem I don't understand, how can the cca 280us transfer using DMA break the 5ms timeout. I have to further analyze the code if the timeout isn't wrong evaluation only (the system runs under kind of RTOS).</p><p>TH</p><p> </p></div>",
+                    "author": "Tomas Hamouz",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

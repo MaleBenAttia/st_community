@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "165750",
+            "publicId": "165750",
+            "title": "unable to program STM32F446RET6",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/unable-to-program-stm32f446ret6-165750",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32F4 series",
+                "Others",
+                "Hardware components"
+            ],
+            "published_at": "2026-05-16T19:34:36+00:00",
+            "views": 339,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Thanks for your advice, what actually worked was initially my stm32 programmer from f072rt chip was showing voltage of the internal f072 chip (I verified by by removing and attaching pwr to U5V header which dropped the voltage) even after removing nucleo header pins on the programmer, I think because behind the board 4 default labelled 0 ohm resistors were installed (not sure about the real reason).\n\nI removed the external power supply and powered the chip with internal 3.3v from the board.\n\nAlso I changed the programmer to STM32CubeProgrammer (SWD) in arduino ide to see more details such as voltage and the chip selected.\n\nI'm not sure why it worked even gnd was installed properly and pin 1 in programmer was used as input to the programmer as it is expected to setup.",
+            "best_answer_author": "smalviya",
+            "best_answer_author_role": "Associate",
+            "content_text": "I recently bought a STM32F446 64 pin chip and wired it up.\n\nThe following circuit is made:\n\nI've installed 0.1uF capacitors between two power pins, and two I've not (It's difficult to do so)\n\nit's consuming around 20 to 30 mA\n\nPin 30 shows 1.132 volts (4.7uF cap is installed)\n\nvoltage 3.298 v\n\noscillator is working fine\n\nI tried bypassing the 15uH inductor as I thought that is too much, but neither way works\n\nThe chip is perfectly soldered, checked for resistances multiple times\n\nTried uploading code from both usb to ttl converter and STM programmer from Nucleo f072rb board\n\nall the wiring is correct according to me checked multiple times, but when I upload the code using arduino ide, I get this issue:\n\nSketch uses 16576 bytes (3%) of program storage space. Maximum is 524288 bytes.\n\nGlobal variables use 1212 bytes (0%) of dynamic memory, leaving 129860 bytes for local variables. Maximum is 131072 bytes.\n\nNODE\\_F446RE not found. Please ensure the device is correctly connected.\n\nFailed uploading: uploading error: exit status 7\n\nPlease ask if you need more data.",
+            "images": [],
+            "author": "smalviya",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"107025\">@smalviya</user-mention> and welcome to the ST community,</p>\n<p>I invite you to check your hardware according to the hardware reference designs:</p>\n<p><a href=\"https://www.st.com/resource/en/application_note/an4488-getting-started-with-stm32f4xxxx-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4488</a> \"Getting started with STM32F4xxxx MCU hardware development\"</p>\n<p><a href=\"https://www.st.com/resource/en/schematic_pack/mb1136-default-c04_schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">NUCLEO-F446 board schematic</a></p>\n<p> </p>\n<div class=\"notranslate ESMNde HGLrXd ojE3Fb\">\n<div class=\"q0vns\"> </div>\n</div>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The circuit seems correct according to the file you just shared, please enlighten me on specific parts of it if what you are referring might be the issue.</p></div>",
+                    "author": "smalviya",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p> </p><p>Some things you can try:</p><p>Capacitors: You say that the power pin capacitors are not all present, and seems that they are not near the MCU.</p><p>If never worked, I don't think that this it is the main cause of your problem but you can try, only for testing purposes, to power the board using batteries to reduce noise.</p><p>I don't use Arduino IDE, but I heard that using it, you need a different level on BOOT0 pin, at least in other MCUs like F103, for uploading.</p><p>You checked by resistance the welding of the MCU. When you touch a pin with the probe, is possible that the pin touch his pad and you see a fake good soldering.</p><p>I check it first, by resistance between neighbor pins to avoid shorts, and second with a microscope and anti ESD tweezers, to be sure no pin moves.</p><p>There is also the possibility that the chip was damaged during soldering, depending of the soldering method used.</p><p> </p><p>Regards</p><p> </p></div>",
+                    "author": "xisco",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your advice, what actually worked was initially my stm32 programmer from f072rt chip was showing voltage of the internal f072 chip (I verified by by removing and attaching pwr to U5V header which dropped the voltage) even after removing nucleo header pins on the programmer, I think because behind the board 4 default labelled 0 ohm resistors were installed (not sure about the real reason).</p><p> </p><p>I removed the external power supply and powered the chip with internal 3.3v from the board.</p><p> </p><p>Also I changed the programmer to STM32CubeProgrammer (SWD) in arduino ide to see more details such as voltage and the chip selected. </p><p> </p><p>I'm not sure why it worked even gnd was installed properly and pin 1 in programmer was used as input to the programmer as it is expected to setup.</p></div>",
+                    "author": "smalviya",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

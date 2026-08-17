@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "163550",
+            "publicId": "163550",
+            "title": "Problem with TrustZone in STM32L562E-DK: template TrustZoneEnabled does not pass to the no-secure world",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/problem-with-trustzone-in-stm32l562e-dk-template-trustzoneenabled-does-not-pass-to-the-no-secure-world-163550",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32L5 series"
+            ],
+            "published_at": "2026-03-07T01:41:44+00:00",
+            "views": 315,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @erne\\_ramos\n\nThe template is stopping in NonSecure\\_ResetHandler because the non-secure application is empty (the template is an empty project). Please add some code to the non-secure application and it should work correctly. For example, you can toggle LED10 by applying the following changes:\n\n**In non\\_secure main.c**Uncomment the following lines:\n\nHAL\\_Delay(250);\n\nBSP\\_LED\\_Toggle(LED10);\n\n**In secure main.c**\n\n1- Uncomment the SystemClock\\_Config() implementation and its call, and remove \\_\\_HAL\\_RCC\\_PWR\\_CLK\\_DISABLE().\n\n2- Configure LED10 as shown below, under the comment\n\n/\\* Add your secure application code here prior to non-secure initialization \\*/:\n\nGPIO\\_InitTypeDef GPIO\\_InitStruct = {0};\n\n\\_\\_HAL\\_RCC\\_GPIOG\\_CLK\\_ENABLE();\n\nHAL\\_PWREx\\_EnableVddIO2();\n\nHAL\\_GPIO\\_WritePin(GPIOG, GPIO\\_PIN\\_12, GPIO\\_PIN\\_SET);\n\nGPIO\\_InitStruct.Pin = GPIO\\_PIN\\_12;\n\nGPIO\\_InitStruct.Mode = GPIO\\_MODE\\_OUTPUT\\_PP;\n\nGPIO\\_InitStruct.Pull = GPIO\\_PULLUP;\n\nGPIO\\_InitStruct.Speed = GPIO\\_SPEED\\_FREQ\\_VERY\\_HIGH;\n\nHAL\\_GPIO\\_Init(GPIOG, &GPIO\\_InitStruct);\n\nHAL\\_GPIO\\_ConfigPinAttributes(GPIOG, GPIO\\_PIN\\_12, GPIO\\_PIN\\_NSEC);\n\nI hope this answers your question.\n\nBest regards,",
+            "best_answer_author": "SirineST",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello everyone,\n\nI'm working with an STM32L562E-DK board and testing the \"TrustZoneEnabled\" template included in the \"STM32Cube\\_FW\\_L5\\_V1.6.0\" package. The goal is to run the basic example that transitions from the secure to the unsecured zone, but I'm finding that, after following all the instructions in \"README.txt\" and compiling the project, the code gets stuck in the next function:\n\n```\n\nstatic void NonSecure_Init(void)\n\n{\n\nfuncptr_NS NonSecure_ResetHandler;\n\nSCB_NS->VTOR = VTOR_TABLE_NS_START_ADDR;\n\n/* Set non-secure main stack (MSP_NS) */\n\n__TZ_set_MSP_NS((*(uint32_t *)VTOR_TABLE_NS_START_ADDR));\n\n/* Get non-secure reset handler */\n\nNonSecure_ResetHandler = (funcptr_NS)(*((uint32_t *)((VTOR_TABLE_NS_START_ADDR) + 4U)));\n\n/* Start non-secure state software application */\n\nNonSecure_ResetHandler();\n\n}\n\n```\n\nSpecifically on the \"NonSecure\\_ResetHandler()\"; or it doesn't even execute the no-secure part.\n\nCurrent option bytes configuration (verified with STM32CubeProgrammer):\n\n* **DBANK => Checked**\n\n* **TZEN** => Checked\n\n* nSWBOOT0 => Checked\n\n* nBOOT0=> Unchecked\n\n* **NSBOOTADD0** => Value: 0x100000 => Address: 0x08000000\n\n* **NSBOOTADD1** => Value: 0x17f200 => Address: 0x0bf90000\n\n* **SECBOOTADD0** => Value: 0x1 => Address: 0x00000080\n\n* **SECWM1\\_PSTRT** => Value: 0x0 => Address: 0x08000000\n\n* **SECWM1\\_PEND** => Value: 0x7F => Address: 0x0803f800\n\n* **SECWM2\\_PSTRT** => Value: 0x1 => Address: 0x08040800\n\n* **SECWM2\\_PEND** => Value: 0x0 => Address: 0x08040000",
+            "images": [],
+            "author": "erne_ramos",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104374\">@erne_ramos</user-mention></p><p>The template is stopping in NonSecure_ResetHandler because the non-secure application is empty (the template is an empty project). Please add some code to the non-secure application and it should work correctly. For example, you can toggle LED10 by applying the following changes:</p><p><strong>In non_secure main.c </strong>Uncomment the following lines:</p><p>HAL_Delay(250);<br/>BSP_LED_Toggle(LED10);<br/><strong>In secure main.c</strong></p><p>1- Uncomment the SystemClock_Config() implementation and its call, and remove __HAL_RCC_PWR_CLK_DISABLE().</p><p>2- Configure LED10 as shown below, under the comment<br/>/* Add your secure application code here prior to non-secure initialization */:</p><p>GPIO_InitTypeDef GPIO_InitStruct = {0};<br/>__HAL_RCC_GPIOG_CLK_ENABLE();<br/>HAL_PWREx_EnableVddIO2();<br/>HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);</p><p>GPIO_InitStruct.Pin = GPIO_PIN_12;<br/>GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;<br/>GPIO_InitStruct.Pull = GPIO_PULLUP;<br/>GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;<br/>HAL_GPIO_Init(GPIOG, &amp;GPIO_InitStruct);</p><p>HAL_GPIO_ConfigPinAttributes(GPIOG, GPIO_PIN_12, GPIO_PIN_NSEC);<br/>I hope this answers your question.</p><p>Best regards,</p></div>",
+                    "author": "SirineST",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you so much, this solved my problem.</p></div>",
+                    "author": "erne_ramos",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "SirineST",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

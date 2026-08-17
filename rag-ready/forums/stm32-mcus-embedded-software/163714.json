@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "163714",
+            "publicId": "163714",
+            "title": "STM32F469AIHX: fails when using Bootloader + Application split at over 128Mhz",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f469aihx-fails-when-using-bootloader-application-split-at-over-128mhz-163714",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bootloader",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-12T01:11:41+00:00",
+            "views": 243,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "This issue has cleared. It's my fault.",
+            "best_answer_author": "luisfynn1",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I am developing firmware with a Boot region and Application region split for OTA firmware update on STM32F469AIHX.\n\n[Environment]\n\n- MCU: STM32F469AIHX (Max core clock: 180MHz)\n\n- IDE: STM32CubeIDE\n\n- HAL Library: STM32CubeF4\n\n- Flash layout: Bootloader (Sector 0~N) / Application (Sector N+1~)\n\n[Problem]\n\nWhen the flash is split into Boot and App regions, the system does not operate correctly at 180MHz.\n\nHowever, setting the core clock to 128MHz works fine.\n\nAlso, the Application running alone from address 0x08000000 works fine at 180MHz.\n\n[What I have already tried]\n\n- Reset CubeMX configuration to default, only changed flash memory layout\n\n- Verified VTOR is correctly set to APPLICATION\\_ADDRESS\n\n- Verified SysTick\\_Handler calls HAL\\_IncTick()\n\n- Confirmed uwTick does not increment when running at 180MHz after jump\n\n- Removed HAL\\_RCC\\_DeInit() / HAL\\_DeInit() before jump in bootloader\n\n- Tried setting SCB->VTOR before HAL\\_Init() in application main()\n\n[Bootloader jump code]\n\n```\n\n__disable_irq();\n\nSysTick->CTRL = 0;\n\nSysTick->LOAD = 0;\n\nSysTick->VAL = 0;\n\nSCB->VTOR = APPLICATION_ADDRESS;\n\nJumpAddress = *(__IO uint32_t*)(APPLICATION_ADDRESS + 4);\n\nJumpToApplication = (pFunction)JumpAddress;\n\n__set_MSP(*(__IO uint32_t*)APPLICATION_ADDRESS);\n\nJumpToApplication();\n\n```\n\n[Question]\n\n1. Why does 180MHz fail only when Boot+App split is used?\n\n2. Is there any specific RCC or Flash latency configuration required when jumping from bootloader to application?\n\n3. Could Flash wait states (FLASH\\_ACR latency) be the root cause?\n\nAny advice would be greatly appreciated.\n\nThank you.",
+            "images": [],
+            "author": "luisfynn1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Are bootloader and application running at the same system clock frequency? are you changing the flash wait states if the frequency is changing?</p>\n<p>So if they are running at 180MHz the application doesn't start while if they are running at 128Mhz the application does?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This issue has cleared. It's my fault.</p></div>",
+                    "author": "luisfynn1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"8852\">@luisfynn1</user-mention> </p>\n<p>You need to provide the solution and the exact issue and accept it rather than you tell that you've solved it without giving any hint.</p>\n<p>So please provide the solution of your issue.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

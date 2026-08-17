@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "163953",
+            "publicId": "163953",
+            "title": "Pin names with \"_\" and \"-\" have the same effective output name in C code (main.h)",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/pin-names-with-and-have-the-same-effective-output-name-in-c-code-main-h-163953",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-03-18T16:59:39+00:00",
+            "views": 461,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Lloyd1968 @mfgkw @Andrew Neil @Andrei Chichak\n\nYour findings match exactly what CubeMX is documented to do, and they also explain why you saw the behavior with CLK-A / CLK\\_A. What the documentation says:\n\n![1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5fa752b3-e317-af08-281a-a135e1d1a3e5.png \"1.png\")\n\n![2.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d43e00e1-9c1e-98dc-e0fe-82e5436d630c.png \"2.png\")\n\n1- Label normalization rules:\n\nLabels must start with a letter or \\_.\n\nThey must not include special characters like -, (), [], etc.\n\nAny special character is replaced by \\_ in the generated #define name.\n\nSo:\n\nCLK-A → normalized to CLK\\_A\n\nCLK\\_A → already valid, stays CLK\\_A\n\n2- Duplicate labels :If there are duplicate labels (after normalization), CubeMX\n\nKeeps the original label as‑is for the first pin.\n\nAdds a unique suffix <Port><Pin> for the next ones.\n\n```\n\n/* Private defines -----------------------------------------------------------*/\n\n#define CLK_A_Pin GPIO_PIN_0\n\n#define CLK_A_GPIO_Port GPIOF\n\n#define CLK_AG7_Pin GPIO_PIN_7\n\n#define CLK_AG7_GPIO_Port GPIOG\n\n```\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am using STM32CubeMX (Version 6.17.0).\n\nHere is what happened. I created a PIN name \"CLK-A\". After some troubleshooting, I found a mistake in my pinout definitions. I named the correct pin as \"CLK\\_A\". However, I did not delete the \"CLK-A\" pin.\n\nWhen the C code was generated for the project, the \"CLK-A\" pin was defined as \"CLK\\_A\" in the output C file. The tool did not flag me that there were two pins with the same effective name. It took me some time to track down the issue. Once I deleted original \"CLK-A\" pin definition, my design worked.\n\nI added \"CLK-A\" back to the design on another pin\". I got \"CLK\\_A<pin name>\" in the \"header.h\" file. The first pin defined seemed to have priority.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5fa752b3-e317-af08-281a-a135e1d1a3e5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d43e00e1-9c1e-98dc-e0fe-82e5436d630c.png"
+            ],
+            "author": "Lloyd1968",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>CubeMX also allows names with spaces, and changes the spaces to underscores in the generated C code.</p><p>I haven't tried with other characters that  are not legal in C; eg /CS ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">I was hoping that your software would do a check to let the user know that there would be a naming conflict.<br/>FYI- The STM IDE and MX code are my favorite programming environment. I recommend it every time that someone starts a new project.<br/></div>",
+                    "author": "Lloyd1968",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"70098\">@Lloyd1968</user-mention> wrote:<br/> your software <br/><hr/></blockquote><p>It's not <em>my</em> software!</p><p>This is a community forum; most contributors are just users like you - not ST staff.</p><p><a href=\"https://community.st.com/t5/community-guidelines/st-community-welcome-guide/ta-p/575223#:~:text=How%20to%20identify%20ST%20employees\" target=\"_blank\"><em><u>How to identify ST employees</u></em></a></p><p> </p><blockquote><hr/><user-mention data-id=\"70098\">@Lloyd1968</user-mention> wrote:<br/>let the user know that there would be a naming conflict.<br/><hr/></blockquote><p>Yes, that would be helpful!</p><p><user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> It's one thing to have the behaviour documented, but it would still be helpful to get a warning in the app when this happens.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The pin names get turned into #defines in main.h. For the C preprocessor to handle these defines properly they have to use a character set that is compatible with the name rules of C.</p><p>Name rules in C allow a leading underscore or [a-z,A-Z]. Then you can have {_,0-9,a-z,A-Z}. Notice, no leading numbers (confused with numbers, octal, hex) or any periods, commas, ampersands, octothorps, carets, splats, openrounds, closerounds, you get the idea. These characters would tell the parsers to go in weird directions trying to recognize the context of your identifiers. C is from the '70s, this was hard, so it's not in the language.</p><p>CubeMX lets you put lots of stuff in the pin names, and if your EE used early versions to set up your project, you will know that EE pin names do not play well with C compilers. ST altered CubeMX to sanitize the pin names to give C compatible names. It's a good thing. Can you imagine someone who is new to C trying to fix code with this included:</p><pre class=\"lia-code-sample language-c\"><code>#define CS* PIN3</code></pre><p> That looks like a multiply to C, but to an EE its an active low pin.</p></div>",
+                    "author": "Andrei Chichak",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is true.</p><p>But it would not forbid CubeMX to warn about duplicate sanitized names.</p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"70098\">@Lloyd1968</user-mention> <user-mention data-id=\"87198\">@mfgkw</user-mention> <user-mention data-id=\"35659\">@Andrew Neil</user-mention> <user-mention data-id=\"5314\">@Andrei Chichak</user-mention> </p>\n<p>Your findings match exactly what CubeMX is documented to do, and they also explain why you saw the behavior with CLK-A / CLK_A. What the documentation says:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"1.png\" style=\"width: 612px;\"><img alt=\"1.png\" height=\"359\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5fa752b3-e317-af08-281a-a135e1d1a3e5.png\" title=\"1.png\" width=\"612\"/></span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"2.png\" style=\"width: 621px;\"><img alt=\"2.png\" height=\"458\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d43e00e1-9c1e-98dc-e0fe-82e5436d630c.png\" title=\"2.png\" width=\"621\"/></span></p>\n<p>1- Label normalization rules:</p>\n<p>Labels must start with a letter or _.<br/>They must not include special characters like -, (), [], etc.<br/>Any special character is replaced by _ in the generated #define name.<br/>So:</p>\n<p> CLK-A → normalized to CLK_A<br/> CLK_A → already valid, stays CLK_A</p>\n<p>2- Duplicate labels :If there are duplicate labels (after normalization), CubeMX</p>\n<p>Keeps the original label as‑is for the first pin.<br/>Adds a unique suffix &lt;Port&gt;&lt;Pin&gt; for the next ones.</p>\n<pre class=\"lia-code-sample language-c\"><code>/* Private defines -----------------------------------------------------------*/\n#define CLK_A_Pin GPIO_PIN_0\n#define CLK_A_GPIO_Port GPIOF\n#define CLK_AG7_Pin GPIO_PIN_7\n#define CLK_AG7_GPIO_Port GPIOG</code></pre>\n<p> </p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

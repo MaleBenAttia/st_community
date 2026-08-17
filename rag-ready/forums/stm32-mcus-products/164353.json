@@ -1,0 +1,133 @@
+{
+    "forum": [
+        {
+            "id": "164353",
+            "publicId": "164353",
+            "title": "Your experiences with the in-built bootloaders ?",
+            "url": "https://community.st.com/stm32-mcus-products-25/your-experiences-with-the-in-built-bootloaders-164353",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bootloader"
+            ],
+            "published_at": "2026-03-31T13:40:50+00:00",
+            "views": 893,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "Thanks again for all your input.\n\nWith all the info, having checked all documentation, I have decided against the system bootloader.\n\nReasons for that:\n\n* Interface 1): the L07x / L08x  devices I'll probably use have only UART bootloaders - which doesn't really fit into my design, as the main communication between base / modules will be via I2C. And I prefer \"clocked\" interfaces anyway (and don't want to have baud rate troubles or scale down below 115k2).\n\n* Interface 2): I don't like the interface scanning, I'll have different modules in the system, and it might be too much trouble keeping the unused IOs quiet.\n\n* Debugging: a self-made bootloader will give me the opportunity for debugging via UART, and / or at least LEDs.\n\n* Documentation: is still a little bit lacking, or distributed among too many documents. And I don't like having \"black boxes\" in a system.\n\n* I have enough experience writing my own bootloader, I could re-use lots of stuff that I already have (BL for H7, many AVRs).",
+            "best_answer_author": "LCE",
+            "best_answer_author_role": "Principal II",
+            "content_text": "Heyho,\n\nI'm currently designing a new modular system, with an STMH7 on the base-card. That one's basically up and running, including a self-made bootloader.\n\nNow I'm working on some new modules, these will be connected to the \"base H7\", probably via I2C, 2 extra UART lines might also be possible.\n\nThe previous system used ATmega-MCUs on the modules, now we'll surely use some STM32 type. These modules will not do any DSP or computing, so a \"small\" STM32 will do (tending towards L07x because of the EEPROM).\n\nTo save some dev time I'm thinking about using the internal bootloader for the module MCU, controlled by the base H7.\n\nI have checked the application notes (AN2606 and the ANs depending on the BL interface), also found the example source code from ST on Github.\n\nSo far that looks okay and doable, nevertheless user experience always wins over \"reading\". :D\n\nSo...\n\n1. Anybody using the ST bootloaders in some real-life products ?\n\n2. How did that go and work out ? Documentation and source code examples good enough for smooth development ?\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17b84af8-86a7-fea2-8dee-70b86cb0b04c.jpeg"
+            ],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"39813\">@LCE</user-mention> <br/><br/><span>ST does not provide the bootloader source code. However, application note AN2606, \"STM32 Microcontroller System Memory Boot Mode,\" offers comprehensive details about the STM32H7xx bootloader functionality and implementation.<br/><br/></span>Best regards,<br/>Bouraoui</p></div>",
+                    "author": "Bowman32",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, I thought I saw some example code from ST on Github?</p><p>AN2606 shows some basic info, the details are in the interface-dependent ANs.</p><p> </p><p><strike>BTW, I cannot find info about flash page size, neither in the DS, nor in the DM... why and where?</strike></p><p>Edit: okay, found that in the RM under NVM organization.<br/>Anyway, would be nice if one could find stuff like that with a simple \"page size\" search, or something similar.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/><p>I thought I saw some example code from ST on Github?</p><hr/></blockquote><p>Maybe that was for the \"Host\" side of the bootloader?</p><p>Maybe what <user-mention data-id=\"1006\">@Bowman32</user-mention> means is that ST don't provide the internal source for the code that's in ROM within the STM32?</p><p>That would make sense ...</p><p> </p><p><strong><u>PS</u>:</strong></p><p>The <a href=\"https://github.com/STMicroelectronics/stm32-mw-openbl/blob/main/README.md#:~:text=Open%20Bootloader%20supports%20exactly%20same%20protocol%20interfaces%20as%20STM32%20System%20Bootloader\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">STM32 </a><span><a href=\"https://github.com/STMicroelectronics/stm32-mw-openbl/blob/main/README.md#:~:text=Open%20Bootloader%20supports%20exactly%20same%20protocol%20interfaces%20as%20STM32%20System%20Bootloader\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">Open Bootloader supports exactly same protocol interfaces as STM32 System Bootloaders</a> - so you could use that ... ?</span></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I definitely mean the host side - I cannot do anything about the in-built bootloader anyway...</p><p> </p><p>&gt; <span>The </span><a href=\"https://github.com/STMicroelectronics/stm32-mw-openbl/blob/main/README.md#:~:text=Open%20Bootloader%20supports%20exactly%20same%20protocol%20interfaces%20as%20STM32%20System%20Bootloader\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">STM32 </a><span><a href=\"https://github.com/STMicroelectronics/stm32-mw-openbl/blob/main/README.md#:~:text=Open%20Bootloader%20supports%20exactly%20same%20protocol%20interfaces%20as%20STM32%20System%20Bootloader\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">Open Bootloader supports exactly same protocol interfaces as STM32 System Bootloaders</a> ...</span></p><p>Yes, that's what I found, so I was surprised about the \"no, we don't\" answer - classical misunderstanding.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/><ol><li>Anybody using the ST bootloaders in some real-life products ?</li></ol><hr/></blockquote><p>So, from the above, it seems that Arduino have used it in their MKR WAN 1300:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AndrewNeil_0-1774970524919.jpeg\" style=\"width: 400px;\"><img alt=\"AndrewNeil_0-1774970524919.jpeg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17b84af8-86a7-fea2-8dee-70b86cb0b04c.jpeg\" title=\"AndrewNeil_0-1774970524919.jpeg\"/></span></p><p><a href=\"https://docs.arduino.cc/hardware/mkr-wan-1300/\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://docs.arduino.cc/hardware/mkr-wan-1300/</a></p><p> </p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/>\n<ol>\n<li>Anybody using the ST bootloaders in some real-life products ?</li>\n</ol>\n<hr/></blockquote>\n<p>Many ST customers are using the built-in bootloader but I don't have the visibility on how they are using it.</p>\n<p>For bootloader host side you need to refer to the respective ANs.</p>\n<p>Example for I2C: <a href=\"https://www.st.com/resource/en/application_note/an4221-i2c-protocol-used-in-the-stm32-bootloader-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4221</a> \"I2C protocol used in the STM32 bootloader\"</p>\n<p>For USART: <a href=\"https://www.st.com/resource/en/application_note/an3155-how-to-use-usart-protocol-in-bootloader-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN3155</a> \"How to use USART protocol in bootloader on STM32 MCUs\"</p>\n<p>You need to implement the host protocol yourself.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As I've written, yes, I have found and checked the ANs.</p><p> </p><p>&gt; <span>Many ST customers are using the built-in bootloader but I don't have the visibility on how they are using it.</span></p><p><user-mention data-id=\"499\">@mƎALLEm</user-mention>  and the ST support team doesn't have too many customers complaining / having troubles with it ? :D</p><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/>\n<p><user-mention data-id=\"499\">@mƎALLEm</user-mention>  and the ST support team doesn't have too many customers complaining / having troubles with it ? :D</p>\n<hr/></blockquote>\n<p>To be honest, as any other features/peripherals, the bootloader could have issues. The limitations are listed in the errata sheet.</p>\n<p>For example in the case of STM32L4Rxxx (<a href=\"https://www.st.com/resource/en/errata_sheet/es0393-stm32l4rxxx-and-stm32l4sxxx-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">ES0393</a>) (see the screenshot in the attachment).</p>\n<p>So need to check the errata sheet first then do some tests..</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've used the UART and SPI and DFU bootloaders a bunch on a number of different boards. Never had a problem with any of them.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"37189\">@Pavel A.</user-mention>  &amp; <user-mention data-id=\"8205\">@TDK</user-mention> :</p><p>Thanks! This is some info I'm looking for! :)</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have used the Bootloader via FD-CAN and I2C on H730, non problems to implement this (the FDCAN gets connected to a Windows PC via a Peak FDCAN-USB dongle, the I2C is used together with a WEC7 Host) .</p></div>",
+                    "author": "MHoll.2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"39813\">@LCE</user-mention> </p>\n<p>So if your question has been answered, don't forget to accept the solution ;)</p>\n<p>Thanks</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, but still waiting for some more input... which might get less if solution accepted. ;)</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks again for all your input.</p><p>With all the info, having checked all documentation, I have decided against the system bootloader.</p><p>Reasons for that:</p><ul><li>Interface 1): the L07x / L08x  devices I'll probably use have only UART bootloaders - which doesn't really fit into my design, as the main communication between base / modules will be via I2C. And I prefer \"clocked\" interfaces anyway (and don't want to have baud rate troubles or scale down below 115k2).</li><li>Interface 2): I don't like the interface scanning, I'll have different modules in the system, and it might be too much trouble keeping the unused IOs quiet.</li><li>Debugging: a self-made bootloader will give me the opportunity for debugging via UART, and / or at least LEDs.</li><li>Documentation: is still a little bit lacking, or distributed among too many documents. And I don't like having \"black boxes\" in a system.</li><li>I have enough experience writing my own bootloader, I could re-use lots of stuff that I already have (BL for H7, many AVRs).</li></ul></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Bowman32",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

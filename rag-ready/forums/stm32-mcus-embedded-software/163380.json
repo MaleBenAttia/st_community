@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "163380",
+            "publicId": "163380",
+            "title": "STM32F446RET6: I2C Invalid address after repeated start",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f446ret6-i2c-invalid-address-after-repeated-start-163380",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "I2C",
+                "STM32F4 series",
+                "HAL"
+            ],
+            "published_at": "2026-03-03T12:48:27+00:00",
+            "views": 267,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "The specific guideline (my words, not ST) is to handle I2C flags immediately. If your other interrupts are fast enough, it won't matter, but that appears not to be the case here.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nWhile working with STM32F446RET6, I encountered a problem with I2C1. When using HAL\\_I2C\\_Mem\\_Read\\_IT(), an error occasionally occurs in the form of sending 0x00 instead of the address with the read bit after Repeated Start. The error seems to only occur with O3 optimization.\n\nI2C Configuration:\n\n![Arek7_0-1772541486190.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00a5d9f6-c462-0e26-52aa-d09c909e99ab.png \"Arek7_0-1772541486190.png\")\n\nNVIC Configuration:\n\n![Arek7_1-1772541486192.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dcf02efc-f866-e086-9438-03205fde3c60.png \"Arek7_1-1772541486192.png\")\n\nOnly TIM1 update interrupt (TIM10 not used), DMA1 stream2 (SPI3\\_RX) and DMA1 stream5 (SPI3\\_TX) have higher priority than I2C1.\n\nHere is an example of a correct signal:\n\n![Arek7_2-1772541486194.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c1d0a084-a25a-77e2-76d3-541ff371b3a9.png \"Arek7_2-1772541486194.png\")\n\nThe signal with error and I2C\\_Flush\\_DR() looks like this:\n\n![Arek7_3-1772541486195.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a077f5ac-2b93-dee9-5ff9-98ff0579fb34.png \"Arek7_3-1772541486195.png\")\n\n```\n\nstatic void I2C_Flush_DR(I2C_HandleTypeDef *hi2c)\n\n{\n\n/* Write a dummy data in DR to clear TXE flag */\n\nif (__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TXE) != RESET)\n\n{\n\nhi2c->Instance->DR = 0x00U;\n\n}\n\n}\n\n```\n\nThe signal and I2C\\_Flush\\_DR() looks like this:\n\n![Arek7_4-1772541486196.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e6fcfa32-9256-3685-c1a5-593968d84678.png \"Arek7_4-1772541486196.png\")\n\n```\n\nstatic void I2C_Flush_DR(I2C_HandleTypeDef *hi2c)\n\n{\n\n/* Write a dummy data in DR to clear TXE flag */\n\nif (__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TXE) != RESET)\n\n{\n\nhi2c->Instance->DR = 0xF4U;\n\n}\n\n}\n\n```\n\nAs you can see, this happens because I2C\\_Flush\\_DR() is called at the wrong time, but I don't know why. The slave address should be written to the DR register, but the value from I2C\\_Flush\\_DR() is written instead.\n\nCan anybody help?\n\nThanks,\n\nArek",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c1d0a084-a25a-77e2-76d3-541ff371b3a9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a077f5ac-2b93-dee9-5ff9-98ff0579fb34.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dcf02efc-f866-e086-9438-03205fde3c60.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e6fcfa32-9256-3685-c1a5-593968d84678.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00a5d9f6-c462-0e26-52aa-d09c909e99ab.png"
+            ],
+            "author": "Arek7",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The I2C peripheral on the STM32F4 has some unfortunate race conditions that must be met to succeed. It would not surprise me if one of these was failing due to the presence of other code.</p><p>Can you set the I2C interrupt priority to above all others and retest?</p><p>If that doesn't work, depending on your interest and ability level, you may need to instrument HAL to find out what specifically is failing and why. How repeatable is this?</p><p>I don't see why it would only happen on O3. All the relevant fields in I2C_HandleTypeDef are volatile.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The error appeared irregularly, every few minutes, sometimes more often. I ran test with a higher priority (~6 hours) and the error did not occur, but I don't know if it's gone or if it hasn't appeared yet. So it's possible that this is the solution.</p><p>I also ran tests with Og and O2 (each for 2-3 hours) and did not encounter such an error there, so I assumed that the error most likely occurs with O3.</p><p>For the future, are there any specific guidelines regarding event handling time? Or just be aware of the time dependencies and ensure them, e.g., through higher interrupt priority and no preemption?</p></div>",
+                    "author": "Arek7",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The specific guideline (my words, not ST) is to handle I2C flags immediately. If your other interrupts are fast enough, it won't matter, but that appears not to be the case here.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

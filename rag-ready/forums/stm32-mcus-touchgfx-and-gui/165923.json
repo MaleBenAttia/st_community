@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "165923",
+            "publicId": "165923",
+            "title": "In a TouchGFX project, how do I use GPU2D to draw independently?",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/in-a-touchgfx-project-how-do-i-use-gpu2d-to-draw-independently-165923",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX",
+                "GPU2D (NeoChrom)"
+            ],
+            "published_at": "2026-05-23T01:45:03+00:00",
+            "views": 127,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I kind of know what is wrong.\n\nAt the begaining of render，I enabled nema\\_enable\\_gradient(1); So the nema\\_clear can not work.\n\nIf I put nema\\_enable\\_gradient(1) after nema\\_clear, the nema\\_clear become normal.",
+            "best_answer_author": "AMB01",
+            "best_answer_author_role": "Associate",
+            "content_text": "**I am currently using TouchGFX to develop a project. How can I independently control GPU2D to draw graphics on a dynamic bitmap without affecting the TouchGFX display? I have already obtained the NeoChromSDK, but the examples in the NeoChromSDK all use GPU2D independently as well.  I can draw with GPU2D if touchgfx not in use,But once I display them both, screen got glitched.**",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3fb71c91-a9ca-a2f6-2611-a4fda36e2389.gif"
+            ],
+            "author": "AMB01",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Use TouchGFX dynamic bitmaps. Render into them via TouchGFX APIs.</p></div>",
+                    "author": "loveforcircuits",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is what I have done:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"VID_20260523_150154~3.gif\" style=\"width: 640px;\"><img alt=\"VID_20260523_150154~3.gif\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3fb71c91-a9ca-a2f6-2611-a4fda36e2389.gif\" title=\"VID_20260523_150154~3.gif\"/></span></p><p>This terrain is rendered by lots of triangles. The terrain itself is fine,but the background is not.</p><p>I cleared the dynamic bitmap and draw like this :</p><div> </div><pre class=\"lia-code-sample language-c\"><code>nema_bind_dst_tex((uintptr_t)pbuf, 460, 460, NEMA_RGB565, -1);\n\nnema_set_clip(0, 0, 460, 460);\n\nnema_clear(nema_rgba(0, 0, 255, 0xff));\n\nfor(){\n\ndrawTriangles();\n\n}</code></pre><p><span>But the nema_clear seems not working.</span></p><p><span>Can I get some help from some <user-mention data-id=\"4120\">@st_it</user-mention> guys?</span></p></div>",
+                    "author": "AMB01",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I kind of know what is wrong.</p><p>At the begaining of render，I enabled <span>nema_enable_gradient(1); </span><span>So the nema_clear can not work.</span></p><p><span>If I put nema_enable_gradient(1) after nema_clear, the nema_clear become normal.</span></p></div>",
+                    "author": "AMB01",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

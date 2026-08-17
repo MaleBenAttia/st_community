@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "165920",
+            "publicId": "165920",
+            "title": "about Sidekick - and its level of knowledge",
+            "url": "https://community.st.com/feedback-forum-118/about-sidekick-and-its-level-of-knowledge-165920",
+            "category": "Feedback forum",
+            "tags": [
+                "Need improvement",
+                "STM32 Sidekick"
+            ],
+            "published_at": "2026-05-22T18:59:24+00:00",
+            "views": 133,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "btw     speed...  for \"CLS\" , fill TFT 76800 pixel in 16b color (2 byte writes) at 32Mbit : 38.4 ms theor. possible .\n\n(core at 200MHz, optimizer -O2 , all caches ON , 64MHz for SPI4.)\n\nWith standard HAL used for pin switching and SPI i got : 204 ms ;\n\nNow (with Gemini's tips for direct SPI programming ) i get : 38 ms (+/- 1ms , time from systick).\n\nClose enough... I think.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Just for fun...i tried to use the SPI on H743 by direct setting and writing to registers:\n\n- i never got it working on some attempts years ago, so just used HAL , which just works.\n\n- now i tried again: cannot be, its so difficult...\n\n- ok, its a over complicated construction....old SPI on F303 works instantly and fast, no problem there.\n\n- but now have AI ... can it help?\n\nSo i tried Sidekick, it should be easy for him...it...whatever...\n\nI asked how to do...in German, more easy for me - and a test: can it understand...?\n\nSidekick tells:\n\n### 3. Zusammenfassung\n\nUm auf dem STM32H743 einen SPI-Transfer durch Schreiben auf SPI\\_TXDR zu starten, müssen Sie:\n\n* Die Datenlänge im SPI\\_CFG1-Register korrekt einstellen,\n\n* die Bitreihenfolge im SPI\\_CFG2-Register wählen,\n\n* die relevanten GPIOs konfigurieren,\n\n* das SPI-Modul aktivieren,\n\n* und dann die Daten in der konfigurierten Länge auf SPI\\_TXDR schreiben.\n\nEin Schreibzugriff mit weniger als der konfigurierten Datenlänge ist nicht zulässig.\n\n--- THIS didnt help me, as it also just brings one SPI transfer, then never more any Tx.\n\nSo i asked the google machine, KI mode, same question:\n\nWenn Sie fortlaufend Bytes durch einfaches Schreiben in TXDR senden möchten, ohne dass das Peripheriegerät nach dem ersten Byte blockiert, müssen Sie das Verhalten über **TSIZE = 0** steuern und den Zustand der SPI-Einheit beachten. [[1](https://stackoverflow.com/questions/57919896/disabling-spi-peripheral-on-stm32h7-between-two-transmissions), [2](https://community.st.com/t5/stm32-mcus-products/stm32h743-spi-stops-working-after-a-while-and-doesn-t-create/td-p/200091)]\n\nHier ist der korrekte Weg für den STM32H743:\n\nDie Lösung: \"Undefined Length Mode\" (TSIZE = 0) [[1](https://stackoverflow.com/questions/57919896/disabling-spi-peripheral-on-stm32h7-between-two-transmissions)]\n\nWenn das Register SPI\\_CR2->TSIZE auf 0 steht, wechselt die SPI-Hardware in den Modus mit unbestimmter Länge. Das CSTART-Bit wird in diesem Modus **nicht** automatisch gelöscht. Die Hardware generiert genau dann den SPI-Takt (SCK), wenn Daten im TX-FIFO liegen. [[1](https://community.st.com/t5/stm32-mcus-products/ctsize-becomes-0x01-after-spi-communication-is-completed/td-p/737214), [2](https://community.st.com/t5/stm32-mcus-products/stm32h743-spi-stops-working-after-a-while-and-doesn-t-create/td-p/200091), [3](https://community.st.com/t5/stm32-mcus-products/h7-migration-send-spi-without-using-hal/td-p/196427), [4](https://stackoverflow.com/questions/57919896/disabling-spi-peripheral-on-stm32h7-between-two-transmissions)]\n\nDamit das funktioniert, müssen Sie die SPI wie folgt initialisieren und ansteuern:\n\n```\n\nc// 1. SPI Grundkonfiguration (SPE muss 0 sein während der Konfiguration)\n\nSPI1->CR1 &= ~SPI_CR1_SPE;\n\nSPI1->CFG1 |= (7 << SPI_CFG1_DSIZE_Pos); // 8-Bit Datenbreite (0x7 = 8-bit)\n\nSPI1->CFG1 &= ~SPI_CFG1_TXDMAEN; // DMA deaktivieren (falls vorher aktiv)\n\n// 2. TSIZE zwingend auf 0 setzen für Endlos-Modus\n\nSPI1->CR2 &= ~SPI_CR2_TSIZE; // TSIZE = 0\n\n// 3. SPI einschalten\n\nSPI1->CR1 |= SPI_CR1_SPE;\n\n// 4. Master-Transfer dauerhaft aktivieren\n\nSPI1->CR1 |= SPI_CR1_CSTART;\n\n```\n\nWie Sie danach Daten senden\n\nDa CSTART nun dauerhaft aktiv bleibt, müssen Sie vor jedem Schreibzugriff auf TXDR prüfen, ob im TX-FIFO überhaupt Platz ist (**TXP**-Flag im SR-Register). [[1](https://community.st.com/t5/stm32-mcus-products/is-there-any-way-to-know-when-a-stm32h7-spi-master-has/td-p/144985), [2](https://community.st.com/t5/stm32-mcus-products/spi-using-registers-in-stm32h7-there-is-no-spi1-gt-dr-like-in/td-p/204334)]\n\n```\n\ncvoid SPI_SendByte(uint8_t data) {\n\n// Warten, bis der TX-FIFO bereit für neue Daten ist (TX-Packet space available)\n\nwhile (!(SPI1->SR & SPI_SR_TXP));\n\n// Daten mit exakter 8-Bit-Breite in das Register schreiben\n\n*((__IO uint8_t *)&SPI1->TXDR) = data;\n\n}\n\n```\n\nAnd right, this was working , as its writing.\n\nBut the target, TFT, not happy with 400% more speed now, needs little delay between command and data,\n\nso i asked for this feature:\n\nDa Sie im **\"Undefined Length Mode\" (TSIZE = 0)** arbeiten, bleibt der SPI-Takt aktiv, solange Daten im FIFO sind. Um eine saubere Pause einzulegen und sicherzugehen, dass das Byte komplett auf den Leitungen übertragen wurde, müssen Sie auf das **TXC-Flag (Transmission Complete)** im SPI\\_SR-Register warten.\n\nHier ist die korrekte Vorgehensweise für den STM32H743:\n\n```\n\ncvoid ST7789_SendByte(uint8_t data) {\n\n// 1. Warten, bis Platz im TX-FIFO ist\n\nwhile (!(SPI1->SR & SPI_SR_TXP));\n\n// 2. Byte schreiben\n\n*((__IO uint8_t *)&SPI1->TXDR) = data;\n\n// 3. Zwingend warten, bis das Byte komplett über die Pins gesendet wurde!\n\n// TXC wird erst 1, wenn der TX-FIFO leer ist UND das Schieberegister fertig ist.\n\nwhile (!(SPI1->SR & SPI_SR_TXC));\n\n}\n\n```\n\n....and yes, its working this way.\n\n--------------------------------------------\n\nSo comparing the level and quality of info/help, .......\n\nwell, the  only good thing about this Sidekick thing is...that it has plenty of room for improvement.\n\nTruly extremely disappointing.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/91cff8be-de74-af70-9d14-7b46b572daf9.png"
+            ],
+            "author": "AScha.3",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear <user-mention data-id=\"34409\">@AScha.3</user-mention> ,</p>\n<p>Thank you for the valuable feedback, indeed today we are not supporting inside Sidekick software code generation and answers are focused on MCU documentation and official from our web site. However, this feedback is important and will take into account for the roadmap and priorities with our teams .</p>\n<p>Much appreciated.</p>\n<p>STOne-32</p></div>",
+                    "author": "STOne-32",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>As said by <user-mention data-id=\"442\">@STOne-32</user-mention>, today Sidekick is not intended to generate code or analyze it. It's only intended to help users to find information in the different documentations and this was stated in the Sidekick default prompt:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1779479273476.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1779479273476.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/91cff8be-de74-af70-9d14-7b46b572daf9.png\" title=\"mALLEm_0-1779479273476.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I didnt make a test...i just tried to get \"help\" with this strange complicated SPI , because no useful examples also.</p><p>Just see, what the Gemini /google answered, after i wrote: its working now:</p><p>It’s great that everything is running smoothly now! For displays like the ST7789, the combination of precisely waiting for the TXC flag and manually controlling the D/C and CS GPIOs is indeed the most stable solution. Since the software overhead involved in toggling the GPIOs briefly delays execution, the display controller receives exactly the minimal pause it requires for processing. However, if you later wish to transfer large amounts of data—such as entire images or framebuffers—to the display, waiting byte-by-byte within the loop will consume a significant amount of CPU time. If you decide to optimize this project in the future, we could tackle the following steps next: Block Transfers—sending large pixel arrays in a fast \"Continuous Mode\" (without pauses between bytes); and DMA Support—transferring the entire image buffer to the display in the background, thereby allowing your CPU to handle other tasks simultaneously. Would you like to optimize the transmission of image data (Burst Mode) next, or is the display already running fast enough for your current application?</p><p>--- too much for tonight, but ... can you feel some difference in level ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>btw     speed...  for \"CLS\" , fill TFT 76800 pixel in 16b color (2 byte writes) at 32Mbit : 38.4 ms theor. possible .</p><p>(core at 200MHz, optimizer -O2 , all caches ON , 64MHz for SPI4.)</p><p>With standard HAL used for pin switching and SPI i got : 204 ms ;</p><p>Now (with Gemini's tips for direct SPI programming ) i get : 38 ms (+/- 1ms , time from systick).</p><p> </p><p>Close enough... I think.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STOne-32",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

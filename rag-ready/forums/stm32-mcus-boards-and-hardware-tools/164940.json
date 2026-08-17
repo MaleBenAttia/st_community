@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "164940",
+            "publicId": "164940",
+            "title": "STM32F4DISCOVERY issue - RDP stuck at 0xFF",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32f4discovery-issue-rdp-stuck-at-0xff-164940",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32F4 series",
+                "ST boards"
+            ],
+            "published_at": "2026-04-21T02:16:10+00:00",
+            "views": 643,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @raniaa wrote:\n\n>\n\n> If the same program works on the second board, can I conclude that the first board is faulty? And if the same problem also appears on the second board, what should I check or do next?\n\n>\n\n> ---\n\nIf with the second board and without connecting something else **still working**, the first board is broken.\n\nIf with the second board and without connecting something else, **stops working**, there is something in your application/code causes the behavior..",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hey everyone,\n\nI'm having a weird issue with my STM32F4DISCOVERY board (MB997). It was working fine before, but now I can't program it anymore.\n\n**Board info:**\n\n* Board: STM32F4DISCOVERY\n\n* Device: STM32F407VGT6\n\n* ST-LINK FW: V2J46M33\n\n* ST-LINK SN: 0671FF37324D423143244649\n\n**Symptoms:**\n\n* STM32CubeProgrammer connects OK (Device ID 0x413 confirmed)\n\n* Flash erase fails: Error: failed to erase memory sectors [0-2]\n\n* RDP Option Byte shows 0xFF (corrupted)\n\n* BOR\\_LEV = 3 (BOR OFF)\n\n* Writing RDP from 0xFF to 0xAA fails, always comes back as 0xFF\n\n* VDD measured at 2.89V\n\n**What I've tried:**\n\n* Under Reset mode\n\n* ST-LINK Utility\n\n* STM32cubeProgrammer\n\n* Different USB cable\n\n* ST-LINK firmware update\n\nNothing works. RDP is stuck at 0xFF.\n\nHas anyone seen this before? Any suggestions?\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/33161ab4-f4e4-cfa9-24fc-9a8f44ee0582.png"
+            ],
+            "author": "raniaa",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"103707\">@raniaa</user-mention> wrote:<br/>\n<div class=\"\"> </div>\n<div class=\"\">\n<div class=\"\">\n<div class=\"\">\n<div class=\"\">\n<div class=\"\">\n<div class=\"\">\n<div class=\"\">\n<p>If the same program works on the second board, can I conclude that the first board is faulty? And if the same problem also appears on the second board, what should I check or do next?</p>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n</div>\n<hr/></blockquote>\n<p>If with the second board and <u>without connecting something else</u> <strong>still working</strong>, the first board is broken.</p>\n<p>If with the second board and <u>without connecting something else</u>, <strong>stops working</strong>, there is something in your application/code causes the behavior.. </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"103707\">@raniaa</user-mention> <br/>This is kind a weird issue to have<br/>first did you apply any <br/>-hardware modification<br/>-flashed some code<br/>-modified the RDP <br/>between when the board was working fine and stopped working?<br/>-Also, the 2.89V is suspicious<br/>-also, do you feel like the MCU itself gets overheated? <br/>can you test the voltage at MCU level and see what you get? maybe the board voltage regulator becomes faulty<br/>which lead to some corruption when flashing the memory: (don't forget to remove the jumper before measuring)</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Gyessine_0-1776779317776.png\" style=\"width: 400px;\"><img alt=\"Gyessine_0-1776779317776.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/33161ab4-f4e4-cfa9-24fc-9a8f44ee0582.png\" title=\"Gyessine_0-1776779317776.png\"/></span></p>\n<p>-Also, can you try to connect it using the under-reset mode then reprogram RDP to 0xAA enable BOR and do a power cycle<br/>BR<br/>Gyessine<br/><br/></p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Hello,</span></p><p class=\"\"><span>Yes, I did flash code before the issue appeared.</span><br/><span>I did not modify the RDP manually.</span></p><p class=\"\"><span>The MCU is not overheating.</span></p><p><span>I measured the voltage directly on the MCU VDD pins using a multimeter, and I get around 2.93V</span></p></div>",
+                    "author": "raniaa",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"103707\">@raniaa</user-mention> wrote:<br/>\n<p><span>I measured the voltage directly on the MCU VDD pins using a multimeter, and I get around 2.93V</span></p>\n<hr/></blockquote>\n<p>The idea here is to remove JP1 and measure the voltage of the power source side on that jumper. The purpose is to detect if there is a voltage drop on the voltage regulator output while powering supply the MCU.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

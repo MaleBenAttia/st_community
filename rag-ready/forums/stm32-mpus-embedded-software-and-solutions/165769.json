@@ -1,0 +1,39 @@
+{
+    "forum": [
+        {
+            "id": "165769",
+            "publicId": "165769",
+            "title": "\"Synchronous Abort\" handler, esr 0x96000006, far 0x0",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/synchronous-abort-handler-esr-0x96000006-far-0x0-165769",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "Yocto",
+                "Other boards",
+                "U-Boot",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-05-18T07:06:56+00:00",
+            "views": 77,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "The problem was in U-boot DT.\n\n```\n\n&ltdc {\n\nstatus = \"okay\";\n\n/* USER CODE BEGIN ltdc */\n\nport{\n\n#address-cells = <1>;\n\n#size-cells = <0>;\n\n};\n\n/* USER CODE END ltdc */\n\n};\n\n```\n\nThe solution was to copy the DT from.DK.\n\n```\n\n&ltdc {\n\nstatus = \"okay\";\n\n/* USER CODE BEGIN ltdc */\n\nport{\n\n#address-cells = <1>;\n\n#size-cells = <0>;\n\nltdc_ep0_out:endpoint@0{\n\nreg = <0>;\n\nremote-endpoint = <&dsi_in>;\n\n};\n\n};\n\n/* USER CODE END ltdc */\n\n};\n\n```\n\nNow Linux is booting!",
+            "best_answer_author": "DMårt",
+            "best_answer_author_role": "Lead",
+            "content_text": "I wonder why this is happening after U-boot has booten up?\n\nIt seems that something is NULL.\n\n```\n\nD/TC:? 0 tee_ta_close_session:484 Destroy session\n\nError: eth1@482c0000 address not set.\n\nD/TC:? 0 tee_ta_init_session_with_context:562 Re-open trusted service a8cfe406-d4f5-4a2e-9f8d-a25dc754c099\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x3 ptypes 0x3\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x4 ptypes 0x651\n\nD/TC:? 0 tee_ta_close_session:465 csess 0x821301f0 id 1\n\nD/TC:? 0 tee_ta_close_session:484 Destroy session\n\nNo ethernet found.\n\n�7�[r�[999;999H�[6n�8No EFI system partition\n\nNo EFI system partition\n\nFailed to persist EFI variables\n\nD/TC:? 0 tee_ta_init_pseudo_ta_session:303 Lookup pseudo TA ab7a617c-b8e7-4d8f-8301-d09b61036b64\n\nD/TC:? 0 tee_ta_init_pseudo_ta_session:315 Open rng.pta\n\nD/TC:? 0 tee_ta_init_pseudo_ta_session:330 rng.pta : ab7a617c-b8e7-4d8f-8301-d09b61036b64\n\nF/TC:? 0 plat_prng_add_jitter_entropy:74 0x1C\n\nD/TC:? 0 tee_ta_close_session:465 csess 0x821301f0 id 1\n\nD/TC:? 0 tee_ta_close_session:484 Destroy session\n\nD/TC:? 0 tee_ta_init_session_with_context:562 Re-open trusted service a8cfe406-d4f5-4a2e-9f8d-a25dc754c099\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x3 ptypes 0x3\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x4 ptypes 0x651\n\nD/TC:? 0 tee_ta_close_session:465 csess 0x82130040 id 1\n\nD/TC:? 0 tee_ta_close_session:484 Destroy session\n\n\"Synchronous Abort\" handler, esr 0x96000006, far 0x0\n\nelr: 00000000840900b4 lr : 0000000084090b24 (reloc)\n\nelr: 00000000fa0b40b4 lr : 00000000fa0b4b24\n\nx0 : 0000000000000000 x1 : 00000000f8005218\n\nx2 : 0000000000000000 x3 : 0000000000000005\n\nx4 : 0000000000000000 x5 : 00000000fa15f14f\n\nx6 : 0000000000000000 x7 : 0000000000000002\n\nx8 : 00000000f8004e90 x9 : fffffffffffffff0\n\nx10: f80051c800000000 x11: f803531000000000\n\nx12: 2e4af5d406e4cfa8 x13: 99c054c75da28d9f\n\nx14: 00000000f8005058 x15: 00000000f8005060\n\nx16: 00000000fa0c3634 x17: 45afd5bf09c54952\n\nx18: 00000000f8021d50 x19: 00000000f805a1b0\n\nx20: 00000000f8073dd0 x21: 0000000000000000\n\nx22: 00000000fa153c34 x23: 00000000f8075e90\n\nx24: 00000000f8035520 x25: 0000000000000000\n\nx26: 0000000000000000 x27: 00000000fa172c6a\n\nx28: 0000000000000000 x29: 00000000f80050e0\n\nCode: aa0103f0 d61f0200 128004a0 d65f03c0 (f9400002)\n\nResetting CPU ...\n\nresetting ...\n\nINFO: PSCI Power Domain Map:\n\nINFO: Domain Node : Level 4, parent_node 4294967295, State ON (0x0)\n\nINFO: Domain Node : Level 3, parent_node 0, State ON (0x0)\n\n```\n\nLink to my DT for U-boot: <https://github.com/DanielMartensson/Watermelon-Wine-1A/tree/linux-testing/watermelon-wine-os%2Flayers%2Fmeta-watermelon-wine%2Fmx%2Fwatermelon-wine-1a%2FCA35%2FDeviceTree%2Fwatermelon-wine-1a%2Fu-boot>\n\nI have attached the output log as well.",
+            "images": [],
+            "author": "DMårt",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The problem was in U-boot DT.</p><pre class=\"lia-code-sample language-c\"><code>&amp;ltdc {\n\tstatus = \"okay\";\n\n\t/* USER CODE BEGIN ltdc */\n\tport{\n\t\t#address-cells = &lt;1&gt;;\n\t\t#size-cells = &lt;0&gt;;\n\t};\n\t/* USER CODE END ltdc */\n};</code></pre><p> </p><p>The solution was to copy the DT from.DK.</p><pre class=\"lia-code-sample language-c\"><code>&amp;ltdc {\n\tstatus = \"okay\";\n\n\t/* USER CODE BEGIN ltdc */\n\tport{\n\t\t#address-cells = &lt;1&gt;;\n\t\t#size-cells = &lt;0&gt;;\n\n\t\tltdc_ep0_out:endpoint@0{\n\t\t\treg = &lt;0&gt;;\n\t\t\tremote-endpoint = &lt;&amp;dsi_in&gt;;\n\t\t};\n\t};\n\t/* USER CODE END ltdc */\n};</code></pre><p>Now Linux is booting!</p></div>",
+                    "author": "DMårt",
+                    "role": "Lead"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

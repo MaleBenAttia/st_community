@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "165140",
+            "publicId": "165140",
+            "title": "STSPIN32G4 gets stuck in an infinite while loop inside R3_2_SwitchOffPWM() during the motor control",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/stspin32g4-gets-stuck-in-an-infinite-while-loop-inside-r3-2-switchoffpwm-during-the-motor-control-165140",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "STM32G4 series"
+            ],
+            "published_at": "2026-04-27T05:30:23+00:00",
+            "views": 389,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Raj6135,\n\nDoes *MCSDK\\_v6.4.2-Full* folder present in ~/STM32Cube/Repository? If not, uninstall and reinstall  MCSDK6.4.2.\n\nGenerate a **new** project (do not use a previously use directory).\n\nGenerated .ioc file should contain \"*ExtraMW.MotorControl.Root=MCSDK\\_v6.4.2-Full/MotorControl*\".\n\nSTM32CubeMX v6.17.0 is recommended for MCSDK6.4.2 (refer to MCSDK release note for more details).",
+            "best_answer_author": "GMA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm running into an issue where my STM32G4 gets stuck in an infinite while loop inside R3\\_2\\_SwitchOffPWM() during the motor control initialisation sequence, and I wanted to share it here in case others have encountered the same thing.\n\n---\n\n**Hardware & Software**\n\n- Board: EVSPIN32G4\n\n- Code generation tool: ST Motor Control Workbench v6.4.2\n\n- No manual edits made to any generated files\n\n---\n\n**What happens**\n\nDuring startup, MX\\_MotorControl\\_Init() is called from main(), which triggers MCboot() → FOC\\_Clear() → PWMC\\_SwitchOffPWM() → R3\\_2\\_SwitchOffPWM(). Inside that function, execution enters this loop and never exits:\n\n/\\* wait for a new PWM period to flush last HF task \\*/\n\nLL\\_TIM\\_ClearFlag\\_UPDATE(TIMx);\n\nwhile (LL\\_TIM\\_IsActiveFlag\\_UPDATE(TIMx) == 0u)\n\n{}\n\nLL\\_TIM\\_ClearFlag\\_UPDATE(TIMx);\n\n**(Project Files attached)**",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f45b161f-422c-d4cf-9fbe-e00834079315.png"
+            ],
+            "author": "Raj6135",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93500\">@Raj6135</user-mention>,</p>\n<p>Project has been generated with MCSDK6.4.2, but on your ioc file \"ExtraMW.MotorControl.Root=MCSDK_v5.4.8-Full/MotorControl\" and in the project directory there is MCSDK_v5.4.8-Full.<br/>Did you modify the wb2mx.properties file?</p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Thank you for the reply, <a rel=\"noopener\" target=\"_blank\">@GMA.</a> I did not modify any project files; however, there are multiple versions installed on my computer (as listed in the attached image).</span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Raj6135_0-1777285177467.png\" style=\"width: 400px;\"><img alt=\"Raj6135_0-1777285177467.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f45b161f-422c-d4cf-9fbe-e00834079315.png\" title=\"Raj6135_0-1777285177467.png\"/></span></p><p> </p></div>",
+                    "author": "Raj6135",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93500\">@Raj6135</user-mention>,</p>\n<p>Does <em>MCSDK_v6.4.2-Full</em> folder present in ~/STM32Cube/Repository? If not, <span>uninstall and reinstall </span> MCSDK6.4.2.<br/>Generate a <strong>new</strong> project (do not use a previously use directory).<br/>Generated .ioc file should contain \"<em>ExtraMW.MotorControl.Root=MCSDK_v6.4.2-Full/MotorControl</em>\".</p>\n<p>STM32CubeMX v6.17.0 <span>is recommended for</span> MCSDK6.4.2 (refer to MCSDK release note for more details).</p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

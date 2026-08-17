@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "164332",
+            "publicId": "164332",
+            "title": "Strange delays when changing PWM using Circular DMA",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/strange-delays-when-changing-pwm-using-circular-dma-164332",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "DMA",
+                "STM32G0 series",
+                "TIM"
+            ],
+            "published_at": "2026-03-31T08:32:20+00:00",
+            "views": 302,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "> there is always a delay of more than 10 seconds between the calling of the function and the change in the motor behaviour\n\nHow do you know? How do you observe the point in time when the function is called?\n\nHave you measured the actual PWM output?\n\n> I use the \\_\\_HAL\\_TIM\\_SET\\_COMPARE to change the pwm faster and the pwm\\_ch1 pwm\\_ch2 just contain one element so the DMA doesn't have to wait to change it.\n\n...and still it takes 10 seconds until the effect?\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello world!\n\nI want to move a motor with serial commands. I use the stm32g051 PWM and a DC motor. And for the sake of lower consumption of energy and cpu I use a dma in circular mode. And of course I want to change the pwm from time to time.\n\nBut somehow, there is always a delay of more than 10 seconds between the calling of the function and the change in the motor behaviour.\n\n```\n\nmid_error_t tim_forward_buffers(void)\n\n{\n\nfor (uint16_t i=0; i<PWM_BUF_LEN; i++){\n\npwm_ch1[i] = (uint32_t)(param.speed * (htim2.Init.Period-2))/ MAX_SPEED;\n\n//pwm_ch1[i] = 0; // htim2.Init.Period;\n\npwm_ch2[i] = 0;\n\n}\n\n__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, pwm_ch1[0]);\n\n__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pwm_ch2[0]);\n\nreturn MID_ERROR_OK;\n\n}\n\n```\n\nYou may guess that the PWM\\_BUF\\_LEN is too big... There is just one element in pwm\\_ch1 and pwm\\_ch2. What may cause this problem?\n\nI use the \\_\\_HAL\\_TIM\\_SET\\_COMPARE to change the pwm faster and the pwm\\_ch1 pwm\\_ch2 just contain one element so the DMA doesn't have to wait to change it.",
+            "images": [],
+            "author": "carleslsregner",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My guess: the timer period is long.<br/>Changing the compare value has no immediate effect, but is buffered in a shadow register and updated at the next update event.  You may force update by</p><pre class=\"lia-code-sample language-c\"><code>TIM2-&gt;CCR1 = new_value;\nTIM2-&gt;EGR |= TIM_EGR_UG; // force update event</code></pre><p>or disable buffering in advance:</p><pre class=\"lia-code-sample language-c\"><code>TIM2-&gt;CCMR1 &amp;= ~TIM_CCMR1_OC1PE; // for channel 1</code></pre><p>hth</p><p>KnarfB</p></div>",
+                    "author": "KnarfB",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am going to change the timer period -I guess it is the pwm period too-.</p><p> </p><p> </p><pre class=\"lia-code-sample language-c\"><code>/* TIM2 init function */\n/**\n * @brief Initialize TIM2 for PWM generation on channels 1 and 2 with DMA support\n */\nmid_error_t MX_TIM2_Init(void)\n{\n\n /* USER CODE BEGIN TIM2_Init 0 */\n\n /* USER CODE END TIM2_Init 0 */\n\n TIM_ClockConfigTypeDef sClockSourceConfig = {0};\n TIM_MasterConfigTypeDef sMasterConfig = {0};\n TIM_OC_InitTypeDef sConfigOC = {0};\n\n /* USER CODE BEGIN TIM2_Init 1 */\n\n /* USER CODE END TIM2_Init 1 */\n htim2.Instance = TIM2;\n htim2.Init.Prescaler = 3;\n htim2.Init.CounterMode = TIM_COUNTERMODE_UP;\n htim2.Init.Period = 399; // 20kHz PWM frequency with 64MHz timer clock\n htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;\n htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;\n if (HAL_TIM_Base_Init(&amp;htim2) != HAL_OK)\n {\n return MID_ERROR_FAILED_INIT;\n }\n sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;\n if (HAL_TIM_ConfigClockSource(&amp;htim2, &amp;sClockSourceConfig) != HAL_OK)\n {\n return MID_ERROR_FAILED_INIT;\n }\n if (HAL_TIM_PWM_Init(&amp;htim2) != HAL_OK)\n {\n\t return MID_ERROR_FAILED_INIT;\n }\n sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;\n sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;\n if (HAL_TIMEx_MasterConfigSynchronization(&amp;htim2, &amp;sMasterConfig) != HAL_OK)\n {\n\t return MID_ERROR_FAILED_INIT;\n }\n sConfigOC.OCMode = TIM_OCMODE_PWM1;\n sConfigOC.Pulse = 0;\n sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;\n sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;\n if (HAL_TIM_PWM_ConfigChannel(&amp;htim2, &amp;sConfigOC, TIM_CHANNEL_1) != HAL_OK)\n {\n\t return MID_ERROR_FAILED_INIT;\n }\n if (HAL_TIM_PWM_ConfigChannel(&amp;htim2, &amp;sConfigOC, TIM_CHANNEL_2) != HAL_OK)\n {\n\t return MID_ERROR_FAILED_INIT;\n }\n /* USER CODE BEGIN TIM2_Init 2 */\n\n /* USER CODE END TIM2_Init 2 */\n HAL_TIM_MspPostInit(&amp;htim2);\n\n// if( tim_brake_buffers() != MID_ERROR_OK) // brake by default\n// {\n//\t return MID_ERROR_FAILED_INIT;\n// }\n\n\n\n\n\n\n HAL_TIM_PWM_Start_DMA(&amp;htim2, TIM_CHANNEL_1, pwm_ch1, PWM_BUF_LEN);\n HAL_TIM_PWM_Start_DMA(&amp;htim2, TIM_CHANNEL_2, pwm_ch2, PWM_BUF_LEN);\n\n return MID_ERROR_OK;\n\n}</code></pre><p> </p></div>",
+                    "author": "carleslsregner",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't see anything wrong with the posted code. I would recheck your assumptions here.</p><p><em>&gt; //pwm_ch1[i] = 0; // htim2.Init.Period;</em></p><p>This is not the \"Period\" parameter. It's the \"pulse\" parameter.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; there is always a delay of more than 10 seconds between the calling of the function and the change in the motor behaviour</p><p>How do you know? How do you observe the point in time when the function is called? </p><p>Have you measured the actual PWM output?</p><p>&gt; I use the __HAL_TIM_SET_COMPARE to change the pwm faster and the pwm_ch1 pwm_ch2 just contain one element so the DMA doesn't have to wait to change it.</p><p>...and still it takes 10 seconds until the effect?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My guess is that this is a hardware issue... it seems related to the elecrtonics behind it. </p><p>Thanks you all. </p></div>",
+                    "author": "carleslsregner",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

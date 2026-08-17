@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "166232",
+            "publicId": "166253",
+            "title": "how is the magnetic field measured by ST25R200 Eval GUI?",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/how-is-the-magnetic-field-measured-by-st25r200-eval-gui-166253",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID readers - ST25Rx00 series"
+            ],
+            "published_at": "2026-06-18T07:09:52+00:00",
+            "views": 59,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Dear JW1,\n\nThe Field Measurement Tab on ST25R200 Eval GUI shows two distinct functionalities:\n\n* Detecting the presence of an external RF field\n\nThis is done by API *rfalIsExtFieldOn()*, which executes the direct command *Sense RF*\n\n* Inferring the intensity of its own RF field\n\nThis is achieved by measuring the I/Q channels of the antenna input, when ST25R200 RF Carrier is enabled.\n\nThe API used is *st25r200MeasureCombinedIQ()*, which executs the direct command *Calibrate WU measurement*\n\nIn fact the GUI itself provides information on the APIs used (see *Logging* section) and additional context on the *Help* section.\n\nDetails of the commands and registers involved are described on device’s [Datasheet](https://www.st.com/resource/en/datasheet/st25r200.pdf).\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6c9567e9-06b3-41ce-b4e3-83c6f11f65c8.png)\n\nBoth commands make use of the I/Q Measurement also used for the Wake-up system.\n\nThese signals are processed (filtered/amplified) according to the system configuration.\n\nWhile *Sense RF* is meant to be used as presence indicator (*boolean*) of an external field, the *Calibrate WU*does provide a value for each I/Q component, which is then combined into a squared sum, and depicted on the GUI as a value within [0,128].\n\nSpecifically to you questions:\n\n1. The I and Q components of the antenna RFI signal.\n\nAmplitude is represented as the squared sum of the I and Q channel\n\n2. Technically yes, but it depends of a few external parameters so that the API / GUI is not converting into units.\n\nThe external parameters include VDD, VDD\\_A, the configured gain (*afe\\_gain\\_td*), and (so some extend) temperature.\n\n3. Described above and on ST25R200 device [Datasheet](https://www.st.com/resource/en/datasheet/st25r200.pdf).\n\n4. Sure, all APIs the EVAL GUI uses are available on the protocol interface, and they also map directly to [RFAL](https://www.st.com/en/embedded-software/stsw-st25rfal004.html) interfaces/functions(*st25r200MeasureCombinedIQ()/st25r200IsExtFieldOn()*), which will then execute the device commands (*Calibrate WU measurement / Sense RF*)\n\nHope it helps\n\nGP",
+            "best_answer_author": "Grégoire Poulain",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nI am evaluating the ST25R200 using the ST25R200 Eval GUI. In Reader Mode, there is a **Field Measurement** tab that displays a numerical value together with a circular indicator. However, the displayed value does not appear to have any unit.\n\nCould you please clarify:\n\n1. What exactly is being measured in this tab? Does the value correspond to a physical quantity (e.g., magnetic field strength, ADC count, RSSI, amplitude, etc.)?\n\n2. Is there a conversion from the displayed value to a standard unit (A/m, µT, V, etc.)?\n\n3. Which ST25R200 registers or measurement circuitry are used to obtain this value?\n\n4. Is this functionality available through the ST25R200 firmware/API so that it can be implemented in a custom application?\n\nAny explanation of the measurement principle and interpretation of the displayed value would be greatly appreciated.\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6c9567e9-06b3-41ce-b4e3-83c6f11f65c8.png"
+            ],
+            "author": "JW1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear JW1,<br/><br/>The Field Measurement Tab on ST25R200 Eval GUI shows two distinct functionalities:</p><ul><li>Detecting the presence of an <u>external</u> RF field<br/>\tThis is done by API <span style=\"color:#7f8c8d;\"><em>rfalIsExtFieldOn()</em></span>, which executes the direct command <span style=\"color:#7f8c8d;\"><em>Sense RF</em></span><br/>\t </li> <li>Inferring the intensity of its <u>own </u>RF field<br/>\tThis is achieved by measuring the I/Q channels of the antenna input, when ST25R200 RF Carrier is enabled.<br/>\tThe API used is <span style=\"color:#7f8c8d;\"><em>st25r200MeasureCombinedIQ()</em></span>, which executs the direct command <span style=\"color:#7f8c8d;\"><em>Calibrate WU measurement</em></span></li></ul><p>In fact the GUI itself provides information on the APIs used (see <em>Logging</em> section) and additional context on the <em>Help</em> section.<br/>Details of the commands and registers involved are described on device’s <a href=\"https://www.st.com/resource/en/datasheet/st25r200.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">Datasheet</a>.<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6c9567e9-06b3-41ce-b4e3-83c6f11f65c8.png\"/></figure><p><br/><br/>Both commands make use of the I/Q Measurement also used for the Wake-up system.<br/>These signals are processed (filtered/amplified) according to the system configuration.<br/><br/>While <span style=\"color:#7f8c8d;\"><em>Sense RF </em></span>is meant to be used as presence indicator (<em>boolean</em>) of an external field, the <span style=\"color:#7f8c8d;\"><em>Calibrate WU </em></span>does provide a value for each I/Q component, which is then combined into a squared sum, and depicted on the GUI as a value within [0,128].<br/><br/>Specifically to you questions:</p><ol><li>The I and Q components of the antenna RFI signal.<br/>\tAmplitude is represented as the squared sum of the I and Q channel<br/>\t </li> <li>Technically yes, but it depends of a few external parameters so that the API / GUI is not converting into units.<br/>\tThe external parameters include VDD, VDD_A, the configured gain (<em>afe_gain_td</em>), and (so some extend) temperature.<br/>\t </li> <li>Described above and on ST25R200 device <a href=\"https://www.st.com/resource/en/datasheet/st25r200.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">Datasheet</a>.<br/>\t </li> <li>Sure, all APIs the EVAL GUI uses are available on the protocol interface, and they also map directly to <a href=\"https://www.st.com/en/embedded-software/stsw-st25rfal004.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">RFAL </a>interfaces/functions(<span style=\"color:#7f8c8d;\"><em>st25r200MeasureCombinedIQ()/st25r200IsExtFieldOn()</em></span>), which will then execute the device commands (<span style=\"color:#7f8c8d;\"><em>Calibrate WU measurement / Sense RF</em></span>)</li></ol><p>Hope it helps<br/>GP</p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

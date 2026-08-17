@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "163531",
+            "publicId": "163531",
+            "title": "Interface to 24V encoder via optocoupler",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/interface-to-24v-encoder-via-optocoupler-163531",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "Hardware components"
+            ],
+            "published_at": "2026-03-06T13:02:34+00:00",
+            "views": 368,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nMy standpoint: it is recommended to use an optocoupler to protect STM32 microcontroller from high-voltage spikes and ground loops in your case and you need to use a high-speed optocoupler. Example [6N137](https://www.vishay.com/docs/84732/6n137.pdf). (I think it can handle up to 5MHz as input. You need to contact its manufacturer Vishay).\n\nYou need to limit the current on the LED side from 24V. Example: if you use 6N137 as an optocoupler, to limit the current on the LED, you need to add a resistor in series Where ***R = (Vencoder - VF LED) / IF LED*** .\n\n* Vencoder = 24V\n\n* VF LED = 1.4V (see a screenshot from the optocoupler datasheet below)\n\n* IF LED = 10mA (see a screenshot from the optocoupler datasheet below)\n\n![screenshot1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b005d4f6-b91a-135e-463d-f3bbd3cfeaab.png \"screenshot1.png\")\n\nR = 2,260K. Standard value: 2.2K.\n\nHope I've answered your question.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Split from: [Evaluation of Encoder Signal Level Shifting Approach](https://community.st.com/t5/stm32-mcus-products/evaluation-of-encoder-signal-level-shifting-approach/td-p/732158) as that was a different issue, and has been solved.*\n\n---\n\nI am also working with this same issue, in my case i have a encoder operating at 24V, and signal in comparable frequency\n\ni have implemented a simple voltage divider, the circuit works just fine, but as i don't have equipment to measure the noise and also i would prefer to have galvanic separation to my MCU, so in this case is there any good suggested  level shifter or optocoupler, should i combine the both strategy of voltage divider and optocoupler or just 1 is fine (from perspective of noise and safety)?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b005d4f6-b91a-135e-463d-f3bbd3cfeaab.png"
+            ],
+            "author": "eva1000",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>My standpoint: it is recommended to use an optocoupler <span>to protect STM32 microcontroller from high-voltage spikes and ground loops in your case and you need to use a high-speed optocoupler. Example <a href=\"https://www.vishay.com/docs/84732/6n137.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">6N137</a>. (I think it can handle up to 5MHz as input. You need to contact its manufacturer Vishay).</span></p>\n<p><span>You need to limit the current on the LED side from 24V. </span><span>Example: if you use 6N137 as an optocoupler, to limit the current on the LED, you need to add a resistor in series Where <strong><em>R = (Vencoder - VF LED) / IF LED</em></strong> .</span></p>\n<ul>\n<li><span>Vencoder = 24V</span></li>\n<li><span>VF LED = 1.4V (see a screenshot from the optocoupler datasheet below)</span></li>\n<li><span>IF LED = 10mA (see a screenshot from the optocoupler datasheet below)</span></li>\n</ul>\n<p><span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot1.png\" style=\"width: 999px;\"><img alt=\"screenshot1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b005d4f6-b91a-135e-463d-f3bbd3cfeaab.png\" title=\"screenshot1.png\"/></span></span></p>\n<p><span>R = 2,260K. Standard value: 2.2K.</span></p>\n<p>Hope I've answered your question.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,98 @@
+{
+    "forum": [
+        {
+            "id": "163398",
+            "publicId": "163398",
+            "title": "[STM32H750B-DK] Ethernet peripheral not responding - DMACSR reads 0 after all attempts",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32h750b-dk-ethernet-peripheral-not-responding-dmacsr-reads-0-after-all-attempts-163398",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-03T21:59:42+00:00",
+            "views": 700,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "If you have generated a project from scratch in CubeMX, it isn't guaranteed to work. Start from some ready example from the Projects subdir in the  Cube package, or from [here](https://github.com/stm32-hotspot/STM32H7-LwIP-Examples/tree/main/STM32H750_Disco_ETH).",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "Hello everyone,\n\nI've been working on getting Ethernet working on the **STM32H750B-DK** discovery board with TouchGFX and LwIP. After extensive debugging, I suspect a **hardware issue** and would appreciate your advice on confirming this.\n\n## What Works ✓\n\n* TouchGFX display runs perfectly\n\n* USART3 debug output works (Tera Term shows messages)\n\n* PHY communication works (we get \"Link established!\")\n\n## The Problem ✗\n\nThe Ethernet MAC peripheral itself appears **completely dead**. We've tried:\n\n### 1. **Direct MDIO Access Works**\n\n* Successfully read PHY registers\n\n* PHY responds and reports link up\n\n* This proves MDIO/MDC pins are working\n\n### 2. **ETH Peripheral Shows No Life**\n\n```\n\nETH DMACSR after reset: 0x00000000\n\nETH DMACSR after system reset: 0x00000000\n\n```\n\n* Reading ETH->DMACSR always returns 0\n\n* This register should never be 0 on a live peripheral\n\n### 3. **What We've Tried**\n\n**Software attempts:**\n\n* Enabled all ETH clocks (\\_\\_HAL\\_RCC\\_ETH1MAC\\_CLK\\_ENABLE() etc.)\n\n* Forced and released peripheral reset\n\n* Tried system-level reset via RCC (RCC\\_AHB1RSTR\\_ETH1MACRST)\n\n* De-init and re-init with correct descriptors (0x30040000 etc.)\n\n* Bypassed MX\\_LWIP\\_Init() completely\n\n* Manual PHY configuration (gets link)\n\n**CubeMX configuration verified:**\n\n* ETH set to RMII mode\n\n* All RMII pins correctly assigned (PA1, PA2, PA7, PC1, PC4, PC5, PG11, PG13, PG14)\n\n* LAN8742 PHY selected\n\n* Linker script has proper .lwip\\_sec section at 0x30040000\n\n### 4. **The Smoking Gun**\n\n```\n\nETH DMACSR after reset: 0x00000000\n\nETH still not responding - trying system reset\n\nETH DMACSR after system reset: 0x00000000\n\nETH HAL Init FAILED with error: 1\n\n```\n\nThe DMACSR register should never read 0 on a working peripheral. Even with no link, it should return a non-zero value.\n\n## Questions for the Community\n\n1. **Is DMACSR = 0 definitive proof of dead hardware?** What else could cause this?\n\n2. **Are there any jumpers or solder bridges** on the STM32H750B-DK that need to be closed for Ethernet to work?\n\n3. **What should DMACSR read** on a properly functioning STM32H750? (Even with no cable?)\n\n4. **Any way to verify** if the ETH peripheral is getting power/clocks?\n\n5. **Could this be a faulty chip/board?** The board is new and the display works perfectly.\n\n6. **Is there a factory demo** that uses Ethernet I can flash to confirm hardware works?\n\n## What We See in Debug Output\n\n```\n\nPre-RTOS: UART is working!\n\nAbout to start RTOS...\n\nLWIP task STARTING...\n\nManually configuring PHY...\n\nLink established!\n\nETH power-up sequence...\n\nAll ETH clocks enabled\n\nETH reset released\n\nETH DMACSR after reset: 0x00000000\n\nETH still not responding - trying system reset\n\nETH DMACSR after system reset: 0x00000000\n\nRxDesc: 0x30040000, TxDesc: 0x30040100, RxBuffLen: 1536\n\nETH HAL Init FAILED with error: 1\n\nSetting up network interface...\n\nIP set to: 192.168.1.110\n\nNetwork interface is UP\n\nStarting echo servers...\n\nHeartbeat #0 - IP: 192.168.1.110\n\n```\n\nAny help would be greatly appreciated! I've spent days on this and suspect hardware failure, but want to be certain before replacing the board.\n\n**Board:** STM32H750B-DK    DK32H760B$AT1\n\n**CubeMX Version:** 6.16.0\n\n**TouchGFX Version:** 4.26.0\n\n**Ethernet PHY:** LAN8742 (onboard)\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1bdf69f9-f386-5304-bda2-024dfdfa225d.png"
+            ],
+            "author": "ksale.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What example project do you use for the ETH &amp; LwIP? Is this one of ST provided examples or something else?</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Please find attached the ioc,ld, and main.c files used to test the Ethernet</p></div>",
+                    "author": "ksale.1",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you have generated a project from scratch in CubeMX, it isn't guaranteed to work. Start from some ready example from the Projects subdir in the  Cube package, or from <a href=\"https://github.com/stm32-hotspot/STM32H7-LwIP-Examples/tree/main/STM32H750_Disco_ETH\" rel=\"nofollow noopener noreferrer\" target=\"_self\">here</a>.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm working with ETH on H723 .. H735 - I'm not 100% sure if ETH is the same as in H750.</p><p> </p><p>Why should DMACSR not be == 0 if nothing has happened yet?</p><p>It's an interrupt status register.</p><p>My guess is that you mistook that one with the DMA software reset?</p><pre class=\"lia-code-sample language-c\"><code>/* DMA Software Reset */\n\t/* set SWR bit: resets all MAC subsystem internal registers and logic\n\t * \tNOTE: the SWR is not performed if the ETH_RX_CLK or the ETH_TX_CLK are\n\t *\t\t\tnot available -&gt; check external PHY or IO configuration\n\t */\n\tETH-&gt;DMAMR |= ETH_DMAMR_SWR;\n\t/* wait for software reset to reset... */\n\tu32TickStart = HAL_GetTick();\n\twhile( (ETH-&gt;DMAMR &amp; ETH_DMAMR_SWR) == ETH_DMAMR_SWR )\n\t{\n\t\t/* timeout ? */\n\t\tif( (HAL_GetTick()- u32TickStart ) &gt; ETH_TIMEOUT_SWRESET_MS )\n\t\t{\n\t\t\t#if DEBUG_ETHNETIF_ERR\n\t\t\t\tuart_printf(SZC_TEXT_ERR \"ETH_DMAMR_SWR software reset timeout\\n\\r\");\n\t\t\t#endif \t/* DEBUG_ETHNETIF_ERR */\n\n\t\t\treturn HAL_TIMEOUT;\n\t\t}\n\t}\n</code></pre><p> </p><p>Another thing:</p><p>Interesting that you can talk to the PHY before enabling the MAC clock, I <em>thought</em> the MDIO works with that clock.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Hello LCE, Pavel A,</span></p><p class=\"\"><span>First, thank you all for the incredible support so far. I've made significant progress based on your advice and would appreciate your guidance on the next steps.</span></p><h2 id=\"toc-hId-1823840486\"><span>What We've Done</span></h2><p class=\"\"><span>Following the excellent suggestion about the RMII reference clock, I:</span></p><ol><li><p class=\"\"><strong><span>Configured MCO1 (PA8) to output 50MHz</span></strong><span> from PLL1Q with divider /5 (240MHz → 48MHz)</span></p></li><li><p class=\"\"><strong><span>Verified PA8 is set as MCO1</span></strong><span> in the pinout configuration</span></p></li><li><p class=\"\"><strong><span>Confirmed the clock tree</span></strong><span> now shows 48MHz output on MCO1</span></p></li></ol><h2 id=\"toc-hId--728316475\"><span>The Current Result</span></h2><p class=\"\"><span>Despite the clock configuration, the Ethernet MAC still shows </span><strong><span>no signs of life</span></strong><span>:</span></p><pre class=\"lia-code-sample language-c\"><code>Pre-RTOS: UART is working!\nAbout to start RTOS...\nLWIP task STARTING...\nManually configuring PHY...\nPre-RTOS: UART is working!\nAbout to start RTOS...\nLWIP task STARTING...\nManually configuring PHY...\nLink established!\nETH power-up sequence...\nAll ETH clocks enabled\nETH reset released\nETH DMACSR after reset: 0x00000000\nETH still not responding - trying system reset\nETH DMACSR after system reset: 0x00000000\nRxDesc: 0x30040000, TxDesc: 0x30040100, RxBuffLen: 1536\nETH HAL Init FAILED with error: 1\nSetting up network interface...\nIP set to: 192.168.1.110\nNetwork interface is UP\nStarting echo servers...</code></pre><p class=\"\"><span>The DMACSR register remains stubbornly at 0, indicating the MAC is not receiving any clock.</span></p><h2 id=\"toc-hId-1014493860\"><span>Key Observations</span></h2><ul><li><p class=\"\"><span>:white_heavy_check_mark: </span><strong><span>PHY is alive</span></strong><span> - Link LED is on, and we successfully read PHY registers via MDIO</span></p></li><li><p class=\"\"><span>:white_heavy_check_mark: </span><strong><span>MCO1 is configured</span></strong><span> - Clock tree shows 48MHz output</span></p></li><li><p class=\"\"><span>:cross_mark: </span><strong><span>MAC is dead</span></strong><span> - DMACSR = 0, MACVR = 0, DMA software reset times out</span></p></li></ul><p><span>Please advise.</span></p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"> </div></div></div></div></div></div>",
+                    "author": "ksale.1",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>By the way have you seen this? <a href=\"https://www.linkedin.com/posts/tolylebedev_stm32-ethernet-explained-mac-phy-rmii-share-7434996521127022592-qdv5\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://www.linkedin.com/posts/tolylebedev_stm32-ethernet-explained-mac-phy-rmii-share-7434996521127022592-qdv5</a></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, will do</p></div>",
+                    "author": "ksale.1",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; DMA software reset times out</em></p><p>Wait, you say you want to configure MCO to 50 MHz, but are happy with 48 MHz ?</p><p>If this is about <strong>RMII REF CLK</strong> between PHY and STM32: you <strong>must have 50 MHz</strong>, not only something close to that.</p><p>This clock can also be supplied by the LAN8742.<br/>Check the 750-DK schematics if the PHY pin \"nINT/REFCLKO\" has a pull-up, and check with a scope what's going on there.</p><p> </p><p>And STM32 internally, you should supply the ETH MAC with at least 100 MHz (not 100% sure though).</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Given that the working example uses MII mode and my board is the same model, my board almost certainly uses MII mode with the PHY as clock master  (example in <a href=\"https://github.com/stm32-hotspot/STM32H7-LwIP-Examples/tree/main/STM32H750_Disco_ETH\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/stm32-hotspot/STM32H7-LwIP-Examples/tree/main/STM32H750_Disco_ETH</a>). This means:</p><p>My 48MHz MCO experiment was misguided (wrong frequency, wrong mode)</p><p>PA1 should be receiving 25MHz from PHY, not generating 50MHz</p><p>The DMACSR=0 issue is likely due to the descriptor address mismatch we already identified, not the clock</p><p><br/>First, I'll fix the descriptor addresses as follows:</p><p>Setting Current Should Be</p><table><tbody><tr><td><strong><span>ETH Mode</span></strong></td><td><span>RMII</span></td><td><strong><span>MII</span></strong></td></tr><tr><td><strong><span>Rx Desc Address</span></strong></td><td><span>0x30000100</span></td><td><strong><span>0x30040000</span></strong></td></tr><tr><td><strong><span>Tx Desc Address</span></strong></td><td><span>0x30000100</span></td><td><strong><span>0x30040060</span></strong></td></tr><tr><td><strong><span>Rx Buffers Address</span></strong></td><td><span>0x30000200</span></td><td><strong><span>0x30040200</span></strong></td></tr><tr><td><strong><span>MCO1/PA8</span></strong></td><td><span>Configured</span></td><td><strong><span>Remove MCO1 config</span></strong></td></tr><tr><td><strong><span>Linker Script</span></strong></td><td><span>Has .lwip_sec</span></td><td><span>Good as is</span></td></tr></tbody></table><p>this is the most likely cause of DMACSR=0</p><p>Revert MCO1 configuration -</p><p>set PA8 back to default/TIM function</p><p>Test again</p><p> </p></div>",
+                    "author": "ksale.1",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If the PHY is the LAN8742A as on most ST boards, it's surely an <strong>R</strong>MII interface.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"PHY.png\" style=\"width: 824px;\"><img alt=\"PHY.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1bdf69f9-f386-5304-bda2-024dfdfa225d.png\" title=\"PHY.png\"/></span></p><p>Looking at the board schematics, it indicates MII mode:                                                                                                   </p><p>MII Signal STM32 Pin Status</p><table><tbody><tr><td><strong><span>ETH_TX_CLK</span></strong></td><td><span>PC3</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_TX_EN</span></strong></td><td><span>PG11</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_TXD0</span></strong></td><td><span>PG13</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_TXD1</span></strong></td><td><span>PG12</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_TXD2</span></strong></td><td><span>PC2</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_TXD3</span></strong></td><td><span>PE2</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RX_CLK</span></strong></td><td><span>PA1</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RX_DV</span></strong></td><td><span>PA7</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RXD0</span></strong></td><td><span>PC4</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RXD1</span></strong></td><td><span>PC5</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RXD2</span></strong></td><td><span>PB0</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RXD3</span></strong></td><td><span>PB1</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_CRS</span></strong></td><td><span>PA0</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_COL</span></strong></td><td><span>PA3</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_MDC</span></strong></td><td><span>PC1</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_MDIO</span></strong></td><td><span>PA2</span></td><td><span>✓ Configured</span></td></tr><tr><td><strong><span>ETH_RX_ER</span></strong></td><td><span>PI10</span></td><td><span>✓ Configured</span></td></tr></tbody></table></div>",
+                    "author": "ksale.1",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "163827",
+            "publicId": "163827",
+            "title": "STM32N657X0H3Q LTDC works with AXI SRAM framebuffer but issue with TouchGFX.",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/stm32n657x0h3q-ltdc-works-with-axi-sram-framebuffer-but-issue-with-touchgfx-163827",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-03-16T09:00:39+00:00",
+            "views": 263,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @siddum.\n\nThe best recommendation I can give is to use one of the STM32N6570-DK TBSs available in TouchGFX Designer as a reference, since these are complete, working projects for the N6.\n\nIt could e.g. be related to the MPU configuration.\n\nAlso, try stepping into the hal.initialize() function to get a better idea of where things go wrong.\n\nBest regards,\n\nJohan",
+            "best_answer_author": "JohanAstrup",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello ST Community,\n\nWe are working with **STM32N657X0H3Q** and configuring **LTDC with internal AXI SRAM**.\n\nCurrently, we have configured the LTDC framebuffer at the following address:0x34200000\n\nFirst, we verified the LTDC functionality **without using TouchGFX**.\n\nUsing the same framebuffer address (0x34200000), we manually filled the framebuffer with different colours and confirmed that the display works correctly. The panel turns on and displays the colour patterns properly. This confirms that the LTDC configuration and the memory region are functioning as expected.\n\nAfter enabling **TouchGFX**, the system starts initialization, but during debugging we observe that execution exits unexpectedly during the **TouchGFX initialization phase**.\n\nIn **TouchGFX**, we have configured the framebuffer **using the address method**, pointing directly to the same memory location **0x34200000**.\n\nThe issue appears to occur around the following section of the TouchGFX initialization code:\n\n```\n\nFrontendHeap& heap = FrontendHeap::getInstance();\n\n(void)heap;\n\nhal.initialize();\n\n```\n\nWhile stepping through the code in debug mode, execution exits around the **heap initialization area**, and the program does not continue further into the TouchGFX framework.\n\nOur question is:\n\nIs there any **specific linker configuration or memory section requirement** for the TouchGFX framebuffer or heap when using internal AXI SRAM at address **0x34200000** on **STM32N657X0H3Q**?\n\nSince LTDC works correctly with the framebuffer located at **0x34200000**, we suspect the issue might be related to **TouchGFX memory placement or linker configuration**.\n\nFor reference, we have attached the relevant files below:\n\n* LTDC configuration\n\n* TouchGFX initialization\n\n* Main application file\n\nAny guidance or recommended configuration would be greatly appreciated.\n\nThank you.\n\nSiddu M.",
+            "images": [],
+            "author": "siddum",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"102258\">@siddum</user-mention>.</p><p>The best recommendation I can give is to use one of the STM32N6570-DK TBSs available in TouchGFX Designer as a reference, since these are complete, working projects for the N6.</p><p>It could e.g. be related to the MPU configuration.</p><p>Also, try stepping into the hal.initialize() function to get a better idea of where things go wrong.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

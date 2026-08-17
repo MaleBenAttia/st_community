@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "164244",
+            "publicId": "164244",
+            "title": "STM32H743VIT6 Read VBat with ADC3 using DMA don`t work in CubeIDE 2.2.1",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h743vit6-read-vbat-with-adc3-using-dma-don-t-work-in-cubeide-2-2-1-164244",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "DMA",
+                "ADC"
+            ],
+            "published_at": "2026-03-27T14:40:36+00:00",
+            "views": 222,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "*> sConfig.SamplingTime = ADC\\_SAMPLETIME\\_1CYCLE\\_5;*\n\nSlow down the rate of conversions so it isn't stuck in interrupts forever.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hello, I have a problem reading VBat voltage with ADC3 and DMA in STM32H743VIT6\n\nIf i compile with CubeIDE 1.17.0 and FW 1.12.1 my program works as spected, but if i compile with last CubeIDE 2.1.1 and last FW 1.13.0 my program enter in a infinite loop related to DMA and never execute the while(1) loop.\n\nCan anybody help me?\n\nThanks in advance.\n\nregards Jose.\n\nMy program is very simple (see below):\n\nin main.c:\n\n```\n\n/* USER CODE BEGIN 2 */\n\nHAL_ADC_Start_DMA(&hadc3, &VBat_ChAna, 2);\n\n/* USER CODE END 2 */\n\n/* Infinite loop */\n\n/* USER CODE BEGIN WHILE */\n\nwhile (1)\n\n{\n\nVbat = 4 * (((VBat_ChAna &0xffff) * 3300) / 0xFFFF);/* Convert the result from 16 bit value to the voltage dimension (mV unit) *//* Vref = 3.3 V.*/\n\n/* USER CODE END WHILE */\n\n/* USER CODE BEGIN 3 */\n\n}\n\n/* USER CODE END 3 */\n\n```\n\n![ADC3 configuration](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/479586de-0b8a-21bb-aaa4-9c5f70736749.png \"imagen.png\")ADC3 configuration![ADC3 DMA configuration](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fa8d82a6-3621-a641-dbe8-4f3f8de71cb7.png \"imagen.png\")ADC3 DMA configuration",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fa8d82a6-3621-a641-dbe8-4f3f8de71cb7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/479586de-0b8a-21bb-aaa4-9c5f70736749.png"
+            ],
+            "author": "josevsan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"73628\">@josevsan</user-mention> wrote:<br/>\n<p>my program enter in a infinite loop related to DMA and never execute the while(1) loop.</p>\n<p> </p>\n</blockquote>\n<p> Which DMA infinite loop?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;</em></p><p>Slow down the rate of conversions so it isn't stuck in interrupts forever.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your answer. I change SamplingTime to maximum   810.5 cycles and now works.</p><p>My \"\"DMA infinite loop\" seams the processor where stuck in DMA interrupts forewer as you say.</p><p> </p></div>",
+                    "author": "josevsan",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

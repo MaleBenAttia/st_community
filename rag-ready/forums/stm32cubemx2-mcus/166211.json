@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "166194",
+            "publicId": "166211",
+            "title": "STM32C5 - can you route internal opamp output to ADC internally?",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/stm32c5-can-you-route-internal-opamp-output-to-adc-internally-166211",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "OPAMP",
+                "ADC",
+                "STM32C5 series",
+                "HAL2"
+            ],
+            "published_at": "2026-06-16T13:36:14+00:00",
+            "views": 93,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nOn STM32C5 series, there is no internal direct connection between OPAMP output and ADC.\n\nAs you mentioned, connection can be made through GPIO: GPIO in mode analog can be shared by multiple peripherals (OPAMP, DAC, COMP, ADC).\n\nExample with STM32C542xx:\n\n* OPAMP1 output on PA6\n\n* ADC channel 6 on PA6\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8b6b7a6d-b786-4c2d-8a5b-ad6ec2fc19d6.png)\n\nCubeMX2 pinout view with PA6 shared by ADC and OPAMP\n\nFor your use case: PA6 is already used by UART and is the only output of OPAMP1, there is no obvious solution.\n\nAn alternative could be to use other GPIO for UART, if possible at board level, to free PA6 for OPAMP.\n\nBest regards\n\nPhilippe",
+            "best_answer_author": "Philippe Cherbonnel",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Dear Engineers,\n\nis there any way of routing the internal OPAMP output of the STM32C5 to an ADC directly, or can it only be wired to the COMP1 ?\n\nCubeMX2 doesnt let you pick OPAMP as an input to neither ADC nor COMP, but i did find some notes on beeing able to route the OPAMP output to COMP1 minus input in the LL code somewhere.\n\nIf yes, is there a way to do this within MX2, or does it have to be written by hand in code?\n\nAlso, the datasheet shows a pin output option for the OPAMPs output on PA6.\n\nI know you could route form PA6 to a neighboring ADC input capable pin, but not only would that occupy 2 pins, my PA6 is in use for UART, so not usable in my case.\n\nThanks in advance.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8b6b7a6d-b786-4c2d-8a5b-ad6ec2fc19d6.png"
+            ],
+            "author": "stonestone",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>On STM32C5 series, there is no internal direct connection between OPAMP output and ADC.</p><p>As you mentioned, connection can be made through GPIO: GPIO in mode analog can be shared by multiple peripherals (OPAMP, DAC, COMP, ADC).</p><p>Example with STM32C542xx:</p><ul><li>OPAMP1 output on PA6</li> <li>ADC channel 6 on PA6</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8b6b7a6d-b786-4c2d-8a5b-ad6ec2fc19d6.png\"/><figcaption>CubeMX2 pinout view with PA6 shared by ADC and OPAMP</figcaption></figure><p>For your use case: PA6 is already used by UART and is the only output of OPAMP1, there is no obvious solution.</p><p>An alternative could be to use other GPIO for UART, if possible at board level, to free PA6 for OPAMP.</p><p> </p><p>Best regards</p><p>Philippe</p></div>",
+                    "author": "Philippe Cherbonnel",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Alright. Thank you very much for the confirmation. <br/>Sincerely, <br/>Fabian</p></div>",
+                    "author": "stonestone",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Philippe Cherbonnel",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

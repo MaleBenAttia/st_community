@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "165072",
+            "publicId": "165072",
+            "title": "ST67W611M1 UDP client socket blocked (mission_t01)",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/st67w611m1-udp-client-socket-blocked-mission-t01-165072",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "ST67W series"
+            ],
+            "published_at": "2026-04-24T08:36:31+00:00",
+            "views": 151,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @SlawekN ,\n\nThe UDP sockets are available on the middleware. You have to create a new UDP socket and then call the\n\nW61\\_Net\\_SendData\\_Non\\_Connected() function as you are working in UDP.\n\nThis is enough to have a UDP client connection.\n\nThis is also possible to do the way you are pointing, but this is a choice of implementation we have done in our code, so you may encounter unexpected behavior doing this way.\n\nWe keep the function W61\\_Net\\_StartClientConnection() for connected types, TCP (v4/v6) and SSL.\n\nFor unconnected connections you can directly use the API function W6X\\_Net\\_Sendto() to exchange data once your socket is created\n\nHopping this answer your question.\n\nRegards\n\nLouis",
+            "best_answer_author": "Louis AUDOLY",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nwhile integrating the module, we noticed that UDP client connections appear to be explicitly blocked in the driver (w61\\_at\\_net.c) for mission\\_t01 firmware (LwIP offload). The following code only allows TCP and SSL connections:\n\n```\n\nif ((conn->Protocol != W61_NET_TCP_CONNECTION) && (conn->Protocol != W61_NET_TCP_SSL_CONNECTION)\n\n#if (W61_NET_IPV6_ENABLE == 1)\n\n&& (conn->Protocol != W61_NET_TCPV6_CONNECTION) && (conn->Protocol != W61_NET_TCPV6_SSL_CONNECTION)\n\n#endif /* W61_NET_IPV6_ENABLE */\n\n)\n\n{\n\nNET_LOG_ERROR(\"Only TCP and SSL protocols are supported for client connections\\n\");\n\nreturn W61_STATUS_ERROR;\n\n}\n\n```\n\nHowever, according to the official AT command documentation, UDP client connections are supported:\n\n<https://applist67.github.io/Web_AT_Documentation_ST67/v2.0.106/index.html#establish-udp-connection>\n\nAfter commenting out this restriction, I was able to establish a UDP client connection successfully, and communication seems to work.\n\nIs there a specific reason why UDP client sockets are blocked at this level?\n\nAre there any known limitations or risks when enabling UDP this way?\n\nThanks in advance for your clarification.",
+            "images": [],
+            "author": "SlawekN",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106380\">@SlawekN</user-mention> ,</p><p>The UDP sockets are available on the middleware. You have to create a new UDP socket and then call the </p><div><div><span>W61_Net_SendData_Non_Connected() function as you are working in UDP.<br/>This is enough to have a UDP client connection.</span></div><div> </div><div><span>This is also possible to do the way you are pointing, but this is a choice of implementation we have done in our code, so you may encounter unexpected behavior doing this way.<br/>We keep the function W61_Net_StartClientConnection() for connected types, TCP (v4/v6) and SSL. </span></div><div><span>For unconnected connections you can directly use the API function W6X_Net_Sendto() to exchange data once your socket is created</span></div><div> </div><div><span>Hopping this answer your question.</span></div><div><span>Regards</span></div><div><span>Louis</span></div><div> </div></div></div>",
+                    "author": "Louis AUDOLY",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Louis AUDOLY",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

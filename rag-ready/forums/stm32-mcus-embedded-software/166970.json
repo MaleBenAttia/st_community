@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "166951",
+            "publicId": "166970",
+            "title": "Questions regarding the proper configuration of Ethernet LwIP project",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/questions-regarding-the-proper-configuration-of-ethernet-lwip-project-166970",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series",
+                "Ethernet",
+                "Memory",
+                "LwIP",
+                "Memory protection"
+            ],
+            "published_at": "2026-07-15T10:21:24+00:00",
+            "views": 100,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "The STM32F746 you are using has a data cache. If you enable the data cache in main() then yes the RX buffer pool must be configured as non cacheable.\n\nIf you were on an STM32 without data cache then no need for special MPU configuration.\n\nThe ethernet descriptors (RX and TX) must be in a memory area configured as non cacheable and strongly ordered .\n\nstrongly ordered is used to ensure the OWN bit of the ethernet descriptor is written last, after the other words that define a transfer. This gives ownership of the descriptor to the Ethernet hardware, so that it starts the data transfer.",
+            "best_answer_author": "Guillaume K",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello!\n\nI have been trying to review and fix the configuration of my *Ethernet LwIP*+*FreeRTOS* STM32 project and I would like to ask more experienced people if I have correctly chosen memory locations, modified the linker script, configured MPU and a few other things.\n\nMy project uses STM32F746VGT6 MCU that has 320KB of RAM and 1024KB of flash memory:\n\n```\n\nMEMORY\n\n{\n\nRAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 320K\n\nFLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 1024K\n\n}\n\n```\n\nSince this project uses Ethernet peripheral and *LwIP* library, a few memory sectors need to be defined: one for Tx Descriptor, one for Rx Descriptor, one for RX POOL and one for *LwIP* heap.\n\nI have set Tx and RX Descriptor addresses to 0x20048000 and 0x20048100 and checked in debugger that each one of them takes 160B of space, so 256B is more than enough to store a single Descriptor.\n\nI decided to store memp\\_memory\\_RX\\_POOL\\_base under 0x20040000 address in 32KB section. With ETH\\_RX\\_BUFFER\\_CNT defined to 16U, size of memp\\_memory\\_RX\\_POOL\\_base is equal to 25795B, though I don’t really know how it is calculated. I guess the formula is 1612\\*ETH\\_RX\\_BUFFER\\_CNT +4-1, but I don’t know where the 1612 does come from.\n\nAlso, I have added the memp\\_memory\\_RX\\_POOL\\_base declaration to *ethernetif.c* file:\n\n```\n\n/* ethernetif.c */\n\n/* USER CODE BEGIN 2 */\n\n#if defined ( __GNUC__ )\n\n__attribute__((section(\".RxArraySection\"))) extern u8_t memp_memory_RX_POOL_base[];\n\n#endif\n\n/* USER CODE END 2 */\n\n```\n\nI have set LWIP\\_RAM\\_HEAP\\_POINTER to point at 0x20048000 address and set MEM\\_SIZE to 32KB-512B-24B. I don’t know why those values have to be subtracted from 32KB, but such size was used in [this guide](https://community.st.com/stm32-mcus-60/how-to-create-a-project-for-stm32h7-with-ethernet-and-lwip-stack-working-32).\n\nKnowing that, I have defined memory in linker script this way:\n\n```\n\n/* Memories definition */\n\nMEMORY\n\n{\n\nRAM\t\t\t(xrw) : ORIGIN = 0x20000000, LENGTH = 0x3FE00/* 256KB-512B\t\t| up to 0x2003FDFF */\n\nMEM_1\t\t\t(xrw) : ORIGIN = 0x2003FE00, LENGTH = 256\t/* Tx Descriptor\t| up to 0x2003FEFF */\n\nMEM_2\t\t\t(xrw) : ORIGIN = 0x2003FF00, LENGTH = 256\t/* Rx Descriptor\t| up to 0x2003FFFF */\n\nMEM_RX_POOL\t(xrw) : ORIGIN = 0x20040000, LENGTH = 32K\t/* RX_POOL\t\t\t| up to 0x20047FFF */\n\nETH_RAM\t\t(xrw) : ORIGIN = 0x20048000, LENGTH = 32K\t/* LWIP_RAM_HEAP_PONTER\t| up to 0x2004FFFF*/\n\nFLASH\t\t\t(rx)  : ORIGIN = 0x8000000,  LENGTH = 1024K\n\n}\n\n```\n\nand memory sections like this:\n\n```\n\n/* Sections */\n\nSECTIONS\n\n{\n\n.TxDecripSection (NOLOAD) :\n\n{\n\n. = ALIGN(4);\n\n*(.TxDecripSection)\n\n. = ALIGN(4);\n\n} >MEM_1\n\n.RxDecripSection (NOLOAD) :\n\n{\n\n. = ALIGN(4);\n\n*(.RxDecripSection)\n\n. = ALIGN(4);\n\n} >MEM_2\n\n.RxArraySection(NOLOAD) :\n\n{\n\n. = ALIGN(4);\n\n*(.RxArraySection)\n\n. = ALIGN(4);\n\n} >MEM_RX_POOL\n\n```\n\nI have not defined a memory section for ETH\\_RAM, however, and I don’t know if it is needed. If it is, then I would like to ask how to do it correctly?\n\nSince STM32F7 MCUs have Memory Protection Unit, I had to configure it as well. I followed the mentioned guide to do it:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a32f3dc-fb17-4444-b9e3-cb2c4b5156ad.png)\n\nBecause in the guide there was no memory protection set for RX\\_POOL, I didn’t set any as well.\n\nI have run the program with this configuration and it seems to be working fine. I would like to ask though if the things I have done are done correctly. I would also like to know:\n\n1. does there have to be defined a separate section for *LwIP* heap (ETH\\_RAM memory)? If yes, how to do it correctly?\n\n2. does RX\\_POOL need to be protected by MPU or can it be left as it is?\n\n3. what is the exact role of *LwIP* heap (u8\\_t ram variable in *mem.c* file) and MEM\\_SIZE value? What does the heap store, what to take into account when choosing the value for MEM\\_SIZE?\n\nThanks to everyone answering to this post in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ce30918-8e36-4a1f-a687-f70f492fa114.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a32f3dc-fb17-4444-b9e3-cb2c4b5156ad.png"
+            ],
+            "author": "_AdamNtrx",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have met with a new bug. <span>Ocasionally I get a <em>HardFault </em>in <em>pbuf_free() </em>function where <em>struct pbuf *p</em> variable points to an address within the <em>RX_POOL </em>section . The problem doesn’t seem to appear if MPU is configured to treat <em>memp_memory_RX_POOL_base </em>as non-cacheable.</span></p></div>",
+                    "author": "_AdamNtrx",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>ST Support confirmed that <em>RX_POOL </em>has to be non-cacheable as well. Here is the missing MPU configuration:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ce30918-8e36-4a1f-a687-f70f492fa114.png\"/></figure><p> </p></div>",
+                    "author": "_AdamNtrx",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The STM32F746 you are using has a data cache. If you enable the data cache in main() then yes the RX buffer pool must be configured as non cacheable.</p><p>If you were on an STM32 without data cache then no need for special MPU configuration.</p><p>The ethernet descriptors (RX and TX) must be in a memory area configured as non cacheable and strongly ordered . </p><p>strongly ordered is used to ensure the OWN bit of the ethernet descriptor is written last, after the other words that define a transfer. This gives ownership of the descriptor to the Ethernet hardware, so that it starts the data transfer.</p><p> </p></div>",
+                    "author": "Guillaume K",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For Ethernet + LWIP, I would first verify the basics separately: PHY address, RMII/MII mode, clock source, MPU/cache settings, and whether the link status is actually detected. On STM32 parts with cache enabled, buffer placement and cache coherency can also cause confusing network issues, so checking the linker section and DMA buffers is important before debugging the LWIP layer itself.</p></div>",
+                    "author": "Jgleckg",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Guillaume K",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

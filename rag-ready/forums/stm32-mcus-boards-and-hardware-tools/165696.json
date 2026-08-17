@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "165696",
+            "publicId": "165696",
+            "title": "RTC on STM32F769I-DISCO",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/rtc-on-stm32f769i-disco-165696",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32F7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-05-14T14:25:55+00:00",
+            "views": 297,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @darkfader and welcome to the ST community,\n\nThe MCU itself (STM32F769) has an RTC but unfortunately the VBAT pin is tied to VDD in the PCB on STM32F769I-DISCO as shown in the board [schematic](https://www.st.com/resource/en/schematic_pack/mb1225-f769i-b02_schematic.pdf):\n\n![mALLEm_1-1778769997624.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f7d6943a-4197-d175-d87c-bb4ba066fdfb.png \"mALLEm_1-1778769997624.png\")\n\nContrarily to the EVAL board that has a battery socket.\n\nI know this is a limitation I've already faced on one of my projects and asked to make VBAT accessible over jumpers or at least a solder bridge for future STM32 boards.\n\nSo in your case you need to use an external RTC chip over I2C, with a time saving with a battery.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI wanted to set up time keeping on my Discovery board for testing something.\n\nI see the following in the documentation for the larger STM32F769-EVAL:\n\n<https://github.com/STMicroelectronics/STM32CubeF7/blob/master/Projects/STM32F769I_EVAL/Examples/RTC/RTC_InternalTimeStamp/readme.txt>\n\n*- This example runs on STM32F779xx/STM32F777xx/STM32F767xx/STM32F769xx Devices.*\n\n*- This example has been tested with STMicroelectronics STM32F769I-EVAL*\n\n*board and can be easily tailored to any other supported device and*\n\n*development board.*\n\n*- STM32F769I-EVAL Set-up*\n\n*- Make sure that JP15 is in position 2-3 to connect 3V battery to VBAT pin.*\n\nAt first I didn't know -EVAL and -DISCO are two different things and kept searching through the manual for the -DISCO where JP15 seems to have a different role.\n\nBut the first line from the docs makes me think there has to be an RTC on the -DISCO board. I take it I need to put a 3.3V battery somewhere. In the diagram I see a number of 3.3V connected things, but most are related to ST-Link. It's totally unclear to me where I would need to connect a battery, and how to know that it'll only power the RTC (if there is one)\n\nThe diagram I'm looking at is at page 40 in the manual, here:\n\n<https://docs.rs-online.com/9ce5/0900766b81693555.pdf>\n\nI'll take off the LCD later and search the board for anything that looks like an oscillator or clock chip, but I also searched the manual for \"RTC\" and found nothing. If there's none I also don't know how to best add it - there's a header for WiFi (ESP8266) or I2C. I got an ESP8266 around so I was gonna use it. I don't know if an RTC could be added to the same I2C interface?!!!\n\nStill, as the ethernet chip has hw timestamping, I think there must ought to be an RTC onboard so it all works together when people tested.\n\nDo you know if there's an actual RTC on this board? Any other advice?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f7d6943a-4197-d175-d87c-bb4ba066fdfb.png"
+            ],
+            "author": "darkfader",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106967\">@darkfader</user-mention> wrote:<br/><p>The diagram I'm looking at is at page 40 in the manual, here:</p><p><a href=\"https://docs.rs-online.com/9ce5/0900766b81693555.pdf\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://docs.rs-online.com/9ce5/0900766b81693555.pdf</a> ?</p><hr/></blockquote><p>That's on a 3rd-party site - note that it is Rev 3</p><p>Always best to go direct to the manufactures own site:</p><p><a href=\"https://www.st.com/resource/en/user_manual/um2033-discovery-kit-with-stm32f769ni-mcu-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/user_manual/um2033-discovery-kit-with-stm32f769ni-mcu-stmicroelectronics.pdf</a></p><p><em>via: <a href=\"https://www.st.com/en/evaluation-tools/32f769idiscovery.html#documentation\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/32f769idiscovery.html#documentation</a></em></p><p>Note that this one is at Rev 5 - so the one on the RS site is two revisions out of date!</p><p> </p><p>Schematics for the DISCO board are here:</p><p><a href=\"https://www.st.com/en/evaluation-tools/32f769idiscovery.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/32f769idiscovery.html#cad-resources</a></p><p> </p><blockquote><hr/><hr/></blockquote><blockquote><hr/><user-mention data-id=\"106967\">@darkfader</user-mention> wrote:<br/><p>Do you know if there's an actual RTC on this board? </p><hr/></blockquote><p>The RTC is part of the <span>STM32F769I <em>chip</em> - so it is always present inside the chip, irrespective of what board you use.</span></p><p><span>RTC details are in the chip documentation - Reference Manual &amp; Datasheet:</span></p><p><span><a href=\"https://www.st.com/en/microcontrollers-microprocessors/stm32f769ni.html#documentation\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/microcontrollers-microprocessors/stm32f769ni.html#documentation</a></span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106967\">@darkfader</user-mention> and welcome to the ST community,</p>\n<p>The MCU itself (<span>STM32F769) has an RTC but unfortunately the VBAT pin is tied to VDD in the PCB on STM32F769I-DISCO as shown in the board <a href=\"https://www.st.com/resource/en/schematic_pack/mb1225-f769i-b02_schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">schematic</a>:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1778769997624.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1778769997624.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f7d6943a-4197-d175-d87c-bb4ba066fdfb.png\" title=\"mALLEm_1-1778769997624.png\"/></span></p>\n<p>Contrarily to the EVAL board that has a battery socket.</p>\n<p>I know this is a limitation I've already faced on one of my projects and asked to make VBAT accessible over jumpers or at least a solder bridge for future STM32 boards.</p>\n<p>So in your case you need to use an external RTC chip over I2C, with a time saving with a battery.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"499\">@mƎALLEm</user-mention> wrote:<br/><p>I know this is a limitation I've already faced on one of my projects and asked to make VBAT accessible over jumpers or at least a solder bridge for future STM32 boards..</p><hr/></blockquote><p>Indeed, this is often a limitation of the DISCO boards: they tend to be very tightly focussed on just one particular application/demo - which makes them very inflexible for use in other applications.</p><p><user-mention data-id=\"106967\">@darkfader</user-mention> due you actually need battery backup?</p><p>If you do, it might be better to look for a different board - the Nucleo boards are a lot more flexible:</p><p><a href=\"https://www.st.com/en/evaluation-tools/stm32-nucleo-boards.html\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/stm32-nucleo-boards.html</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Wow, so many so helpful and insightful replies. </p><p>I'm not gonna die from not having battery backup, I just wanted it to work with things like hwclock --systohc. But I think as long as I fetch the current time before enabling PTPv2 it should work as well. Still learning.</p><p>I don't want to get another board at the moment - the original HW I want to make new firmware for was built off this one. (a Ubiquiti firewall that uses it as a very pretty display. It stops working if you replace the original OS with something more modern, so I want to re-implement that functionality). An RTC  battery is _not_ needed for that purpose. But since I bought the board to play with, I wanna see what I can do with it. Is it understandable like that.</p><p>I'll assume I'm gonna postpone the RTC a bit. I can get a cheap external RTC circuit, and maybe I find someone more awake than me and we cut the VDD line there and use the builtin one.</p><p>edit: I looked at the board a bit and the lines are so thin I'll not attempt anything anytime soon. I2C it is.</p><p> </p><p>Also thanks for the proper links. I'm very forgetful and so even if I might have found them on the ST website a week ago I might pick a different the next day. I'll save these and now I know I can look for the thread :)</p><p> </p></div>",
+                    "author": "darkfader",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106967\">@darkfader</user-mention> wrote:<br/><p>Also thanks for the proper links. I'm very forgetful and so even if I might have found them on the ST website a week ago I might pick a different the next day. I'll save these and now I know I can look for the thread :)</p><hr/></blockquote><p>For each project, I keep a document with links I've found and notes about them.</p><p> </p><p>For ST, the Product Page is always the key link - everything starts from there!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>that's really good advice, thanks for taking the time to explain this.</p><p>I do similar but my process is still from before I got a brain bug and it's not sufficient anymore. </p><p>I.e. right now the info on the display is in my notes on cavium/octeon CPUs, in the subdocument on the firewall model that had the STM32 based status display and there's a section on the STM32 HW. I'm sure the manual is linked there already, but since it was 3 levels deep I didn't access it, except for adding some notes. I break out stuff once a large body of knowledge is added (maybe) or when I turn it into web pages.</p><p>If I had earlier moved the firewall doc and the stm32f769-disco into their own I'd have had my workflow OK.</p><p>My old approach was for delaying any notetaking till I knew the grand picture of a topic and knew if I wanted to keep knowing about it. Back when 99% of that info was in my brain in parallel. I gotta adapt and what you do is a more reliable way. I'm insanely bad with structure, so I was already proud of how good docs I keep but it's time for another level. Thanks for stressing you just do that for every project. :)</p></div>",
+                    "author": "darkfader",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

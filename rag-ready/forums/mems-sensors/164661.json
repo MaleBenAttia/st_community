@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164661",
+            "publicId": "164661",
+            "title": "ISM330DHCX temperature reading?",
+            "url": "https://community.st.com/mems-sensors-48/ism330dhcx-temperature-reading-164661",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Accelerometers"
+            ],
+            "published_at": "2026-04-11T19:06:00+00:00",
+            "views": 232,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @pedro\\_uno ,\n\nYour I2C interface is working correctly since you can read the WHOAMI register.\n\nThe ISM330DHCX temperature sensor output registers (OUT\\_TEMP\\_L/H) will return zero unless the accelerometer or gyroscope is enabled (ODR ≠ power-down).\n\nSet the ODR of either sensor to a valid value, wait for the sensor to update, and then read the temperature registers.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nWe have the ISM330DHCX designed into a new product but I am having trouble getting reliable readings using the I2C interface. I am able to read the WHOAMI register and get 0x6B but OUT\\_TEMP\\_L (20h), OUT\\_TEMP\\_H (21h) always return zero.\n\nI have the interface instrumented and I can see that the signalling is correct, with repeated start and everything, but only zeros.\n\nDoes anyone have a suggestion of how this is happening?  Do I need to do something special to enable temperature readings?\n\nThanks",
+            "images": [],
+            "author": "pedro_uno",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"105994\">@pedro_uno</user-mention>, to the community!</p>\n<p>Please check STATUS_REG.TDA.</p>\n<p>The temperature sensor does not need a special enable sequence, but OUT_TEMP_L/H will only update once valid temperature data is available. Also make sure:</p>\n<ul>\n<li>CTRL4_C.I2C_disable = 0</li>\n<li>CTRL9_XL.DEVICE_CONF = 1</li>\n<li>you wait after power-up/reset before reading, e.g. 1ms</li>\n</ul>\n<p>If TDA = 0, the temperature registers may still read as zero.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For now I have the processor in a loop that reads the ISM330DHCX once per second. </p><p>You can see that I succeed to read the WHOAMI register. </p><p>STATUS_REG always returns 0x00, TDA not true. </p><p>I read back the CTRL9_XL register and it says I have the DEVICE_CONF bit set.</p><p>I2C is enabled by default and I am using I2C to access these registers.  </p><p>What else can prevent the part from reporting temperature?</p><p>whilecount: 58<br/>gyro_whoami = 0x6B<br/>gyro status = 0x00<br/>CTRL9_XL = 0x02<br/>gyro_temperature = 0x0000<br/>gyro_temperature = 25.000</p><p>whilecount: 59<br/>gyro_whoami = 0x6B<br/>gyro status = 0x00<br/>CTRL9_XL = 0x02<br/>gyro_temperature = 0x0000<br/>gyro_temperature = 25.000</p><p> </p></div>",
+                    "author": "pedro_uno",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105994\">@pedro_uno</user-mention> ,</p>\n<p>Your I2C interface is working correctly since you can read the WHOAMI register.</p>\n<p>The ISM330DHCX temperature sensor output registers (OUT_TEMP_L/H) will return zero unless the accelerometer or gyroscope is enabled (ODR ≠ power-down).</p>\n<p>Set the ODR of either sensor to a valid value, wait for the sensor to update, and then read the temperature registers.</p>\n<p> </p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

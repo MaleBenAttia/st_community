@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "165567",
+            "publicId": "165567",
+            "title": "Time-of-flight measuring level in a vertical pipe",
+            "url": "https://community.st.com/imaging-sensors-49/time-of-flight-measuring-level-in-a-vertical-pipe-165567",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Time of flight"
+            ],
+            "published_at": "2026-05-11T10:23:44+00:00",
+            "views": 241,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi:\n\nVL53L4CD measure the distance by Sigma Delta method. overall, the reported distance= (D1\\*R1+D2\\*R2)/(R1+R2)\n\n![Bin_0-1778668036719.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/12c14139-1446-3546-ac09-e0bf25373867.png \"Bin_0-1778668036719.png\")\n\nBut with VL53L4CX histogram. In theory, most photons will be reflected back by the water surface and received by SPADS, unless there is an object with a very high reflectivity at the bottom of the water in pure water, which maybe distinguish between the water surface and the bottom. You can have a try and play VL53L4CX to verify.\n\nAbout the VSCEL and beam parts are confidential and not convenient to share. Really sorry for that. However, if it is a specific project, you can contact our FAE and get the answer. Thank you\n\nBest Regards,\n\nBin FAN",
+            "best_answer_author": "Bin",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Would it be possible to use a Time-of-flight sensor to measure water level in a pipe?\n\nThe pipe is vertical with a diameter of 50 or 75 mm and a height  of 800 mm. At bottom there is a 90 degree bend. Sensor should be at top looking down the pipe. I assume that best sensor would be VL53L4CD since it has smallest field of view. Would reflection from pipe walls disturb measurements?\n\n#",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/12c14139-1446-3546-ac09-e0bf25373867.png"
+            ],
+            "author": "kurtm",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106852\">@kurtm</user-mention>  and welcome to the ST community,</p>\n<p><a href=\"https://www.st.com/resource/en/application_note/an5851-water-and-liquid-level-monitoring-using-vl53l4cd-timeofflight-high-accuracy-proximity-sensor-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5851</a> \"Water and liquid level monitoring using VL53L4CD Time-of-Flight high accuracy proximity sensor\"</p>\n<p>For other sensor part numbers:</p>\n<p><a href=\"https://www.st.com/resource/en/application_note/an5843-water-and-liquid-level-measurement-using-vl53l5cx-timeofflight-8x8-multizone-sensor-with-wide-field-of-view-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5843</a> \"Water and liquid level measurement using VL53L5CX Time-of-Flight 8x8 multizone sensor with wide field of view\"</p>\n<p><a href=\"https://www.st.com/resource/en/application_presentation/nov22tofliquidlevelmonitoring.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Liquid Level Monitoring using ST Time-of-Flight technology</a></p>\n<p><a href=\"https://www.youtube.com/watch?v=yytfrtn2pmc\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">Liquid Level Monitoring using ST’s Time-of-Flight: VL53L5CX</a></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have checked the suggested documents but not found what I am looking for. The problem I see is that you will get some reflected light from the pipe walls that will increase with distance. What I would like to know is a little more what I can expect. In my case, pipe is plastic type and water is waste water which can vary from none to almost clean to water with foam and movements. The important thing is to detect if water level is rising above 200 - 300 mm from bottom. </p></div>",
+                    "author": "kurtm",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p>\n<p><span>Thank you for the additional application details. Based on your geometry and the principles <a href=\"https://www.st.com/resource/en/application_note/an5851-water-and-liquid-level-monitoring-using-vl53l4cd-timeofflight-high-accuracy-proximity-sensor-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5851</a> described in for liquid level sensing.</span></p>\n<p><span>A <span class=\"hljs-strong\">VL53L4CD</span> can be evaluated for this application, but the main challenge is indeed <span class=\"hljs-strong\">pipe wall reflections</span>, especially in a narrow pipe with a long top-down measurement path.</span></p>\n<p><span>In the chapter 2.1 of <a href=\"https://www.st.com/resource/en/application_note/an5851-water-and-liquid-level-monitoring-using-vl53l4cd-timeofflight-high-accuracy-proximity-sensor-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5851</a> , the ToF sensor FoV is conical, so the container geometry has a direct impact on the measurement. FoV is approximately 18°, So the beam expands with distance. The footprint diameter can be roughly estimated as D<span class=\"mrel\">≈</span><span class=\"mord mathrm\">2</span><span class=\"mord mathit\">h*tan (</span><span class=\"mopen\">9</span><span class=\"mord\"><span class=\"mord mathrm\">°</span><span class=\"vlist\"><span class=\"baseline-fix\"><span class=\"fontsize-ensurer reset-size5 size5\">​</span>​</span></span></span><span class=\"mclose\">).</span></span></p>\n<p><span><span class=\"mclose\">If your decision point is about 200~300mm above the bottom, with a total pipe height of about 800mm, then the sensor-to-surface distance is roughly 500~600mm. we can get the diameter D is 158.5~190.2mm. </span></span></p>\n<p><span><span class=\"mclose\">At that distance, the beam footprint becomes much larger than a 50~75mm pipe diameter, so part of the light will inevitably hit the pipe walls. Therefore, the optical situation is intrinsically one of <span class=\"hljs-strong\">*mixed returns*</span>, not direct clean liquid-surface ranging.</span></span></p>\n<p><span><span class=\"mclose\">your requirement is only to detect whether the level has crossed a fixed threshold, for example around 200~300mm from the bottom, so this application is better positioned as threshold detection rather than continuous level gauge.</span></span></p>\n<p><span><span class=\"mclose\">Based on AN5851 and your use case, you can follow the setup of chapter4:  </span></span></p>\n<p><span><span class=\"mclose\">1. Validate the setup using the real pipe, real wastewater, and real flow conditions；</span></span></p>\n<p><span><span class=\"mclose\">2. choosing one clear threshold first, for example a liquid level at 250mm from the bottom, this corresponds to a theoretical sensor-to-surface distance of about 550mm.</span></span></p>\n<ul>\n<li><span><span class=\"mclose\">testing at least the following conditions: </span></span></li>\n</ul>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Empty pipe </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Clean water, static </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Clean water, moving </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Wastewater, static </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Wastewater, moving </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Foam condition</span></span></p>\n<ul>\n<li><span><span class=\"mclose\">testing around the threshold region, for example at: </span></span></li>\n</ul>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> 100mm</span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> 200mm</span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> 250mm</span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> 300mm</span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> 400mm</span></span></p>\n<p><span><span class=\"mclose\">from the bottom. This covers below-threshold, near-threshold, and above-threshold cases.</span></span></p>\n<p><span><span class=\"mclose\">For each condition and each level point, collecting 100 samples. </span></span></p>\n<ul>\n<li><span><span class=\"mclose\">Recommended data to record: </span></span></li>\n</ul>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Raw distance values </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Valid / invalid status </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Current condition and level point</span></span></p>\n<ul>\n<li><span><span class=\"mclose\">After testing, the main points to check by using commonly used mathematical methods to make judgments: </span></span></li>\n</ul>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Whether the outputs below and above the threshold are separable </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Whether the empty pipe causes false detection </span></span></p>\n<p><span><span class=\"mclose\"><span class=\"hljs-bullet\">-</span> Whether foam and motion create significant instability</span></span></p>\n<p><span><span class=\"mclose\">3. If the results show that the two sides of the threshold can be distinguished, the next step would be to optimize the solution with filtering, hysteresis, and simple decision logic. or if the outputs overlap too much across different conditions, then the structure or sensing approach may need to be reconsidered.</span></span></p>\n<p><span><span class=\"mclose\">Hope this will help for you.</span></span></p>\n<p class=\"xmsonormal\"><span>Best Regards,</span></p>\n<p><span>Bin FAN</span></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Bin",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Bin,</p><p>Thank you very much for your detailed answer. I have located some more info about your sensors, but it is not so easy to find it. From what I understand the VL53L4CD or VL53L4CX would be most suitable. I suspect there can be a situation where there is one return from water level and one from the bottom. Would the VL53L4CD only respond with the distance to the largest return? With the VL53L4CX histogram, I suppose that I can see both bottom and water level and maybe also have a zero histogram as reference and then compare measurements with the reference and look for deviations.</p><p>I have noted that you shouldn't use any optics at the laser because of eye safety. However, I suppose that a plus lense at about 50 mm distance from the sensor where beam is about 15 mm could fix the wall problem. Do you have any more information about beam properties? Will it vary between individual units?</p><p>Kurt Mirdell</p></div>",
+                    "author": "kurtm",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p>\n<p>VL53L4CD measure the distance by Sigma Delta method. overall, the reported distance= (D1*R1+D2*R2)/(R1+R2)</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bin_0-1778668036719.png\" style=\"width: 400px;\"><img alt=\"Bin_0-1778668036719.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/12c14139-1446-3546-ac09-e0bf25373867.png\" title=\"Bin_0-1778668036719.png\"/></span></p>\n<p>But with VL53L4CX <span>histogram. In theory, most photons will be reflected back by the water surface and received by SPADS, unless there is an object with a very high reflectivity at the bottom of the water in pure water, which maybe distinguish between the water surface and the bottom. You can have a try and play VL53L4CX to verify.</span></p>\n<p><span>About the VSCEL and beam parts are confidential and not convenient to share. Really sorry for that. However, if it is a specific project, you can contact our FAE and get the answer. Thank you</span></p>\n<p class=\"xmsonormal\"><span>Best Regards,</span></p>\n<p><span>Bin FAN</span></p>\n<p> </p></div>",
+                    "author": "Bin",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Bin",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Bin",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,96 @@
+{
+    "forum": [
+        {
+            "id": "163369",
+            "publicId": "163369",
+            "title": "CubeIDE 2.1.0: system_stm32wl3x.o dangerous relocation: unsupported relocation",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/cubeide-2-1-0-system-stm32wl3x-o-dangerous-relocation-unsupported-relocation-163369",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "Bug-report"
+            ],
+            "published_at": "2026-03-03T08:44:09+00:00",
+            "views": 1575,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @RWalko wrote:\n\n>\n\n> system\\_stm32wl3x.o\n\n> dangerous relocation: unsupported relocation\n\n>\n\n> ---\n\nSame message here: [*Solved: system\\_stm32wb0x.c - dangerous relocation: unsupported relocation (CubeIDE, CubeMX)*](https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882330).\n\n@Ghofrane GSOURI - Internal Ticked **228023** raised by @Mahmoud Ben Romdhane",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "I have created a project for the STM32WL33 several weeks ago, using the DEEPSTOP mode with context restoration provided by ST. Even if there are some pitfalls with this the project worked mostly fine. But after the update to STM32CubeIDE 2.1.0 I get a compilation error:\n\n./System/Startup/cpu\\_context\\_switch.o(CPUcontextRestore): Unknown destination type (ARM/Thumb) in ./Core/Src/system\\_stm32wl3x.o\n\ndangerous relocation: unsupported relocation\n\nmake: \\*\\*\\* [makefile:89: Euris3-EHKV-WMBus.elf] Error 1\n\nI've reverted the version to 2.0.0 and the error is gone.",
+            "images": [],
+            "author": "RWalko",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"87445\">@RWalko</user-mention> </p>\n<p>Could you please provide your project?</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, I cannot provide my project as it includes company code and I cannot quickly clean it up. If you can provide a safe data transfer possibility I may be able to send you the project.</p></div>",
+                    "author": "RWalko",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"87445\">@RWalko</user-mention> wrote:<br/><p>system_stm32wl3x.o<br/>dangerous relocation: unsupported relocation</p><hr/></blockquote><p>Same message here: <a href=\"https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882330\" target=\"_blank\"><em>Solved: system_stm32wb0x.c - dangerous relocation: unsupported relocation (CubeIDE, CubeMX)</em></a>.</p><p> </p><p><user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> - Internal Ticked <strong>228023 </strong>raised by <user-mention data-id=\"62758\">@Mahmoud Ben Romdhane</user-mention></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That's simply a new wording for an old linker error message \"undefined symbol\". Some strange update happened to LD.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"4148\">@gbm</user-mention> wrote:<br/><p>That's simply a new wording for an old linker error message \"undefined symbol\". </p><hr/></blockquote><p>Seems to be slightly different ?</p><p>The problem seems to the that the Assembler and/or Linker has become more picky about the specific <em>details</em> of the definition - the definition does exist, but is not qualified with this new <font face=\"courier new,courier\">%function</font> directive requirement ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>From the ARM forums:</p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><em>\"Since binutils version 2.44, functions in assembly must include the assembler directive <strong>.type name, %function</strong>, otherwise they fail at linking.\"</em></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><a href=\"https://community.arm.com/support-forums/f/compilers-and-libraries-forum/57077/binutils-2-44-and-gcc-15-1-0---dangerous-relocation-unsupported-relocation-error-when-trying-to-build-u-boot#:~:text=Since%20binutils%20version%202.44%20functions%20in%20assembly%20must%20include%20the%20assembler%20directive%20.type%20name%2C%20%25function%2C%20otherwise%20they%20fail%20at%20linking.\" rel=\"noopener nofollow noreferrer\" target=\"_blank\"><em>binutils 2.44 and GCC 15.1.0 - dangerous relocation: unsupported relocation error when trying to build U-Boot</em></a>.</p><p class=\"\"> </p><p class=\"\">See also: <a href=\"https://gcc.gnu.org/pipermail/gcc-help/2025-May/144189.html\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://gcc.gnu.org/pipermail/gcc-help/2025-May/144189.html</a></p><p class=\"\">And: <a href=\"https://lists.denx.de/pipermail/u-boot/2025-May/589101.html\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://lists.denx.de/pipermail/u-boot/2025-May/589101.html</a> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Could you tell me how to write this in C?<br/>Would I need to use inline assembly?</p></div>",
+                    "author": "HNish.2",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It seems to be purely an issue for assembler?</p><p>I think you need to start a separate thread of your own (this one is already marked as solved), giving a full description of your particular situation.</p><p>You can always give a link back to this thread, for context.</p><p> </p><p><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" target=\"_blank\" title=\"How to write your question to maximize your chances to find a solution\"><em>How to write your question to maximize your chances to find a solution</em></a></p><p> </p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <user-mention data-id=\"62758\">@Mahmoud Ben Romdhane</user-mention> </p><p>Another example of the same issue has just appeared - this time with H7 &amp; <span>X-CUBE-AUDIO-KIT</span>:<br/><em><a href=\"https://community.st.com/t5/stm32cubeide-mcus/livetune-designer-source-code-compilation-error/m-p/889591\" target=\"_blank\">livetune Designer Source Code Compilation Error</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/><p><user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <user-mention data-id=\"62758\">@Mahmoud Ben Romdhane</user-mention> </p><p>Another example of the same issue has just appeared - this time with H7 &amp; <span>X-CUBE-AUDIO-KIT</span>:</p><hr/></blockquote><p>And another here: <em><a href=\"https://community.st.com/t5/stm32cubeide-mcus/unknown-destination-type-arm-thumb-linking-error-in-cube-ide/td-p/895010\" target=\"_blank\">Unknown destination type (ARM/Thumb) linking error in cube ide</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

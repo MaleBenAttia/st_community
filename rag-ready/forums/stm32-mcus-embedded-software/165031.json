@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "165031",
+            "publicId": "165031",
+            "title": "STM32H563 USB CDC bare-metal: classic USB_Device not available in CubeMX 6.17.0",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h563-usb-cdc-bare-metal-classic-usb-device-not-available-in-cubemx-6-17-0-165031",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB",
+                "STM32H5 series",
+                "FreeRTOS",
+                "USBX"
+            ],
+            "published_at": "2026-04-23T05:34:16+00:00",
+            "views": 171,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @pooja\\_g\n\nFirst, I would suggest starting with this article :  [How to implement USBX in standalone mode](https://community.st.com/t5/stm32-mcus/how-to-implement-usbx-in-standalone-mode/ta-p/614435) and  [How to implement USB mass storage device standalone](https://community.st.com/t5/stm32-mcus/how-to-implement-usb-mass-storage-device-standalone-on-stm32/ta-p/841325)\n\nSecond CubeMX doesn't support classic core middleware for H5 as it supports natively USBX. To use classic core MW apps, check this [repo](https://github.com/STMicroelectronics/stm32h5-classic-coremw-apps/tree/main).\n\nAlso you can port this [example](https://github.com/STMicroelectronics/x-cube-azrtos-h7/tree/dev/usbx/Projects/NUCLEO-H723ZG/Applications/USBX/Ux_Device_CDC_ACM_Standalone).\n\nI hope this helps!",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hardware: STEVAL-MKI109D (STM32H563ZI)\n\nCubeMX: 6.17.0\n\nCubeIDE: 2.1.0\n\nConnection: USB-C directly to STM32H563 USB OTG (no ST-LINK chip)\n\nPROBLEM:\n\nI need USB CDC Virtual COM Port in a bare-metal application\n\n(no RTOS). CubeMX 6.17.0 for STM32H563 only offers:\n\n- USBX (requires ThreadX)\n\n- ThreadX\n\n- FileX\n\n- LevelX\n\nClassic USB\\_Device middleware (usbd\\_cdc\\_if.h / CDC\\_Transmit\\_FS)\n\nis NOT available for STM32H5 series in CubeMX 6.17.0.\n\nUSBX requires ThreadX RTOS. Without ThreadX running,\n\nMX\\_USBX\\_Init() causes the board to crash silently —\n\nafter DFU flash the board is completely invisible on USB\n\n(no lsusb entry, no /dev/ttyACM\\*).\n\nQUESTIONS:\n\n1. How do I implement USB CDC on STM32H563 WITHOUT ThreadX?\n\n2. Is there a way to enable classic USB\\_Device stack for STM32H5\n\nin CubeMX 6.17.0?\n\n3. Is there a bare-metal USBX CDC example that does NOT require\n\nThreadX for STM32H5?\n\n4. Can I manually add usbd\\_cdc\\_if.c and USB Device library files\n\nto an STM32H5 project without CubeMX support?\n\nI have a working SPI sensor application (ISM330DHCX on DIL24)\n\nand just need to stream data over USB CDC. Adding full ThreadX\n\nRTOS is too complex for this use case.\n\nPlease provide guidance or a working minimal example.\n\nAttachments: MKI109D\\_ISM330DHCX.ioc",
+            "images": [],
+            "author": "pooja_g",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105524\">@pooja_g</user-mention> </p>\n<p>First, I would suggest starting with this article :  <a href=\"https://community.st.com/t5/stm32-mcus/how-to-implement-usbx-in-standalone-mode/ta-p/614435\" target=\"_blank\">How to implement USBX in standalone mode</a> and  <a href=\"https://community.st.com/t5/stm32-mcus/how-to-implement-usb-mass-storage-device-standalone-on-stm32/ta-p/841325\" target=\"_blank\">How to implement USB mass storage device standalone</a></p>\n<p>Second CubeMX doesn't support classic core middleware for H5 as it supports natively USBX. To use classic core MW apps, check this <a href=\"https://github.com/STMicroelectronics/stm32h5-classic-coremw-apps/tree/main\" rel=\"nofollow noopener noreferrer\" target=\"_self\">repo</a>.</p>\n<p>Also you can port this <a href=\"https://github.com/STMicroelectronics/x-cube-azrtos-h7/tree/dev/usbx/Projects/NUCLEO-H723ZG/Applications/USBX/Ux_Device_CDC_ACM_Standalone\" rel=\"nofollow noopener noreferrer\" target=\"_self\">example</a>.</p>\n<p>I hope this helps!</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @FBL, following up on this — separate issue now that USB CDC is working.</p><p>I'm trying to write bare-metal SPI communication with the ISM330DHCX sensor (STEVAL-MKI207V1) on the DIL24 socket, but I'm consistently getting <code>WHO_AM_I = 0xFF</code> regardless of GPIO/SPI config (I've verified AF mapping, clock/mode settings, and read command bytes are all correct against the datasheet).</p><p>I noticed the board's stock firmware (ProfiH5_MKI109D) uses the STM32H563ZI's DAC1_OUT1/OUT2 (PA4/PA5) to drive the software-adjustable VDD/VDDIO supply circuit — which conflicts with the pins I'd otherwise use for SPI1_NSS/SCK.</p><p>Could you point me to the actual GPIO pin mapping between the STM32H563ZI and the DIL24 socket's SPI signals (SCK/MOSI/MISO/CS), so I know which pins are safe to use for SPI without colliding with the power-supply DAC pins? Is there a schematic or pinout table available outside of MEMS Studio for developers writing custom firmware for this board?</p><oembed url=\"https://community.st.com/mems-sensors-48/steval-mki109d-gpio-pin-mapping-between-stm32h563zi-and-dil24-socket-spi-power-supply-for-custom-bare-metal-firmware-166585\"></oembed><p> </p></div>",
+                    "author": "pooja_g",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

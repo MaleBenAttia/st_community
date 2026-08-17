@@ -1,0 +1,111 @@
+{
+    "forum": [
+        {
+            "id": "163595",
+            "publicId": "163595",
+            "title": "stm32n6 PPS in (ETH_PTP_AUX_TS)",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-pps-in-eth-ptp-aux-ts-163595",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-09T09:42:32+00:00",
+            "views": 732,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hi @Noam\\_h\n\nI got the confirmation. You can sync the STM32N6 with internal signal connected to timer output trigger as I mentioned earlier. Here is the mapping to be added in reference manual :\n\nptp\\_aux\\_ts\\_trig\\_i[0] (eth\\_ptp\\_trig0) connected internally with tim2\\_trgo\n\nptp\\_aux\\_ts\\_trig\\_i[1] (eth\\_ptp\\_trig1) connected internally with tim3\\_trgo\n\nptp\\_aux\\_ts\\_trig\\_i[2] (eth\\_ptp\\_trig2) not connected\n\nptp\\_aux\\_ts\\_trig\\_i[3] (eth\\_ptp\\_trig3) connected internally with fdcan1\\_tmp",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI need to sync the stm32n6 system timer to be used as PTP master. According to the Reference Manual there is a PPS input that can generate timestamp and interrupt:\n\nETH\\_PTP\\_AUX\\_TS\n\nBut according to the RM it is not in all models, and I can't find which models it exists and how to map it to external IO.\n\nThanks,\n\nNoam.",
+            "images": [],
+            "author": "Noam_h",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104899\">@Noam_h</user-mention> </p>\n<p>I assume <span>ETH_PTP_AUX_TS are missing in STM32N6 datasheet. I will come back to you  ASAP.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the replay, ETH<span>_PTP_AUX_TS is missing in the datasheet, and I couldn't find it in STM32cubeMX.</span></p><p><span>Thanks,</span></p><p><span>Noam.</span></p></div>",
+                    "author": "Noam_h",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104899\">@Noam_h</user-mention> </p>\n<p><span>The issue is being tracked internally, and I cannot commit to a specific timeline <span>officially </span>for a valid pin.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hello </span><user-mention data-id=\"2057\">@FBL</user-mention><span> ,</span></p><p><span>Any news,regarding the issue?</span></p><p><span>Tganks,</span></p><p><span>Noam</span></p></div>",
+                    "author": "Noam_h",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hi </span><user-mention data-id=\"2057\">@FBL</user-mention></p><p>while I am waiting, can I use one of the internal eth_ptp_trig[3:0] as an input and one of the timers with PPS trigger in and a trigger out connected to the eth_ptp_trig? </p><p>If so, the routing from the trigger out to eth_ptp_trig is also not documented.</p><p>Thanks,</p><p>Noam.</p></div>",
+                    "author": "Noam_h",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello  <user-mention data-id=\"104899\">@Noam_h</user-mention> </p>\n<p>Yes, on STM32N6 you can use an internal trigger as the PTP auxiliary timestamp source: a timer can take your PPS on one of its inputs and generate a trigger output, which is then internally routed to the Ethernet PTP auxiliary snapshot engine.</p>\n<p>However, the internal routing  is not yet explicitly documented in the public RM. I’m currently waiting for official confirmation on this mapping so that it can be clearly documented (via RM update and/or errata), and so that we can reference it confidently in designs. Internal ticket number CDM0060329 for internal use.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104899\">@Noam_h</user-mention> </p>\n<p><span>I got the confirmation. You can sync the STM32N6 with internal signal connected to timer output trigger as I mentioned earlier. Here is the mapping to be added in reference manual :</span><br/><span data-teams=\"true\"> ptp_aux_ts_trig_i[0] (eth_ptp_trig0) connected internally with tim2_trgo<br/></span><span data-teams=\"true\"> ptp_aux_ts_trig_i[1] (eth_ptp_trig1)</span><span> </span><span data-teams=\"true\">connected internally with tim3_trgo</span><br/><span data-teams=\"true\"> ptp_aux_ts_trig_i[2] (eth_ptp_trig2) not connected<br/> ptp_aux_ts_trig_i[3] (eth_ptp_trig3) connected internally with fdcan1_tmp</span></p>\n<p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks <user-mention data-id=\"2057\">@FBL</user-mention>,</p><p>what about the  <span>ETH_PTP_AUX_TS?</span></p><p><span>Thanks,</span></p><p><span>Noam.</span></p></div>",
+                    "author": "Noam_h",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Unfortunately ETH_PTP_AUX_TS is not mapped on all products. On STM32N6, it's mapped with no internal signal only with timer output trigger or FDCAN..</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Is it mapped to an external gpio?</p><p>Noam</p></div>",
+                    "author": "Noam_h",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

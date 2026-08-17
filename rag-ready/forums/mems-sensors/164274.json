@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164274",
+            "publicId": "164274",
+            "title": "LSM6DSO and LSM6DSO32 compatible",
+            "url": "https://community.st.com/mems-sensors-48/lsm6dso-and-lsm6dso32-compatible-164274",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Gyroscopes",
+                "Accelerometers"
+            ],
+            "published_at": "2026-03-29T13:39:31+00:00",
+            "views": 198,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @Rolandash ,\n\nZephyr expects only one compatible string per device node. The error (`redefinition of '__device_dts_ord_133'`) happens because Zephyr’s device tree system tries to create two device instances for the same node, leading to a conflict. Although the Zephyr documentation suggests listing multiple compatibles for fallback, in practice, this can cause issues if both drivers are present or if the driver registration logic doesn’t handle it well. Use only one compatible string per node.\n\nIf you use `\"st,lsm6dso32\"`, Zephyr will use the LSM6DSO driver, but with the LSM6DSO32-specific configuration. If the driver or DTS settings (like default ranges, ODR, etc.) are not properly set for LSM6DSO32, you may see abnormal behavior.\n\nUsing `\"st,lsm6dso\"` for LSM6DSO32 may work for basic functions but check the difference in the two register maps.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am testing LSM6DSO and LSM6DSO32 on Zephyr.\n\nAs these 2 sensors are pin compatible, I prepared 2 identical boards, one is mounted with LSM6DSO and LSM6DSO32 on another. (The sensors are connected to MCU through SPI interface.)\n\nMy purpose is that I can use one single Zephyr image to drive the IMU sensor no matter which one of these 2 sensors is mounted on board.\n\nIt looks promising because one lsm6dso.c driver is provided in Zephyr, and this driver defined DT\\_DRV\\_COMPAT for LSM6DSO32. And Zephyr's official document also confirmed this compatible as well.\n\nSo I use the default sample/sensor/lsm6dso app for a simple testing.\n\nThe sample can be built and run for the board with LSM6DSO. The output from the uart console looks making sense.\n\nBut I encountered some problems when configure the dts file for the board with LSM6DSO32.\n\nAt first I config the dts file like this:\n\n```\n\nlsm6dso: lsm6dso@0 {\n\ncompatible = \"st,lsm6dso32\", \"st,lsm6dso\";\n\n...\n\n}\n\n```\n\nThis can not compile, the compiler complains:\n\n```\n\nerror: redefinition of '__device_dts_ord_133'\n\n96 | #define DEVICE_NAME_GET(dev_id) _CONCAT(__device_, dev_id)\n\n```\n\nThen I changed the dts file to like this:\n\n```\n\nlsm6dso: lsm6dso@0 {\n\ncompatible = \"st,lsm6dso32\";\n\n...\n\n}\n\n```\n\nand in the sample's main file, I changed the dev\\_id to:\n\n```\n\nconst struct device *const dev = DEVICE_DT_GET_ONE(st_lsm6dso32);\n\n```\n\nThis can compile and run, but the output result is bit strange, as the output rate of console is very slow compare to previous board with LSM6DSO.\n\nIn the end I changed the dts back to:\n\n```\n\nlsm6dso: lsm6dso@0 {\n\ncompatible = \"st,lsm6dso\";\n\n...\n\n}\n\n```\n\nand the sample's main file back to:\n\n```\n\nconst struct device *const dev = DEVICE_DT_GET_ONE(st_lsm6dso);\n\n```\n\nThis time the board with LSM6DSO32 can run and the output rate looks the same as the other one, but the readings of accel and gyro looks have quite big differences.\n\nWhat I am not sure is:\n\n1) why have both compatible listed (compatible =\"st,lsm6dso32\", \"st,lsm6dso\") result in compiling error? This method is actually recommended by Zephyr official document.\n\n2) It seems that if compatible = \"st,lsm6dso32\" is used, the program on LSM6DSO32 board runs abnormally. Am I missing something else?\n\n3) Although set compatible = \"st,lsm6dso\" can make LSM6DSO32 board works like normal, I am still not sure the results I got are correct for LSM6DSO32. According to my search these 2 sensors actually have different register maps, and their default range of measurements are not same.\n\nCan you please give some hints?\n\nThank you in advance.\n\n/Roland",
+            "images": [],
+            "author": "Rolandash",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"94254\">@Rolandash</user-mention> ,</p>\n<p>Zephyr expects only one compatible string per device node. The error (<code>redefinition of '__device_dts_ord_133'</code>) happens because Zephyr’s device tree system tries to create two device instances for the same node, leading to a conflict. Although the Zephyr documentation suggests listing multiple compatibles for fallback, in practice, this can cause issues if both drivers are present or if the driver registration logic doesn’t handle it well. Use only one compatible string per node.</p>\n<p>If you use<span> </span><code>\"st,lsm6dso32\"</code>, Zephyr will use the LSM6DSO driver, but with the LSM6DSO32-specific configuration. If the driver or DTS settings (like default ranges, ODR, etc.) are not properly set for LSM6DSO32, you may see abnormal behavior.</p>\n<p><span>Using </span><code>\"st,lsm6dso\"</code><span> for LSM6DSO32 may work for basic functions but check the difference in the two register maps.</span></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

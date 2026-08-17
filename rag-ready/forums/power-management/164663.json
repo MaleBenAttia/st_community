@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "164663",
+            "publicId": "164663",
+            "title": "Vac sense circuit of STEVAL-7BIDIRCB",
+            "url": "https://community.st.com/power-management-53/vac-sense-circuit-of-steval-7bidircb-164663",
+            "category": "Power management",
+            "tags": [
+                "AC-DC conversion",
+                "DC-DC conversion",
+                "Power supply management",
+                "Battery management"
+            ],
+            "published_at": "2026-04-11T21:28:49+00:00",
+            "views": 364,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I assume that with a symmetrical connector at J107...109, the internal L can also be connected to N from the mains instead of L from the mains, which is why the input voltage detection has been implemented symmetrically. Please note that both symmetrical, i.e. reversible plugs such as the [Schuko system](https://en.wikipedia.org/wiki/Schuko), and asymmetrical plugs are [used worldwide](https://en.wikipedia.org/wiki/AC_power_plugs_and_sockets). However, only asymmetrical plugs provide a fixed assignment of the connection.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear ST community,\n\nI'm reviewing the Vac sense circuit of STEVAL-7BIDIRCB, where the circuit uses a resistor divider to generate a low voltage of VACN and VACL for MCU. I simulated this section of circuit in LTspice, and here is my result :\n\n![Saeid_2-1775942241126.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f9e4d28d-5354-f4f8-545c-1dde53c41f73.png \"Saeid_2-1775942241126.png\")\n\nMy Vac input is +/-256V sine waveform and VACL that I'm measuring is +/-900mV sine waveform.\n\nBased on my calculation this is a simple voltage divider and I should see +/-1.8V sine waveform.\n\n![Saeid_3-1775942377861.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7903be95-1db0-d9a6-8aae-33b372fac2d4.png \"Saeid_3-1775942377861.png\")\n\nWhy am I seeing 1.8V/2 = 900mV ?   I did some research and my understating is that when there is an equal resistor network each side of AC source ( N and L), Vac IN  becomes half ( 256V -> 128), but I don't understand how it is possible when my Vac input is 256V ?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0697ff8-cf06-1ffb-e4ee-9851d1ec70ae.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ff063b98-289b-b952-f87c-fa5cdf95a882.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6a879cf-7feb-6e5f-f82d-15f80a625558.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f9e4d28d-5354-f4f8-545c-1dde53c41f73.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7903be95-1db0-d9a6-8aae-33b372fac2d4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0b6f701c-95f9-f17e-4e1b-61846a100c12.png"
+            ],
+            "author": "Saeid",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>I assume that with a symmetrical connector at J107...109, the internal L can also be connected to N from the mains instead of L from the mains, which is why the input voltage detection has been implemented symmetrically. Please note that both symmetrical, i.e. reversible plugs such as the <a href=\"https://en.wikipedia.org/wiki/Schuko\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">Schuko system</a>, and asymmetrical plugs are <a href=\"https://en.wikipedia.org/wiki/AC_power_plugs_and_sockets\" rel=\"nofollow noopener noreferrer\" target=\"_self\">used worldwide</a>. However, only asymmetrical plugs provide a fixed assignment of the connection.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The VAC sensing network on the <a href=\"https://www.st.com/en/evaluation-tools/steval-7bidircb.html\" rel=\"noopener noreferrer\" target=\"_self\">STEVAL-7BIDIRCB</a> is not equivalent to a simple single voltage divider. Each sensing branch uses the full series chain of <strong>four</strong> 220k resistors (e.g. R149, R153, R157, R159), not just three, are connected to the two AC conductors L and N forming together a differential measurement of the mains voltage. If you only use three 220k resistors as in your calculation, the divider ratio is overestimated and the expected output becomes too high.</p>\n<p>With the correct resistor chain, the voltage at VACL/VACN is reduced accordingly, so a measured sine amplitude of around ±0.9V is consistent with the schematic. In other words, the lower amplitude is due to the complete symmetric sensing topology, not an issue with the circuit.</p>\n<p>Please also note that Protective Earth (<span>terminal </span>H between L, N) is not connected to GND (marked with A)!</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter, </p><p>Thank you very much for reviewing my post and sharing the information. I have updated my simulation: I am now using four 220kΩ resistors in series and a 4.7 kΩ pull-down resistor to ground.  Here is my new result: each side (N and L) shows a sine waveform of approximately ±670 mV, with a 180 phase difference. </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Saeid_0-1776050317432.png\" style=\"width: 999px;\"><img alt=\"Saeid_0-1776050317432.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0b6f701c-95f9-f17e-4e1b-61846a100c12.png\" title=\"Saeid_0-1776050317432.png\"/></span></p><p>However, based on my calculations, I expected to see ±1.36 V instead of ±670 mV.</p><p><strong>Q1:</strong> Can you please advise why there is this discrepancy? Am I missing something?</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Saeid_4-1776053458926.png\" style=\"width: 999px;\"><img alt=\"Saeid_4-1776053458926.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0697ff8-cf06-1ffb-e4ee-9851d1ec70ae.png\" title=\"Saeid_4-1776053458926.png\"/></span></p><p><strong>Q2:</strong> why am I measuring approximately 128 VAC (half of 256 V) when I measure <span class=\"\"><span class=\"\">VL </span></span>with respect to ground? However, when I disconnect <span class=\"\"><span class=\"\">VL</span></span> from the circuit, it shows to 256 V.</p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Saeid_2-1776052372661.png\" style=\"width: 999px;\"><img alt=\"Saeid_2-1776052372661.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ff063b98-289b-b952-f87c-fa5cdf95a882.png\" title=\"Saeid_2-1776052372661.png\"/></span></p><p><br/><strong>Q3:</strong> Can you please help me understand how a symmetric sensing topology reduces the voltage from 256V to128V?  Which voltage should be considered when calculating the resistor values?</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Saeid_5-1776053956597.png\" style=\"width: 999px;\"><img alt=\"Saeid_5-1776053956597.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6a879cf-7feb-6e5f-f82d-15f80a625558.png\" title=\"Saeid_5-1776053956597.png\"/></span></p><p><strong>Q4:</strong> Does the STEVAL-7BIDIRCB use the STM32G4's internal OPAMP1 to measure VAC? If so, what is the op-amp configuration? Is it using negative feedback with a positive offset to shift the signal into the positive range?</p></div>",
+                    "author": "Saeid",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The behaviour you are seeing is mainly due to the symmetric sensing topology and the way the AC voltage is distributed across the two branches.</p>\n<p>A few key points:</p>\n<ul>\n<li>The circuit is not a simple single-ended divider from one line to ground</li>\n<li>The two resistor strings must be considered together as part of the overall Vac sensing network</li>\n<li>In this topology, each branch only sees a portion of the full AC voltage, which is why the sensed amplitude is lower than a simple single-divider calculation would suggest</li>\n</ul>\n<p>So, if you now use four 220k resistors per branch, the smaller amplitude you measure at VACL / VACN is consistent with the schematic. The value of about ±670mV is therefore not unexpected.</p>\n<p>For Q2 and Q3, the apparent 128Vac with respect to ground is also a consequence of the symmetric arrangement. Once the full network is connected, the line voltage is no longer observed as an isolated source-to-ground signal, but as part of the complete divider structure between VL and VN</p>\n<p>For Q4, the VACL and VACN signals are routed directly to the MCU analogue inputs as shown in the schematic in <a href=\"https://www.st.com/resource/en/data_brief/steval-7bidircb.pdf\" rel=\"noopener noreferrer\" target=\"_self\"><span>DB5164</span></a>, fig. 8 (see VACL_F and VACN_F). The detailed internal analogue configuration is not described in the public documentation, so details on the operational amplifier configuration would need to be confirmed through the support of <a href=\"https://www.st.com/content/st_com/en/contact-us.html\" rel=\"noopener noreferrer\" target=\"_blank\">your local distributor</a> (requires an NDA).</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

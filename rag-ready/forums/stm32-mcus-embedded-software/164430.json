@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "164430",
+            "publicId": "164430",
+            "title": "Inaccurate tick period when enabling USE_TICKLESS_IDLE",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/inaccurate-tick-period-when-enabling-use-tickless-idle-164430",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeMX",
+                "FreeRTOS",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-04-02T23:20:33+00:00",
+            "views": 290,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello  @chirpy\n\nThank you for your feedback!\n\nWhen configUSE\\_TICKLESS\\_IDLE = 1 with CubeMX:\n\nFreeRTOS uses the standard vPortSuppressTicksAndSleep() in port.c. It:\n\n* Reprograms SysTick to cover several ticks at once.\n\n* Calls configPRE\\_SLEEP\\_PROCESSING() and then executes WFI.\n\n* After wakeup, computes how many ticks elapsed and calls vTaskStepTick(), then restores SysTick to 1‑tick.\n\nSo the tick timing is changed even if you never enter STOP. That explains your 350 ms vs 400 ms observation when only the built in tickless is enabled.\n\nThe code generated does **not**:\n\n* Select STOP modes, or\n\n* Configure wakeup sources RTC/LPTIM/EXTI, or\n\n* Save nd restore RCC PWR and voltage scaling after STOP...\n\nThose are expected to be implemented by the application in: configPRE\\_SLEEP\\_PROCESSING and configPOST\\_SLEEP\\_PROCESSING. CubeMX only generates empty hooks.\n\nI found this article useful. [How to use STM32U5 with FreeRTOS™ in tickless mode.](https://community.st.com/t5/stm32-mcus/how-to-use-stm32u5-with-freertos-in-tickless-mode/ta-p/568431) Enjoy reading.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am using STM32U575RGT6 with CubeMX 6.17 and the bundled X-CUBE-FREERTOS v1.4.0. After enabling USE\\_TICKLESS\\_IDLE, I observed that the tick period becomes inaccurate.\n\nSpecifically, the delay appears to be consistently shortened to about 0.875× of the expected value.\n\n```\n\nvoid StartDefaultTask(void const *argument) {\n\nwhile (1) {\n\nHAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);\n\nvTaskDelay(400);\n\n}\n\n}\n\n```\n\nWith USE\\_TICKLESS\\_IDLE disabled, the delay is approximately 400 ms as expected.\n\n![ScreenImg.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54f3ae59-ef99-9a92-b65f-289d8f09a9cd.png \"ScreenImg.png\")\n\nAfter enabling it, the delay is reduced to about 350 ms.\n\nI have created a minimal project to reproduce the issue, and it shows the same behavior consistently. The project is attached.\n\nCould anyone help explain the cause or suggest a fix?\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54f3ae59-ef99-9a92-b65f-289d8f09a9cd.png"
+            ],
+            "author": "chirpy",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"101501\">@chirpy</user-mention> </p>\n<p>Your HAL timebase is using TIM7.</p>\n<p>Low power hook macros configPRE_SLEEP_PROCESSING / configPOST_SLEEP_PROCESSING are defined, but your PreSleepProcessing() PostSleepProcessing() functions are <strong>empty</strong>, so they do not yet control the STOP mode entry/exit.</p>\n<p>To check whether the issue is really inside the tickless logic itself and not related to STOP or clock reconfiguration, could you run these two simple tests:</p>\n<ol>\n<li>\n<p><strong>Test 1: Tickless enabled, and no low power / STOP</strong></p>\n<ul>\n<li>In FreeRTOSConfig.h: #define configUSE_TICKLESS_IDLE 1</li>\n<li>In app_freertos.c:\n<div class=\"markdown-block\">\n<div class=\"markdown-toolbar-wrapper\" data-v-app=\"\" id=\"toolbar_0_98278686992\">\n<div class=\"markdown-toolbar\" data-v-c2f29b64=\"\">\n<div class=\"base ux-text-field-label ux-text-semibold\" data-testid=\"uxtext_content\" data-v-67c59c52=\"\" data-v-c2f29b64=\"\">\n<div class=\"flex ux-text-style\" data-v-67c59c52=\"\"><pre class=\"lia-code-sample language-c\"><code>void PreSleepProcessing(uint32_t ulExpectedIdleTime)\n{\n (void)ulExpectedIdleTime; // do nothing, no STOP or clock change\n}</code></pre></div>\n</div>\n</div>\n</div>\n</div>\n</li>\n<li>Measure osDelay 400 again.</li>\n<li>If it is already around 350ms, the problem is in the tickless algorithm/compensation itself.</li>\n</ul>\n</li>\n<li>\n<p><strong>Test 2 : Tickless enabled with STOP / low power</strong></p>\n<ul>\n<li>Implement your intended STOP or low power entry in PreSleepProcessing() and restore the clock configuration on wakeup</li>\n<li>Measure osDelay 400 again.</li>\n</ul>\n</li>\n</ol>\n<p>If test 1 is correct and test 2 is wrong, the issue is linked to STOP/clock reconfiguration, not to the tickless logic.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2057\">@FBL</user-mention> ,</p><p>Thank you for the detailed response and for breaking it down into two tests — it really helped me think through the problem more carefully.</p><p>I have to be upfront: I was initially under the impression that simply enabling USE_TICKLESS_IDLE in CubeMX with \"Built-in Functionality\" would handle everything automatically, including proper low-power entry. I've since realized (with some help from an AI assistant) that this is not quite the case.</p><p>From what I now understand:</p><p>- Test 1 is essentially my current state — the built-in tickless implementation only issues a WFI instruction, without actually entering STOP or switching clocks. This would explain why my power consumption barely improves with tickless enabled. Is my understanding correct that \"Built-in Functionality Enabled\" only provides the tick suppression framework, and that actually entering a low-power mode like STOP1 is left entirely to the user?</p><p>- For Test 2, my understanding is that I need to: switch to a clock source that remains active in STOP mode (e.g. LSI or LSE driving LPTIM), enter STOP in PreSleepProcessing(), and then restore the system clock in PostSleepProcessing() after wakeup. However, I'm honestly not very familiar with this area, and I'm worried about getting it wrong — for example, would the MCU just hang indefinitely if no wakeup source is configured before entering STOP? Could you point me to a reference example, or help me understand the minimal correct implementation for Test 2?</p><p>As an additional data point: I tried replacing the tick source with LPTIM driven by LSI, using jefftenney's LPTIM-Tick-U5 (<a href=\"https://github.com/jefftenney/LPTIM-Tick-U5\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/jefftenney/LPTIM-Tick-U5</a>). With this in place, the tick period is back to normal with no noticeable error, and power consumption drops noticeably as well. I've attached the working minimal project based on this approach.</p><p>Given these findings, I'd like to understand what exactly happens under the hood when USE_TICKLESS_IDLE is enabled with the built-in implementation, and what is expected from the user side to make it work properly.</p><p>Thanks again for your patience and guidance.</p></div>",
+                    "author": "chirpy",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello  <user-mention data-id=\"101501\">@chirpy</user-mention> </p>\n<p>Thank you for your feedback!</p>\n<p>When configUSE_TICKLESS_IDLE = 1 with CubeMX:</p>\n<p>FreeRTOS uses the standard vPortSuppressTicksAndSleep() in port.c. It:</p>\n<ul>\n<li>Reprograms SysTick to cover several ticks at once.</li>\n<li>Calls configPRE_SLEEP_PROCESSING() and then executes WFI.</li>\n<li>After wakeup, computes how many ticks elapsed and calls vTaskStepTick(), then restores SysTick to 1‑tick.</li>\n</ul>\n<p>So the tick timing is changed even if you never enter STOP. That explains your 350 ms vs 400 ms observation when only the built in tickless is enabled.</p>\n<p>The code generated does<span> </span><strong>not</strong>:</p>\n<ul>\n<li>Select STOP modes, or</li>\n<li>Configure wakeup sources RTC/LPTIM/EXTI, or</li>\n<li>Save nd restore RCC PWR and voltage scaling after STOP...</li>\n</ul>\n<p>Those are expected to be implemented by the application in: configPRE_SLEEP_PROCESSING and configPOST_SLEEP_PROCESSING. CubeMX only generates empty hooks.</p>\n<p>I found this article useful. <a href=\"https://community.st.com/t5/stm32-mcus/how-to-use-stm32u5-with-freertos-in-tickless-mode/ta-p/568431\" target=\"_blank\">How to use STM32U5 with FreeRTOS™ in tickless mode.</a> Enjoy reading.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

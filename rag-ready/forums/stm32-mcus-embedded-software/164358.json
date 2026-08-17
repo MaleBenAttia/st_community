@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "164358",
+            "publicId": "164358",
+            "title": "STM32H743 UART RX + DMA, does not work if the RX is in inverse mode.",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h743-uart-rx-dma-does-not-work-if-the-rx-is-in-inverse-mode-164358",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "DMA",
+                "UART-USART"
+            ],
+            "published_at": "2026-03-31T18:50:30+00:00",
+            "views": 379,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The problem is basically solved.\n\nPackets are received without problems. But there is one thing that is not clear. In direct mode, the UART is set to 8N2 and everything works, but in inverse mode it started working at 8E1. It seems that the hardware invert introduced some distortions.",
+            "best_answer_author": "AlexPi",
+            "best_answer_author_role": "Associate II",
+            "content_text": "If I don't enable RX line inversion, everything works fine. But when I enable inversion, I constantly get frame errors. The DMA operates in cyclic mode, without interruption. It's just like a ring buffer. In normal mode, everything works without problems. The signal source itself was tested on another device with a purely hardware signal inverter, and everything was fine. It's unclear why enabling inversion causes the problem. Perhaps someone can give me a hint as to what might be causing this? Thank you.",
+            "images": [],
+            "author": "AlexPi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If it works in non inverted mode then the signal is not inverted. Getting frame errors would be expected.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Let me clarify the problem.<br/>I have an STM32H743 processor, and I configure UART8 to receive in direct mode, without inversion, plus DMA.<br/>A device whose serial port operates in inverse mode is connected to the RX line, but not directly, via a hardware inverter. Everything works fine.<br/>Then, I connect this same device directly and set the RX line to inverse mode in the processor settings (STM32H743). However, the processor constantly returns a frame error instead of data.</p><p>Please help. Has anyone used the serial port in line inversion mode and knows the nuances of this operation?</p></div>",
+                    "author": "AlexPi",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; I have an STM32H743 processor, and I configure UART8 to receive in direct mode, without inversion, plus DMA.</em><br/><em>A device whose serial port operates in inverse mode is connected to the RX line, but not directly, via a hardware inverter. Everything works fine.</em></p><p>Again, if it receives correctly in normal mode, all indications suggest the incoming data is not inverted.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The problem is basically solved.<br/>Packets are received without problems. But there is one thing that is not clear. In direct mode, the UART is set to 8N2 and everything works, but in inverse mode it started working at 8E1. It seems that the hardware invert introduced some distortions.</p></div>",
+                    "author": "AlexPi",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

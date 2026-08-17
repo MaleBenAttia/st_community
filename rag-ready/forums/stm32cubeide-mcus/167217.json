@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "167191",
+            "publicId": "167217",
+            "title": "FPU: CubeIDE setting overrides register SCB->CPACR",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/fpu-cubeide-setting-overrides-register-scb-cpacr-167217",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32G4 series"
+            ],
+            "published_at": "2026-07-24T14:30:38+00:00",
+            "views": 89,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "> if source code sets FPU on\n\nHow?\n\n> but IDE says FPU off, the FPU is off\n\nHow do you know FPU is off?\n\nI don’t use CubeIDE, but my guess would be, that any “FPU on/off” tickbox results in preprocessor symbols being defined/not defined, probably through command-line -Dxxx switch, which are then used in SystemInit()\n\n```\n\nvoid SystemInit (void)\n\n{\n\n/* FPU settings ------------------------------------------------------------*/\n\n#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)\n\nSCB->CPACR |= ((3UL << (10*2))|(3UL << (11*2)));  /* set CP10 and CP11 Full Access */\n\n#endif\n\n```\n\nso if your code changes that before SystemInit is called, it will be overriden.\n\nOr not. I don’t Cube.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Heyho,\n\njust played with / checked the FPU on a G431.\n\nI found that the CubeIDE setting overrides the enable via register SCB->CPACR.\n\nSo, if source code sets FPU on, but IDE says FPU off, the FPU is off.\n\nThat a bug or a feature?",
+            "images": [],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So if it’s a question on CubeIDE, that must be asked in STM32CubeIDE.</p><p>I’m moving the post then.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That’s not how it works. The IDE can set some things up but once the source code is running it controls things. Recheck your assumptions.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, let’s rephrase it:</p><p>something changes it, probably the compiler ?</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; if source code sets FPU on</p><p>How?</p><p>&gt; but IDE says FPU off, the FPU is off</p><p>How do you know FPU is off?</p><p> </p><p>I don’t use CubeIDE, but my guess would be, that any “FPU on/off” tickbox results in preprocessor symbols being defined/not defined, probably through command-line -Dxxx switch, which are then used in SystemInit()</p><pre><code class=\"language-c\">void SystemInit (void)<br/>{<br/>  /* FPU settings ------------------------------------------------------------*/<br/>  #if (__FPU_PRESENT == 1) &amp;&amp; (__FPU_USED == 1)<br/>    SCB-&gt;CPACR |= ((3UL &lt;&lt; (10*2))|(3UL &lt;&lt; (11*2)));  /* set CP10 and CP11 Full Access */<br/>  #endif</code></pre><p>so if your code changes that before SystemInit is called, it will be overriden.</p><p>Or not. I don’t Cube.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ouch, feeling stooopid once more…</p><p>I copied exactly the above lines including the preprocessor #if, without having checked where the __FPU defines come from. I assumed wrongly that these were set in some *.h file.</p><p>Ouch, ouch, ouch, ...</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>BTW, I checked by setting up a timer running with CPU clock and checked the timer ticks.</p><p>That showed pretty clearly if FPU was on or not, a division taking about 10 times more cycles without the FPU.</p><pre><code class=\"language-c\">case '/':<br/>case ':':<br/>{<br/>\t__disable_irq();<br/>\tTIM6-&gt;CNT = 0;<br/>\tif( flValY != 0.0f ) flResult = flValX / flValY;<br/>\telse u32Error = 1;<br/>\t__ISB();<br/>\tu32TimStop = TimTestGetCnt();<br/>\t__enable_irq();<br/>\tbreak;<br/>}<br/></code></pre><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,99 @@
+{
+    "forum": [
+        {
+            "id": "165529",
+            "publicId": "165529",
+            "title": "PWM driving of Inductive Loads with VND5T100LAJ-E",
+            "url": "https://community.st.com/power-management-53/pwm-driving-of-inductive-loads-with-vnd5t100laj-e-165529",
+            "category": "Power management",
+            "tags": [
+                "Automotive Power"
+            ],
+            "published_at": "2026-05-09T10:46:48+00:00",
+            "views": 507,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "First of all: [VND5T100LAJ](https://www.st.com/en/automotive-analog-and-power/vnd5t100laj-e.html) and [VND5T100AJ](https://www.st.com/en/automotive-analog-and-power/vnd5t100aj-e.html) differ essentially only in the package variants and in the values for current sensing. The switching times are completely identical, so you can expect the same achievable switching frequency.\n\nCould it be that you want to reduce the power consumption of the relay with PWM?\n\nIf that is the case, then you should take a look at the datasheet for the [HCX241CB](https://www.sensata.com/sites/default/files/a/sensata-gigavac-hx24-series-open-epoxy-contactors-datasheet.pdf), where under General Notes, point 4, it says:\n\nContactor has two coils. Both are used for pick-up, and then in approximately 75 milliseconds, one coil is electronically removed from the coil drive circuit. The remaining coil supplies low continuous hold power sufficient for the contactor to meet all of its specified performance specifications. This provides the lowest coil power possible **without the use of PWM electronics** that have been known to cause EMI emissions and/or cross-talk on your system control power.\n\nRegardless of the purpose of PWM control: the maximum PWM frequency of 1...2kHz will result in an audible tone, which can only be avoided with frequencies above the audible range, but then increasingly causes EMI problems.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am evaluating the **VND5T100AJ-E** for an automotive application where I need to drive a 24V contactor. My design requirement is i need to drive the IC through the PWM signal as input.\n\nI have reviewed the datasheet but do not see explicit PWM frequency ratings. My concerns are:\n\n1. Does the VND5T100AJ-E support continuous PWM switching for an inductive load?\n\n2. If this device is not recommended for PWM, could you suggest a similar specification alternative part with the same specifications  that is specifically designed for PWM input @stmicro",
+            "images": [],
+            "author": "Chiranjeevi9391",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>First of all: <a href=\"https://www.st.com/en/automotive-analog-and-power/vnd5t100laj-e.html\" rel=\"noopener noreferrer\" target=\"_self\">VND5T100LAJ</a> and <a href=\"https://www.st.com/en/automotive-analog-and-power/vnd5t100aj-e.html\" rel=\"noopener noreferrer\" target=\"_self\">VND5T100AJ</a> differ essentially only in the package variants and in the values for current sensing. The switching times are completely identical, so you can expect the same achievable switching frequency.</p>\n<p>Could it be that you want to reduce the power consumption of the relay with PWM?<br/>If that is the case, then you should take a look at the datasheet for the <a href=\"https://www.sensata.com/sites/default/files/a/sensata-gigavac-hx24-series-open-epoxy-contactors-datasheet.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_self\">HCX241CB</a>, where under General Notes, point 4, it says:</p>\n<p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\">Contactor has two coils. Both are used for pick-up, and then in approximately 75 milliseconds, one coil is electronically removed from the coil drive circuit. The remaining coil supplies low continuous hold power sufficient for the contactor to meet all of its specified performance specifications. This provides the lowest coil power possible<strong> without the use of PWM electronics</strong> that have been known to cause EMI emissions and/or cross-talk on your system control power.</p>\n<p>Regardless of the purpose of PWM control: the maximum PWM frequency of 1...2kHz will result in an audible tone, which can only be avoided with frequencies above the audible range, but then increasingly causes EMI problems.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"106810\">@Chiranjeevi9391</user-mention>, to the community!</p>\n<p>The<a href=\"https://www.st.com/resource/en/datasheet/vnd5t100laj-e.pdf\" rel=\"noopener noreferrer\" target=\"_self\">VND5T100LAJ-E</a> can also switch inductive loads, including via PWM. The switching frequency can be estimated based on the turn-on and turn-off delay times.</p>\n<p>What PWM frequency are you planning to use?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">We are planning to operate at max frequency of MHz's range.<br/></div>",
+                    "author": "Chiranjeevi9391",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There’s no chance of even coming close to that. You might, with significant losses, reach around 1…2kHz, but under no circumstances higher PWM frequencies.</p>\n<p>And to answer your question before you ask: there isn’t a single intelligent protected switch in the portfolio of STMicroelectronics that can meet your requirements. In my many years in the industry, during which I’ve seen intelligent switches from various manufacturers, I’ve never come across a switch with such a high switching frequency.</p>\n<p>But perhaps we can offer some suggestions if you describe in detail, as precisely as possible, what it is you actually want to achieve <span>or put into practice.</span></p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"106810\">@Chiranjeevi9391</user-mention> </p>\n<p>Have you worked it out using the turn-on and turn-off delay times mentioned?<br/>What’s your conclusion?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">we didn't tried yet, we are confirming is that IC will works on PWM input<br/>or not. based on our yesterday's conversation you said it will works on<br/>PWM input could you please tell me if it works on PWM input, what is the<br/>max frequency i can operate it.<br/></div>",
+                    "author": "Chiranjeevi9391",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As mentioned before: \"<span>You might, with significant losses, reach around 1…2kHz, but under no circumstances higher PWM frequencies.\"<br/></span></p>\n<p>There is no achievable switching frequency stated in the datasheet for good reason, because it depends on many factors. However, if you take the figures from the datasheet, table 6, namely (dVOUT/dt)(on) = typ. 1V/µs and (dVOUT/dt)(off) = typ. 0.65µs, then for VCC = 24V, for example, you already get typ. 19.2µs for switch-on and typ. 12.48µs for switch-off. However, this figure is limited to a rise from 10% to 80% of the output voltage and a fall from 90% to 10% of the output voltage, so because of the unpredictability of inductive/capacitive effects it does not cover a complete switching cycle. The switch therefore already needs typically 31.68µs for these parts of a switching cycle.<br/>If you assume an estimate of about 50µs, just to switch the switch on and immediately off again, you arrive at a theoretical switching frequency of 20kHz. At this timing, however, you have not yet delivered any significant energy to the output and are only heating the switch through the switching losses, so a sensible switching frequency is in the already mentioned 1...2kHz range.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I apologise for butting in, but I'm trying to understand what it is you wish to achieve.</p><p>You need to drive a 24 V contactor for an automotive application. \"Automotive\" traditionally means 12 or 24 V, and I assume that you are working with a 24 V system.</p><p>If you just need to turn the contactor on and off, I would first check if the contactor can handle at least 30 V. If it can, then just switch the contactor on and off using a regular transistor, such as a FET. If it can't, then I would go for a brushed DC motor driver, with built-in current limiting. These are designed to drive inductive loads, and use the contactor coil as the switching inductor.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "163700",
+            "publicId": "163700",
+            "title": "OEMiROT: what is the expected use case?",
+            "url": "https://community.st.com/stm32-mcus-security-36/oemirot-what-is-the-expected-use-case-163700",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32 Security"
+            ],
+            "published_at": "2026-03-11T14:18:52+00:00",
+            "views": 276,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "ST Online Support replied:\n\nby definition a bootloader's purpose is code executed at boot that will launch an application and that can have additional functionality.\n\n-> Our embedded system bootloader has been designed to allow the internal flash/ option byte programming.\n\n-> OEMiROT is a bootloader with the purpose to insure integrity and authenticity of the application firmware before launching it. On top of this it can install securely a new firmware encrypted and signed.\n\nOEMiROT is a secure bootloader with secure update capability but doesn't integrate natively the loader code (capability to receive a new firmware encrypted and signed and program it in flash).\n\nThis capability to receive a new firmware encrypted and signed is not included as it's not related to security and is dependant on the customer use case. We have some code example with YMODEM protocol over the usart.",
+            "best_answer_author": "Steve Melnikoff",
+            "best_answer_author_role": "Senior",
+            "content_text": "Typical bootloaders (including some of ST's built-in bootloaders for other processors) typically allow a code image to be loaded into the processor via some kind of serial link (UART, SPI, CAN, etc), without needing an ST-Link or other debug hardware. These make bootloaders ideal for in-field upgrades of products.\n\nOEMiROT/OEMuROT has some features of a bootloader, in that a new image can be placed in a special area of flash and (if it passes all the various checks) then be executed.\n\nHowever, there is no way of actually putting that image in flash without an ST-Link or similar, since this is needed to unlock the chip via the DA process. So if you want to do an in-field upgrade of your product's firmware without any debug hardware, OEMiROT in its current form isn't the solution.\n\nOur approach is for our application to download the image into a reserved area of RAM and then switch to the bootloader, where our adapted version of OEMiROT copies this image from RAM to the special area of flash. At this point, the regular OEMiROT code takes over as normal.\n\nAs reported in other posts here, it appears that OEMiROT wasn't designed with this kind of functionality in mind. So my question is: was OEMiROT designed as a bootloader (in addition to its security functions)? If so, what is the expected use case?\n\n**(ST: please reply here, and not privately.)**",
+            "images": [],
+            "author": "Steve Melnikoff",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This post has been escalated to the ST Online Support Team for additional assistance.  We'll contact you directly.</p></div>",
+                    "author": "Joe WILLIAMS",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>ST Online Support replied:</p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><span class=\"\"><font color=\"#0000FF\">by definition a bootloader's purpose is code executed at boot that will launch an application and that can have additional functionality.</font><br/><br/><font color=\"#0000FF\">-&gt; Our embedded system bootloader has been designed to allow the internal flash/ option byte programming.</font><br/><br/><font color=\"#0000FF\">-&gt; OEMiROT is a bootloader with the purpose to insure integrity and authenticity of the application firmware before launching it. On top of this it can install securely a new firmware encrypted and signed. </font><br/></span></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><span class=\"\"><font color=\"#0000FF\">OEMiROT is a secure bootloader with secure update capability but doesn't integrate natively the loader code (capability to receive a new firmware encrypted and signed and program it in flash).</font><br/></span></p><p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\"><span class=\"\"><font color=\"#0000FF\">This capability to receive a new firmware encrypted and signed is not included as it's not related to security and is dependant on the customer use case. We have some code example with YMODEM protocol over the usart.</font><br/></span></p></div>",
+                    "author": "Steve Melnikoff",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Joe WILLIAMS",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

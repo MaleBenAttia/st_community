@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164891",
+            "publicId": "164891",
+            "title": "STM32U5 + ThreadX/USBX: Composite Device disconnects on Windows after 5-10 minutes",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u5-threadx-usbx-composite-device-disconnects-on-windows-after-5-10-minutes-164891",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32U5 series",
+                "USBX"
+            ],
+            "published_at": "2026-04-19T12:03:07+00:00",
+            "views": 423,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi! I found out the problem and is really similar to the one explained here: <https://community.st.com/t5/stm32-mcus-embedded-software/unimplemented-usbx-storage-scsi-causes-stall/td-p/887716>\n\nThe main issue is that USBX middleware do not support some command and this send the USB in a STALL state. In particular some Windows DELL computers send the SCSI command 0x85.\n\nHope that this post can help other people!",
+            "best_answer_author": "ATeli.1",
+            "best_answer_author_role": "Associate III",
+            "content_text": "* Hello everyone,\n\nI am developing a firmware for an \\*\\*STM32U5\\*\\* microcontroller using Azure RTOS (ThreadX / USBX). I am implementing a USB Composite Device with two classes: \\*\\*CDC\\*\\* (Virtual COM Port) and \\*\\*MSC\\*\\* (Mass Storage Class). The MSC is interfaced with an eMMC using an 8-bit bus for data communication.\n\nI am facing a persistent issue that I cannot seem to resolve: the device drops the USB connection after about 5 to 10 minutes of operation. By debugging the code, I noticed that the disconnection is triggered because the device eventually calls the HAL\\_PCD\\_DisconnectCallback() function.\n\nMy main concern (and source of confusion) is that this behavior is highly OS-dependent. For instance, on my dual-boot PC, the device works flawlessly without a single disconnection on \\*\\*Ubuntu 22.04\\*\\*, but it consistently crashes/disconnects on \\*\\*Windows\\*\\*.\n\n### What I see on Windows (Event Viewer)\n\nRight before the disconnection occurs, Windows throws several SCSI timeout errors in the Event Viewer. Specifically, I see:\n\n\\* StorDiag 507: failed non-read/write SCSI request\n\n\\* CdbBytes = 000000000000 -> \\*\\*TEST UNIT READY\\*\\*\n\n\\* StorDiag 505: failed read SCSI request\n\n\\* CdbBytes = 28000000000000001000 -> \\*\\*READ(10)\\*\\*\n\n\\* StorDiag 500: failed upper-level read\n\nIt appears Windows queries the device (BOT/SCSI commands), the device fails to respond in time, and Windows forcefully drops the connection.\n\n### Troubleshooting steps I've already tried:\n\n1. \\*\\*Hardware Interrupt Priorities:\\*\\* Increased the USB interrupt priority, setting it to 0, 1, and 2 (I know setting it to 0 is generally not recommended with an RTOS, but I tried it for debugging purposes to rule out interrupt starvation).\n\n2. \\*\\*ThreadX / USBX Memory Allocation:\\*\\* Checked the sizes of the USB threads. Currently, I am allocating:\n\n\\* 16 \\* 1024 for the USBX memory pool.\n\n\\* 10 \\* 1024 for the USBX system stack.\n\n\\* 10 \\* 1024 each for MSC and CDC.\n\n\\* The Bulk IN and Bulk OUT thread sizes are set to 1024.\n\n3. \\*\\*Thread Priorities:\\*\\* I tried lowering the USB thread priority from 20 down to several different levels to see if the scheduler was the issue.\n\n4. \\*\\*Single Class Mode:\\*\\* Disabled the composite class and enabled only CDC or only MSC at a time. The issue still persists on the MSC side.\n\n5. \\*\\*Windows Power Management:\\*\\* Disabled all USB selective suspend and power-saving modes on my Windows machine.\n\n### My USB HAL Initialization parameters:\n\nFor reference, here is the basic configuration of my USB High-Speed initialization block:\n\n```\n\n.hpcd_usb_hs.Init.Sof_enable = DISABLE;\n\n.hpcd_usb_hs.Init.low_power_enable = DISABLE;\n\n.hpcd_usb_hs.Init.lpm_enable = DISABLE;\n\n.hpcd_usb_hs.Init.use_dedicated_ep1 = DISABLE;\n\n.hpcd_usb_hs.Init.vbus_sensing_enable = DISABLE;\n\n.hpcd_usb_hs.Init.dma_enable = DISABLE;​\n\n```\n\nHas anyone experienced a similar BOT/SCSI timeout issue on Windows with ThreadX on the STM32U5? Are there any specific USBX timing parameters, or Cache/DMA configurations I might be missing since my dma\\_enable is currently set to DISABLE?\n\nAny hints or suggestions to point me in the right direction would be greatly appreciated. Thanks in advance!\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [],
+            "author": "ATeli.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"54240\">@ATeli.1</user-mention> </p>\n<p>We would require minimum firmware to check the issue to instrument <strong>MSC commands </strong>:</p>\n<ul>\n<li>entry/exit of SCSI command handlers</li>\n<li>storage read/write completion</li>\n<li><code>TEST UNIT READY</code></li>\n<li><code>READ(10)</code></li>\n</ul>\n<p>Windows may be more sensitive:</p>\n<ul>\n<li>polls MSC more aggressively,</li>\n<li>expects stricter BOT timing..</li>\n</ul>\n<p><code></code></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi! I found out the problem and is really similar to the one explained here: <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/unimplemented-usbx-storage-scsi-causes-stall/td-p/887716\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-embedded-software/unimplemented-usbx-storage-scsi-causes-stall/td-p/887716</a></p><p>The main issue is that USBX middleware do not support some command and this send the USB in a STALL state. In particular some Windows DELL computers send the SCSI command 0x85.</p><p>Hope that this post can help other people!</p><p> </p><p> </p></div>",
+                    "author": "ATeli.1",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

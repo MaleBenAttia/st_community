@@ -1,0 +1,146 @@
+{
+    "forum": [
+        {
+            "id": "164170",
+            "publicId": "164170",
+            "title": "UART printing gibbersh to TeraTerm",
+            "url": "https://community.st.com/stm32-mcus-products-25/uart-printing-gibbersh-to-teraterm-164170",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-03-25T17:52:27+00:00",
+            "views": 1158,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "My original code,\n\n```\n\nHAL_UART_Transmit(&huart3, (uint8_t *)ch, 1, 10);\n\n```\n\nWhat it should be,\n\n```\n\nHAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 10);\n\n```\n\nNotice the **&** in front of the *ch*",
+            "best_answer_author": "NicRoberts",
+            "best_answer_author_role": "",
+            "content_text": "NUCLEO F767ZI, CubeIDE 2.1.1, CubeMX 6.17.0\n\nI'm trying to set up UART with *printf()*\n\n```\n\n#include <stdio.h>\n\nUART_HandleTypeDef huart3;\n\nstatic void MX_USART3_UART_Init(void);\n\nint __io_putchar(int ch)\n\n{\n\nHAL_UART_Transmit(&huart3, (uint8_t *)ch, 1, 10);\n\nreturn ch;\n\n}\n\n....\n\n// in main\n\n// in while\n\nprinf(\"UART test\\r\\n\");\n\n// MX generated USART3 init\n\nstatic void MX_USART3_UART_Init(void)\n\n{\n\n/* USER CODE BEGIN USART3_Init 0 */\n\n/* USER CODE END USART3_Init 0 */\n\n/* USER CODE BEGIN USART3_Init 1 */\n\n/* USER CODE END USART3_Init 1 */\n\nhuart3.Instance = USART3;\n\nhuart3.Init.BaudRate = 115200;\n\nhuart3.Init.WordLength = UART_WORDLENGTH_8B;\n\nhuart3.Init.StopBits = UART_STOPBITS_1;\n\nhuart3.Init.Parity = UART_PARITY_NONE;\n\nhuart3.Init.Mode = UART_MODE_TX_RX;\n\nhuart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;\n\nhuart3.Init.OverSampling = UART_OVERSAMPLING_16;\n\nhuart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;\n\nhuart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;\n\nif (HAL_UART_Init(&huart3) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN USART3_Init 2 */\n\n/* USER CODE END USART3_Init 2 */\n\n}\n\n```\n\nClock tree from MX\n\n![MX_CLK_Tree.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b5aa9690-0a8b-e272-4a72-9df583c606fb.jpg \"MX_CLK_Tree.jpg\")\n\nOutput in Tera Term window\n\n![TT_window.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23d8e93f-23af-152a-b44e-951ecd96ab76.png \"TT_window.png\")\n\nTT is set up exactly the same as the UART init in the code.\n\nAnyone know whats going on here?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1c42888-25a1-2550-c3a4-5b39fd274fa0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6cd40fb8-f175-b0db-1d83-e7cccd417821.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/067cb261-0b00-2d8f-4633-d6cab94e9649.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b46300e0-53d8-42fa-e163-8a9a7451acc3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4d718d82-ce6f-0479-84e9-3a875f4e9328.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b5aa9690-0a8b-e272-4a72-9df583c606fb.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2490b5c5-8e18-0a8b-17da-4ef9f69ef907.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23d8e93f-23af-152a-b44e-951ecd96ab76.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7d4ed204-164c-cdcb-6d3c-8aa2a835f88e.png"
+            ],
+            "author": "NicRoberts",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>My original code,</p>\n<pre class=\"lia-code-sample language-c\"><code>HAL_UART_Transmit(&amp;huart3, (uint8_t *)ch, 1, 10);</code></pre>\n<p> </p>\n<p>What it should be,</p>\n<pre class=\"lia-code-sample language-c\"><code>HAL_UART_Transmit(&amp;huart3, (uint8_t *)&amp;ch, 1, 10);</code></pre>\n<p> </p>\n<p>Notice the <strong>&amp;</strong> in front of the <em>ch</em></p>\n<p> </p></div>",
+                    "author": "NicRoberts",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>You have set a wrong HSE clock value to <strong>25MHz</strong>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 112px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2490b5c5-8e18-0a8b-17da-4ef9f69ef907.png\" title=\"screenshot.png\"/></span></p>\n<p>You need to set it to 8MHz as the ST-LINK-V2 MCO output on that Nucleo board is <strong>8MHz</strong></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Still gibberish<br/><br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Revised_clk_tree.png\" style=\"width: 999px;\"><img alt=\"Revised_clk_tree.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4d718d82-ce6f-0479-84e9-3a875f4e9328.png\" title=\"Revised_clk_tree.png\"/></span></p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Did you regenerate the code, compile it with that config and upload the application to the MCU?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Gibberish on a terminal is almost always due to <a href=\"https://learn.sparkfun.com/tutorials/serial-communication/all#:~:text=If%20all%20the%20receiving%20device%20sees%20on%20its%20receive%20line%20is%20garbage%2C%20check%20to%20make%20sure%20the%20baud%20rates%20match%20up\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">wrong baud rate</a>.</p><p>As <user-mention data-id=\"499\">@mƎALLEm</user-mention> said, if you enter the wrong value for the HSE clock frequency, then your baud rate will be wrong - as will any other frequencies derived from HSE.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>And what if you select HSI as clock source instead of HSE?:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 735px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1c42888-25a1-2550-c3a4-5b39fd274fa0.png\" title=\"screenshot.png\"/></span></p>\n<p>If it's working, that means definetly you have an issue with HSE, a missing solder bridge on STLINK MCO output path or something similar. If not, you have an issue with TeraTerm UART configuration.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No not working with HSI either<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Revised_clk_tree_again.png\" style=\"width: 891px;\"><img alt=\"Revised_clk_tree_again.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b46300e0-53d8-42fa-e163-8a9a7451acc3.png\" title=\"Revised_clk_tree_again.png\"/></span></p><p> </p><p>Settings in TT are the same as in the USART3 init. (I've also tried RealTerm &amp; get the same gibberish there too)<br/><br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"USART3_Init.png\" style=\"width: 995px;\"><img alt=\"USART3_Init.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7d4ed204-164c-cdcb-6d3c-8aa2a835f88e.png\" title=\"USART3_Init.png\"/></span><br/><br/></p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Configure the data lenght in Tera term to 7 bit instead of 8 bit.</p>\n<p>This is the example from CubeF7 <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/blob/master/Projects/STM32F767ZI-Nucleo/Examples/UART/UART_Printf/\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeF7/blob/master/Projects/STM32F767ZI-Nucleo/Examples/UART/UART_Printf/</a></p>\n<p>that suggests in its <a href=\"https://github.com/STMicroelectronics/STM32CubeF7/blob/master/Projects/STM32F767ZI-Nucleo/Examples/UART/UART_Printf/readme.txt\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">readme file</a> that you need to set the datalenght to 7 bit:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 232px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6cd40fb8-f175-b0db-1d83-e7cccd417821.png\" title=\"screenshot.png\"/></span></p>\n<p>This is what was said in a comment the example code: <strong>Word Length = 8 Bits (7 data bit + 1 parity bit)</strong></p>\n<pre class=\"lia-code-sample language-c\"><code> /* UART configured as follows:\n - Word Length = 8 Bits (7 data bit + 1 parity bit) : \n\t BE CAREFUL : Program 7 data bits + 1 parity bit in PC HyperTerminal\n - Stop Bit = One Stop bit\n - Parity = ODD parity\n - BaudRate = 9600 baud\n - Hardware flow control disabled (RTS and CTS signals) */\n UartHandle.Instance = USARTx;\n\n UartHandle.Init.BaudRate = 9600;\n UartHandle.Init.WordLength = UART_WORDLENGTH_8B;\n UartHandle.Init.StopBits = UART_STOPBITS_1;\n UartHandle.Init.Parity = UART_PARITY_ODD;\n UartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;\n UartHandle.Init.Mode = UART_MODE_TX_RX;\n UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;\n if (HAL_UART_Init(&amp;UartHandle) != HAL_OK)\n {\n /* Initialization Error */\n Error_Handler();\n }</code></pre>\n<p> This is apart of the wrong HSE frequency value you set in CubeMx: <strong>25MHz</strong> instead of <strong>8MHz </strong>(the issue I raised in a previous post).</p>\n<p>Hope that helps</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> <br/>OK found it after comparison with the reference code linked above. user error (when isn't it) it turns out I wasn't retargeting the <em>printf</em> function correctly. A missing ampersand in the data passed to the UART_transmit function,</p><p> </p><pre class=\"lia-code-sample language-c\"><code>int __io_putchar(int ch)\n{\n HAL_UART_Transmit(&amp;huart3, (uint8_t *)&amp;ch, 1, 10);\n return ch;\n}</code></pre><p> </p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"84519\">@NicRoberts</user-mention> wrote:<br/><pre class=\"lia-code-sample language-c\"><code>int __io_putchar(int ch)\n{\n HAL_UART_Transmit(&amp;huart3, (uint8_t *)&amp;ch, 1, 10);\n return ch;\n}</code></pre>\n<p> </p>\n<hr/></blockquote>\n<p>Sorry I didn't understand your feedback. What is the difference between the retargeting printf you have shared now and what you have shared in your original post? I don't see any difference!: </p>\n<pre class=\"lia-code-sample line-numbers max-30 language-c\" tabindex=\"0\"><code>int __io_putchar(int ch)\n{\n HAL_UART_Transmit(&amp;huart3, (uint8_t *)ch, 1, 10);\n return ch;\n}</code></pre>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"499\">@mƎALLEm</user-mention> wrote:<p class=\"\">What is the difference</p></blockquote><p><strike>Before</strike> After:</p><pre class=\"lia-code-sample language-c\"><code>HAL_UART_Transmit(&amp;huart3, (uint8_t *)&amp;ch, 1, 10);\n ^-- Here!</code></pre><p> </p><p><strike>After</strike> Before:</p><pre class=\"lia-code-sample language-c\"><code>HAL_UART_Transmit(&amp;huart3, (uint8_t *)ch, 1, 10);\n ^-- Here!</code></pre><p> </p><p><user-mention data-id=\"84519\">@NicRoberts</user-mention> so the problem was that you <em>were</em> actually sending gibberish to the terminal!</p><p> </p><p>This is exactly why I <em>always</em> recommend to <a href=\"https://community.st.com/t5/stm32-mcus/how-to-redirect-the-printf-function-to-a-uart-for-debug-messages/tac-p/733969/highlight/true#M1096\" target=\"_blank\">get direct comms working first</a> - <strong>before</strong> adding the extra complications of <font face=\"courier new,courier\">printf</font> redirection!</p><hr/><p><font color=\"#0000FF\"><em>Edited to correct 'Before' &amp; 'After'</em></font></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>One of those mistakes that we've probably all made that take forever to spot as you read what you <em>thought</em> you had typed when looking at the code ;)</p><p>Something that static analysis can help with on a good day.</p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Unfortunately, the mistake was masked by the <font face=\"courier new,courier\">(uint8_t*)</font> cast - without that, you'd have got a compiler warning...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/><p>Unfortunately, the mistake was masked by the <font face=\"courier new,courier\">(uint8_t*)</font> cast - without that, you'd have got a compiler warning...</p><hr/></blockquote><p>GCC does generate a warning for it:</p><p> <span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-27 at 11.37.04.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-03-27 at 11.37.04.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/067cb261-0b00-2d8f-4633-d6cab94e9649.png\" title=\"Screenshot 2026-03-27 at 11.37.04.png\"/></span></p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

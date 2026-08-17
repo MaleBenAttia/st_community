@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "163711",
+            "publicId": "163711",
+            "title": "STM32H563: PINRST not set after NVIC_SystemReset() used to reset the MCU",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h563-pinrst-not-set-after-nvic-systemreset-used-to-reset-the-mcu-163711",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "RCC",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-11T22:16:02+00:00",
+            "views": 348,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "If NRST is held high, the chip won't reset, so that's not it.\n\nSomething is probably clearing the flag before you get to it. PINRSTF is always set on reset, no matter the type.\n\nSearch RCC->CSR in your code, or the equivalent LL statements. Something probably uses it.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "STM32H563 on custom board. Using NVIC\\_SystemReset() to reset. It resets consistently.\n\nI expect LL\\_RCC\\_IsActiveFlag\\_PINRST() to return true after the MCU comes out of reset. It consistently returns false.\n\nNVIC\\_SystemReset() should result in pin reset, yes?\n\nLL\\_RCC\\_IsActiveFlag\\_PINRST() returns false after a restart with STM32CubeIDE debugger also.\n\nCould something on the board hold NRST high?",
+            "images": [],
+            "author": "mccabehm",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If NRST is held high, the chip won't reset, so that's not it.</p><p>Something is probably clearing the flag before you get to it. PINRSTF is always set on reset, no matter the type.</p><p>Search RCC-&gt;CSR in your code, or the equivalent LL statements. Something probably uses it.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"62714\">@mccabehm</user-mention> wrote:<br/>\n<p>STM32H563 on custom board. Using NVIC_SystemReset() to reset. It resets consistently.</p>\n<hr/></blockquote>\n<p>1- Watchdog timer is enabled?</p>\n<p>2- <span>NVIC_SystemReset() called without any condition in your application? </span></p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Clarification:</p><ul><li>NVIC_SystemReset() is called as a result of an external CAN command. This consistently resets the MCU. A reset switch on the board also consistently resets the MCU. The IDE debugger also consistently resets the MCU.</li><li>Coming out of reset, <span>LL_RCC_IsActiveFlag_PINRST() <em>sometimes </em>detects reset cause. Less than 20% of the time it correctly detects the reset cause.</span></li></ul><p><span>TDK's response reminded me: between the NVIC_SystemReset() call and LL_RCC_IsActiveFlag_PINRST() -- I have a custom bootloader in place. This could be clearing the RCC RSR before LL_RCC_IsActiveFlag_PINRST() runs. I will investigate.</span></p></div>",
+                    "author": "mccabehm",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I verified that the custom bootloader is responsible for clearing RCC RSR (reset status register). Verified with pin and software resets. So when my application runs and checks for reset cause, it will usually see no reset cause. Not sure why &lt; 20% of the time the resets are not cleared. But sufficient to consider the mystery solved.</p></div>",
+                    "author": "mccabehm",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

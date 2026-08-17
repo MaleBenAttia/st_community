@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "163693",
+            "publicId": "163693",
+            "title": "STM32H5 simple security settings",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32h5-simple-security-settings-163693",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32G4 series",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-11T11:59:13+00:00",
+            "views": 412,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Here is what you're looking for:\n\n[How to enable RDP-like product state flash protect... - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus/how-to-enable-rdp-like-product-state-flash-protection-in-stm32h5/ta-p/708082)\n\nYou'll notice it's quite long and involved, unlike on the G4 where it would be a few sentences. If you don't want the complexity or need the additional security options, the H5 may not be the right choice.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi,\n\nI have a question about choosing some fairly basic security settings for an STM32H5.\n\nWe are developing a system that uses both G4 and H5 micros. We have developed a largely common bootloader that receives a signed encrypted application over variously USB, UART, or CAN, and flashes it to internal memory. This is working on the G4 and H5.\n\nFor the G4, we understand that if we select \"Level 1\" read protection, the bootloader will still be able to erase and re-flash a new application but a user will not be able to gain access to the code (bootloader, application, or data in CC RAM). Further, the G4 can be reverted to Level 0 if required, but this will erase the proprietary code.\n\nIdeally, we would like the same security behaviour on the H5. I have been reading about the bewildering selection of security settings with privileged and secure settings for individual peripherals but I feel this is more complicated than we require. Our bootloader already prevents someone installing malicious code so I believe we just need a means of locking out the JTAG port to prevent someone reading the bootloader or decrypted application from flash. Ideally we would like this security setting to be reversible but with a full chip erase, as on the G4.\n\nI would be grateful for any advice on suitable security setting.\n\nThanks",
+            "images": [],
+            "author": "JimJW",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Here is what you're looking for:</p><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-enable-rdp-like-product-state-flash-protection-in-stm32h5/ta-p/708082\" target=\"_blank\">How to enable RDP-like product state flash protect... - STMicroelectronics Community</a></p><p> </p><p>You'll notice it's quite long and involved, unlike on the G4 where it would be a few sentences. If you don't want the complexity or need the additional security options, the H5 may not be the right choice.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/>I posted a couple of follow up questions below - I don't know if you would normally see that because I had already checked \"Accepted Solution\" on the first answer.</p><p>Thanks</p></div>",
+                    "author": "JimJW",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Unfortunately, I'm not an expert in this area. Since your original question was answered, it may be better to post the more specific questions in a new thread, if they're not already answered in the linked thread.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for that link <user-mention data-id=\"8205\">@TDK</user-mention>  - it seems to do what we want. I have a couple of follow-up questions:<br/><br/>1) Since the regression to open performs a full chips erase, am I right in thinking that we can use a common and not secure password? i.e. Revealing the password does not allow access to the firmware.<br/><br/>2) Can I perform all of the steps listed, from my bootloader firmware? As far as I can see, the changes to product state just require a write to write to an option byte. I have yet to find the part of the reference manual that describes how to write the password file but looking through the scripts in the git repo mentioned seems to suggest that something is written to \"address_password=0x8FFF000\". (Just noticed - that address looks like H503 only, and for the H563 it looks like 0x0FFD 0100)</p></div>",
+                    "author": "JimJW",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

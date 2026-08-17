@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164337",
+            "publicId": "164337",
+            "title": "STM32F401 as I2C Slave Mode? Speed?",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f401-as-i2c-slave-mode-speed-164337",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "I2C",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-31T09:35:15+00:00",
+            "views": 749,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello Ozone,\n\nthank you for yout thought,\n\nI've lowered Pull ups to 2k2 and installied 33E Protection Resistor, the signal slopes are better now. What I've noticed is a thing in Initialization if I2C\n\nwhen I try to set Acknowledge enable (like in my Init Funktion)\n\n```\n\nI2C1->CR1 |= I2C_CR1_ACK;\n\n```\n\nit is ignored during Initalization when the I2C Block is in PE=0 modei, so moving Acknowledge enable together Enable Bit to\n\n```\n\n/* Enable the selected I2C peripheral and set ACK Mode */\n\nI2C1->CR1 |= I2C_CR1_ACK | I2C_CR1_PE;\n\n```\n\nthe I2C Block starts to operate.\n\nI've misinterpreted the paragraph in the Reference Manual\n\n**Bit 10 ACK: Acknowledge enable**\n\nThis bit is set and cleared by software and cleared by hardware when PE=0.\n\nI thought this bit is cleared when entering \"PE=0\" and can be set anytime again during initialization.\n\nthank you for you help,\n\nRegards\n\nLorenz",
+            "best_answer_author": "LGrüb.1",
+            "best_answer_author_role": "",
+            "content_text": "Hello Forum,\n\nI want to use a Nucleo 64 STM32F401 Board to test I2C connection with an unknown master (reverse engineering).\n\nThe Bus consits of 1 Master (unknown Controller) an 1 Slave (My STM32F40). The Master sends out a Read Request at Addr. 5 and the Slave should respond with 3 Bytes. I've connected the I2C Bus to PB6/PB7 of the Nucleo Board.\n\nOn Softwareside I Initialized with bare metal Code, see attachment.\n\nI my setup a I2C Master sends out a Adress byte with read request to address 5, but my Controller doesn't do a thing at all. I would expect at least an ACK Bit, but nothing can be monitored.\n\n![grafik.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76da362c-d36f-767d-217c-2bf4f3270a4a.png \"grafik.png\")\n\nFrom the Signal capture the bus looks fine for me, but in which mode do I need to configure the stm32 slave? Is this standard mode or fast mode. Is the clock speed of any concern in this case (slave)? How to config the CCR and TRISE register in this case.\n\nThe Port seems to be configured correct, the IDR of GPIOB detects a \"1\" on PB6/PB7.\n\nIn my example I've also enabled interrupts, but no interrupt occurs, nor also a main loop check of the RXNE register shows any activity. Also swapping Pins to PB8/PB9 didn't change anything. Setup is attached.\n\nDoes someone has any hint to bring up the slave mode or to check even liveness of the I2C of the STM32 Controller?\n\nregards, Lorenz",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76da362c-d36f-767d-217c-2bf4f3270a4a.png"
+            ],
+            "author": "LGrüb.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello Ozone,</p><p>thank you for yout thought,</p><p>I've lowered Pull ups to 2k2 and installied 33E Protection Resistor, the signal slopes are better now. What I've noticed is a thing in Initialization if I2C</p><p>when I try to set Acknowledge enable (like in my Init Funktion)</p><pre class=\"lia-code-sample language-c\"><code> I2C1-&gt;CR1 |= I2C_CR1_ACK;</code></pre><p>it is ignored during Initalization when the I2C Block is in PE=0 modei, so moving Acknowledge enable together Enable Bit to</p><pre class=\"lia-code-sample language-c\"><code> /* Enable the selected I2C peripheral and set ACK Mode */\n I2C1-&gt;CR1 |= I2C_CR1_ACK | I2C_CR1_PE;</code></pre><div class=\"\"> </div><p>the I2C Block starts to operate.</p><p>I've misinterpreted the paragraph in the Reference Manual</p><p> </p><div class=\"\"> </div><p><strong>Bit 10 ACK: Acknowledge enable</strong><br/>This bit is set and cleared by software and cleared by hardware when PE=0.</p><p> </p><p>I thought this bit is cleared when entering \"PE=0\" and can be set anytime again during initialization.</p><p>thank you for you help,</p><p>Regards</p><p>Lorenz</p><div class=\"\"> </div><p> </p></div>",
+                    "author": "LGrüb.1",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The clock in the picture is about 200 kHz, which is not a standard speed, but meets the criterion for fast mode (up to 400 kHz).</p><p>The signal is trying to talk to slave 0xB &lt;&lt; 1. Your code sets up slave 0x5 &lt;&lt; 1. These are not the same so the controller should not respond.</p><p><em>&gt; // Slave-Adresse setzen (z.B. 0x50)</em><br/><em>&gt; I2C1-&gt;OAR1 = (0x05u &lt;&lt; 1) | (1 &lt;&lt; 14); // 7-Bit Adresse, Mode 0</em></p><p>Your comments looks like your'e trying to set the slave address to 0x50.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello TDK,</p><p>thank you for Answering and notice my mistake</p><p>my intended Adress is 0x05u</p><p>also changing the OAR Register to</p><pre class=\"lia-code-sample language-c\"><code> // Slave-Adresse set (z.B. 0x05)\n I2C1-&gt;OAR1 = (0x0Bu &lt;&lt; 1) | (1 &lt;&lt; 14); // 7-Bit Adresse, Mode 0</code></pre><p>didn't changes anything, my main concern is that something could fail because of the odd I2C Speed. What is actually the difference between Standard and Fast mode? ( I just set the I2C_CCR_FS-Bit to switch to fast mode).</p><p>Would running the I2C Bus also operate in Standard mode solve the inresponsiveness?</p><p>regards,</p><p>Lorenz</p><p> </p></div>",
+                    "author": "LGrüb.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; my main concern is that something could fail because of the odd I2C Speed</em></p><p>Why do you have this concern? There is no reason for it.</p><p>This is not a bus speed issue.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I my setup a I2C Master sends out a Adress byte with read request to address 5, but my Controller doesn't do a thing at all. I would expect at least an ACK Bit, but nothing can be monitored.</em></font></p><p><span>That is an issue with your code, not the physical bus.</span></p><p><span>You would need to configure your MCU to accept this address. Check with the RM how the 7-bit address is interpreted, either to be shifted or OR-ed. This part is not handled consistent across device documentations.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>thank your for adivces,</p><p>currently I've swaped SDA/SCL Pins just for Testing, suddenly the I2C Error Interrupt with BUS Error Bit Active is fired, so my conclusion now is that the I2C Block doesn't see the SCL Signal at all, I think it is related either to termination or Voltage Level of the SCL Line. I'll try to investigate further in signal quality.</p><p>Also changing the Address to 0x05&lt;&lt;1 doesn't change anything, so I think the problem is on the electrical side.</p><p>thanks you</p><p>Regards,</p><p>Lorenz</p></div>",
+                    "author": "LGrüb.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I think it is related either to termination or Voltage Level of the SCL Line.</em></font></p><p><span>I suppose you do have pull-up resistors, they are essential for I2C functionality.<br/>And the internal pull-ups (about 40k) don't work, you need about 1...10k, I usually go with 2.2k.</span></p><p><font color=\"#0000FF\"><span>&gt; Also changing the Address to 0x05&lt;&lt;1 doesn't change anything, ...</span></font></p><p><span>Just a guess - shouln't the slave address be '2' in this case ?<br/>(I.e. 2&lt;&lt;2+0=4 for WR, and 2&lt;&lt;2+1=5 for RD)</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

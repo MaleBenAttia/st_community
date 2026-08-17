@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163334",
+            "publicId": "163334",
+            "title": "MIPI Camera GPU Acceleration on STM32MP257F-DK – High CPU Load, GPU Mostly Idle",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/mipi-camera-gpu-acceleration-on-stm32mp257f-dk-high-cpu-load-gpu-mostly-idle-163334",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-02T10:44:49+00:00",
+            "views": 613,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi Yassine\\_behilil,\n\nYes — I now have a working solution on STM32MP2 with libcamera and OpenGL.\n\nInstead of going through GStreamer, I implemented a direct pipeline using DMA-BUF and EGL. The current flow is:\n\nlibcamera → DMA-BUF (FD) → EGLImage (EGL\\_LINUX\\_DMA\\_BUF\\_EXT) → GL texture (GL\\_TEXTURE\\_EXTERNAL\\_OES) → Qt/OpenGL rendering\n\nIn this approach:\n\nFrames are never copied to CPU (zero-copy path)\n\nI use libcamera requestCompleted() to get the DMA FD\n\nThe FD is passed to the UI thread via a callback\n\nEGLImage is created once per FD and reused (buffer pool)\n\nglEGLImageTargetTexture2DOES is used to bind it to a texture\n\nThis significantly reduces CPU usage.\n\nHowever, there are some important constraints:\n\nFormat must be GPU/EGL compatible (only RGB565 works)\n\nProper thread handling is required (UI thread must do EGL/GL work)\n\nEGLImage creation must be cached per FD to avoid overhead.",
+            "best_answer_author": "Dhanakrishna_Chaitanya",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi everyone,\n\nI’m currently working on a camera preview pipeline on the STM32MP257F-DK using the Sony IMX335 (MIPI CSI-2) sensor.\n\nOne important point is that STM32MP2 uses a media-controller-based camera architecture (DCMIPP + CSI subdevices). Because of this, Qt Multimedia cannot directly detect the MIPI camera as a standard /dev/videoX capture device.\n\nFor that reason, I am using **libcamera** as the capture backend. It correctly handles the media graph configuration internally and exposes a usable video stream to GStreamer, which makes camera streaming stable and reliable.\n\nThe functional pipeline is working. However, the goal is to display the live feed inside a Qt6 QML application with proper GPU acceleration, and this is where I am facing a major performance bottleneck: CPU usage is very high during preview, while the Vivante GPU remains mostly idle.\n\nI’d really appreciate guidance from anyone who has implemented a zero-copy GPU camera pipeline on STM32MP2.\n\n---\n\n## Platform Overview\n\n* Board: STM32MP257F-DK\n\n* SoC: STM32MP257 (Cortex-A35 + Vivante GC7000L GPU)\n\n* Camera: Sony IMX335 (5MP, MIPI CSI-2)\n\n* ISP: DCMIPP\n\n* OS: OpenSTLinux 6.0 (Scarthgap)\n\n* Kernel: 6.6.48\n\n* Qt: 6.6.3 (QML / QtMultimedia)\n\n* GStreamer: 1.22.12\n\n* libcamera: 0.3.0\n\n* Display: Wayland + EGL\n\n---\n\n# What I’m Trying to Achieve\n\nMy goal is simple:\n\n> Show live camera preview in Qt6 QML with the GPU doing the heavy work — not the CPU.\n\nIdeally:\n\n* No CPU pixel format conversion\n\n* No memcpy per frame\n\n* No CPU → GPU texture upload copies\n\n* DMA-BUF zero-copy from camera to GPU\n\n---\n\n# What Is Currently Working\n\nUsing libcamera, the following pipeline works:\n\n```\n\nlibcamerasrc\n\n→ video/x-raw,format=RGB16,width=1280,height=720,framerate=25/1\n\n→ videoconvert\n\n→ video/x-raw,format=BGRA\n\n→ appsink\n\n→ QVideoSink\n\n→ QML VideoOutput\n\n```\n\nPreview is stable at 25 fps, 1280x720.\n\nSo functionally everything is correct.\n\n---\n\n# The Real Problem\n\nCPU usage is between **60% and 75%**, just for preview.\n\nAt the same time:\n\n* GPU usage is around 5%\n\n* GPU is almost idle\n\nThis clearly means the camera path is CPU-bound.\n\nAfter profiling, I see:\n\n* RGB16 → BGRA conversion (videoconvert) consumes significant CPU\n\n* In appsink, frames are copied multiple times\n\n* Qt uploads texture from CPU to GPU\n\n* Around 250+ MB/s of memory bandwidth is being used for nothing but copying pixels\n\nSo even though we have a GPU (Vivante GC7000L), almost the entire pipeline is CPU-based.\n\n---\n\n# Why This Feels Wrong\n\nThe hardware clearly supports:\n\n* DCMIPP ISP\n\n* DMA\n\n* Vivante GPU with EGL\n\n* Wayland + OpenGL ES\n\nArchitecturally, this should be possible:\n\n```\n\nIMX335\n\n→ DCMIPP ISP\n\n→ libcamerasrc (DMA-BUF)\n\n→ glupload (EGL import)\n\n→ glcolorconvert (shader)\n\n→ qmlglsink\n\n→ QML scene graph\n\n```\n\nThis would keep frames on the GPU from capture to display.\n\nBut currently I cannot reach this architecture.\n\n---\n\n# Main Blockers\n\n## 1) qmlglsink Not Available\n\nThe correct solution seems to be:\n\n```\n\nlibcamerasrc → glupload → glcolorconvert → qmlglsink\n\n```\n\nHowever:\n\n```\n\ngst-inspect-1.0 qmlglsink\n\n→ No such element\n\n```\n\nIt seems the Qt6 GStreamer plugin from gst-plugins-bad is not packaged in OpenSTLinux 6.0.\n\nIs there an official ST package or Yocto recipe for this?\n\n---\n\n## 2) DMA-BUF Heap Not Enabled\n\nThere is no:\n\n```\n\n/dev/dma_heap/\n\n```\n\nKernel config options appear missing:\n\n* CONFIG\\_DMABUF\\_HEAPS\n\n* CONFIG\\_DMABUF\\_HEAPS\\_SYSTEM\n\n* CONFIG\\_DMABUF\\_HEAPS\\_CMA\n\nWithout DMA-BUF heap support, true zero-copy EGL import may not be possible.\n\nIs this intentionally disabled in STM32MP2 BSP?\n\n---\n\n## 3) Qt6 Removed RGB565 Support\n\nlibcamera outputs RGB16 (RGB565) efficiently.\n\nBut Qt6 QVideoFrameFormat does not support RGB565 anymore.\n\nSo I am forced to convert to 32-bit (BGRA/RGBx) before sending to QVideoSink.\n\nThat conversion alone costs a lot of CPU.\n\nIs there a recommended Qt6-based approach on STM32MP2 to avoid this conversion?\n\n---\n\n# My Question to the Community\n\nHas anyone successfully implemented:\n\n* libcamera\n\n* Qt6 QML\n\n* GPU-accelerated preview\n\n* Zero-copy DMA-BUF path\n\non STM32MP257 or STM32MP2 family?",
+            "images": [],
+            "author": "Dhanakrishna_Chaitanya",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>With neon accelerator it will reduce 10 to 15% cpu usage </p></div>",
+                    "author": "jumman_JHINGA",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Waiting for Reply.. </p></div>",
+                    "author": "Dhanakrishna_Chaitanya",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Dhanakrishna,</p><p>Did you finally find a real solution for this issue?</p><p>I am very interested because I am facing almost the same problem on STM32MP2: the camera preview works, but the CPU still does most of the work while the Vivante GPU stays mostly idle.</p><p>Were you able to make the pipeline GPU-accelerated, especially with DMA-BUF zero-copy, EGL import, glupload/glcolorconvert, or qmlglsink?</p><p>In other words, did you manage to reach something close to:</p><p>libcamerasrc -&gt; glupload -&gt; glcolorconvert -&gt; qmlglsink -&gt; QML</p><p>Or did you find another working architecture to reduce CPU load?</p><p>Any update would be very useful.</p><p>Thanks.</p></div>",
+                    "author": "Yassine_behilil",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Yassine_behilil,</p><p>Yes — I now have a working solution on STM32MP2 with libcamera and OpenGL.</p><p>Instead of going through GStreamer, I implemented a direct pipeline using DMA-BUF and EGL. The current flow is:</p><p>libcamera → DMA-BUF (FD) → EGLImage (EGL_LINUX_DMA_BUF_EXT) → GL texture (GL_TEXTURE_EXTERNAL_OES) → Qt/OpenGL rendering</p><p> </p><p>In this approach:</p><p>Frames are never copied to CPU (zero-copy path)</p><p>I use libcamera requestCompleted() to get the DMA FD</p><p>The FD is passed to the UI thread via a callback</p><p>EGLImage is created once per FD and reused (buffer pool)</p><p>glEGLImageTargetTexture2DOES is used to bind it to a texture</p><p>This significantly reduces CPU usage.</p><p> </p><p>However, there are some important constraints:</p><p>Format must be GPU/EGL compatible (only RGB565 works)</p><p>Proper thread handling is required (UI thread must do EGL/GL work)</p><p>EGLImage creation must be cached per FD to avoid overhead.</p></div>",
+                    "author": "Dhanakrishna_Chaitanya",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

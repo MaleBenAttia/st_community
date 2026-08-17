@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "164374",
+            "publicId": "164374",
+            "title": "Issue encountered when using OTSPI1 and GPDMA1 on the STM32U545 with the TrustZone option enabled.",
+            "url": "https://community.st.com/stm32-mcus-security-36/issue-encountered-when-using-otspi1-and-gpdma1-on-the-stm32u545-with-the-trustzone-option-enabled-164374",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32U5 series"
+            ],
+            "published_at": "2026-04-01T08:19:40+00:00",
+            "views": 237,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Phil5,\n\npriv means privileged here. This is a state of cortex-m.\n\nReason why you need to set this configuration is because the RAM was setup by default as non secure and privileged with GTZC. If DMA is non privileged it cannot access privileged area.\n\nIf you change RAM configuration with GTZC to unprivileged, it will also solve your issue as both sides will be unprivileged\n\nBest regards\n\nJocelyn",
+            "best_answer_author": "Jocelyn RICARD",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I have an application that uses the OCTOSPI1 interface to read from and write to an external NOR flash memory into an SRAM1 buffer. The read and write operations are performed in the NS section of the application. If I perform a transfer without using DMA, it works. However, if I try to use GPDMA1, I get a buffer with all data set to 0, with no error.\n\nAdditional information: the application works very well with GPDMA1 if I disable the MCU’s TrustZone mode.\n\nI conclude that GPDMA is not fully initialized to work with TrustZone enabled, but I can’t figure out what’s missing despite my searches on this forum.\n\nAny help would be greatly appreciated.",
+            "images": [],
+            "author": "Phil5",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I solved the problem by initializing the DMA channel in private mode:</p><div><div><p><span>if</span><span> (</span><span>HAL_DMA_ConfigChannelAttributes</span><span>(&amp;handle_GPDMA1_Channel12_,</span></p><p><span>DMA_CHANNEL_NSEC | DMA_CHANNEL_PRIV) != </span><span>HAL_OK</span><span>)</span></p><p><span>{</span></p><p><span>Error_Handler();</span></p><p><span>}</span></p><p><span>Why private mode?</span></p></div></div></div>",
+                    "author": "Phil5",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105692\">@Phil5</user-mention>,</p>\n<p>priv means privileged here. This is a state of cortex-m.</p>\n<p>Reason why you need to set this configuration is because the RAM was setup by default as non secure and privileged with GTZC. If DMA is non privileged it cannot access privileged area.</p>\n<p>If you change RAM configuration with GTZC to unprivileged, it will also solve your issue as both sides will be unprivileged </p>\n<p>Best regards </p>\n<p>Jocelyn</p></div>",
+                    "author": "Jocelyn RICARD",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, it works as expected now.</p></div>",
+                    "author": "Phil5",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Jocelyn RICARD",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

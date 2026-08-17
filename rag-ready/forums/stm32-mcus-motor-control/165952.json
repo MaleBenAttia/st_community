@@ -1,0 +1,80 @@
+{
+    "forum": [
+        {
+            "id": "165944",
+            "publicId": "165952",
+            "title": "Motor with encoder and FOC spinning poorly and roughly at low speed",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/motor-with-encoder-and-foc-spinning-poorly-and-roughly-at-low-speed-165952",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "STM32 motor control"
+            ],
+            "published_at": "2026-06-09T10:01:54+00:00",
+            "views": 119,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "This behaviour is normal in FOC drives at very low speed. Below a certain rpm, the available feedback and the motor’s back-EMF become very small, so friction, cogging torque, measurement resolution and controller tuning have a much stronger impact.\n\nSo it is not necessarily a firmware fault or only a PID issue. The low-speed instability comes mostly from a combination of speed-loop tuning, encoder speed quantisation, and the limitations of sensorless estimation at low speed.\n\nHowever, in 2023 STMicroelectronics developed the proprietary method called ZeST, which makes it possible to achieve full torque at very low speeds (Zero Speed Full Torque). It is available to selected customers with sufficiently large projects:\n\n* Announcement: [STMicroelectronics reveals industry-first embedded software for sensorless zero-speed/high-torque motor control - ST News](https://newsroom.st.com/media-center/press-item.html/n4594.html)\n\n* Description: [STM32 ZeST solution - STMicroelectronics](https://www.st.com/content/st_com/en/ecosystems/stm32-motor-control-ecosystem/stm32-zest-and-hso-solutions.html)\n\nHope that helps?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone, I’m using the X-NUCLEO-IHM08M1 with the g474re core and a BL23E33-01D-04RO motor (which reaches 4000 rpm).\n\nI want to use FOC and the motor’s internal encoder, so I’ve made the hardware modifications described in the IHM08M1 manual and those also required by MC Workbench before code generation. I have therefore set the main sensor to the encoder and the auxiliary sensor to the sensorless PLL+observer.\n\nIn STM32CubeIDE, the motor runs smoothly and the speed is correct, but at low speeds (below 60 rpm) it freezes and sometimes lags... I have no reported firmware errors. I don't have any load connected to the motor (yet).\n\nWhat could be causing this? PID?\n\nI can provide screenshots of the signals you want; I’m using CubeMonitor.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4597b1ad-52b4-46af-8c5a-41eca364adc1.png)\n\nPWM: 16kHz\n\nSW dead time 850ns\n\nRegulator execution time: 63us (1 PWM) - three shunt\n\nGain: 5.18\n\nBus voltage divider: 19.17\n\nQuadrature encoder:\n\n* average FIFO depth = 16\n\n* Input capture filter duration = 0.75 us\n\nPID: autocalculate Kp & Ki for both current and speed regulator\n\n-------------------------------------30 rpm - motor not spinning or spinning poorly/roughly----------------------------------------------------------\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/955f1c9a-a837-4c9b-8b16-b99990df223c.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8a6815fb-b08f-476b-94f2-1e8222579888.png)\n\nEncoder from oscilloscope:\n\n<https://streamable.com/2xdrsx>\n\n(If the link expires, let me know and I'll update it)\n\n-----------------------------------------------------------------2000 rpm--------------------------------------------\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2e5f2c2b-c770-4386-9f7e-b0cdbc41352e.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8a6815fb-b08f-476b-94f2-1e8222579888.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2e5f2c2b-c770-4386-9f7e-b0cdbc41352e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/955f1c9a-a837-4c9b-8b16-b99990df223c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c10bddf5-7bd4-447d-810f-26b12503c7ec.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4597b1ad-52b4-46af-8c5a-41eca364adc1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1f57c5c-2f7f-439b-ad80-d516a9cc3031.png"
+            ],
+            "author": "luke514",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This behaviour is normal in FOC drives at very low speed. Below a certain rpm, the available feedback and the motor’s back-EMF become very small, so friction, cogging torque, measurement resolution and controller tuning have a much stronger impact.</p><p>So it is not necessarily a firmware fault or only a PID issue. The low-speed instability comes mostly from a combination of speed-loop tuning, encoder speed quantisation, and the limitations of sensorless estimation at low speed.</p><p>However, in 2023 STMicroelectronics developed the proprietary method called ZeST, which makes it possible to achieve full torque at very low speeds (Zero Speed Full Torque). It is available to selected customers with sufficiently large projects:</p><ul><li>Announcement: <a href=\"https://newsroom.st.com/media-center/press-item.html/n4594.html\" rel=\"noopener noreferrer\" target=\"_blank\">STMicroelectronics reveals industry-first embedded software for sensorless zero-speed/high-torque motor control - ST News</a></li> <li>Description: <a href=\"https://www.st.com/content/st_com/en/ecosystems/stm32-motor-control-ecosystem/stm32-zest-and-hso-solutions.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32 ZeST solution - STMicroelectronics</a></li></ul><p>Hope that helps?</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi again and thank you for your detailed reply.</p><p>I have two more questions:</p><ol type=\"1\"><li>My primary sensor is the encoder, but I’m not quite sure what ‘<em>auxiliary sensor</em>’ means (i.e. PLL + observer). Does it mean that it only “activates” when the encoder fails? Or does it mean that it always runs in the “background” but the angle is estimated solely by the primary encoder? Or, yet another option, that the angle used in FOC is an average of the two (encoder + auxiliary observer)?<br/>\t </li> <li>This question is actually linked to the first one; it’s very similar. You said that <em>the low-speed instability comes mostly from a combination of speed-loop tuning, encoder speed quantisation, and the limitations of sensorless estimation at low speed.</em> Can I rule out this last cause – “limitations of sensorless estimation at low speed” – given that the primary sensor I have set up is the encoder?</li></ol><p> </p><p>Unfortunately, due to the specifications of my application, I have to use the encoder; I can’t rely on sensorless mode… so I can’t switch to sensorless mode at low speeds and use the encoder at high speeds. So I’ll find a way to sort it out.</p><ol start=\"3\" type=\"1\"><li>When you write “<em>encoder speed quantisation</em>”, what do you mean? Do you mean a software-related issue (FIFO registers, etc.) or a hardware issue, perhaps due to the type of encoder, its specifications, etc.?</li></ol></div>",
+                    "author": "luke514",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Regarding the first question, I cannot make any statement.</p><p>If the encoder is truly the primary feedback sensor in closed-loop operation, then the low-speed limitations of the sensorless observer are unlikely to be the main cause. The more probable causes are as mentioned speed-loop tuning, encoder speed quantisation/filtering, and additionally mechanical effects such as friction and cogging torque. The sensorless observer could still have an indirect effect if it is used in startup, fallback, or validation logic, so it is worth checking that the system is not switching over or relying on it in the low-speed region.</p><p>Encoder speed quantisation means: the encoder measures position very well, but the velocity derivative is often noisy or coarsely quantised during very slow movement, especially when the evaluation is heavily filtered.</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"23734\">@luke514</user-mention>,</p><p>The auxiliary speed sensor indicates that the associated algorithm is active, but the result is not used to control the motor.<br/>The motor control can switch between the primary and auxiliary speed sensors by using the MC Pilot <strong>Switch Sensor</strong> feature or the <code>MC_SensorSwitchMotor1()</code> application programming interface (API).</p><p>The SPEED proportional-integral (PI) regulator parameters can be adjusted with the MC Motor Pilot tool: <strong>Advanced Configuration</strong>, use <strong>Speed PI regulator parameters</strong>.</p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, and thank you for your reply.</p><p>So you’re suggesting I use Motor Pilot to quickly test the PI parameters and, once I’ve found the right ones, update them in MC Workbench:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d1f57c5c-2f7f-439b-ad80-d516a9cc3031.png\"/></figure><p> </p><p>Would you recommend I experiment with Flux/Torque Kp and Ki first?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c10bddf5-7bd4-447d-810f-26b12503c7ec.png\"/></figure><p> </p><p> </p><p> </p></div>",
+                    "author": "luke514",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

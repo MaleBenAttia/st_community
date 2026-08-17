@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "165687",
+            "publicId": "165687",
+            "title": "STM32MP157FAD as drop-in replacement for STM32MP153FAD - DSI power pins not connected",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp157fad-as-drop-in-replacement-for-stm32mp153fad-dsi-power-pins-not-connected-165687",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "Power",
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-05-14T09:30:39+00:00",
+            "views": 159,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @foc\n\nno issue for HW point of view to use STM32MP157FAD in place of STM32MP153FAD, just ensure DSI and related features are not enabled in the SW (as lack of supply could lead to some non responding SW).\n\nVDD\\_DSI is the input of the regulator which provide VDD1V2\\_DSI\\_REG output. Both could be left open if not used.\n\nVDDA1V2\\_DSI\\_PHY and VDDA1V8\\_DSI are DSI PHY supplies and could be also left open if no used.\n\nSome details in [AN5031](https://www.st.com/resource/en/application_note/an5031-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf) Figure 1 \"Power supply scheme\" and Table 5 \"Supply usage for unused features\" .\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi all,\n\nI have a board designed around the **STM32MP153FAD** (TFBGA257, 10×10 mm, 0.5/0.65 mm pitch, 257 balls). Since the MP153 does not include a DSI controller or GPU, I did not connect any DSI-related power pins or signals. Due to stock shortages, I am now considering switching to the **STM32MP157FAD**, which shares the same TFBGA257 footprint.\n\nMy question is: **can the STM32MP157FAD be used on this board without connecting the DSI-specific power rails?**\n\nThe DSI power pins that exist on the MP157 but were not populated on my design are:\n\n* **VDD\\_DSI** — DSI I/O supply\n\n* **VDD1V2\\_DSI\\_REG** — output of internal 1.2 V DSI regulator\n\n* **VDD1V2\\_DSI\\_PHY** — 1.2 V supply for DSI PHY\n\n* **VDDA1V8\\_DSI** — 1.8 V analog supply for DSI\n\nMy concern is whether the MP157 will operate correctly (for non-DSI use cases) if these pins receive no supply. (Unused pins are floating right now, is that correct or should I connect it to GND)\n\nI have attached my current schematic for reference.\n\nAny guidance would be appreciated.\n\nBest regards\n\n![foc_0-1778750404724.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17e7ee44-495c-dd02-9989-6cb83f627de7.png \"foc_0-1778750404724.png\")\n\nRegards",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17e7ee44-495c-dd02-9989-6cb83f627de7.png"
+            ],
+            "author": "foc",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105895\">@foc</user-mention> </p>\n<p>no issue for HW point of view to use STM32MP157FAD in place of STM32MP153FAD, just ensure DSI and related features are not enabled in the SW (as lack of supply could lead to some non responding SW).</p>\n<p> </p>\n<p>VDD_DSI is the input of the regulator which provide VDD1V2_DSI_REG output. Both could be left open if not used.</p>\n<p>VDDA1V2_DSI_PHY and VDDA1V8_DSI are DSI PHY supplies and could be also left open if no used.</p>\n<p>Some details in <a href=\"https://www.st.com/resource/en/application_note/an5031-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5031</a> Figure 1 \"Power supply scheme\" and Table 5 \"Supply usage for unused features\" .</p>\n<p> </p>\n<p>Regards.</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Patrick,</p><p>Thanks for your reply and help.</p><p> </p><p>Regards</p></div>",
+                    "author": "foc",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

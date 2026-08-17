@@ -1,0 +1,40 @@
+{
+    "forum": [
+        {
+            "id": "165558",
+            "publicId": "165558",
+            "title": "STM32F746G-DISCO USART1 TX works but RX not receiving (ST-Link VCP)",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32f746g-disco-usart1-tx-works-but-rx-not-receiving-st-link-vcp-165558",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "STM32F7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-05-11T07:43:02+00:00",
+            "views": 98,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Magicaly it started worked.\n\nI turn on the usart global interrupt beacause somehow it turned off and I didn't saw it.",
+            "best_answer_author": "kiwiosek2007",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nOn STM32F746G-DISCO board I have a problem with USART1 (ST-Link VCP):\n\n- TX (PA9) works fine – I can send messages\n\n- RX (PB7) doesn't receive any characters and I think the board is not waiting for commands\n\nTested both polling (HAL\\_UART\\_Receive) and interrupt mode (HAL\\_UART\\_Receive\\_IT). Pins are configured correctly.\n\nDid anyone have similar issue on this board? Any ideas what can block RX?\n\nThanks!\n\n```\n\n/* USER CODE BEGIN 2 */\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"Connected\\r\\n\", 11, 100);\n\nHAL_Delay(100);\n\nHAL_UART_Receive_IT(&huart1, &rxByte, 1);\n\n/* USER CODE END 2 */\n\n```\n\n```\n\n/* USER CODE BEGIN 4 */\n\nvoid ProcessCommand(char *cmd);\n\nvoid HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)\n\n{\n\nif (huart->Instance == USART1)\n\n{\n\nif (rxByte == '\\n' || rxByte == '\\r')\n\n{\n\nif (rxIndex > 0)\n\n{\n\nrxBuffer[rxIndex] = '\\0'; // zakończenie stringa\n\nProcessCommand((char*)rxBuffer);\n\nrxIndex = 0;\n\n}\n\n}\n\nelse\n\n{\n\nif (rxIndex < 15) // zabezpieczenie przed przepełnieniem\n\n{\n\nrxBuffer[rxIndex++] = rxByte;\n\n}\n\nelse\n\n{\n\nrxIndex = 0; // reset przy zbyt długiej komendzie\n\n}\n\n}\n\nHAL_UART_Receive_IT(&huart1, &rxByte, 1); // restart przerwania\n\n}\n\n}\n\nvoid ProcessCommand(char *cmd)\n\n{\n\n// Usunięcie ewentualnego \\r na końcu\n\ncmd[strcspn(cmd, \"\\r\")] = '\\0';\n\nif (strcmp(cmd, \"system-stat-1\") == 0)\n\n{\n\nsys_status = 1;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: system-stat-1\\r\\n\", 19, 100);\n\n}\n\nelse if (strcmp(cmd, \"system-stat-2\") == 0)\n\n{\n\nsys_status = 2;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: system-stat-2\\r\\n\", 19, 100);\n\n}\n\nelse if (strcmp(cmd, \"system-stat-3\") == 0)\n\n{\n\nsys_status = 3;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: system-stat-3\\r\\n\", 19, 100);\n\n}\n\nelse if (strcmp(cmd, \"net-stat-1\") == 0)\n\n{\n\nnet_status = 1;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: net-stat-1\\r\\n\", 16, 100);\n\n}\n\nelse if (strcmp(cmd, \"net-stat-2\") == 0)\n\n{\n\nnet_status = 2;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: net-stat-2\\r\\n\", 16, 100);\n\n}\n\nelse if (strcmp(cmd, \"net-stat-3\") == 0)\n\n{\n\nnet_status = 3;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: net-stat-3\\r\\n\", 16, 100);\n\n}\n\nelse if (strcmp(cmd, \"sensor-stat-1\") == 0)\n\n{\n\nsensor_status = 1;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: sensor-stat-1\\r\\n\", 19, 100);\n\n}\n\nelse if (strcmp(cmd, \"sensor-stat-2\") == 0)\n\n{\n\nsensor_status = 2;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: sensor-stat-2\\r\\n\", 19, 100);\n\n}\n\nelse if (strcmp(cmd, \"sensor-stat-3\") == 0)\n\n{\n\nsensor_status = 3;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: sensor-stat-3\\r\\n\", 19, 100);\n\n}\n\nelse if (strcmp(cmd, \"alarm-stat-1\") == 0)\n\n{\n\nalarm_status = 1;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: alarm-stat-1\\r\\n\", 18, 100);\n\n}\n\nelse if (strcmp(cmd, \"alarm-stat-2\") == 0)\n\n{\n\nalarm_status = 2;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: alarm-stat-2\\r\\n\", 18, 100);\n\n}\n\nelse if (strcmp(cmd, \"alarm-stat-3\") == 0)\n\n{\n\nalarm_status = 3;\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"OK: alarm-stat-3\\r\\n\", 18, 100);\n\n}\n\nelse\n\n{\n\nHAL_UART_Transmit(&huart1, (uint8_t*)\"Nieprawidlowa komenda\\r\\n\", 22, 100);\n\n}\n\n}\n\n```\n\n```\n\n/* USART1 TX = PA9, RX = PB7 */\n\nGPIO_InitStruct.Pin = GPIO_PIN_9;\n\nGPIO_InitStruct.Mode = GPIO_MODE_AF_PP;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;\n\nGPIO_InitStruct.Alternate = GPIO_AF7_USART1;\n\nHAL_GPIO_Init(GPIOA, &GPIO_InitStruct);\n\nGPIO_InitStruct.Pin = GPIO_PIN_7;\n\nGPIO_InitStruct.Mode = GPIO_MODE_AF_PP;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;\n\nGPIO_InitStruct.Alternate = GPIO_AF7_USART1;\n\nHAL_GPIO_Init(GPIOB, &GPIO_InitStruct);\n\n```\n\n```\n\n/* USER CODE END USART1_Init 1 */\n\nhuart1.Instance = USART1;\n\nhuart1.Init.BaudRate = 115200;\n\nhuart1.Init.WordLength = UART_WORDLENGTH_8B;\n\nhuart1.Init.StopBits = UART_STOPBITS_1;\n\nhuart1.Init.Parity = UART_PARITY_NONE;\n\nhuart1.Init.Mode = UART_MODE_TX_RX;\n\nhuart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;\n\nhuart1.Init.OverSampling = UART_OVERSAMPLING_16;\n\nhuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;\n\nhuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;\n\nif (HAL_UART_Init(&huart1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\n![kiwiosek2007_0-1778485268609.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c227dfd7-09a1-b706-d9af-b7588a564e3a.png \"kiwiosek2007_0-1778485268609.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c227dfd7-09a1-b706-d9af-b7588a564e3a.png"
+            ],
+            "author": "kiwiosek2007",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Magicaly it started worked.<br/>I turn on the usart global interrupt beacause somehow it turned off and I didn't saw it.</p></div>",
+                    "author": "kiwiosek2007",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

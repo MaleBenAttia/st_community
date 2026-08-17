@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164735",
+            "publicId": "164735",
+            "title": "Draggable on single axis still creates wobbling on the other axis",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/draggable-on-single-axis-still-creates-wobbling-on-the-other-axis-164735",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-04-14T13:28:22+00:00",
+            "views": 213,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "So the solution was to ***disable*** the Draggable Mixins in TouchGFX Designer and just keep the handleDragEvent override in my code",
+            "best_answer_author": "nico23",
+            "best_answer_author_role": "Senior III",
+            "content_text": "I have a self-contained widget (a rectangle of 360x60) which has a draggable mixin and a custom handleDragEvent.\n\n```\n\nvoid WarningModal::handleDragEvent(const touchgfx::DragEvent& event)\n\n{\n\nif (!draggingEnabled || !animator) return;\n\nint16_t newX = animator->getX() + event.getDeltaX();\n\n// Hard clamp: never allow leftward movement past the resting position\n\nif (newX < WARNING_MODAL_VISIBLE_X)\n\nnewX = WARNING_MODAL_VISIBLE_X;\n\nanimator->moveTo(newX, WARNING_MODAL_Y);\n\n}\n\n```\n\nBasically it can only be dragged from left to right\n\nI'm noticing that, if I try to move it up and down, I'm able to generate a wobbling movement up and down because, the widget tends to return to its WARNING\\_MODAL\\_Y due to the modeTo line.\n\nIs there a way to disable the drag for an axis to get a smooth movement right-left or up-down",
+            "images": [],
+            "author": "nico23",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div><strike>Please check below the video to understand better</strike></div><div> </div></div>",
+                    "author": "nico23",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So the solution was to <strong><em>disable</em> </strong>the Draggable Mixins in TouchGFX Designer and just keep the <font face=\"courier new,courier\">handleDragEvent</font> override in my code</p></div>",
+                    "author": "nico23",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "165635",
+            "publicId": "165635",
+            "title": "Unable to debug - missing CMSIS_PACK_ROOT",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/unable-to-debug-missing-cmsis-pack-root-165635",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-05-13T07:46:54+00:00",
+            "views": 214,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @AHugh.2,\n\nThis is a recurring, sporadic issue that some users are experiencing, and we are still struggling to identify the root cause.\n\nA workaround that often works is to hard-code the **CMSIS\\_PACK\\_ROOT** environment variable in the system variables, using **C:\\Users\\ZZZ\\AppData\\Local\\stm32cube\\packs** as the value in your case.",
+            "best_answer_author": "Julien D",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nMy projet has been working fine until the last week or so where I can no longer debug. When I press F5 I get a \"Missing CMSIS\\_PACK\\_ROOT\" with a notification toast message of \"gdb is not running\".\n\nNothing has changed in terms of project settings, launch.json, etc. as far as I'm aware. All STM32 extensions and packs are the latest (these might have updated recently - i've tried older versions as a test but that didn't help).\n\n* Target device is STM32C562.\n\n* Using ST-Link GDB Server.\n\n* Windows 11 OS\n\nHere is the log of \"STM32Cube core\" at startup.\n\n```\n\n2026-05-13 08:23:08.715 [Info] Adding STM32Cube CLI path to environment: c:\\Users\\ZZZ\\.vscode\\extensions\\stmicroelectronics.stm32cube-ide-core-1.3.0-win32-x64\\resources\\binaries\\win32\\x86_64\n\n2026-05-13 08:23:09.984 [Info] Configuring CUBE_BUNDLE_PATH environment: C:\\Users\\ZZZ\\AppData\\Local\\stm32cube\\bundles\n\n2026-05-13 08:23:09.985 [Info] NODE_EXTRA_CA_CERTS is not set\n\n2026-05-13 08:23:10.369 [Info] CMSIS_PACK_ROOT=C:\\Users\\ZZZ\\AppData\\Local\\stm32cube\\packs\n\n2026-05-13 08:23:15.386 [Info] cube wrapper version: 0.10.2\n\n2026-05-13 08:23:16.090 [Info] Online bundle cache built\n\n2026-05-13 08:23:16.189 [Info] Installing STM32Cube Bundle prerequisites\n\n2026-05-13 08:23:16.735 [Info] STM32Cube Core activated (8061 ms)\n\n2026-05-13 08:23:16.735 [Info] Syncing CMSIS-Pack metadata for C:\\Users\\ZZZ\\AppData\\Local\\stm32cube\\packs\n\n2026-05-13 08:23:16.739 [Info] No need to sync metadata; it was recently updated.\n\n```\n\nI can't see anything else of note in any of the other output logs.\n\nMy launch.json:\n\n```\n\n\"version\": \"0.2.0\",\n\n\"configurations\": [\n\n{\n\n\"type\": \"stlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"STM32Cube: STM32 Launch ST-Link GDB Server\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"runEntry\": \"main\",\n\n\"preRunCommands\": [\n\n\"set output-radix 16\"\n\n],\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n],\n\n\"liveWatch\": {\n\n\"enabled\": true,\n\n\"samplesPerSecond\": \"4\"\n\n},\n\n//\"quickReset\": [\n\n// \"monitor reset\",\n\n// \"tbreak main\",\n\n// \"continue\"\n\n//]\n\n}\n\n]\n\n}\n\n```\n\nI tried the project on another PC and that seems to work (all STM32 extensions updated to latest) so it looks like a local problem.\n\nI've also ran the \"Set Up STM32Cube project(s)\" command again.\n\nAny ideas how I can resolve this, or see what is going wrong?",
+            "images": [],
+            "author": "AHugh.2",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"22222\">@AHugh.2</user-mention>,</p><p>This is a recurring, sporadic issue that some users are experiencing, and we are still struggling to identify the root cause.</p><p>A workaround that often works is to hard-code the <strong><font face=\"terminal,monaco\" size=\"2\">CMSIS_PACK_ROOT</font></strong> environment variable in the system variables, using <strong><font face=\"terminal,monaco\" size=\"2\">C:\\Users\\ZZZ\\AppData\\Local\\stm32cube\\packs</font></strong> as the value in your case.</p></div>",
+                    "author": "Julien D",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks Julien, that has resolved my debugging.</p><p>I have had this error as a recurring issue for a long time and usually restarting VSCode or even the PC resolves it but in this case it didn't.</p><p>Hope you get to the root cause of the issue!</p><p>Thanks.</p></div>",
+                    "author": "AHugh.2",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julien D",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

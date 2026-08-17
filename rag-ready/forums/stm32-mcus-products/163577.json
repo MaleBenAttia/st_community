@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "163577",
+            "publicId": "163577",
+            "title": "STM32U083C-DK TIM2 based PWM for built in LED",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u083c-dk-tim2-based-pwm-for-built-in-led-163577",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32U0 series"
+            ],
+            "published_at": "2026-03-08T23:11:32+00:00",
+            "views": 199,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Generate an update event to update ARR.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Trying to run timer2 to set pwm signal for the BLUE LED (PA5).\n\nThe MCU is STM32U083MCT6 and I used rm for STM32U083MC series (<https://www.st.com/resource/en/reference_manual/rm0503-stm32u0-series-advanced-armbased-32bit-mcus-stmicroelectronics.pdf>)\n\nI set each bit and register separately to be sure that everything is set correctly, but still miss something related to TIM2.\n\nWhat settings to check related to TIM2 and what is the best approach to configure timers of this MCU?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40c9fa86-6f03-77e8-88a3-f0c1e7931514.png"
+            ],
+            "author": "Turbo",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Generate an update event to update ARR.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It works! Thank you!</p></div>",
+                    "author": "Turbo",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104881\">@Turbo</user-mention> <br/>Did you enable the GPIOA clock?<br/>I'am not seeing </p>\n<pre class=\"lia-code-sample language-c\"><code> RCC-&gt;IOPENR |= RCC_IOPENR_GPIOAEN; \n</code></pre>\n<p>in your code.<br/>However, can you try this code sequence, it should make you able to toggle PA5 pin using TIM2 </p>\n<pre class=\"lia-code-sample language-c\"><code> /* USER CODE BEGIN 2 */\n RCC-&gt;IOPENR |= RCC_IOPENR_GPIOAEN; \n RCC-&gt;APBENR1 |= RCC_APBENR1_TIM2EN; \n (void)RCC-&gt;IOPENR; \n GPIOA-&gt;MODER &amp;= ~(0x3U &lt;&lt; (5 * 2)); \n GPIOA-&gt;MODER |= (0x2U &lt;&lt; (5 * 2)); \n GPIOA-&gt;OTYPER &amp;= ~(1U &lt;&lt; 5);\n\n GPIOA-&gt;OSPEEDR &amp;= ~(0x3U &lt;&lt; (5 * 2));\n GPIOA-&gt;OSPEEDR |= (0x3U &lt;&lt; (5 * 2));\n\n GPIOA-&gt;PUPDR &amp;= ~(0x3U &lt;&lt; (5 * 2));\n\n GPIOA-&gt;AFR[0] &amp;= ~(0xFU &lt;&lt; (5 * 4)); \n GPIOA-&gt;AFR[0] |= (0x1U &lt;&lt; (5 * 4)); \n\n\n TIM2-&gt;CR1 = 0x0000U; \n\n TIM2-&gt;PSC = 15; \n TIM2-&gt;ARR = 999; \n\n TIM2-&gt;CCR1 = 500; \n\n \n TIM2-&gt;CCMR1 &amp;= ~(TIM_CCMR1_OC1M | TIM_CCMR1_CC1S);\n TIM2-&gt;CCMR1 |= (6U &lt;&lt; TIM_CCMR1_OC1M_Pos); \n TIM2-&gt;CCMR1 |= TIM_CCMR1_OC1PE; \n \n TIM2-&gt;CCER &amp;= ~TIM_CCER_CC1P;\n TIM2-&gt;CCER |= TIM_CCER_CC1E;\n\n TIM2-&gt;CR1 |= TIM_CR1_ARPE;\n\n\n TIM2-&gt;EGR = TIM_EGR_UG;\n\n \n TIM2-&gt;CR1 |= TIM_CR1_CEN;\n /* USER CODE END 2 */</code></pre>\n<p>. <span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Capture d'écran 2026-03-09 130355.png\" style=\"width: 648px;\"><img alt=\"Capture d'écran 2026-03-09 130355.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40c9fa86-6f03-77e8-88a3-f0c1e7931514.png\" title=\"Capture d'écran 2026-03-09 130355.png\"/></span><br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

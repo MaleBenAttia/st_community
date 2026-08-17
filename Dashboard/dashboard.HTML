@@ -312,8 +312,8 @@
     }
     .kpi-sub-row:last-child { border-bottom: none; }
     .kpi-sub-row .lbl { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
-    .kpi-sub-row .val { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; }
-    .kpi-sub-row .val .pct { color: inherit; opacity: 0.85; font-weight: 600; margin-left: 10px; }
+    .kpi-sub-row .val { display: inline-flex; align-items: baseline; gap: 10px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; }
+    .kpi-sub-row .val .pct { color: inherit; opacity: 0.85; font-weight: 600; }
     .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
     .dot.success { background: var(--success); }
     .dot.warning { background: var(--warning); }
@@ -639,6 +639,7 @@
       return last.charAt(0).toUpperCase() + last.slice(1);
     }
     function pct(n) { return (n || 0).toFixed(1).replace('.', ',') + ' %'; }
+    function pctP(n) { return '(' + pct(n) + ')'; }
 
     // Liste repliable : 5 items par défaut + bouton "Voir plus / Voir moins" (chevron rotatif)
     function renderCollapsible(container, items, renderFn, toggleId, limit) {
@@ -706,15 +707,15 @@
 
       document.getElementById('fo-solved-total').textContent = accepted;
       document.getElementById('fo-solved-st').textContent = stStats.forums_with_st_reply || 0;
-      document.getElementById('fo-solved-st-pct').textContent = pct(stStats.st_reply_pct);
+      document.getElementById('fo-solved-st-pct').textContent = pctP(stStats.st_reply_pct);
       document.getElementById('fo-solved-none').textContent = stStats.forums_without_st_reply || 0;
-      document.getElementById('fo-solved-none-pct').textContent = pct(accepted ? 100 - (stStats.st_reply_pct || 0) : 0);
+      document.getElementById('fo-solved-none-pct').textContent = pctP(accepted ? 100 - (stStats.st_reply_pct || 0) : 0);
 
       document.getElementById('fo-ongoing-total').textContent = rejectedTotal;
       document.getElementById('fo-ongoing-st').textContent = ogStats.forums_with_st_reply || 0;
-      document.getElementById('fo-ongoing-st-pct').textContent = pct(ogStats.st_reply_pct);
+      document.getElementById('fo-ongoing-st-pct').textContent = pctP(ogStats.st_reply_pct);
       document.getElementById('fo-ongoing-none').textContent = ogStats.forums_without_st_reply || 0;
-      document.getElementById('fo-ongoing-none-pct').textContent = pct(rejectedTotal ? 100 - (ogStats.st_reply_pct || 0) : 0);
+      document.getElementById('fo-ongoing-none-pct').textContent = pctP(rejectedTotal ? 100 - (ogStats.st_reply_pct || 0) : 0);
 
       const foCatItems = fo.by_category ? Object.entries(fo.by_category).map(([name, c]) => ({ name: name, accepted: c.accepted, total_replies: c.total_replies, total_views: c.total_views })) : [];
       renderCollapsible(

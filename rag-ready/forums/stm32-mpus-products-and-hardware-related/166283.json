@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "166262",
+            "publicId": "166283",
+            "title": "Query Regarding QSPI NOR Flash Device Selection for STM32MP157FAC1",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/query-regarding-qspi-nor-flash-device-selection-for-stm32mp157fac1-166283",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32CubeMX",
+                "QSPI",
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-06-19T10:32:03+00:00",
+            "views": 63,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@PS\\_115,\n\nThe **Winbond W25Q512JV** is suitable for use as a QSPI NOR Flash on your STM32MP157FAC1 based custom board.\n\nIt meets the core electrical and functional requirements of the STM32MP157 QUADSPI interface (3.3 V supply, 133 MHz max clock, Quad SPI mode, JEDEC SFDP auto-detection, 3-byte addressing at power-on reset).\n\nHowever, please take note of the following important design and firmware considerations before finalizing the layout and software:\n\n## ⚠️ Attention Points\n\n**1. ADP Bit (S17) – Address Mode at Power-Up**\n\nThe W25Q512JV features a non-volatile **ADP bit (Status Register bit S17)** that controls whether the device powers up in 3-byte or 4-byte address mode. By default, `ADP = 0`, meaning the device starts in **3-byte address mode** — which is required for the STM32MP157 BootROM to correctly read the FSBL (TF-A BL2). Ensure this bit is **never programmed to 1** in your production flow, as it would prevent the device from booting.\n\n**2. BootROM Accessible Address Range**\n\nThe STM32MP157 BootROM accesses the NOR Flash using **3-byte addressing only**, limiting the accessible range to the first **16 MB**. Your boot images (TF-A + FIP/U-Boot) must be programmed and located within this range.\n\n**3. No Official ST BSP Driver**\n\nUnlike the Macronix MX25L51245G (used on the STM32MP157F-EV1 board), the W25Q512JV does **not have an official STM32Cube BSP driver**.\n\nThe Linux `spi-nor` framework and U-Boot will detect it via **SFDP auto-detection**, but you must verify that your OpenSTLinux BSP version correctly enumerates the part.\n\nIt is recommended to explicitly declare the flash in the device tree using the `jedec,spi-nor` compatible string.\n\nIf supply chain constraints allow, the **Macronix MX25L51245G** remains the preferred and lower-risk choice, given its official ST validation and native BSP driver support. The W25Q512JV is a viable alternative provided the above points are carefully addressed.\n\nBest Regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nWe are designing a custom board using the STM32MP157FAC1 device and need to provide provision for a Serial NOR Flash connected to the QUADSPI interface.\n\nWe are planning to use Winbond's device W25Q256JVFIQ for this purpose. Kindly confirm whether this device is suitable for use with the STM32MP157FAC1 or if there is any recommended QSPI NOR Flash device that should be preferred with this microprocessor.\n\nRegards,\n\nPrashant",
+            "images": [],
+            "author": "PS_115",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107509\">@PS_115</user-mention>,<br/><br/> </p><p>The <strong>Winbond W25Q512JV</strong> is suitable for use as a QSPI NOR Flash on your STM32MP157FAC1 based custom board.<br/>It meets the core electrical and functional requirements of the STM32MP157 QUADSPI interface (3.3 V supply, 133 MHz max clock, Quad SPI mode, JEDEC SFDP auto-detection, 3-byte addressing at power-on reset).<br/>However, please take note of the following important design and firmware considerations before finalizing the layout and software:</p><h2 id=\"attention-points\">⚠️ Attention Points</h2><p><strong>1. ADP Bit (S17) – Address Mode at Power-Up</strong><br/>The W25Q512JV features a non-volatile <strong>ADP bit (Status Register bit S17)</strong> that controls whether the device powers up in 3-byte or 4-byte address mode. By default, <code>ADP = 0</code>, meaning the device starts in <strong>3-byte address mode</strong> — which is required for the STM32MP157 BootROM to correctly read the FSBL (TF-A BL2). Ensure this bit is <strong>never programmed to 1</strong> in your production flow, as it would prevent the device from booting.</p><p><strong>2. BootROM Accessible Address Range</strong><br/>The STM32MP157 BootROM accesses the NOR Flash using <strong>3-byte addressing only</strong>, limiting the accessible range to the first <strong>16 MB</strong>. Your boot images (TF-A + FIP/U-Boot) must be programmed and located within this range.</p><p><strong>3. No Official ST BSP Driver</strong><br/>Unlike the Macronix MX25L51245G (used on the STM32MP157F-EV1 board), the W25Q512JV does <strong>not have an official STM32Cube BSP driver</strong>.<br/>The Linux <code>spi-nor</code> framework and U-Boot will detect it via <strong>SFDP auto-detection</strong>, but you must verify that your OpenSTLinux BSP version correctly enumerates the part.<br/>It is recommended to explicitly declare the flash in the device tree using the <code>jedec,spi-nor</code> compatible string.<br/><br/>If supply chain constraints allow, the <strong>Macronix MX25L51245G</strong> remains the preferred and lower-risk choice, given its official ST validation and native BSP driver support. The W25Q512JV is a viable alternative provided the above points are carefully addressed.<br/><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

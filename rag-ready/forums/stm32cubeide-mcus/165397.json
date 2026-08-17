@@ -1,0 +1,101 @@
+{
+    "forum": [
+        {
+            "id": "165397",
+            "publicId": "165397",
+            "title": "SDMMC2 build fails - Unknown destination type (ARM/Thumb)",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/sdmmc2-build-fails-unknown-destination-type-arm-thumb-165397",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "SDIO-SDMMC",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-05T19:39:02+00:00",
+            "views": 1239,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "@Saket\\_Om so this is another occurrence of the \"*dangerous relocation: unsupported relocation*\" issue which seems to have appeared with GCC 14 in CubeIDE v2.1.0.\n\n@Mahmoud Ben Romdhane raised internal ticket Number: **228023** on it [here](https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119).\n\nSee also:\n\n*[CubeIDE 2.1.0: system\\_stm32wl3x.o dangerous relocation: unsupported relocation](https://community.st.com/t5/stm32cubeide-mcus/cubeide-2-1-0-system-stm32wl3x-o-dangerous-relocation/m-p/883226)*\n\n*[livetune Designer Source Code Compilation Error](https://community.st.com/t5/stm32cubeide-mcus/livetune-designer-source-code-compilation-error/m-p/889559)*",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "*Title edited to highlight that this is a build error, \"Unknown destination type (ARM/Thumb)\"*\n\n---\n\nHi!\n\nI'm trying develop code with STM32H745IIT using SDMMC2 in M7 core based in this tutorial:\n\n<https://www.youtube.com/watch?v=I9KDN1o6924>\n\nMy version the CubeMX is: 6.17 and STM32CubeIDE is 2.1.0\n\nInitially I set mode: SD 4 bits Wide bus and configuration is:![SD.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6991fecd-feef-0155-083e-2ba7426e0d99.png \"SD.png\")\n\nNVIC: Enabled\n\nNO constants\n\nGPIO Setting:\n\n- PB3: D2, PB4: D3, PB14: D0, PB15: D1, PD6: CK and PD7: CMD\n\n- DMA: not exist??\n\nOnly with this code is the following error generated in CubeIDE:\n\n(HAL\\_SD\\_Init): Unknown destination type (ARM/Thumb) in ./Application/User/Core/main.o\n\n(HAL\\_SD\\_IRQHandler): Unknown destination type (ARM/Thumb) in ./Application/User/Core/\n\nundefined reference to `HAL\\_SD\\_Init'\n\nundefined reference to `HAL\\_SD\\_IRQHandler'\n\n![SD_Code.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ec11576-afaf-e2e0-f402-92dfd4ac33fe.png \"SD_Code.png\")\n\nAny sugestion?\n\nThank's",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6991fecd-feef-0155-083e-2ba7426e0d99.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00391210-45d3-8878-dbf0-41951fe3d903.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5635653e-54fd-a116-2c9a-3da3c7935222.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ec11576-afaf-e2e0-f402-92dfd4ac33fe.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54cc8a2f-169e-423d-4302-4c97cd6ba83d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9271ccd2-1a37-ee38-3194-b98c1a62bd46.png"
+            ],
+            "author": "JEAN_121188",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p><user-mention data-id=\"1684\">@Saket_Om</user-mention> so this is another occurrence of the \"<span><em>dangerous relocation: unsupported relocation</em>\" issue which seems to have appeared with GCC 14 in CubeIDE v2.1.0.</span></p><p><span><user-mention data-id=\"62758\">@Mahmoud Ben Romdhane</user-mention> raised </span>internal ticket Number: <strong>228023</strong> on it <a href=\"https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119\" target=\"_blank\">here</a>.</p><p>See also:</p><p><em><a href=\"https://community.st.com/t5/stm32cubeide-mcus/cubeide-2-1-0-system-stm32wl3x-o-dangerous-relocation/m-p/883226\" target=\"_blank\">CubeIDE 2.1.0: system_stm32wl3x.o dangerous relocation: unsupported relocation</a></em></p><p><em><a href=\"https://community.st.com/t5/stm32cubeide-mcus/livetune-designer-source-code-compilation-error/m-p/889559\" target=\"_blank\">livetune Designer Source Code Compilation Error</a></em></p><p> </p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106704\">@JEAN_121188</user-mention> </p>\n<p>Is the macro #define HAL_SD_MODULE_ENABLED is defined in stm32h7xx_hal_conf.h. If this define is missing, the SD HAL APIs such as HAL_SD_Init() and HAL_SD_IRQHandler() may not be compiled correctly.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1684\">@Saket_Om</user-mention></p><p>Thank for your help! Yes the macro #define HAL_SD_MODULE_ENABLED was defined in stm32h7xx_hal_conf.h</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"SD_MODULE_ENABLED.png\" style=\"width: 999px;\"><img alt=\"SD_MODULE_ENABLED.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54cc8a2f-169e-423d-4302-4c97cd6ba83d.png\" title=\"SD_MODULE_ENABLED.png\"/></span></p><p>What I find strange is the location of these files:<br/>stm32h7xx_hal_conf.h is in:<br/>..\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Inc\\stm32h7xx_hal_conf.h<br/>and the M7 main file is in:<br/>..\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\main.c</p><p>see project explorer in left</p><p> </p><p>By, have a beautiful day!</p></div>",
+                    "author": "JEAN_121188",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Could you please share your .ioc file?</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106704\">@JEAN_121188</user-mention> wrote:<br/><p>with this code is the following error generated in CubeIDE:</p><p>(HAL_SD_Init): <font color=\"#FF0000\">Unknown destination type</font> (ARM/Thumb) in ./Application/User/Core/main.o<br/>(HAL_SD_IRQHandler): <font color=\"#FF0000\">Unknown destination type</font> (ARM/Thumb) in ./Application/User/Core/</p><hr/></blockquote><p><em>(red highlighting added)</em></p><p>Are those the <em>only</em> errors ?</p><p>Specifically, are you also getting <span><strong><font face=\"courier new,courier\">dangerous relocation: unsupported relocation</font></strong> errors ?</span></p><p><span>If so, see <a href=\"https://community.st.com/t5/stm32cubeide-mcus/unknown-destination-type-arm-thumb-link-error-in-cubeide-v2-1-1/m-p/895010#M41802:~:text=text.HAL_PCD_MspInit%2B0x4c)%3A-,dangerous%20relocation%3A%20unsupported%20relocation,-See%20recent%20threads\" target=\"_blank\">this thread</a>.</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"106704\">@JEAN_121188</user-mention> - you didn't answer if you had any other build errors.</p><p>Please post the whole build log - copy &amp; paste as text</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, have many erros:</p><p>Description Resource Path Location Type<br/>(HAL_SD_Init): Unknown destination type (ARM/Thumb) in ./Application/User/Core/main.o FIRM_NORAM_CM7 C/C++ Problem<br/>(HAL_SD_IRQHandler): Unknown destination type (ARM/Thumb) in ./Application/User/Core/stm32h7xx_it.o FIRM_NORAM_CM7 C/C++ Problem<br/>(MX_FATFS_Init): Unknown destination type (ARM/Thumb) in ./Application/User/Core/main.o FIRM_NORAM_CM7 C/C++ Problem<br/>dangerous relocation: unsupported relocation FIRM_NORAM_CM7 line 0, external location: C:\\Users\\jeand\\STM32CubeIDE\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\main.c:263 C/C++ Problem<br/>dangerous relocation: unsupported relocation FIRM_NORAM_CM7 line 0, external location: C:\\Users\\jeand\\STM32CubeIDE\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\main.c:829 C/C++ Problem<br/>dangerous relocation: unsupported relocation FIRM_NORAM_CM7 line 0, external location: C:\\Users\\jeand\\STM32CubeIDE\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\stm32h7xx_it.c:215 C/C++ Problem<br/>make: *** [makefile:69: FIRM_NORAM_CM7.elf] Error 1 FIRM_NORAM_CM7 C/C++ Problem<br/>undefined reference to `HAL_SD_Init' FIRM_NORAM_CM7 line 0, external location: C:\\Users\\jeand\\STM32CubeIDE\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\main.c:829 C/C++ Problem<br/>undefined reference to `HAL_SD_IRQHandler' FIRM_NORAM_CM7 line 0, external location: C:\\Users\\jeand\\STM32CubeIDE\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\stm32h7xx_it.c:215 C/C++ Problem<br/>undefined reference to `MX_FATFS_Init' FIRM_NORAM_CM7 line 0, external location: C:\\Users\\jeand\\STM32CubeIDE\\workspace_2.1.0\\CCK7700\\CM7\\Core\\Src\\main.c:263 C/C++ Problem</p><p> </p><p>Thank for your help!</p></div>",
+                    "author": "JEAN_121188",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So you <em><strong>do</strong> </em>have \"dangerous relocation\" errors:</p><p>The reason for those, and how to fix them, is in <a href=\"https://community.st.com/t5/stm32cubeide-mcus/unknown-destination-type-arm-thumb-link-error-in-cubeide-v2-1-1/m-p/895010#M41802:~:text=Proposed%20Solution%3A,highlight/true%23M41119\" target=\"_blank\">the thread I linked earlier</a>.</p><p><strong>TL;DR:</strong> you need to downgrade your GCC toolchain to an earlier version.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello!!!</p><p>The problem today resolved!!! two methods are used: firts the solution by <user-mention data-id=\"35659\">@Andrew Neil</user-mention> with solution of the occurrence of the \"<span><em>dangerous relocation: unsupported relocation.</em></span></p><p><span>Secound with Brasil support ST: Was movie archive of the comum path from projetc:</span></p><p><span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image004.png\" style=\"width: 357px;\"><img alt=\"image004.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9271ccd2-1a37-ee38-3194-b98c1a62bd46.png\" title=\"image004.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image009.png\" style=\"width: 376px;\"><img alt=\"image009.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5635653e-54fd-a116-2c9a-3da3c7935222.png\" title=\"image009.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Captura de tela 2026-05-07 092119.png\" style=\"width: 305px;\"><img alt=\"Captura de tela 2026-05-07 092119.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00391210-45d3-8878-dbf0-41951fe3d903.png\" title=\"Captura de tela 2026-05-07 092119.png\"/></span></span></p><p>I would like to thank everyone who helped me <user-mention data-id=\"62758\">@Mahmoud Ben Romdhane</user-mention> <user-mention data-id=\"1684\">@Saket_Om</user-mention> and <user-mention data-id=\"35659\">@Andrew Neil</user-mention> </p><p>Thank's all!!</p></div>",
+                    "author": "JEAN_121188",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "166244",
+            "publicId": "166265",
+            "title": "[STM32C011J4-SO8N] Clock Jitter",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32c011j4-so8n-clock-jitter-166265",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32C0 series"
+            ],
+            "published_at": "2026-06-18T11:28:30+00:00",
+            "views": 80,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Better to check again what are the instructions involved in between the two rising edges (between the check of the input and the setting the GPIO output).\n\nPS: “jitter” is not the correct word in this case. Jitter is variations around an expected constant value. But here you mean more an “unexpected” delay value between a reading/checking and setting an IO.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nMCU : STM32C011J4-SO8N\n\nBoard : Custom\n\nI am working on a Teleruptor and one of the feature is to control relay based on zero crossing due to relay latency.\n\nMy test code is simple:\n\n```\n\nwhile(1){\n\nif(HAL_GPIO_ReadPin(ZERO_CROSSING_GPIO_Port, ZERO_CROSSING_Pin) == GPIO_PIN_SET)\n\n{\n\nRELAY_CTRL_GPIO_Port->BSRR = RELAY_CTRL_Pin;\n\n}\n\nelse\n\n{\n\nRELAY_CTRL_GPIO_Port->BRR = RELAY_CTRL_Pin;\n\n}\n\n}\n\n```\n\nI run my system at 3Mhz (Consumption matter) and I see a big clock jitter of (8-10us). Please see image below.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5f1a9e15-394b-4739-a4a6-cbd64b7b01fa.png)\n\nNormally, this shouldn’t take more than 1-2us.\n\nI tried using EXTI but got the same issue.\n\nI tried to run system at 12Mhz and issue is resolved but I can’t.\n\nQuestion:\n\nIs this behavior normal at this speed?\n\nIs there any way I can reduce the jitter?\n\nThanks,\n\nAyoub",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5f1a9e15-394b-4739-a4a6-cbd64b7b01fa.png"
+            ],
+            "author": "Ayoub Cheggari",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p><span style=\"color:#3498db;\"><em>“Normally, this shouldn’t take more than 1-2us.”</em></span></p><p>How did you estimate that?</p><p>You are using HAL which induce more delay due to the APIs overhead..</p><p>Did you check the assembly code and calculate that duration based on the frequency used and the instruction cycles’ number  : <a href=\"https://developer.arm.com/documentation/ddi0484/c/Programmers-Model/Instruction-set-summary\" rel=\"noopener noreferrer\" target=\"_blank\">https://developer.arm.com/documentation/ddi0484/c/Programmers-Model/Instruction-set-summary</a></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your comment!</p><p>Yes, I made an estimation.</p><p>At 3Mhz, each 1 cycle = 333ns </p><p>I made a conversion of the lines into assembly and I got arround 10 cycles so 10*333ns = 3.3 us which faaar from </p><p>10us I got.</p></div>",
+                    "author": "Ayoub Cheggari",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Better to check again what are the instructions involved in between the two rising edges (between the check of the input and the setting the GPIO output). </p><p>PS: “jitter” is not the correct word in this case. Jitter is variations around an expected constant value. But here you mean more an “unexpected” delay value between a reading/checking and setting an IO.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

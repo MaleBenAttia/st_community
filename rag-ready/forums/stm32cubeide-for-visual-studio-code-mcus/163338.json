@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "163338",
+            "publicId": "163338",
+            "title": "Issues Debugging FreeRTOS with J-Link",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/issues-debugging-freertos-with-j-link-163338",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-02T12:31:45+00:00",
+            "views": 494,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Seems to be solved in latest extension update.\n\nUsing:\n\n```\n\nJLink-gdbserver v9.14.1+st.1\n\nrtos-proxy v0.18.1+st.3\n\n```",
+            "best_answer_author": "Artur Vieira",
+            "best_answer_author_role": "",
+            "content_text": "Having some issues trying to debug a FreeRTOS project using JLink, using an STM32U5G9 (Riverdi 5\" Display Board)\n\nIf I enable \"serverRtos\" in the launch configuration:\n\n```\n\n\"configurations\": [\n\n{\n\n\"type\": \"jlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"STM32Cube: STM32 Launch JLink GDB Server\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n\n\"runEntry\": \"main\",\n\n\"serverSpeed\": \"12000\",\n\n\"serverRtos\": {\n\n\"enabled\": true,\n\n\"port\": \"60000\",\n\n\"driver\": \"freertos\",\n\n\"driverPort\": \"ARM_CM33_NTZ\"\n\n},\n\n\"preRunCommands\": [\n\n\"monitor exec SetRTTSearchRanges 0x200bb800 0x234800\"\n\n],\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n]\n\n}\n\n]\n\n```\n\nAnd then try to start a debug session, i get a disconnect error:\n\n```\n\nReading 20 bytes @ address 0x200C2A5C\n\nRead 4 bytes @ address 0x200C2A28 (Data = 0x200C2970)\n\nRead 4 bytes @ address 0x200C2A58 (Data = 0x200BEA20)\n\nRead 4 bytes @ address 0x200C2A6C (Data = 0x200C2A18)\n\nReading 16384 bytes @ address 0x200BEA20\n\nRTOS proxy: Missing symbol: pxCurrentTimerList.\n\nLost connection to GDB Server\n\nRead 4 bytes @ address 0x200C2A78 (Data = 0x00000018)\n\nGDB closed TCP/IP connection (Socket 1028)\n\n{\"label\":\"\",\"value\":[{\"label\":\"Driver\",\"value\":\"freeRTOS\"},{\"label\":\"Kernel state\",\"value\":\"Started\"}]}\n\nRTOS proxy: Proxy stopped.\n\nRTOS proxy: C:\\Users\\artur\\AppData\\Local\\stm32cube\\bundles\\rtos-proxy\\0.17.0+st.3\\bin\\RtosProxy has exited with code 0Remote communication error. Target disconnected: error while reading: No error.\n\nGDB response with no command: 14\n\nRestoring target state and closing J-Link connection...\n\nShutting down...\n\ncube has exited with code 0\n\n```\n\nIt complains about not finding \"pxCurrentTimerList\" although it is present in the map file (I even created a rtos timer on purpose to make sure that there where timers in use).\n\nAlready using J-Link bundle pack 8.38.0+st.1 as recommended by <https://community.st.com/t5/stm32cubeide-for-visual-studio/cannot-start-rtos-aware-debug-session-using-j-link/m-p/870735/highlight/true#M1827>.\n\nAlso added the code suggestion indicated in <https://community.st.com/t5/stm32cubeide-for-visual-studio/stm32cube-rtos-state-not-showing-all-queues-semaphores/m-p/865915/highlight/true#M1708> since initially was also complaining about missing \"xQueueRegistrySize\".\n\nThe processor I am using is a STM32U5G9, does the \"serverRtos\" has a limitation on the RAM range where it tries to fetch this kind of data? Something similar to an issue with Segger RTT that the auto-discovery of RTT Block is limited in range by default. This because at the moment I am reserving a big block of RAM starting at base address for the display buffer.\n\nThank You",
+            "images": [],
+            "author": "Artur Vieira",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Seems to be solved in latest extension update.</p><p> </p><p>Using:</p><pre class=\"lia-code-sample language-markup\"><code>JLink-gdbserver v9.14.1+st.1\nrtos-proxy v0.18.1+st.3</code></pre><p> </p></div>",
+                    "author": "Artur Vieira",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"29102\">@Artur Vieira</user-mention>,<br/><br/>Could you please add the following attribute to check if the error message becomes more detailed?</p><pre class=\"lia-code-sample language-javascript\"><code>\"verbose\": true</code></pre><p>And also, in a second test, disable the serverRtos to check if the issue persists.</p><p>Best Regards,<br/>/Flo</p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/>Could you please add the following attribute to check if the error message becomes more detailed?</blockquote><pre class=\"lia-code-sample language-javascript\"><code>\"verbose\": true</code></pre><p> </p><hr/><p><user-mention data-id=\"863\">@Florent V</user-mention> I have tried enabling \"verbose\", the error is more os less the same:</p><pre class=\"lia-code-sample language-c\"><code>To client: {\"seq\":0,\"type\":\"event\",\"event\":\"output\",\"body\":{\"category\":\"proxy\",\"output\":\"RTOS proxy: Missing symbol: pxCurrentTimerList.\\r\\n\"}}\nRTOS proxy: Missing symbol: pxCurrentTimerList.\nTo client: {\"seq\":0,\"type\":\"event\",\"event\":\"output\",\"body\":{\"category\":\"proxy\",\"output\":\"RTOS proxy: Lost connection to GDB Server\\r\\n\"}}</code></pre><p> In attachment the full log output.</p><p>The variable \"pxCurrentTimerList\" is defined at the following address according to \"arm-none-eabi-nm.exe\" parsing the elf file...</p><pre class=\"lia-code-sample language-c\"><code>20020f08 B pxCurrentTimerList</code></pre><p>And it's also visible in the \"map\" file:</p><pre class=\"lia-code-sample language-c\"><code> .bss.pxCurrentTimerList\n 0x20020f08 0x4 cmake/stm32cubemx/CMakeFiles/RTOS2.dir/__/__/Middlewares/Third_Party/FreeRTOS/Source/timers.c.obj\n 0x20020f08 pxCurrentTimerList</code></pre><p> </p><blockquote><hr/><p>And also, in a second test, disable the serverRtos to check if the issue persists.</p></blockquote><p>Yes, if I disable the serverRtos, the debug session starts normally, obviously without the RTOS information.</p><p> </p><p>Thank You</p></div>",
+                    "author": "Artur Vieira",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"29102\">@Artur Vieira</user-mention>,</p><p><span>Thank you for the log.</span><br/><span>Indeed, the error is not more explicit.</span><br/><span>So far, I have not been able to reproduce it on my side. </span><br/><span>Even though the variable seems well defined, I wonder if it might be the cause of the issue or at least producing a side effect.</span><br/><span>Would it be possible to share the project or a lightweight version ?</span></p><p><span>Kind Regards,<br/>/Flo</span></p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

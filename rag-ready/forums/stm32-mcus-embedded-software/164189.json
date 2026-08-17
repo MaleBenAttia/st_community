@@ -1,0 +1,88 @@
+{
+    "forum": [
+        {
+            "id": "164189",
+            "publicId": "164189",
+            "title": "STM32F103CBT6 usb interrupt end point transactions",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f103cbt6-usb-interrupt-end-point-transactions-164189",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F1 series",
+                "USB"
+            ],
+            "published_at": "2026-03-26T06:46:34+00:00",
+            "views": 588,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hi @Vladimir Mitrofanov\n\nThis is a separate question from the original issue, so I kindly ask you to open a new thread for it. Feel free to tag me there, and I’ll be glad to help.\n\nTo keep this thread focused and efficient, let’s stay on the initial topic.\n\nThe device must prepare the data **before** the host polls the endpoint. The interrupt on the STM32 side occurs only when the IN transfer completes, after the host accepts the data.\n\nIf the original questions are now answered, consider accept the answer for this ticket and start new one for the BDT.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello, I can't cope with interrupt transactions. (I need it later for composite device).\n\nFor tests I generated HID device example. When device is connected to host it appears correctly in the system.\n\nFor interrupt endpoint configured 0x81.\n\nI need to answer for interrupt transactions, but which callback is responsible for this?\n\nI start debugging from very deep. Breakpoints were set in HAL\\_PCD\\_IRQHandler(). As I understand in this functions all usb transactions starts, but I see only interrupts from ZERO endpoint. Dumping by WireShark I see host sends requests to my device x.xx.1 and responses.\n\nWhy I don't see interrupts for 0x81 (also I check 0x01) in HAL\\_PCD\\_IRQHandler()?\n\nWhat I do wrong?",
+            "images": [],
+            "author": "Vladimir Mitrofanov",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It is IN endpoint, so normally an interrupt is generated after the data sent by your device is successfully received by host. You need to perform IN transfer.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your reply.<br/>Can you a little bit clarify for me?<br/>As I got all usb transactions it is about HOST.</p><p>IN - host receives<br/>OUT - host sends<br/>As I use IN (0x81) interrupt endpoint, host sends requests to device with configured period and device should reply for this requests.<br/>I thought that after each host request interrupt will be generated and at this time I should send reply?</p><p>Where I am wrong?</p></div>",
+                    "author": "Vladimir Mitrofanov",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The interrupt is generated when the host accepts data sent by you. You must send the data. After the data is sent, the interrupt means you may send the next packet.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"38189\">@Vladimir Mitrofanov</user-mention> </p>\n<p>Just few clarifications : The term <strong>interrupt endpoint </strong>describes the USB endpoint type, not a CPU interrupt source.</p>\n<p>For an IN interrupt endpoint (0x81), the host periodically polls the endpoint, and your device must have IN data queued by calling USBD_HID_SendReport().</p>\n<p>A CPU interrupt is generated only when that IN transfer completes, when the host has successfully received the data.<span> </span></p>\n<p>You can set a breakpoint in USBD_LL_OpenEP() in usbd_conf.c to verify that your IN endpoint is properly opened, and then in USBD_LL_Transmit() to confirm that you actually start an IN transfer on that endpoint.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Many  thanks. I have tested project and got interrupt as it was described earlier.<br/>As a result data should be prepared before URB comes from host.<br/>I thought the other way.<br/>1. URB comes from host<br/>2. Interrupt happed<br/>3. Device reply.<br/>As I see I was wrong.<br/>Did I correctly understand that I should keep states for device when I send response during detection NCM device (CONNECTION_SPEED_CHANGE, NETWORK_CONNECTION).</p></div>",
+                    "author": "Vladimir Mitrofanov",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Can you explain me about buffer descriptor table (BDT)?<br/>Is it fixed?<br/>I have got behavior that I can't explain.<br/>Dumping packets on host I got wrong data. Length is ok, but data is wrong.<br/>In BDT I wrote correct address and length. Data wrote in pma (adress that is in BDT) is correct.<br/>But when I stop in debugging address in BDT is changed. As I think in BDT there is a place for each endpoint (or it is like cyclic buffer?)<br/>What I found if I set break point with \"if\" condition, just before sending address in BDT is OK, and data on host is OK.</p><p>It seems to me that I am working incorrectly with BDT.</p><p> </p></div>",
+                    "author": "Vladimir Mitrofanov",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"38189\">@Vladimir Mitrofanov</user-mention> </p>\n<p>This is a separate question from the original issue, so I kindly ask you to open a new thread for it. Feel free to tag me there, and I’ll be glad to help.</p>\n<p>To keep this thread focused and efficient, let’s stay on the initial topic.</p>\n<p><span>The device must prepare the data </span><strong>before</strong><span> the host polls the endpoint. </span><span>The interrupt on the STM32 side occurs only when the IN transfer completes, after the host accepts the data.</span></p>\n<p><span>If the original questions are now answered, consider accept the answer for this ticket and start new one </span>for the BDT.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><p>The STM32F103CBT6 USB interrupt endpoint is used for transferring small amounts of data at fixed time intervals. It is mainly used in devices like keyboards and mice where fast response is important. In this type of communication, the host computer regularly checks the device to see if any data is available. The data size is usually small and the transfer is time-sensitive, which means it focuses on quick delivery rather than large data transmission.</p></div></div></div></div><div class=\"\"> </div><div class=\"\"><div class=\"\"> </div></div></div></div></div><div class=\"\"> </div></div>",
+                    "author": "Alexandercharli",
+                    "role": "Explorer II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

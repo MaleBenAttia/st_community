@@ -1,0 +1,121 @@
+{
+    "forum": [
+        {
+            "id": "164655",
+            "publicId": "164655",
+            "title": "Unexpected Behavior of the STM32 CRYP Module",
+            "url": "https://community.st.com/stm32-mcus-security-36/unexpected-behavior-of-the-stm32-cryp-module-164655",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "Cryptography",
+                "STM32 Security"
+            ],
+            "published_at": "2026-04-11T10:51:46+00:00",
+            "views": 793,
+            "reply_count": 10,
+            "best_answer": true,
+            "best_answer_content": "The same issue is in both HAL\\_CRYP\\_Encrypt\\_DMA and HAL\\_CRYP\\_Decrypt\\_DMA . I just chose one.\n\n[stm32h7xx-hal-driver/Src/stm32h7xx\\_hal\\_cryp.c at a1996eed9172b59887bafaaa0ea1816ea14d48b5 · STMicroelectronics/stm32h7xx-hal-driver](https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/a1996eed9172b59887bafaaa0ea1816ea14d48b5/Src/stm32h7xx_hal_cryp.c#L1433)\n\nYou pass in 25600, it multiplies it by 4, so 102400, then stores as a uint16\\_t, so it truncates to 36864. That is how many bytes (9216 uint32\\_t vales) get encrypted/decrypted. Which is exactly what you see.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "I'm recently working on benchmarking a various implementations and configurations of cryptographic algorithms such AES-GCM on STM32. Two of these tested function are the following :\n\n```\n\nvoid test_aes_hardware(void)\n\n{\n\nuint32_t plaintext[DATA_SIZE/4];\n\nuint32_t ciphertext[DATA_SIZE/4];\n\nuint32_t decrypted[DATA_SIZE/4];\n\nuint8_t key_bytes[32];\n\nuint8_t iv_bytes[16];\n\nuint32_t key[8];\n\nuint32_t iv[4];\n\nuint8_t ikm[4];\n\nuint8_t salt[4];\n\nuint8_t info1[] = \"HW_AES_KEY\";\n\nuint8_t info2[] = \"HW_AES_IV\";\n\nuint32_t rnd;\n\n/* RNG */\n\nHAL_RNG_GenerateRandomNumber(&hrng, &rnd);\n\nmemcpy(ikm, &rnd, 4);\n\nHAL_RNG_GenerateRandomNumber(&hrng, &rnd);\n\nmemcpy(salt, &rnd, 4);\n\n/* KDF */\n\nxkdfBlake(key_bytes, 32, ikm, 4, salt, 4, info1, sizeof(info1));\n\nxkdfBlake(iv_bytes, 16, ikm, 4, salt, 4, info2, sizeof(info2));\n\nmemcpy(key, key_bytes, 32);\n\nmemcpy(iv, iv_bytes, 16);\n\nfor (int i = 0; i < DATA_SIZE / 4; i++) {\n\nuint32_t w = (i*4 + 1)\n\n|((i*4 + 2) << 8)\n\n|((i*4 + 3) << 16)\n\n|((i*4 + 4) << 24);\n\nplaintext[i] = w;\n\n}\n\n/* Configure CRYP */\n\nhcryp.Instance = CRYP;\n\nhcryp.Init.DataType = CRYP_DATATYPE_32B;\n\nhcryp.Init.KeySize = CRYP_KEYSIZE_256B;\n\nhcryp.Init.pKey = key;\n\nhcryp.Init.Algorithm = CRYP_AES_GCM;\n\nhcryp.Init.pInitVect = iv;\n\nhcryp.Init.Header = NULL;\n\nhcryp.Init.HeaderSize = 0;\n\nHAL_CRYP_Init(&hcryp);\n\nbench_start();\n\nHAL_CRYP_Encrypt(&hcryp,\n\nplaintext,\n\nDATA_SIZE/4,\n\nciphertext,HAL_MAX_DELAY);\n\nwhile (HAL_CRYP_GetState(&hcryp) != HAL_CRYP_STATE_READY);\n\nuint32_t time = bench_stop();\n\nHAL_CRYP_Decrypt(&hcryp,\n\nciphertext,\n\nDATA_SIZE/4,\n\ndecrypted,\n\nHAL_MAX_DELAY);\n\nwhile (HAL_CRYP_GetState(&hcryp) != HAL_CRYP_STATE_READY);\n\nif (memcmp(plaintext, decrypted, DATA_SIZE) != 0) {\n\nprintf(\"Mismatch!\\n\");\n\nError_Handler();;\n\n}\n\nprintf(\"AES-GCM Hardware without DMA: %lu us\\r\\n\", time);\n\n}\n\n```\n\nThe first one demonstarte the use of AES-GCM through CRYP module.\n\n```\n\nvoid test_aes_hardware_dma(void)\n\n{\n\nuint32_t plaintext[DATA_SIZE/4] __attribute__((aligned(32)));\n\nuint32_t ciphertext[DATA_SIZE/4] __attribute__((aligned(32)));\n\nuint32_t decrypted[DATA_SIZE/4] __attribute__((aligned(32)));\n\nuint8_t key_bytes[32];\n\nuint8_t iv_bytes[16];\n\nuint32_t key[8] __attribute__((aligned(32)));\n\nuint32_t iv[4] __attribute__((aligned(32)));\n\nuint8_t ikm[4];\n\nuint8_t salt[4];\n\nuint8_t info1[] = \"HW_AES_KEY\";\n\nuint8_t info2[] = \"HW_AES_IV\";\n\nuint32_t rnd;\n\n/* RNG */\n\nHAL_RNG_GenerateRandomNumber(&hrng, &rnd);\n\nmemcpy(ikm, &rnd, 4);\n\nHAL_RNG_GenerateRandomNumber(&hrng, &rnd);\n\nmemcpy(salt, &rnd, 4);\n\n/* KDF */\n\nxkdfBlake(key_bytes, 32, ikm, 4, salt, 4, info1, sizeof(info1));\n\nxkdfBlake(iv_bytes, 16, ikm, 4, salt, 4, info2, sizeof(info2));\n\nmemcpy(key, key_bytes, 32);\n\nmemcpy(iv, iv_bytes, 16);\n\nfor (int i = 0; i < DATA_SIZE / 4; i++) {\n\nuint32_t w = (i*4 + 1)\n\n| ((i*4 + 2) << 8)\n\n| ((i*4 + 3) << 16)\n\n| ((i*4 + 4) << 24);\n\nplaintext[i] = w;\n\n}\n\nSCB_CleanDCache_by_Addr((uint32_t*)plaintext, DATA_SIZE);\n\nSCB_CleanDCache_by_Addr((uint32_t*)key, sizeof(key));\n\nSCB_CleanDCache_by_Addr((uint32_t*)iv, sizeof(iv));\n\n/* Configure CRYP */\n\nhcryp.Instance = CRYP;\n\nhcryp.Init.DataType = CRYP_DATATYPE_32B;\n\nhcryp.Init.KeySize = CRYP_KEYSIZE_256B;\n\nhcryp.Init.pKey = key;\n\nhcryp.Init.Algorithm = CRYP_AES_GCM;\n\nhcryp.Init.pInitVect = iv;\n\nhcryp.Init.Header = NULL;\n\nhcryp.Init.HeaderSize = 0;\n\nHAL_CRYP_Init(&hcryp);\n\nCrypCompleteDetected = 0;\n\nbench_start();\n\nHAL_CRYP_Encrypt_DMA(&hcryp,\n\nplaintext,\n\nDATA_SIZE/4,\n\nciphertext);\n\nwhile (!CrypCompleteDetected);\n\nSCB_InvalidateDCache_by_Addr((uint32_t*)ciphertext, DATA_SIZE);\n\nuint32_t time = bench_stop();\n\nCrypCompleteDetected = 0;\n\nHAL_CRYP_Decrypt_DMA(&hcryp,\n\nciphertext,\n\nDATA_SIZE/4,\n\ndecrypted);\n\nwhile (!CrypCompleteDetected);\n\nSCB_InvalidateDCache_by_Addr((uint32_t*)decrypted, DATA_SIZE);\n\nif (memcmp(plaintext, decrypted, DATA_SIZE) != 0) {\n\nprintf(\"Mismatch!\\n\");\n\nError_Handler();\n\n}\n\nprintf(\"AES-GCM Hardware DMA: %lu us\\r\\n\", time);\n\n}\n\n```\n\nThe second one use DMA to transfer data between RAM and CRYP peripheral\n\nWhen starting the program i got normal results with DATA\\_SIZE<50Kib. But after that I start getting Mismatches results. When I compare for example only the 100 fisrt bytes it seems that the decrypted data match the initial plaintext and I got an absurd results showing that the encryption exec time of 100Kib < the encryption exec time of 50Kib.\n\nPlease feel free to ask me for additional informations.\n\nThank you.",
+            "images": [],
+            "author": "g2f1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>DMA has a transfer limit of 65535 items. It's possible you're running into that issue. Not enough code is shown to tell.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What parts of code you need to tell? And also what you mean by items in the context of DMA?<br/>Thanks</p></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; What parts of code you need to tell?</em></p><p>Please include the full part number of the chip you are using. \"STM32\" refers to too many. Whatever code you are using doesn't appear to be compatible with the STM32H7, so my guess is it's a different one.</p><p>The definition of <span>DATA_SIZE would help. Seems like it is 50000 and 100000. </span><span>If so, these are absolutely <em>massive</em> arrays being allocated on the stack which could be causing its own issues. Typically a chip doesn't have 300+ kB dedicated to the stack.</span></p><p><em>&gt; And also what you mean by items in the context of DMA?</em></p><p>DMA has a configurable word size which is 1-4 bytes. This is what \"item\" means in this context.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My strong guess would be that a uint16_t value is being used somewhere in HAL which is overflowing when you are transferring more than 2^16 bytes. But the details would allow this to be confirmed, and determine whether it is a bug or a limitation.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, in fact I'm working on H753ZI. For the DATA_SIZE I tested with 10240 Byte (10Kib) and it works but for 102400 byte (100Kib) it won't even though it should since I'm not in the limits of the stack.When debugging I notice that the Module managed to encrypt data well up to the 9205 word but after that it stops somehow.</p></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If hcryp is zero-initialized, then it's set as DataWidthUnit = CRYP_DATAWIDTHUNIT_WORD. (It's not explicitly initialized in the code, which is why I thought it was another MCU family.)</p><p>When HAL_CRYP_Decrypt_DMA is called, it sets Size to the size of the operation in bytes as a uint16_t, which overflows.</p><p><a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/a1996eed9172b59887bafaaa0ea1816ea14d48b5/Src/stm32h7xx_hal_cryp.c#L1587\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/a1996eed9172b59887bafaaa0ea1816ea14d48b5/Src/stm32h7xx_hal_cryp.c#L1587</a></p><p><a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/a1996eed9172b59887bafaaa0ea1816ea14d48b5/Inc/stm32h7xx_hal_cryp.h#L111\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/a1996eed9172b59887bafaaa0ea1816ea14d48b5/Inc/stm32h7xx_hal_cryp.h#L111</a></p><p>So this appears to be a HAL bug, as far as I can see.</p><p> </p><p>Setting .Size to the size in bytes also contradicts what the comments say about it, saying it's either in words or bytes.</p><p> </p><p>I opened an issue. We will see. Could be missing something.</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeH7/issues/343\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">[Bug]: HAL_CRYP_Decrypt_DMA fails when transfer size is &gt; 65535 bytes · Issue #343 · STMicroelectronics/STM32CubeH7</a></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,<br/>The problem in fact is not from the HAL_CRYP_Decrypt_DMA function but it's comming from HAL_CRYP_Encrypt_DMA. The latter can't encrypt the entire data and it only encrypt exactly the first 9215 of 32 bits(~36 kib) as you can see in the image above. The decryption works fine. Other thing the problem occurs in both implementation with DMA or without it. It's like there is something that limit the maximum size of the plaintext data to be encrypted.</p></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The same issue is in both <span>HAL_CRYP_Encrypt_DMA and HAL_CRYP_Decrypt_DMA . I just chose one.</span></p><p><span><a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/a1996eed9172b59887bafaaa0ea1816ea14d48b5/Src/stm32h7xx_hal_cryp.c#L1433\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">stm32h7xx-hal-driver/Src/stm32h7xx_hal_cryp.c at a1996eed9172b59887bafaaa0ea1816ea14d48b5 · STMicroelectronics/stm32h7xx-hal-driver</a></span></p><p> </p><p><span>You pass in 25600</span><span>, it multiplies it by 4, so 102400, then stores as a uint16_t, so it truncates to 36864. That is how many bytes (9216 uint32_t vales) get encrypted/decrypted. Which is exactly what you see.</span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>CRYP is initialized in my code : </p><pre class=\"lia-code-sample language-c\"><code> hcryp.Instance = CRYP;\n hcryp.Init.DataType = CRYP_DATATYPE_32B;\n hcryp.Init.KeySize = CRYP_KEYSIZE_256B;\n hcryp.Init.pKey = key;\n hcryp.Init.Algorithm = CRYP_AES_GCM;\n hcryp.Init.pInitVect = iv;\n hcryp.Init.Header = NULL;\n hcryp.Init.HeaderSize = 0;</code></pre></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I see. One more thing why it doesn't truncate to the max oon 16 bit which is 65537.</p></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That's just how math works on processors. The high bits are dropped.</p><pre class=\"lia-code-sample language-c\"><code>uint32_t x = 102400;\nuint16_t y = x;\nprintf(\"y=%u\\n\", (unsigned)y);</code></pre><p>102400 in binary is 0b1 1001 0000 0000 0000. Lowest 16 bits are 0b1001 0000 0000 0000, or <span>36864.</span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It multiply it by 4 meaning that it excepts the size of data to encrypt divided by 4. So i f we want to encrypt 1024 byte i need to give size of 1024/4?</p></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>HAL_CRYP_Encrypt_DMA expects the number of items (as defined by DataWidthUnit), as the documentation states. In your case, this is the number of words.</span></p><pre class=\"lia-code-sample language-c\"><code>/**\n * @brief Encryption in DMA mode.\n * <user-mention data-id=\"43225\">@PAram</user-mention> hcryp: pointer to a CRYP_HandleTypeDef structure that contains\n * the configuration information for CRYP module\n * <user-mention data-id=\"43225\">@PAram</user-mention> Input: Pointer to the input buffer (plaintext)\n * <user-mention data-id=\"43225\">@PAram</user-mention> Size: Length of the plaintext buffer either in word or in byte, according to DataWidthUnit\n * <user-mention data-id=\"43225\">@PAram</user-mention> Output: Pointer to the output buffer(ciphertext)\n * @retval HAL status\n */DataWidthUnit</code></pre><p> </p><p>It's a bug. You won't be able to encrypt/decrypt more than 16383 words at a time until it is fixed.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello TDK, thank you for your response earlier. I just want to know if changing the type of Size filed of the struct ti uint32_t will solve the issue?</p></div>",
+                    "author": "g2f1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, changing it to a uint32_t in the HAL library will likely solve the issue.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

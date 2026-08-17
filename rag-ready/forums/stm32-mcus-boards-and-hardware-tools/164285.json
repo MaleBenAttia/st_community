@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164285",
+            "publicId": "164285",
+            "title": "Power measurement on STM32N6570-DK board",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/power-measurement-on-stm32n6570-dk-board-164285",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "Power",
+                "ST boards",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-30T06:11:05+00:00",
+            "views": 334,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @visakh\n\nCould you refer to this discussion:\n\n<https://community.st.com/t5/stm32-mcus-boards-and-hardware/mcu-power-consuption-measurment-stm32n6570-dk/td-p/889264>\n\nTo answer to your questions:\n\n1. On STM32N657-DK, CN2 is used to populate shunt resistors of VDDCore External (before SMPS and after), VDDIO (in 3.3V for VDD, VDDIO4 and VDDIO5) and VDDA1V8 for VDDIO2, VDDIO3 and all the 1.8V analog domain.\n\n2. No main supply jumper, on STM32N6 as this device use many independant supply. You must use CN2.\n\n3. When measuring only VDDCore, it includes VDDCode domain as Cortex-M55 cpu, internal SRAM, EXTI and peripherals supply. To estimate the total power consumption, you have to add VDDIO, VDDA1V8 available on CN2.\n\n4. Yes, it's possible to measure the power consumption profile on all the different supply through CN2, using application with AI model NPU, external memories, camera and DCMIPP. This is possible using the N6 Out of the box demo.\n\nHowever, it's not possible to measure directly NPU consumption.\n\n5. Using Joulescope JS220 is possible, the only recommendation are:\n\n5.1 To do not inject back reverse voltage into LDO and external SMPS on the board. Some hardware modification are needed on CN2 connector to remove shunt resistors.\n\n5.2 To respect the power sequence of STM32N6 described in RM0486 or in DS14791 section 3.4.7 System supply startup\n\nBest regards,\n\nRomain,",
+            "best_answer_author": "RomainR.",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi Team,\n\nI am working with the STM32N6570-DK board and reviewing the available power measurement methodology. From what I understand, the current approach/documentation focuses on measuring only VDD\\_CORE power.\n\nMy requirement is different: I want to measure the total MCU power using a JS220 Joulescope, not just the VDD\\_CORE domain.\n\nSpecifically, I would like to understand:\n\n1. What is the recommended hardware measurement point on the STM32N6570-DK board to capture total MCU power?\n\n2. Is there a board jumper, shunt, or power rail that isolates the complete MCU supply path?\n\n3. If measuring only VDD\\_CORE is the officially supported method, what additional rails should be included to estimate total MCU power?\n\n4. Has ST validated any method for measuring full MCU consumption on this board, including CPU, NPU, internal memories, and essential MCU peripherals?\n\n5. Are there any precautions regarding ST-LINK, external memories, camera/display rails, or other board circuitry that may affect the measurement when using an external power analyzer such as the JS220?",
+            "images": [],
+            "author": "visakh",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104716\">@visakh</user-mention> </p>\n<p>Could you refer to this discussion:</p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus-boards-and-hardware/mcu-power-consuption-measurment-stm32n6570-dk/td-p/889264\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-boards-and-hardware/mcu-power-consuption-measurment-stm32n6570-dk/td-p/889264</a></p>\n<p>To answer to your questions:<br/>1. On STM32N657-DK, CN2 is used to populate shunt resistors of VDDCore External (before SMPS and after), VDDIO (in 3.3V for VDD, VDDIO4 and VDDIO5) and VDDA1V8 for VDDIO2, VDDIO3 and all the 1.8V analog domain.</p>\n<p>2. No main supply jumper, on STM32N6 as this device use many independant supply. You must use CN2.<br/>3. When measuring only VDDCore, it includes VDDCode domain as Cortex-M55 cpu, internal SRAM, EXTI and peripherals supply. To estimate the total power consumption, you have to add VDDIO, VDDA1V8 available on CN2.<br/>4. Yes, it's possible to measure the power consumption profile on all the different supply through CN2, using application with AI model NPU, external memories, camera and DCMIPP. This is possible using the N6 Out of the box demo.<br/>However, it's not possible to measure directly NPU consumption.<br/>5. Using Joulescope JS220 is possible, the only recommendation are:<br/>5.1 To do not inject back reverse voltage into LDO and external SMPS on the board. Some hardware modification are needed on CN2 connector to remove shunt resistors.<br/>5.2 To respect the power sequence of STM32N6 described in RM0486 or in DS14791 section 3.4.7 System supply startup<br/>Best regards,<br/>Romain,</p></div>",
+                    "author": "RomainR.",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "RomainR.",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

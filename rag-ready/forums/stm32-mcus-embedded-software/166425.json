@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "166403",
+            "publicId": "166425",
+            "title": "FATFS writing issues",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/fatfs-writing-issues-166425",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "FatFS",
+                "SDIO-SDMMC",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-06-24T14:15:26+00:00",
+            "views": 78,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nI looked at at with a fresh head.\n\nI lowered the clock frequency to 4MHz and that worked!\n\nThank you for the support!\n\nWilliam",
+            "best_answer_author": "William_RnD",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi,\n\nI’m working with FATFS + SDIO + USB mass storage class.\n\nBut I can’t seem to get writing and as a consequence reading working.\n\nin my main.c I do:\n\n```\n\n//fatfs test\n\nmakeFileData(\"test12.txt\", \"TEST123\");\n\nchar* data = readFileData(\"test12.txt\");\n\nprintf(\"read data = %s\\r\\n\", data);\n\n```\n\nAnd in my console I get as a response:\n\n```\n\nD-SH          0 /System Volume Information\n\n----        209 /x1_DEFAULT.JSON\n\n----        211 /x2_DEFAULT.JSON\n\n----        211 /x3_DEFAULT.JSON\n\n----        211 /Ik_heb_iets_verzonne.JSON\n\nTotal blocks: 1922016 (961 Mb)\n\nFree blocks : 1921888 (960 Mb)\n\nSD Card Block size = 512\n\nSD Card Block number = 1953792\n\nSD Card size = 1000341\n\nSD Card Version = 1\n\nInit WVR complete!\n\nf_write failed: 1\n\nread data =\n\n```\n\nSo It can open the card and perform a ls command, but for some reason I can’t write. I spotted that some people look at DMA but I’m not using DMA.\n\nMy entire SD card Handler:\n\n```\n\n/*\n\n* SD_Card_Handler.c\n\n*\n\n*  Created on: June 24, 2026\n\n*      Author: william.vanraemdonck\n\n*/\n\n#include \"WVR/SD/SD_Card_Handler.h\"\n\n#include \"fatfs.h\"\n\n#include <stdio.h>\n\n#include <string.h>\n\nconst char tmpFileName[] = \"temp.json\";\n\nuint32_t rbytes, wbytes;\n\nchar readData[256];\n\n//init\n\nvoid initSdCard(void){\n\n//mount the card\n\nif(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) != FR_OK){\n\nprintf(\"Unable to mount disk\\r\\n\");\n\nError_Handler();\n\n}\n\n//list the files\n\nls();\n\n}\n\nchar* readFileData(char* filename){\n\nif(f_open(&SDFile, filename, FA_OPEN_EXISTING | FA_READ) == FR_OK){\n\nif(f_read(&SDFile, readData, sizeof(readData), (void*)&rbytes) == FR_OK){\n\nprintf(\"read data = %s\\r\\n\", readData);\n\nf_close(&SDFile);\n\n}\n\nelse{\n\nprintf(\"NFC Unable to read data from file\\r\\n\");\n\nreturn \"ERROR\";\n\n}\n\n}\n\nreturn readData;\n\n}\n\nuint8_t makeFileData(char* filename, char* data){\n\nFRESULT res;\n\nres = f_open(&SDFile, filename, FA_CREATE_ALWAYS | FA_WRITE);\n\nif(res == FR_OK)\n\n{\n\nres = f_write(&SDFile, data, strlen(data), &wbytes);\n\nif(res == FR_OK)\n\n{\n\nprintf(\"Written %lu bytes\\r\\n\", wbytes);\n\n}\n\nelse\n\n{\n\nprintf(\"f_write failed: %d\\r\\n\", res);\n\n}\n\nf_close(&SDFile);\n\nreturn 2;\n\n}\n\nelse{\n\nprintf(\"f_open failed: %d\\r\\n\", res);\n\nreturn 3;\n\n}\n\nreturn 0;\n\n}\n\n//helpers\n\nuint8_t BSP_SD_IsDetected(void){\n\n__IO uint8_t status = SD_PRESENT;\n\nreturn status;\n\n}\n\nvoid ls(void) {\n\nFRESULT res;\n\nDIR dir;\n\nchar *path;\n\npath = \"\"; // where you want to list\n\nres = f_opendir(&dir, path);\n\n#ifdef DEBUG\n\nif (res != FR_OK)\n\nprintf(\"res = %d f_opendir\\n\\r\", res);\n\n#endif\n\nif (res == FR_OK) {\n\nwhile (1) {\n\nFILINFO fno;\n\nres = f_readdir(&dir, &fno);\n\n#ifdef DEBUG\n\nif (res != FR_OK)\n\nprintf(\"res = %d f_readdir\\n\\r\", res);\n\n#endif\n\nif ((res != FR_OK) || (fno.fname[0] == 0))\n\nbreak;\n\nprintf(\"%c%c%c%c %10d %s/%s\\n\\r\",\n\n((fno.fattrib & AM_DIR) ? 'D' : '-'),\n\n((fno.fattrib & AM_RDO) ? 'R' : '-'),\n\n((fno.fattrib & AM_SYS) ? 'S' : '-'),\n\n((fno.fattrib & AM_HID) ? 'H' : '-'),\n\n(int) fno.fsize, path, fno.fname);\n\n}\n\n}\n\nuint32_t free_clusters;\n\nFATFS *fs_ptr;\n\nres = f_getfree(\"\", &free_clusters, &fs_ptr);\n\nif (res == FR_OK) {\n\nuint32_t totalBlocks = (fs_ptr->n_fatent - 2) * fs_ptr->csize;\n\nuint32_t freeBlocks = free_clusters * fs_ptr->csize;\n\nprintf(\"Total blocks: %lu (%lu Mb)\\n\\r\", totalBlocks, totalBlocks / 2000);\n\nprintf(\"Free blocks : %lu (%lu Mb)\\n\\r\", freeBlocks, freeBlocks / 2000);\n\n} else {\n\nprintf(\"Unable to get free space\\n\\r\");\n\n}\n\n}\n\n```\n\nBased on this video:\n\n<https://www.youtube.com/watch?v=S78q6SuwnrM>\n\nDoes anyone spot the mistake, I’m guessing I forgot something stupid.\n\nKind regards,\n\nWilliam",
+            "images": [],
+            "author": "William_RnD",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"103405\">@William_RnD</user-mention> ,</p><p>Such kind of questions need to be asked in “<a href=\"https://community.st.com/stm32-mcus-embedded-software-32\" rel=\"noreferrer\" target=\"_self\">STM32 MCUs Embedded software</a>” forum board.</p><p>I’ve already moved the post.</p><p>Thank you for your understanding &amp; Good luck.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p> I can’t seem to get writing and as a consequence reading working.</p></blockquote><p>That seems to be a <em>non-sequitur </em>?</p><p>Why do you think that not reading is <em>a result of </em>not writing ?</p><p> </p><blockquote><p><code>f_write failed: 1</code></p></blockquote><p>So have you looked-up what that error code means?</p><p>Have you stepped into <code>f_write</code> to see where it fails ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>My wording was a bit wrong there, the read I was trying to do after trying to write a file also failed. Because the file wasn’t written.</p><p>in ff.c line 3657</p><p>If (clst == 0xFFFFFFFF) ABORT(fs, FR_DISK_ERR); this return that 1</p><p> </p><p>But I didn’t get much wiser from that;</p><p>When using the USB interface and the mass storage class I do see the files on the SD card.<br/>(Those files I put on before plugging it into my board).</p><p>Kind regards, </p><p>William</p><p> </p><p> </p><p> </p></div>",
+                    "author": "William_RnD",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"William_RnD\"><div class=\"content-quote-content\"> <p>the read I was trying to do after trying to write a file also failed. Because the file wasn’t written.</p> </div></content-quote><p>So can you read a file which does exist ?</p><p> </p><blockquote><p>If (clst == 0xFFFFFFFF) ABORT(fs, FR_DISK_ERR); this return that 1</p></blockquote><p>Presumably, <code>0xFFFFFFFF</code> is some sort of default and <code>clst </code><em>should have</em> been set to something else if things were working.</p><p>So look back to see what would have set it - and shy that didn’t happen ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>I looked at at with a fresh head.</p><p>I lowered the clock frequency to 4MHz and that worked!</p><p>Thank you for the support!</p><p>William</p></div>",
+                    "author": "William_RnD",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

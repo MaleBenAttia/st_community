@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "163727",
+            "publicId": "163727",
+            "title": "RTOS Proxy (ThreadX Cortex-M7) disconnects during flash when using J-Link GDB",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/rtos-proxy-threadx-cortex-m7-disconnects-during-flash-when-using-j-link-gdb-163727",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "Bug-report"
+            ],
+            "published_at": "2026-03-12T11:15:39+00:00",
+            "views": 526,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hello @bbee\n\nA ticket **225371**   has already been escalated to dev team to address this behavior.\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am experiencing a problem with RTOS Proxy in STM32CubeIDE 2.0.0/2.1.0 when debugging a ThreadX application on STM32H753 using a SEGGER J-Link.\n\nThe same setup works correctly with STM32CubeIDE 1.19.0, but after upgrading to 2.0.0/2.1.0 the debugger aborts during the flash download when RTOS Proxy is enabled. If I use J-Link Kernel Awareness instead RTOS Proxy everything works fine.\n\n### Configuration\n\n* MCU: **STM32H753BI**\n\n* RTOS: **ThreadX**\n\n* STM32CubeIDE: **2.0.0**\n\n* RTOS Proxy: **ThreadX / Cortex-M7**\n\n* Debug probe: **SEGGER J-Link Ultra+**\n\n* J-Link GDB Server: **V8.80**\n\n* Interface: **SWD**\n\nDebug configuration:\n\n* RTOS Awareness: Enabled\n\n* RTOS Kernel Awareness: RTOS Proxy\n\n* RTOS: ThreadX (Cortex-M7)\n\n### Problem\n\nWhen starting a debug session, the debugger stops at the point where the firmware should be downloaded.\n\nThe following error appears:\n\n```\n\nRemote communication error. Target disconnected: Not a directory.\n\nFailed to execute MI command:\n\nload <path>/app_1500_xg.elf\n\n```\n\nwhere <path> is the correct and full absolute path to my elf file.\n\nAfter the abort, only **664 bytes** are written to flash.\n\n### RTOS Proxy log\n\n```\n\nSTMicroelectronics RTOS Proxy. Version 0.17.0\n\nLoading RTOS driver... ThreadX\n\nThreadX, port driver created: cortex_m7\n\nPort driver loaded: cortex_m7\n\nConnecting to GDB server 127.0.0.1 on port 2331 ... Connected\n\nListen for GDB connection on port: 60000 ... Connected\n\n_tx_thread_current_ptr:0x2403cfa4\n\n_tx_thread_created_ptr:0x2403cfac\n\n_tx_thread_system_state:0x240005a0\n\n_tx_semaphore_created_ptr:0x2403cf70\n\n_tx_mutex_created_ptr:0x2403cf88\n\n_tx_timer_created_ptr:0x2403d0e4\n\n_tx_queue_created_ptr:0x2403cf78\n\n_tx_event_flags_created_ptr:0x2403cf80\n\n_tx_block_pool_created_ptr:0x2403cf90\n\n_tx_byte_pool_created_ptr:0x2403cf98\n\nLost connection to GDB Client\n\nProxy stopped.\n\n```\n\n### J-Link GDB server log (excerpt)\n\n```\n\nSEGGER J-Link GDB Server V8.80\n\nDownloading 664 bytes @ address 0x08000000 - Verified OK\n\nGDB closed TCP/IP connection\n\n```\n\nIt looks like the **RTOS Proxy terminates the GDB connection during the load command**.\n\n### Additional observations\n\n* If I disable RTOS Awareness, the firmware downloads correctly and debugging works.\n\n* If I select RTOS Kernel Awareness: J-Link instead of RTOS Proxy, everything works correctly and ThreadX threads are displayed.\n\n* The issue only appears when RTOS Proxy is enabled.\n\n### Question\n\nIs **RTOS Proxy currently supported with the SEGGER J-Link GDB server in STM32CubeIDE 2.0.0/2.1.0**, or is this a known issue?\n\nHas anyone successfully used **RTOS Proxy with ThreadX + Cortex-M7 + J-Link** in CubeIDE > = 2.0.0?\n\nAny hints or workarounds would be appreciated.\n\nThank you.",
+            "images": [],
+            "author": "bbee",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"20568\">@bbee</user-mention> </p>\n<p data-unlink=\"true\">A ticket <strong> 225371</strong> <span> </span> has already been escalated to dev team to address this behavior.</p>\n<p data-unlink=\"true\">I will keep you posted with updates.</p>\n<p data-unlink=\"true\">THX</p>\n<p data-unlink=\"true\">Ghofrane</p>\n<p> </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"20568\">@bbee</user-mention> wrote:<br/><p>using a SEGGER J-Link.</p><hr/></blockquote><p>Does it work with an ST-Link ?</p><p>There's been a number of threads lately reporting problems with J-Link and CubeIDE v2.1.0, where ST-Link works OK...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/><blockquote><hr/></blockquote><p>There's been a number of threads lately reporting problems with J-Link and CubeIDE v2.1.0, where ST-Link works OK...</p><hr/></blockquote><p><user-mention data-id=\"20568\">@bbee</user-mention>  There was a new CubeIDE release yesterday which addresses at least one J-Link issue:</p><p><a href=\"https://community.st.com/t5/stm32cubeide-mcus/stm32cubeide-2-1-1-released/td-p/886219#:~:text=SEGGER%20J%2DLink%20GDB%20server%20updated%20to%209.24%20to%20fix%20an%20issue%C2%A0with%20the%20Live%20Expression%20view%20during%20the%20debug%20session\" target=\"_blank\"><em>STM32CubeIDE 2.1.1 released</em></a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't have a ST-Link yet, but I've ordered one...</p></div>",
+                    "author": "bbee",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Still waiting for the ST-Link, however I've tried it with STM32CubeIDE 2.1.1 and it is still the same behaviour.</p></div>",
+                    "author": "bbee",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Still no success and still waiting for the st-link.<br/>In the meantime I've Iogged the communication between GDB client &gt; RTOS Proxy (Port 60000) &gt; GDB Server (Port 2331) and found:</p><ul><li><p>Connection was established, but programming stopped after <strong>664 bytes</strong></p></li><li><p>Wireshark showed that a large GDB X packet (~64 KB) was sent</p></li><li><p>Immediately after receiving this packet, the connection on port <strong>60000 (RTOSProxy)</strong> was reset (TCP RST)</p></li></ul><h3 id=\"toc-hId-1627418364\">Measures Taken</h3><p>To resolve the download issue:</p><ul><li><p>Limited the GDB packet size by adding the following command in the debugger startup configuration like:</p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"> </div><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><pre><span>set remote memory-write-packet-size 1024</span></pre></div></div></div></div></div></div></div></div></div></div></div></li><li>After this change, the firmware download works reliably again</li></ul><h3 id=\"toc-hId--924738597\">New Problem (RTOS Awareness)</h3><p>After fixing the download issue, RTOS awareness is not working correctly:</p><ul><li><p>The debugger shows only <strong>one thread</strong></p></li><li>The RTOSProxy outputs repeatedly:</li></ul><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><pre><span>Kernel is running: true</span><br/><span>Update threads. Failed collecting threads.</span></pre><h3 id=\"toc-hId-818071738\">Observations</h3><ul><li><p>RTOSProxy correctly resolves all required ThreadX symbols at startup, e.g.:</p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><pre><span>_tx_thread_current_ptr</span><br/><span>_tx_thread_created_ptr</span><br/><span>_tx_thread_system_state</span><br/><span>...</span></pre></div></div></div></div></div></div></div></div></div></div></div></li><li><p>These variables can also be read correctly in the debugger expression window, so memory access and symbols seem to be correct</p></li><li><p><strong>Important:</strong> In the CubeIDE view <strong>“ThreadX Thread List”</strong>, all tasks are displayed correctly</p></li><li><p>This indicates:</p><ul><li><p>The RTOS is running correctly</p></li><li><p>Thread structures are valid</p></li><li><p>The issue is specific to RTOSProxy thread collection</p></li></ul></li></ul><h3 id=\"toc-hId--1734085223\">Additional Debugging</h3><p>To get more insight, I enabled verbose logging for RTOSProxy:</p><ul><li><p>Added the following custom parameter in the launch configuration:</p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><pre><span>--loglevel 15<br/>e.g.<br/>&lt;stringAttribute key=\"com.st.stm32cube.ide.mcu.rtosproxy.rtosProxyCustomProperties\" value=\"--loglevel 15\"/&gt;<br/></span></pre></div></div></div></div></div></div></div></div></div></div></div></li></ul><h3 id=\"toc-hId-8725112\">Additional Context</h3><ul><li><p>All Threads are <strong>created dynamically after the kernel has started</strong></p></li><li><p>The RTOS is running normally</p></li><li><p>The application behaves as expected</p></li></ul><h3 id=\"toc-hId-1751535447\"> </h3></div></div></div></div></div></div></div></div></div></div></div><p> </p></div>",
+                    "author": "bbee",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have finally received the ST-Link. Flashing the application now works without initialization commands , but the threads are still not displayed.<br/>It shows the same behavior as with the ST-Link Debug Probe. Debugging itself works, however when the program is halted, the RTOS proxy console reports the error:<br/><strong>“Update threads. Failed collecting threads.”</strong></p></div>",
+                    "author": "bbee",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

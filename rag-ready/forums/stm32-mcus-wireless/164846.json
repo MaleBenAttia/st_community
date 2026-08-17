@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "164846",
+            "publicId": "164846",
+            "title": "Nucleo-WB55 as BLE sniffer only capture advertise packets",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/nucleo-wb55-as-ble-sniffer-only-capture-advertise-packets-164846",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "BLE",
+                "STM32WB series"
+            ],
+            "published_at": "2026-04-17T02:56:40+00:00",
+            "views": 196,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nI apologize for misunderstanding, let me correct myself. By default, advertising is commonly set to all of these three channels (37, 38, 39) but you should be able to manually limit the channel in your application for the testing. It is not recommended to have limited advertising in production.\n\nSTM32WB55 BLE sniffer should automatically follow the communication which is not encrypted and of which it captures connection request. Your problem then may be that the connection process is performed on channel 37 or 38 while you are listening 39.\n\nYou can either try to be lucky or use more than one sniffer or set the specific channel in your app.\n\nHope this helps\n\nBest Regards\n\ngrohmano",
+            "best_answer_author": "grohmano",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "When I followed the link <https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32_Sniffer_for_BLE_Setup_guide,I> successfully make Neclueo-WB55 be sniffer device while STM32WB sniffer displayed in the wireshark startup page,meanswhile I really capture the BLE advertise packets like this screenshot 1,\n\n![sniffer端口.PNG](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6247f144-3d32-8d0b-daac-b02b1b4ee158.PNG \"sniffer端口.PNG\")\n\nBut come problems,it only capture advertise packet as title said,connection packet like GAP parameters update or CONN\\_REQ all cannot be captured,how I should do to solve this problem like screenshot 2,\n\n![只能抓广播.PNG](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7be782a4-c8ed-55a4-6e7f-d67879046597.PNG \"只能抓广播.PNG\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6247f144-3d32-8d0b-daac-b02b1b4ee158.PNG",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7be782a4-c8ed-55a4-6e7f-d67879046597.PNG"
+            ],
+            "author": "linchenji",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106188\">@linchenji</user-mention>,</p><p>as it is seen in your second screenshot, you were capturing packets from BLE Channel 39. </p><p>The reason why you see only advertising packets is, as it is said in <a href=\"https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core-62/out/en/low-energy-controller/link-layer-specification.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Bluetooth Low Energy specification, Volume 6, Part B,</a> that channels 37, 38 and 39 are used only for advertising and any other communication should be handled in remaining \"general-purpose\" channels.</p><p>So if you want to listen to a specific application, you have to tune your sniffer to according channel.</p><p> </p><p>Hope this helps, if you have any further question, do not hesitate to ask</p><p>Best Regards,</p><p>grohmano</p><p> </p></div>",
+                    "author": "grohmano",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your reply.I very similar with the common sense about 37,38,39 are advertise channels,others are connection channels.Then another question comes,that is how should I do to know connection is established on which channel so I can capture pdu smothly</p></div>",
+                    "author": "linchenji",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I apologize for misunderstanding, let me correct myself. By default, advertising is commonly set to all of these three channels (37, 38, 39) but you should be able to manually limit the channel in your application for the testing. It is not recommended to have limited advertising in production.</p><p>STM32WB55 BLE sniffer should automatically follow the communication which is not encrypted and of which it captures connection request. Your problem then may be that the connection process is performed on channel 37 or 38 while you are listening 39.</p><p>You can either try to be lucky or use more than one sniffer or set the specific channel in your app.</p><p> </p><p>Hope this helps</p><p>Best Regards</p><p>grohmano</p><p> </p></div>",
+                    "author": "grohmano",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "grohmano",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "grohmano",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

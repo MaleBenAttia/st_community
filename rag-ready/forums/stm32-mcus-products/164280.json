@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "164280",
+            "publicId": "164280",
+            "title": "G474 SPI DMA sync occasionally missed?",
+            "url": "https://community.st.com/stm32-mcus-products-25/g474-spi-dma-sync-occasionally-missed-164280",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G4 series"
+            ],
+            "published_at": "2026-03-29T23:52:49+00:00",
+            "views": 193,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Setting\n\n```\n\npSyncConfig.RequestNumber = 17; // Increased from 16.\n\n```\n\nappears to have completely resolved the issue. Any larger number than 17 also appears to work. From this I take it to be the case that the number of DMA requests from the SPI peripheral to shift 16 bytes is sometimes 17, but substantially never greater than that? I have to admit I find it extremely puzzling. But it doesn't seem to do any harm to set this number higher than required so I guess I'll go with it.",
+            "best_answer_author": "JamesAguilar",
+            "best_answer_author_role": "Associate",
+            "content_text": "I have a program where I have TIM2 CH1 set up in output compare mode. Approximately 0.5 ms after the timer is reset, CH1's compare value is reached. This triggers the CH1 DMA, which is a dummy DMA on DMA1 channel 1. The SPI TX DMA is synced to the TIM2\\_CH1 DMA (with a request count of 16, to allow 16 bytes through the SPI), and therefore if it is armed should automatically start at that moment. The purpose of this is to eventually provide an interrupt-free delay for an external SPI slave that requires a 350ns delay between CSn active and SCLK active.\n\nI have this all mostly working, but my problem is that about 5% of the time, the SPI DMA does not complete. I can't figure out what in my code is allowing this to happen. The basic structure is:\n\n* Arm SPI DMAs.\n\n* Reset TIM2 counter.\n\n* Wait until the DMA completes. (This should be triggered by TIM2 reaching the compare value.\n\nHowever, for reasons I cannot understand, about 5-10% of my transfers never appear to start -- I wait for a long period of time after resetting the timer, and even after that, nothing happens. I've tried 1000ms, but the code I'll show below uses 10ms. The results are much the same either way.\n\nResetting the timer again solves the problem. I would assume that this indicates that the timer compare event was missed somehow, but the delay of 500usec should make this impossible, and anyway, the SPI DMAs are armed before the timer is even reset.\n\nAnother funny symtom I've noticed, that I can't explain. I twiddle PA4 in the process of this code to help trigger my oscilloscope. Usually, I can see the SPI clock associated with PA4 going high, and PA4 goes low sometime later (caused by resetting the pin in the TxRxCpltCallback). But sometimes, I see the SPI SCLK ticking without an associated high state of the PA4 GPIO.\n\nHere's the main body of the program:\n\n```\n\n/* USER CODE BEGIN 4 */\n\nosSemaphoreId_t tx_cmplt_event;\n\nvoid HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim) {\n\nif (htim->Instance == TIM2 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {\n\nLL_GPIO_SetOutputPin(GPIOA, GPIO_PIN_4);\n\n}\n\n}\n\nvoid HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {\n\nif (hspi->Instance == SPI1) {\n\nspi_dma_in_flight = 0;\n\nspi_dma_success_count++;\n\nLL_GPIO_ResetOutputPin(GPIOA, GPIO_PIN_4);\n\nosSemaphoreRelease(tx_cmplt_event);\n\n}\n\n}\n\nvoid HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {\n\nif (hspi->Instance == SPI1) {\n\nspi_dma_in_flight = 0;\n\nspi_last_error_code = hspi->ErrorCode;\n\nspi_dma_error_count++;\n\nosSemaphoreRelease(tx_cmplt_event);\n\n}\n\n}\n\nvoid Tim2Ch1DmaComplete(DMA_HandleTypeDef* hdma) {\n\n}\n\n/* USER CODE END 4 */\n\n/* USER CODE BEGIN Header_StartDefaultTask */\n\n/**\n\n* @brief Function implementing the defaultTask thread.\n\n* @PAram argument: Not used\n\n* @retval None\n\n*/\n\n/* USER CODE END Header_StartDefaultTask */\n\nvoid StartDefaultTask(void *argument)\n\n{\n\n/* USER CODE BEGIN 5 */\n\nosSemaphoreAttr_t semaphore_def = {\n\n.name = \"tx_cmplt_event\",\n\n};\n\ntx_cmplt_event = osSemaphoreNew(1, 0, &semaphore_def);\n\nif (HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1) != HAL_OK) {\n\nError_Handler();\n\n}\n\nLL_TIM_OC_SetMode(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_PWM2);\n\nint successful_transfers = 0;\n\nint timeouts = 0;\n\nfor (;;) {\n\nstatic uint8_t spi_data[16];\n\nstatic uint8_t spi_rx_data[16];\n\nspi_data[0] = 0x55;\n\nspi_rx_data[0] = 0xF0;\n\nif (HAL_SPI_GetState(&hspi1) == HAL_SPI_STATE_READY ) {\n\nHAL_StatusTypeDef status = HAL_SPI_TransmitReceive_DMA(&hspi1, spi_data, spi_rx_data, sizeof(spi_data));\n\nif (status != HAL_OK) {\n\nspi_dma_error_count++;\n\n}\n\n}\n\nosDelay(1);\n\nLL_TIM_SetCounter(TIM2, 0);\n\nLL_GPIO_ResetOutputPin(GPIOA, GPIO_PIN_4);\n\n// Set up the SPI to send 0x55 over DMA.\n\nif (osSemaphoreAcquire(tx_cmplt_event, 10) == osErrorTimeout) {\n\n// If we time out waiting for the SPI transfer to complete, that's a problem.\n\ntimeouts += 1;\n\n} else {\n\nsuccessful_transfers += 1;\n\n}\n\n}\n\n/* USER CODE END 5 */\n\n}\n\n```\n\nThe entire project can be cloned from [here](https://github.com/jaguilar/blink-test). Particularly you might be interested in lookign at the whole [main.c](https://github.com/jaguilar/blink-test/blob/main/Core/Src/main.c) or [stm32g4xx\\_hal\\_msp.c.](https://github.com/jaguilar/blink-test/blob/main/Core/Src/stm32g4xx_hal_msp.c)Let me know if you spot what's wrong or have ideas where I can look.",
+            "images": [],
+            "author": "JamesAguilar",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Setting</p><pre class=\"lia-code-sample language-c\"><code> pSyncConfig.RequestNumber = 17; // Increased from 16.</code></pre><p>appears to have completely resolved the issue. Any larger number than 17 also appears to work. From this I take it to be the case that the number of DMA requests from the SPI peripheral to shift 16 bytes is sometimes 17, but substantially never greater than that? I have to admit I find it extremely puzzling. But it doesn't seem to do any harm to set this number higher than required so I guess I'll go with it.</p></div>",
+                    "author": "JamesAguilar",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

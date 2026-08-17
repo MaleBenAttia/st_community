@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "164412",
+            "publicId": "164412",
+            "title": "S2-LP PERS_RX - what does it do?",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/s2-lp-pers-rx-what-does-it-do-164412",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "Low power RF solutions"
+            ],
+            "published_at": "2026-04-02T09:16:27+00:00",
+            "views": 266,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Your interpretation and measurements are both correct – PERS\\_RX does not override the RX timeout:\n\nA finite RX timeout (your TIMERS5/TIMERS4 = 0x10 / 0x80) will always stop RX when it expires, regardless of PERS\\_RX. When the timer elapses with no valid packet, the S2‑LP asserts the RX timeout interrupt, discards the data and goes back to READY. This is exactly what you observed and it is expected behaviour.\n\nPERS\\_RX only affects what happens after a packet event:\n\n* with PERS\\_RX = 0, after a successful receive the state machine may move to another state (READY, SLEEP, TX for ACK, etc.), depending on the protocol configuration (especially in STack mode)\n\n* with PERS\\_RX = 1, after a successful receive the device will remain in RX / return to RX, instead of staying in that other state -  as long as nothing else (timeout or explicit command) forces it out of RX.\n\nSo your *persistent RX* with TIMERS5/TIMERS4 = 0x01/0x00 comes simply from the infinite RX timeout; RX is never stopped by the timer, and it stays active until a packet or a command terminates it. PERS\\_RX does not extend RX beyond a finite timeout; it only prevents the protocol state machine from leaving RX after a packet event in situations where it would normally move to another state (e.g. READY or TX‑ACK), especially in STack protocol mode.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "The function of the PERS\\_RX flag in PROTOCOL 0 is described as: '1: enable the persistent RX mode.' What does that actually mean/do? I couldn't see any explanations in the rev. 13 data sheet for the S2-LP.",
+            "images": [],
+            "author": "kzkaram",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>To save energy, S2-LP typically returns to READY, SLEEP, or another configured state after a packet event. PERS_RX = 1 forces the S2-LP to remain in RX continuously after a packet event, which of course results in significantly higher power consumption. It is intended for the rare case of continuous listening / sniffer-style operation where the receiver must remain on permanently.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the quick response. That's what I initially assumed it might be, however it didn't appear to work that way. In my test set up I set this flag to 1 (register 3B = 0x0A). I had TIMERS5 and TIMERS4 set to 0x10, 0x80 respectively (meaning a finite Rx Timeout). Then I put the S2-LP into Rx mode by sending command 0x61. I check the MC_STATE0 register a few seconds after that and I find it to be indicating in READY state (0x00 top 7 bits). The interrupt flags suggest the Rx timeout did occur and that Rx data was discarded (not that there was any active transmission from some other device during that time). In other words the fact that PERS_RX = 1, did not cause the device to remain in Rx mode beyond the Rx timer. On the other hand I do know that I am able to get persistent Rx by setting the TIMERS5 and TIMERS4 to 0x01, 0x00 respectively (which, according to the documentation, means infinite Rx timeout). In that situation Rx state does remain persistent until something else terminates this - such as the successful reception of a packet (as  I have verified by sending a valid packet from another device)</p><p>So still not clear on the function of PERS_RX, or maybe I'm not interpreting context of its functionality correctly? My tests were conducted whilst using the STack protocol.</p></div>",
+                    "author": "kzkaram",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your interpretation and measurements are both correct – PERS_RX does not override the RX timeout:</p>\n<p>A finite RX timeout (your TIMERS5/TIMERS4 = 0x10 / 0x80) will always stop RX when it expires, regardless of PERS_RX. When the timer elapses with no valid packet, the S2‑LP asserts the RX timeout interrupt, discards the data and goes back to READY. This is exactly what you observed and it is expected behaviour.</p>\n<p>PERS_RX only affects what happens after a packet event:</p>\n<ul>\n<li>with PERS_RX = 0, after a successful receive the state machine may move to another state (READY, SLEEP, TX for ACK, etc.), depending on the protocol configuration (especially in STack mode)</li>\n<li>with PERS_RX = 1, after a successful receive the device will remain in RX / return to RX, instead of staying in that other state -  as long as nothing else (timeout or explicit command) forces it out of RX.</li>\n</ul>\n<p>So your <em>persistent RX</em> with TIMERS5/TIMERS4 = 0x01/0x00 comes simply from the infinite RX timeout; RX is never stopped by the timer, and it stays active until a packet or a command terminates it. PERS_RX does not extend RX beyond a finite timeout; it only prevents the protocol state machine from leaving RX after a packet event in situations where it would normally move to another state (e.g. READY or TX‑ACK), especially in STack protocol mode.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for that explanation. I now understand the detail and have been able to verify this. In my case, where I require the receiver to be constantly on, I have typically set the Rx timeout to be infinite and then look for the IRQ status to know when to restart Rx mode (using the RX command) after a packet has been received. Whereas with PERS_RX=1 I now see that the S2-LP stays in Rx mode without intervention after receiving a packet.</p><p>A detail no doubt useful to be added to the next revision of the datasheet  :)</p></div>",
+                    "author": "kzkaram",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

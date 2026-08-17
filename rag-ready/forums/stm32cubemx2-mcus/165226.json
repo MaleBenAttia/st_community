@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "165226",
+            "publicId": "165226",
+            "title": "Can Not Launch STM32CubeMX2 in Debian with wayland",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/can-not-launch-stm32cubemx2-in-debian-with-wayland-165226",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeMX2"
+            ],
+            "published_at": "2026-04-29T10:09:51+00:00",
+            "views": 337,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi @AHah ,\n\nAfter discussion with the dev team, the issue appears to be related to Electron running on Wayland.\n\nAs a workaround, please set the following environment variable before launching the app:\n\n```\n\nELECTRON_OZONE_PLATFORM_HINT=x11\n\n```\n\nThis forces Electron to use XWayland instead of native Wayland.\n\nAs an alternative fallback, you can also try launching with:\n\n```\n\n--disable-gpu\n\n```\n\nPlease note that this workaround may no longer be needed in future versions, as Electron introduced a fix in versions **>= 38.0**.\n\nSTM32CubeMX2 currently runs on **Electron 37.2.1**, which is why this limitation applies today. We will keep you posted once the fix is available.\n\nPlease let me know if the issue persists or if you need further assistance.\n\nRegards,\n\nSara",
+            "best_answer_author": "Sara BEN HADJ YAHYA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "In Debian unstable (forky/sid), I tried to launch STM32CubeMX2 by launcher or command \"cube mx start\", but noting happened, thought there were process with command \"~/.local/share/STMicroelectronics/STM32CubeMX2/resources/stm32cubemx-application/1.0.0/dist/stm32cubemx2 ~/.local/share/STMicroelectronics/STM32CubeMX2/resources/stm32cubemx-application/1.0.0/dist/resources/app/lib/backend/main.js --no-sandbox --allow-multiple-windows --backendTimeout=30000\" and process with command \"~/.local/share/STMicroelectronics/STM32CubeMX2/resources/stm32cubemx-application/1.0.0/dist/stm32cubemx2 --type=zygote --no-zygote-sandbox --no-sandbox\".",
+            "images": [],
+            "author": "AHah",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have you tried to run the application from a commandline, and check for error outputs ?</p><p>You can try to run the <font face=\"courier new,courier\">ldd</font> command on the CubeMX2 application, to check for missing libraries and dependencies.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106559\">@AHah</user-mention>  and welcome to ST Community,</p>\n<p>Thank you for reporting this issue and for sharing the process details.</p>\n<p>Could you please try launching<span> </span><strong>STM32CubeMX2</strong><span> </span>from the command line in<span> </span><strong>debug</strong><span> </span>mode with the following command:</p>\n<div class=\"markdown-block\">\n<div class=\"markdown-toolbar-wrapper\" data-v-app=\"\" id=\"toolbar_0_96235320601\">\n<div class=\"markdown-toolbar\" data-v-c2f29b64=\"\">\n<div class=\"base ux-text-field-label ux-text-semibold\" data-testid=\"uxtext_content\" data-v-67c59c52=\"\" data-v-c2f29b64=\"\">\n<div class=\"flex ux-text-style\" data-v-67c59c52=\"\"> </div>\n</div>\n</div>\n</div>\n<div class=\"markdown-code-container\">\n<pre><code class=\"hljs language-bash\">cube mx start --log-level debug\n</code></pre>\n</div>\n</div>\n<p>After that, please share the relevant log files with us so we can investigate further. You can find them under:</p>\n<div class=\"markdown-block\">\n<div class=\"markdown-toolbar-wrapper\" data-v-app=\"\" id=\"toolbar_1_89099379480\">\n<div class=\"markdown-toolbar\" data-v-c2f29b64=\"\">\n<div class=\"base ux-text-field-label ux-text-semibold\" data-testid=\"uxtext_content\" data-v-67c59c52=\"\" data-v-c2f29b64=\"\">\n<div class=\"flex ux-text-style\" data-v-67c59c52=\"\"> </div>\n</div>\n</div>\n</div>\n<div class=\"markdown-code-container\">\n<pre><code class=\"hljs language-bash\">/home/&lt;USER&gt;/.local/share/stm32cube/logs\n</code></pre>\n</div>\n</div>\n<p>Best regards,<br/>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>..</p></div>",
+                    "author": "AHah",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for sharing the logs <user-mention data-id=\"106559\">@AHah</user-mention>,</p>\n<p>I'm currently working on this issue, I'll get back to you asap.</p>\n<p><i>Internal ticket number: </i><strong>CDM0062331 </strong><i>(<u>This is an internal tracking number and is not accessible or usable by customers</u>).</i></p>\n<p>Regards,</p>\n<p>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106559\">@AHah</user-mention> ,</p>\n<p>After discussion with the dev team, the issue appears to be related to Electron running on Wayland.</p>\n<p>As a workaround, please set the following environment variable before launching the app:</p>\n<div class=\"markdown-block\">\n<div class=\"markdown-toolbar-wrapper\" data-v-app=\"\" id=\"toolbar_0_61506999380\">\n<div class=\"markdown-toolbar\" data-v-c2f29b64=\"\">\n<div class=\"base ux-text-field-label ux-text-semibold\" data-testid=\"uxtext_content\" data-v-67c59c52=\"\" data-v-c2f29b64=\"\"> </div>\n</div>\n</div>\n<div class=\"markdown-code-container\">\n<pre><code class=\"hljs language-bash\">ELECTRON_OZONE_PLATFORM_HINT=x11\n</code></pre>\n</div>\n</div>\n<p>This forces Electron to use XWayland instead of native Wayland.</p>\n<p>As an alternative fallback, you can also try launching with:</p>\n<div class=\"markdown-block\">\n<div class=\"markdown-code-container\">\n<pre><code class=\"hljs language-bash\">--disable-gpu\n</code></pre>\n</div>\n</div>\n<p>Please note that this workaround may no longer be needed in future versions, as Electron introduced a fix in versions<span> </span><strong>&gt;= 38.0</strong>.</p>\n<p>STM32CubeMX2 currently runs on<span> </span><strong>Electron 37.2.1</strong>, which is why this limitation applies today. We will keep you posted once the fix is available.</p>\n<p>Please let me know if the issue persists or if you need further assistance.</p>\n<p>Regards,<br/>Sara</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

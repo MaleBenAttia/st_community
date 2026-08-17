@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "165506",
+            "publicId": "165506",
+            "title": "USB OTG HS Host: PENA cleared spuriously at HFNUM=16383 with ULPI PHY (USB3300)",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-otg-hs-host-pena-cleared-spuriously-at-hfnum-16383-with-ulpi-phy-usb3300-165506",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "USB"
+            ],
+            "published_at": "2026-05-08T08:37:25+00:00",
+            "views": 198,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @hi\\_cc\n\nThank you for the details.\n\nFirst, I would suggest to change the USB clock source,\n\n```\n\nPeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;\n\n```\n\nOperating in USB host mode imposes a strict clock accuracy requirement of ±0.05%. The internal HSI48 oscillator, even when using the Clock Recovery System (CRS), cannot meet this requirement because its minimum trimming step is 0.11% or 0.18%, which is not precise enough. Therefore, only an external clock source such as HSE can provide the necessary accuracy for USB host mode. HSI48 with CRS is only suitable for USB device mode, where the accuracy requirement is relaxed to 0.25%.\n\nSecond, FRNUM = **0x3FFF**indicates the controller is at the last frame before rollover, so that value **16383** is expected and does not itself explain the port disable event.\n\nThe likely problem is not the frame counter register, but a side effect triggered at frame rollover or a timing sensitive interaction during integration.\n\nAlso, the published ZLP [erratum](https://www.st.com/resource/en/errata_sheet/es0392-stm32h742xig-stm32h743xig-stm32h750xb-stm32h753xi-device-errata-stmicroelectronics.pdf) does not appear to match this symptom, since it concerns packet generation behavior rather than PENA being cleared in host mode.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Environment:\n\n- MCU: STM32H743IITx\n\n- USB PHY: USB3300 (ULPI, external HS PHY)\n\n- HAL version: STM32CubeH7 v1.11.6\n\n- Mode: USB Host, HS, ISOC transfer (UVC camera)\n\n- HFIR: 7500 (manually set for 60MHz PHY clock)\n\nProblem:\n\n**HPRT.PENA is cleared by hardware at exactly HFNUM=16383 (14-bit frame**\n\n**counter maximum, about to roll over to 0). HPRT value at the moment of**\n\n**HAL\\_HCD\\_PortDisabled\\_Callback: 0x00001409.**\n\nKey observations:\n\n1. PCSTS=1 at the time of the event — device is still physically connected\n\n2. This happens 100% reproducibly at frame 16383, never at any other frame\n\n3. Without SDRAM (FMC) and LTDC active, the issue does not occur for 1.5+ hours\n\n4. With SDRAM only: occurs after ~7 minutes\n\n5. With SDRAM + LTDC (framebuffer in SDRAM): occurs within seconds\n\n6. Temporarily shorting USB3300 VCC to GND with a probe (adding bypass\n\ncapacitance) eliminated the issue for 50+ minutes — suggesting power\n\nsupply noise is a contributing factor, but the frame=16383 correlation\n\nis too precise to be purely noise-driven\n\nQuestion:\n\nIs there a known hardware behavior or errata in STM32H743 USB OTG HS\n\nwhere the 14-bit HFNUM counter rollover (16383→0) can trigger a spurious\n\nPENCHNG interrupt and clear PENA, even when the USB device remains\n\nphysically connected?",
+            "images": [],
+            "author": "hi_cc",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106781\">@hi_cc</user-mention> </p>\n<p>Would you attach minimum firmware to reproduce the issue?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your response. I have attached the minimum firmware to reproduce the issue, along with a detailed description of the observed behavior in issue_report.md.<br/>Please let me know if you need any additional information.</p></div>",
+                    "author": "hi_cc",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106781\">@hi_cc</user-mention> </p>\n<p>Thank you for the details.</p>\n<p>First, I would suggest to change the USB clock source, </p>\n<pre class=\"lia-code-sample language-c\"><code>PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;</code></pre>\n<p><span>Operating in USB host mode imposes a strict clock accuracy requirement of ±0.05%. The internal HSI48 oscillator, even when using the Clock Recovery System (CRS), cannot meet this requirement because its minimum trimming step is 0.11% or 0.18%, which is not precise enough. Therefore, only an external clock source such as HSE can provide the necessary accuracy for USB host mode. HSI48 with CRS is only suitable for USB device mode, where the accuracy requirement is relaxed to 0.25%.</span></p>\n<p> </p>\n<p>Second, FRNUM = <strong>0x3FFF </strong>indic<span>ates the controller is at the last frame before rollover, so that value <strong>16383</strong> is expected and does not itself explain the port disable event.</span></p>\n<p>The likely problem is not the frame counter register, but a side effect triggered at frame rollover or a timing sensitive interaction during integration.</p>\n<p>Also, the published ZLP <a href=\"https://www.st.com/resource/en/errata_sheet/es0392-stm32h742xig-stm32h743xig-stm32h750xb-stm32h753xi-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">erratum</a> does not appear to match this symptom, since it concerns packet generation behavior rather than PENA being cleared in host mode. </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

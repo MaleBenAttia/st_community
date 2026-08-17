@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "163845",
+            "publicId": "163845",
+            "title": "Timer cascading not working as expected",
+            "url": "https://community.st.com/stm32-mcus-products-25/timer-cascading-not-working-as-expected-163845",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L0 series",
+                "TIM"
+            ],
+            "published_at": "2026-03-16T14:30:21+00:00",
+            "views": 201,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Read out and check/post content of the TIM registers.\n\nI don't use Cube/HAL, but this\n\nhtim22.Init.Period = 0;\n\n[may be wrong](http://www.efton.sk/STM32/gotcha/g8.html).\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "I'm working on a design with an STM32L072CZT6TR, where I want to calibrate my main timebase.\n\nThat main timebase is TIM6, which counts 16,000. The HSE is 16MHz, so there's an interrupt evey 1ms.\n\nCalibration is done by counting the number of HSE cycles between two consecutive PPS pulses from a GPS receiver. The PPS triggers an EXTI interrupt, which starts TIM21 and TIM22 at 0 on the first pulse, and reads the timer values on the second.\n\nTIM21 is set to count 16,000 pulses and TIM22 is slaved to TIM21. This way, I can conveniently determine whether the HSE is slow (TIM22 == 999) or fast (TIM22 == 1000), and calculate a correction based on TIM21.\n\nThis logic is copied straight from an older design with an STM8, where it works like a charm.\n\nHowever, the cascading does not work. No matter what, TIM22 is always 0 on the second PPS. I have used CubeMX to set the timers up, and, going over the code with [the reference manual](https://www.st.com/resource/en/reference_manual/rm0376-ultralowpower-stm32l0x2-advanced-armbased-32bit-mcus-stmicroelectronics.pdf) as my guide, I can see no errors. Being a hardware engineer by nature, I'm sometimes a bit stoopid when it comes to code, so if anyone sees any problem or has some valid comment to make, I would be much obliged.\n\nHere's the timer init:\n\n```\n\n/* TIM21 init function */\n\nvoid MX_TIM21_Init(void)\n\n{\n\n/* USER CODE BEGIN TIM21_Init 0 */\n\n/* USER CODE END TIM21_Init 0 */\n\nTIM_ClockConfigTypeDef sClockSourceConfig = {0};\n\nTIM_MasterConfigTypeDef sMasterConfig = {0};\n\n/* USER CODE BEGIN TIM21_Init 1 */\n\n/* USER CODE END TIM21_Init 1 */\n\nhtim21.Instance = TIM21;\n\nhtim21.Init.Prescaler = 0;\n\nhtim21.Init.CounterMode = TIM_COUNTERMODE_UP;\n\nhtim21.Init.Period = 16000-1;\n\nhtim21.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;\n\nhtim21.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;\n\nif (HAL_TIM_Base_Init(&htim21) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nsClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;\n\nif (HAL_TIM_ConfigClockSource(&htim21, &sClockSourceConfig) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nsMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;\n\nsMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;\n\nif (HAL_TIMEx_MasterConfigSynchronization(&htim21, &sMasterConfig) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN TIM21_Init 2 */\n\n__HAL_TIM_ENABLE(&htim21);\n\n/* USER CODE END TIM21_Init 2 */\n\n}\n\n/* TIM22 init function */\n\nvoid MX_TIM22_Init(void)\n\n{\n\n/* USER CODE BEGIN TIM22_Init 0 */\n\n/* USER CODE END TIM22_Init 0 */\n\nTIM_SlaveConfigTypeDef sSlaveConfig = {0};\n\nTIM_MasterConfigTypeDef sMasterConfig = {0};\n\n/* USER CODE BEGIN TIM22_Init 1 */\n\n/* USER CODE END TIM22_Init 1 */\n\nhtim22.Instance = TIM22;\n\nhtim22.Init.Prescaler = 0;\n\nhtim22.Init.CounterMode = TIM_COUNTERMODE_UP;\n\nhtim22.Init.Period = 0;\n\nhtim22.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;\n\nhtim22.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;\n\nif (HAL_TIM_Base_Init(&htim22) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nsSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;\n\nsSlaveConfig.InputTrigger = TIM_TS_ITR0;\n\nif (HAL_TIM_SlaveConfigSynchro(&htim22, &sSlaveConfig) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nsMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;\n\nsMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;\n\nif (HAL_TIMEx_MasterConfigSynchronization(&htim22, &sMasterConfig) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN TIM22_Init 2 */\n\n__HAL_TIM_ENABLE(&htim22);\n\nHAL_TIM_Base_Start(&htim22);\n\n/* USER CODE END TIM22_Init 2 */\n\n}\n\n```\n\nAnd this is the relevant portion of the PPS interrupt:\n\n```\n\nif (EVENTCALCLK) {\n\nTIM21_Val = TIM21->CNT;\t\t// Get the timer values\n\nTIM22_Val = TIM22->CNT;\n\nif (tst == false) {\t\t\t// If this is the first PPS\n\ntst = true;\n\nGPIO_Set(LED_ind_port, LED_ind);\n\nHAL_TIM_Base_Start(&htim21);\t\t// Start both timers at 0\n\nTIM21->CNT = 0;\n\nHAL_TIM_Base_Start(&htim22);\n\nLL_TIM_SetCounter(TIM22,0);\n\n}\n\nelse {\t\t\t\t\t\t// On the second PPS\n\ntst = false;\n\nEVENTCALCLK = false;\n\nGPIO_Set(LED_ind_port, LED_ind);\n\nif (TIM22_Val == 999) {\t\t\t\t// Does the clock run slow?\n\ntimer_correction = -((SystemCoreClock/1000) - 1 - TIM21_Val - 130); // we need fewer ticks\n\nHAL_TIM_Base_Stop(&htim21);\n\n}\n\nelse if ((TIM22_Val == 1000) || (TIM22_Val == 0)) { \t// Otherwise, the clock is fast\n\ntimer_correction = TIM21_Val + 130;\t\t\t\t// and we need some more ticks\n\nif (timer_correction >= (SystemCoreClock/1000))\n\ntimer_correction -= (SystemCoreClock/1000) - 1;\n\nHAL_TIM_Base_Stop(&htim21);\n\n}\n\n```",
+            "images": [],
+            "author": "RobK1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Read out and check/post content of the TIM registers.</p><p>I don't use Cube/HAL, but this</p><p>       htim22.Init.Period = 0;</p><p><a href=\"http://www.efton.sk/STM32/gotcha/g8.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">may be wrong</a>.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You were not wrong Jan. Thanks!</p><p>That's another beer I owe you, I think.</p></div>",
+                    "author": "RobK1",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

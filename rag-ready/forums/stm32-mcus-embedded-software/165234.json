@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "165234",
+            "publicId": "165234",
+            "title": "X-CUBE-EEPROM doesn't update variable",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/x-cube-eeprom-doesn-t-update-variable-165234",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Flash",
+                "FreeRTOS",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-04-29T12:20:23+00:00",
+            "views": 167,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nOn AN4894  <https://www.st.com/resource/en/application_note/an4894-how-to-use-eeprom-emulation-on-stm32-mcus-stmicroelectronics.pdf> the data update flow is described  in Figure 5.\n\nIf you update a variable, the first value of this variable is still written in flash as long as the first page is not full.\n\nBR\n\nChloé",
+            "best_answer_author": "Chloe Meunier",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am using X-CUBE-EEPROM as a mean to store variable in internal FLASH memory on STM32U5G9-DK2 board. Here is my function where a variable in flash:\n\n```\n\nstatic FLASH_STATUS flash_slot_write_shared_key(const FLASH_INDEX *index, uint8_t slot, uint8_t *shared_key) {\n\nif (slot > FLASH_SLOTS_NUMBER)\n\nreturn FLASH_WRONG_PARAM;\n\nif (shared_key == NULL)\n\nreturn FLASH_NULL_PARAM;\n\nEE_Status ee_status = EE_WRITE_ERROR;\n\nHAL_FLASH_Unlock();\n\ntaskENTER_CRITICAL();\n\nee_status = EE_WriteVariable96bits((uint16_t)index->entries[slot].addr, (uint64_t *)(shared_key));\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\nee_status = EE_WriteVariable96bits((uint16_t)index->entries[slot].addr + 1, (uint64_t *)(shared_key + 12));\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\nee_status = EE_WriteVariable32bits((uint16_t)index->entries[slot].addr + 2, *(uint32_t *)(shared_key + 24));\n\nif (ee_status != EE_OK)\n\nreturn FLASH__ERROR;\n\nee_status = EE_WriteVariable32bits((uint16_t)index->entries[slot].addr + 3, *(uint32_t *)(shared_key + 28));\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\ntaskEXIT_CRITICAL();\n\nHAL_FLASH_Lock();\n\nreturn FLASH_OK;\n\n}\n\n```\n\nHere is the function to read back the variable:\n\n```\n\nstatic FLASH_STATUS flash_slot_get_shared_key(const FLASH_INDEX *index, uint8_t slot, uint8_t *shared_key) {\n\nif (index == NULL || shared_key == NULL)\n\nreturn FLASH_NULL_PARAM;\n\nif (slot > FLASH_SLOTS_NUMBER)\n\nreturn FLASH_WRONG_PARAM;\n\nEE_Status ee_status = EE_WRITE_ERROR;\n\nuint8_t tmp[32] = {0};\n\nmemset(tmp, 0, 32);\n\nHAL_FLASH_Unlock();\n\nHAL_ICACHE_Invalidate(); // TODO: Configure MPU\n\nee_status = EE_ReadVariable96bits((uint16_t)index->entries[slot].addr, (uint64_t *)tmp);\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\nee_status = EE_ReadVariable96bits((uint16_t)index->entries[slot].addr + 1, (uint64_t *)(tmp + 12));\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\nee_status = EE_ReadVariable32bits((uint16_t)index->entries[slot].addr + 2, (uint32_t *)(tmp + 24));\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\nee_status = EE_ReadVariable32bits((uint16_t)index->entries[slot].addr + 3, (uint32_t *)(tmp + 28));\n\nif (ee_status != EE_OK)\n\nreturn FLASH_ERROR;\n\nHAL_FLASH_Lock();\n\nmemcpy(shared_key, tmp, 32);\n\nreturn FLASH_OK;\n\n}\n\n```\n\nOnce I write a key to the defined slot, if I try to update it, I still get the first written value in memory. How I am supposed to update the variable. Am I misusing the API ?",
+            "images": [],
+            "author": "cfl",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p> </p>\n<p>On AN4894  <a href=\"https://www.st.com/resource/en/application_note/an4894-how-to-use-eeprom-emulation-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/application_note/an4894-how-to-use-eeprom-emulation-on-stm32-mcus-stmicroelectronics.pdf</a> the data update flow is described  in Figure 5.</p>\n<p>If you update a variable, the first value of this variable is still written in flash as long as the first page is not full.</p>\n<p> </p>\n<p>BR</p>\n<p>Chloé</p></div>",
+                    "author": "Chloe Meunier",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Chloe Meunier",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

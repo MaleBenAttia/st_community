@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "163654",
+            "publicId": "163654",
+            "title": "Timer1 Interrupt is not generated",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/timer1-interrupt-is-not-generated-163654",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Interrupt",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-10T13:37:33+00:00",
+            "views": 360,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "As @waclawek.jan suggests, the update interrupt is enabled with HAL\\_TIM\\_Base\\_Start\\_IT. Use that before the call to HAL\\_TIM\\_PWM\\_Start\\_IT.\n\n[stm32f4xx-hal-driver/Src/stm32f4xx\\_hal\\_tim.c at 3a6ec1330ec2ff9cdc414f643e3d09cdf50c415e · STMicroelectronics/stm32f4xx-hal-driver](https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/3a6ec1330ec2ff9cdc414f643e3d09cdf50c415e/Src/stm32f4xx_hal_tim.c#L476C3-L476C43)",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "I am using Nucleo-F446RE board and trying to verify the TIM1 update interrupt and PWM, the PWM is generated but if i put a break point in the update interrupt it does not halt, what is the reason?\n\n```\n\nint main(void)\n\n{\n\n/* USER CODE BEGIN 1 */\n\n/* USER CODE END 1 */\n\n/* MCU Configuration--------------------------------------------------------*/\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n\nHAL_Init();\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* Configure the system clock */\n\nSystemClock_Config();\n\n/* USER CODE BEGIN SysInit */\n\n/* USER CODE END SysInit */\n\n/* Initialize all configured peripherals */\n\nMX_GPIO_Init();\n\nMX_USART2_UART_Init();\n\nMX_TIM1_Init();\n\n/* USER CODE BEGIN 2 */\n\nHAL_TIM_PWM_Start_IT(&htim1,TIM_CHANNEL_1);\n\n/* USER CODE END 2 */\n\n/* Infinite loop */\n\n/* USER CODE BEGIN WHILE */\n\nwhile (1)\n\n{\n\n/* USER CODE END WHILE */\n\n/* USER CODE BEGIN 3 */\n\n}\n\n/* USER CODE END 3 */\n\n}\n\n```\n\ni have put a break point in the below function\n\n```\n\n/**\n\n* @brief This function handles TIM1 update interrupt and TIM10 global interrupt.\n\n*/\n\nvoid TIM1_UP_TIM10_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN TIM1_UP_TIM10_IRQn 0 */\n\n/* USER CODE END TIM1_UP_TIM10_IRQn 0 */\n\nHAL_TIM_IRQHandler(&htim1);\n\n/* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */\n\n/* USER CODE END TIM1_UP_TIM10_IRQn 1 */\n\n}\n\n```\n\nI am adding my cubemx project.",
+            "images": [],
+            "author": "STuser2",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Do you have <font face=\"courier new,courier\">HAL_NVIC_SetPriority()</font> and <font face=\"courier new,courier\">HAL_NVIC_EnableIRQ()</font> for the timer interrupt?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for reply, how do i check it? If i verify the hal_msp.c file as below it is available. </p><pre class=\"lia-code-sample language-c\"><code>void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)\n{\n if(htim_pwm-&gt;Instance==TIM1)\n {\n /* USER CODE BEGIN TIM1_MspInit 0 */\n\n /* USER CODE END TIM1_MspInit 0 */\n /* Peripheral clock enable */\n __HAL_RCC_TIM1_CLK_ENABLE();\n /* TIM1 interrupt Init */\n HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 0, 0);\n HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);\n /* USER CODE BEGIN TIM1_MspInit 1 */\n\n /* USER CODE END TIM1_MspInit 1 */\n\n }\n\n}</code></pre><p> </p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't use Cube/HAL, but HAL_TIM_PWM_Start_IT() sounds that it woulduse the CC-interrupt, rather than Update-interrupt, if any. For TIM1, those are separate vectors, TIM1_CC for the CC interrupts and TIM1_UP_TIM10 for the Update.</p><p>If not this, a generic <em>interrupt does not fire</em> checklist <a href=\"http://www.efton.sk/STM32/gotcha/g16.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">here</a>.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As <user-mention data-id=\"17162\">@waclawek.jan</user-mention> suggests, the update interrupt is enabled with HAL_TIM_Base_Start_IT. Use that before the call to HAL_TIM_PWM_Start_IT.</p><p><a href=\"https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/3a6ec1330ec2ff9cdc414f643e3d09cdf50c415e/Src/stm32f4xx_hal_tim.c#L476C3-L476C43\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32f4xx-hal-driver/Src/stm32f4xx_hal_tim.c at 3a6ec1330ec2ff9cdc414f643e3d09cdf50c415e · STMicroelectronics/stm32f4xx-hal-driver</a></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes it did the trick, but the videos i have gone through online it was never mentioned. Thank you for the solution.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

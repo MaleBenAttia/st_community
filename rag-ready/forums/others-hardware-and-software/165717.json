@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "165717",
+            "publicId": "165717",
+            "title": "STM8S TIM4 vs TIM2",
+            "url": "https://community.st.com/others-hardware-and-software-57/stm8s-tim4-vs-tim2-165717",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STM8 MCUs"
+            ],
+            "published_at": "2026-05-15T08:25:10+00:00",
+            "views": 147,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Yes, you missed one bit:\n\n* the prescaler of TIM2 (TIM2\\_PSCR, RM0016, 18.6.15, p. 244) can be set with PSC[3:0]\n\n* the prescaler of TIM4 (TIM4\\_PSCR, RM0016, 19.6.8, p. 259) can only be set with PSC[2:0]\n\nAs a result, for TIM4 with PSCR = (0b1010 AND 0b0111), this gives a prescaler of 4 instead of 1024, i.e. 256Hz instead of the required 1Hz.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello, I'm curious why TIM2 is correctly repeating in my code, whereas TIM4 with equivalent settings is not.\n\nIn this code, the TIM2 indicator (fired by the TIM2 interrupt) is blinking twice a second (clock set to LSI, meaning 128kHz). I would expect the TIM4 indicator (fired by the TIM4 interrupt) to do the same; but it is being triggered immediately and much faster: so fast that to the eye it appears as a constant on.\n\nThe reference manual RM0016 and datasheet DS7147 indicate that, given similar settings, both timers should be exhibiting similar behavior. What am I missing?\n\nHere's the code:\n\n```\n\n; some typical setup hidden before this point\n\n; PD3 is on, indicating LSI is clock source\n\nld a, CLK_SWR\n\ncp a, #0xd2\n\njrne 1$\n\nbset PD_ODR, #3\n\n; timer setup\n\nsim\n\n; F_Master Prescalar tim clk\n\n; 128_000 Hz / 1024 = 125\n\nmov TIM2_PSCR, #0b1010 ; 2 ** 0b1010 = 1024 prescaler\n\nmov TIM2_ARRH, #0d0\n\nmov TIM2_ARRL, #0d125\n\nbset TIM2_IER, #0 ; UIE: Update interrupt enable\n\nbset TIM2_CR1, #0 ; CEN: Counter enable\n\n; same as TIM2\n\nmov TIM4_PSCR, #0b1010\n\nmov TIM4_ARR, #0d125\n\nbset TIM4_IER, #0 ; UIE: Update interrupt enable\n\nbset TIM4_CR1, #0 ; CEN: Counter enable\n\nrim\n\n; loop\n\n1$:\n\nwfi\n\njp 1$\n\ntim2_up_isr:\n\nbres TIM2_SR1, #0 ; UIF: Update interrupt flag\n\n; blinks twice per second\n\nbcpl PC_ODR, #6\n\niret\n\ntim4_up_isr:\n\nbres TIM4_SR, #0 ; UIF: Update interrupt flag\n\n; blinks continuously\n\nbcpl PC_ODR, #7\n\niret\n\n```",
+            "images": [],
+            "author": "whitehorsesoft",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>TIM2 is a 16-bit timer, whereas TIM4 is only an 8-bit timer. Please take another look at your programme in light of this premise.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; TIM2 is a 16-bit timer, whereas TIM4 is only an 8-bit timer.<br/><br/>Thank you for replying. I can understand when this would matter if I'm attempting to use values that wouldn't fit into an 8 bit timer. But in this case the ARR value for both timers is clearly able to fit into both 8 bits and 16 bits. Perhaps I'm overlooking something?</p></div>",
+                    "author": "whitehorsesoft",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, you missed one bit:</p>\n<ul>\n<li>the prescaler of TIM2 (TIM2_PSCR, RM0016, 18.6.15, p. 244) can be set with PSC[3:0]</li>\n<li>the prescaler of TIM4 (TIM4_PSCR, RM0016, 19.6.8, p. 259) can only be set with PSC[2:0]</li>\n</ul>\n<p>As a result, for TIM4 with PSCR = (0b1010 AND 0b0111), this gives a prescaler of 4 instead of 1024, i.e. 256Hz instead of the required 1Hz.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

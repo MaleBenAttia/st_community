@@ -1,0 +1,130 @@
+{
+    "forum": [
+        {
+            "id": "165240",
+            "publicId": "165240",
+            "title": "Can FreeRTOS software timer generate PWM?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/can-freertos-software-timer-generate-pwm-165240",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F4 series",
+                "FreeRTOS"
+            ],
+            "published_at": "2026-04-29T14:02:22+00:00",
+            "views": 742,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @HMSEdinburge wrote:\n\n>\n\n> Hi there, i got total 63 motors to control.\n\n>\n\n> Anyone has the source code for software timer using FreeRTOS CMSIS V\n\n>\n\n> ---\n\n**63 motors** to be controlled with STM32**F446** with **FreeRTOS software timer** to generate PWM?\n\nI don't think this is feasible. Think about the CPU load and the accuracy of the PWM duty cycle!\n\nThis is something that needs to be done with hardware ..",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello, i am using F446 and i am contemplating using FreeRTOS CMSIS V2 software timer to generate PWM to control motors via motor drivers (IC  chipset). Is this possible? Or must I use the hardware timer, TIM1~7 ?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7e830d53-f5e5-8b42-225b-58122421dc01.png"
+            ],
+            "author": "HMSEdinburge",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"84695\">@HMSEdinburge</user-mention> wrote:<br/><p>must I use the hardware timer, TIM1~7 ?</p><hr/></blockquote><p>Why would you <em>not</em> want to use them? This is <em>exactly</em> what they're for !</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok, but can this FreeRTOS software timer produce PWM like the hardware timer? Can they driver a motor? </p><p>Please share source code of software timer generating PWM, thx. </p></div>",
+                    "author": "HMSEdinburge",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Of course it <em>can</em> be done - just like bit-banging any other interface.</p><p>But you will never reach anywhere near the performance of a dedicated hardware timer.</p><p><em>Your code</em> will need to manually make every single output transition and timer adjustment - and fit this around whatever else your code is doing.</p><p> </p><p>But it's just software; you can easily try it out - but pay particular attention to the CPU usage ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Then check if the hardware timers are really needed for the stuff they are doing now.</p><p>If your PWM is really slow (like &lt;= 1 kHz carrier or so), then maybe software can handle this well enough.</p><p>Otherwise - not at least a 10 kHz interrupt available or so?</p><p>But all this doesn't really make sense in a device that has hardware / timers built for that purpose.</p><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>all my hardware timer TIM1~7 all used, therefore only left software timer, but can software timer able to drive an external motor? </p><p> </p></div>",
+                    "author": "HMSEdinburge",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"84695\">@HMSEdinburge</user-mention> wrote:<br/><p> can software timer able to drive an external motor? </p><hr/></blockquote><p>A timer - whether software or hardware - just toggles an output pin.</p><p>It makes no difference <em>to the timer</em> (whether SW or HW) what is externally connected to that pin.</p><p> </p><p>As <user-mention data-id=\"39813\">@LCE</user-mention> said, the limitation on using SW timers is going to be the maximum speed achievable.</p><p>Also the CPU load.</p><p> </p><p>But, again, you can easily just try it out: write some code to toggle a pin, watch it on your scope, check CPU utilisation...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"84695\">@HMSEdinburge</user-mention> <br/>Well, it's doable but as <user-mention data-id=\"35659\">@Andrew Neil</user-mention> and <user-mention data-id=\"39813\">@LCE</user-mention> but do not expect high precision. Software timers can be used for motor control in low-precision or low-frequency applications. However, they are not a substitute for hardware timers when precise timing is required.</p>\n<p>If the software timer you want to create have the same frequency and period as one of the hardware timers, you can create a variable that captures the hardware timer CNT register. Compare this variable with specified value (like a custom ARR) as a condition to perform the required task when the CNT register reaches the desired value for the software timer. This approach may improve precision slightly.</p>\n<p>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As said by <user-mention data-id=\"35659\">@Andrew Neil</user-mention> ,</p>\n<p>There are 14 timers in STM32F446:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1777538987864.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1777538987864.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7e830d53-f5e5-8b42-225b-58122421dc01.png\" title=\"mALLEm_1-1777538987864.png\"/></span></p>\n<p>You are using half of timers resources in your case only 1 to 7 in your case.. So why bothering yourself with the software timer usage?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi there, i got total 63 motors to control. F446 has 14 timer, TIM6 and TIM7 is a general timer, does not have CCR and AAR registers, so cant use for PWM. </p><p>Anyone has the source code for software timer using FreeRTOS CMSIS V</p></div>",
+                    "author": "HMSEdinburge",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"84695\">@HMSEdinburge</user-mention> wrote:<br/>\n<p>Hi there, i got total 63 motors to control. </p>\n<p>Anyone has the source code for software timer using FreeRTOS CMSIS V</p>\n<hr/></blockquote>\n<p><strong>63 motors</strong> to be controlled with STM32<span><strong>F446</strong> with <strong>FreeRTOS software timer</strong> to generate PWM?</span></p>\n<p><span>I don't think this is feasible. Think about the CPU load and the accuracy of the PWM duty cycle!</span></p>\n<p><span>This is something that needs to be done with hardware ..</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>to get good info, you should also give some good info:</p><p>- how many motors need control at same time ?</p><p>- which kind of motor and driver ? (DC, stepper, 3-phase ...etc)</p><p>- needed speed of pwm or control signal ?</p><p>- and resolution of pwm needed (how many steps from 0...100% ) ?</p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>These are the motors i m using, BLDC, stepper, servo actuators, stepper motor need 1/32 steps, BLDC needs PWM, and their various motor drivers, gate drivers etc. Total 63 motors. </p></div>",
+                    "author": "HMSEdinburge",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So to answer your question:</p><p>&gt;<span>Can FreeRTOS software timer generate PWM?</span></p><p>yes.</p><p>+</p><p>can you control 64 motors of different kind in real time just by using some RTOS:</p><p>no.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><ul><li>Software PWM is limited in frequency/resolution. If you want 0-100 steps and use a 1 ms tick your frequency will be 10 Hz. </li><li>You can share timers and handle things in software. But this results in dither as interrupt latency is not always predictable. Also can be a high load to CPU</li><li>Best is to use hardware timer</li><li>second best is to use external PWM IC. For example a SPI or I2C PWM IC. Such as the 16 channel <strong>PCA9685</strong>. Note that the PCA9685 is optimized for LEDs, but you can can connect it to a transistor switching a DC motor. Or to the enable pin of an H-bridge and use software to switch direction.</li></ul><p> </p><blockquote><hr/><user-mention data-id=\"84695\">@HMSEdinburge</user-mention> wrote:<br/><p>These are the motors i m using, BLDC, stepper, servo actuators, stepper motor need 1/32 steps, BLDC needs PWM, and their various motor drivers, gate drivers etc. Total 63 motors.</p><hr/></blockquote><ul><li>BLDC needs 3 phase control synchronized with back-emf detection. An MCU is not powerful enough to do several of these. Get a dedicated motor control IC/complete motor driver for each BLDC motor.</li><li>Get a dedicated motor control IC/complete motor driver for each stepper motor.</li><li>If they are RC servos you can use the PCA9685 for the 1-2ms pulse</li></ul><p> </p><p>63 motors seems like a lot. If the MCU has to do additional processing it may be underpowered. It's also rather ambitious for a beginner such as yourself. What is the application?</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

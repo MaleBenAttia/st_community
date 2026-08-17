@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164671",
+            "publicId": "164671",
+            "title": "STUSB4531 GATE pin unused?",
+            "url": "https://community.st.com/others-hardware-and-software-57/stusb4531-gate-pin-unused-164671",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STUSB4500"
+            ],
+            "published_at": "2026-04-12T12:28:55+00:00",
+            "views": 277,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Dear edenraf,\n\nThe VBUS\\_EN\\_SNK pin can be left not connected, the negotiation will still happen through CC pins.\n\nAnd as STUSB4531QTR and STUSB4531BJR present some pull-down on CC lines, even if the battery is fully-depleted, the SOURCE will provide VBUS which will supply the STUSB4531 via VDD pin.\n\nBest regards,",
+            "best_answer_author": "Didier HERROUIN",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm designing a USB-C charging circuit for a battery-powered device using the STUSB4531 for PD negotiation alongside a BQ25792 buck-boost battery charger.\n\nThe BQ25792 handles the full VBUS power path internally (inrush limiting, reverse current protection, OVP, and dead battery support), so I'm trying to understand whether the external P-FET that STUSB4531 normally drives is still required.\n\nSpecifically:\n\n1. Can the GATE pin be left NC or tied off without affecting CC detection and PD negotiation? Or does the IC require a valid FET load on GATE to operate correctly?\n\n2. If the GATE pin must drive something, would it be acceptable to connect GATE to the BQ25792's CE (charge enable) pin instead of a FET gate — effectively using it as a charger enable signal rather than a load\n\nswitch?\n\n3. Dead battery / no battery scenario: I need the system to power up from VBUS even when the battery is absent or fully depleted. The BQ25792 already supports dead battery mode on its own. If the external FETs are removed, is there anything in the STUSB4531 that would block VBUS from reaching BQ25792 in this condition?\n\nThanks for all the help,\n\nEden",
+            "images": [],
+            "author": "edenraf",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear edenraf,</p>\n<p>The VBUS_EN_SNK pin can be left not connected, the negotiation will still happen through CC pins.</p>\n<p>And as STUSB4531QTR and STUSB4531BJR present some pull-down on CC lines, even if the battery is fully-depleted, the SOURCE will provide VBUS which will supply the STUSB4531 via VDD pin.</p>\n<p> </p>\n<p>Best regards,</p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thanks for the reply. It is as I hoped, so I can leave the VBUS_EN_SNK as NC.</p><p>What about VBUS_HS_DISCH and DISCH pins? Would these still need to be connected even if VBUS_EN_SNK is NC? Again, since there would be no FET between VDD and DISCH, all 3 pins (VBUS_HS_DISCH, DISCH, VDD) would effectively be shorted together to VBUS</p></div>",
+                    "author": "edenraf",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Dear edenraf,</span></p>\n<p><span>VBUS_VS_DISCH is also used by STUSB4531 to monitor that VBUS is in the correct range, so it must be connected.</span></p>\n<p><span>Both VBUS_VS_DISCH and DISCH pins are enabled simultaneously to discharge residual voltage at disconnection, transition, hard reset and recovery state. I would recommend keeping both (max acceptable current through DISCH pin is higher).</span></p>\n<p><span>Best regards,</span></p>\n<p> </p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

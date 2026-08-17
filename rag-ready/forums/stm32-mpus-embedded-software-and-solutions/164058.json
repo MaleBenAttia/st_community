@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "164058",
+            "publicId": "164058",
+            "title": "driving 1200x1920 screen",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/driving-1200x1920-screen-164058",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "DSI",
+                "LCD-LTDC",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-22T11:05:57+00:00",
+            "views": 305,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "problem fixed by reducing v front porch from 144 to 44 ( did not tried other values )\n\nweird but sum of vtotal is now below 2048 - maybe thats whats caused vblank timeout to happen before",
+            "best_answer_author": "vdl",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I'm in a bit of a pickle. I got a MIPI DSI screen with 1200x1920 resolution. It turns out for SMT32MP25x max vertical supported resolution is 1536. But datasheet says this.\n\nSome over-target non-guaranteed use cases are possible, but with specific constraints:\n\n• Drive simultaneously three panels, using the three interfaces (parallel, LVDS, DSI), with\n\na same content.\n\n• Drive simultaneously two parallel LVDS panels, using each one link, with a reduced\n\nresolution and a same content.\n\n**• Drive a 4 k panel via the DSI, with a limited features and performances: one layer,**\n\n**no resize, no rotation, 30 fps, and non-standardized blanking sizes.**\n\nHow do i specify those params in dts or/and linux panel driver?\n\nI tried setting 30Hz on panel, but that did not help - linux drm fails with \"vblank wait timed out\"\n\nThis fails - 1200x1920@30Hz\n\n.clock = 80288,\n\n.hdisplay = 1200,\n\n.hsync\\_start = 1200 + 32,\n\n.hsync\\_end = 1200 + 32 + 14,\n\n.htotal = 1200 + 32 + 14 + 26,\n\n.vdisplay = 1920,\n\n.vsync\\_start = 1920 + 144,\n\n.vsync\\_end = 1920 + 144 + 8,\n\n.vtotal = 1920 + 144 + 8 + 32,\n\nBut this works [1920x1200@58.63Hz](mailto:1920x1200@58.63Hz) ( works as in does not throw kernel error - display obviously does not work as it expects different resolution )\n\n.clock = 156900,\n\n.hdisplay = 1920,\n\n.hsync\\_start = 1920 + 144,\n\n.hsync\\_end = 1920 + 144 + 8,\n\n.htotal = 1920 + 144 + 8 + 32,\n\n.vdisplay = 1200,\n\n.vsync\\_start = 1200 + 32,\n\n.vsync\\_end = 1200 + 32 + 14,\n\n.vtotal = 1200 + 32 + 14 + 26,",
+            "images": [],
+            "author": "vdl",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are you sure that register vtotal can write <span>1920 + 144 + 8 + 32 = &gt;2048 value ?</span></p><p><span>I mean only htotal is in range for this hw.</span></p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>registers for vsync/hsync are 12bit wide so it should be enough. also documentation hints that 4k resolution is supported in special case which is more than i need</p></div>",
+                    "author": "vdl",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>problem fixed by reducing v front porch from <span>144 to 44 ( did not tried other values ) </span></p><p> </p><p><span>weird but sum of vtotal is now below 2048 - maybe thats whats caused vblank timeout to happen before</span></p></div>",
+                    "author": "vdl",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

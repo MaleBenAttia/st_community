@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "163351",
+            "publicId": "163351",
+            "title": "RTOS proxy does not properly start when trying to debug with hot-attachement",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/rtos-proxy-does-not-properly-start-when-trying-to-debug-with-hot-attachement-163351",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-02T19:32:45+00:00",
+            "views": 341,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @NSAUG.1,\n\nYour reasoning is correct. The **imageFileName** has two roles when using the **serverRtos** attribute, which can be annoying for hot attach.\n\nWhile waiting for a better solution, the **serverRtos** also uses the **program** attribute if **imageFileName** is not available (I will create an internal ticket to make this automatic).\n\nSo, in your debug configuration, you need the following combination:\n\n```\n\n\"program\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"symbolFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n],\n\n```\n\nKind Regards,\n\n/Flo",
+            "best_answer_author": "Florent V",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nIn my STM32WBA65 project using FreeRTOS, I tried to create a hot-attach debug configuration.\n\nIt works OK except for one problem : the RTOS proxy does not know what it is working on, as it seems to rely on the parameter imageFileName in imagesAndSymbols. Since replacing imageFileName with symbolFileName is necessary to get a hot-attach configuration (along with \"serverReset\": \"None\"), this is a problem.\n\nThe problem seems to be that imageFileName has two roles : 1) providing the binary used by the RTOS Proxy and by the loading mechanism and 2) telling the system that we want to load said binary into the target.\n\nIs there a way to hot-attach the debugger with RTOS awareness that I missed ?\n\nBelow, my launch configuration in launch.json:\n\n```\n\n{\n\n\"type\": \"stlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"Hot Attach\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"serverReset\": \"None\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"symbolFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n],\n\n\"serverRtos\": {\n\n\"enabled\": true,\n\n\"port\": \"60000\",\n\n\"driver\": \"freertos\",\n\n\"driverPort\": \"ARM_CM33_NTZ\" // if not properly set, will result in \"Truncated register 0 in remote 'g' packet\" error and no RTOS awareness\n\n},\n\n\"liveWatch\": {\n\n\"enabled\": true,\n\n\"samplesPerSecond\": \"4\"\n\n},\n\n}\n\n```\n\nAnd the output when I try to run the hot-attach debug configuration :\n\n```\n\nFrom Debug Session: step debug conf validation: No image file loaded, see imagesAndSymbols attribute in the debug configuration.\n\nSTMicroelectronics ST-LINK GDB server. Version 7.12.0\n\nCopyright (c) 2025, STMicroelectronics. All rights reserved.\n\nStarting server with the following options:\n\nPersistent Mode : Disabled\n\nLogging Level : 1\n\nListen Port Number : 61234\n\nStatus Refresh Delay : 15s\n\nVerbose Mode : Disabled\n\nSWD Debug : Enabled\n\nWaiting for debugger connection...\n\nRTOS proxy: STMicroelectronics RTOS Proxy. Version 0.17.0\n\nCopyright (c) 2025, STMicroelectronics. All rights reserved.\n\nRTOS Proxy: readelf: Error: RTOS Proxy: 'undefined': No such file\n\nRTOS proxy: Failed generate debug info\n\nRTOS proxy: Loading RTOS driver... RTOS proxy: FreeRTOS\n\nRTOS proxy: Connecting to GDB server 127.0.0.1 on port 61234 ... RTOS proxy: Connected\n\nListen for GDB connection on port: 60000 ... Debugger connected\n\nWaiting for debugger connection...\n\nGNU gdb (GNU Tools for STM32 14.3.rel1.20251027-0700) 15.2.90.20241229-git\n\nCopyright (C) 2024 Free Software Foundation, Inc.\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software: you are free to change and redistribute it.\n\nThere is NO WARRANTY, to the extent permitted by law.\n\nType \"show copying\" and \"show warranty\" for details.\n\nThis GDB was configured as \"--host=aarch64-apple-darwin --target=arm-none-eabi\".\n\nType \"show configuration\" for configuration details.\n\nFor bug reporting instructions, please see:\n\n<https://www.gnu.org/software/gdb/bugs/>.\n\nFind the GDB manual and other documentation resources online at:\n\n<http://www.gnu.org/software/gdb/documentation/>.\n\nFor help, type \"help\".\n\nType \"apropos word\" to search for commands related to \"word\".\n\nadd-symbol-file \"/Users/nicolassaugnier/repos/firmware/projects/build/Debug/fw_v1.elf\"\n\nadd symbol table from file \"/Users/nicolassaugnier/repos/firmware/projects/build/Debug/fw_v1.elf\"\n\n(y or n) [answered Y; input not from terminal]\n\nReading symbols from /Users/nicolassaugnier/repos/firmware/projects/build/Debug/fw_v1.elf...\n\nRTOS proxy: Connected\n\nprvIdleTask (pvParameters=<optimized out>) at /Users/nicolassaugnier/repos/firmware/projects/Middlewares/Third_Party/FreeRTOS/Source/tasks.c:5850\n\n5850\t if( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ tskIDLE_PRIORITY ] ) ) > ( UBaseType_t ) configNUMBER_OF_CORES )\n\nconnected to remote target localhost:60000\n\nset *(int *)0xE000ED14=*(int *)0xE000ED14|0x10\n\nset *(int *)0xE000EDFC=*(int *)0xE000EDFC|0xff0\n\nDebugger connected\n\nWaiting for debugger connection...\n\nconnected to remote target localhost:61234\n\nNote: automatically using hardware breakpoints for read-only addresses.\n\nmonitor rtos -m state\n\nRTOS proxy: Unknown data structure layoutxLIST\n\n{\"label\":\"\",\"value\":[{\"label\":\"Driver\",\"value\":\"freeRTOS\"},{\"label\":\"Kernel state\",\"value\":\"Started\"},{\"label\":\"Software timers\",\"value\":\"\"}]}\n\n```\n\nThanks!",
+            "images": [],
+            "author": "NSAUG.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"28580\">@NSAUG.1</user-mention>,<br/><br/><span>Your reasoning is correct. The </span><strong>imageFileName</strong><span> has two roles when using the </span><strong>serverRtos</strong><span> attribute, which can be annoying for hot attach.</span><br/><span>While waiting for a better solution, the </span><strong>serverRtos</strong><span> also uses the </span><strong>program</strong><span> attribute if </span><strong>imageFileName</strong><span> is not available (I will create an internal ticket to make this automatic).</span><br/><span>So, in your debug configuration, you need the following combination:<br/></span></p><pre class=\"lia-code-sample language-javascript\"><code> \"program\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\",\n \"imagesAndSymbols\": [\n {\n \"symbolFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n }\n ],</code></pre><p> </p><p>Kind Regards,<br/>/Flo</p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the fast response, it seems to start the debugging session in a hot-attach way with the proper info available to the RTOS proxy as expected (I can see the tasks, queues, etc when I pause execution, as expected).</p><p>However I'm having other very strange behaviour while debugging now, the connection to STLink and the target crashing when I stop the debugging session, but I will investigate and either report here or create another thread depending on if it has something to do with this option or not.<br/>(EDIT: it's not related to this option, but to liveWatch, I'll make another post)</p><p> </p><p>In the meantime, here is the minimal consolidated configuration (in .vscode/launch.json ) that allows hot-attaching the RTOS-aware debugger to my STM32WBA65 &amp; FreeRTOS project (without TrustZone) with \"STM32cubeIDE for VScode\":</p><pre class=\"lia-code-sample language-c\"><code>{\n \"type\": \"stlinkgdbtarget\",\n \"request\": \"launch\",\n \"name\": \"Hot Attach\",\n \"origin\": \"snippet\",\n \"cwd\": \"${workspaceFolder}\",\n \"serverReset\": \"None\",\n \"program\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\",\n \"imagesAndSymbols\": [\n {\n \"symbolFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n }\n ],\n \"serverRtos\": {\n \"enabled\": true,\n \"port\": \"60000\",\n \"driver\": \"freertos\",\n \"driverPort\": \"ARM_CM33_NTZ\" \n }\n }</code></pre><p> </p></div>",
+                    "author": "NSAUG.1",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

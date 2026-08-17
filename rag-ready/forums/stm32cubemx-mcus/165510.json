@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "165510",
+            "publicId": "165510",
+            "title": "CubeMx Generates FDCAN clock divider multiple times for STM32G474RETx",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/cubemx-generates-fdcan-clock-divider-multiple-times-for-stm32g474retx-165510",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "FDCAN",
+                "Bug-report",
+                "STM32G4 series"
+            ],
+            "published_at": "2026-05-08T09:15:07+00:00",
+            "views": 196,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@HamTomo\n\nYour contribution is much appreciated.\n\nAfter  checking the RM0440 Rev 9\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dacf3ad9-b6f1-4bba-9874-2bef48797dc4.png)\n\nA ticket **#0063313** has been escalated to dev team to correct this behavior .\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "When configuring multiple FDCAN instances in CubeMx, the clock divider settings are not synchronised and are generated twice.\n\nFor me, FDCAN1 clock divider has the drop down box with multiple options.\n\nFDCAN2 only has the \"Divide kernel clock by 1\" option. This should match FDCAN1 as one common clock divider value. \"The clock is common to all FDCAN instances. This parameter is applied only at initialisation of first FDCAN instance.\" from UM2570.\n\nThe first issue is within CubeMx, this clock divider value is then used for the indicator calculations:\n\n- Nominal Time Quantum\n\n- Nominal Time for One Bit\n\n- Nominal Baud Rate\n\nIf the clock values are wrong, these values will be wrong.\n\nSecond issue is the Init.ClockDivider code is generated twice, one per instance instead of just once.\n\nIf these values are the same, there'll be no issue. If different then the latter will overwrite the former.\n\nIn main.c\n\n```\n\nMX_FDCAN1_Init();\n\nMX_FDCAN2_Init();\n\n```\n\nin fdcan.c\n\n```\n\nvoid MX_FDCAN1_Init(void)\n\n{\n\n/* USER CODE END FDCAN1_Init 1 */\n\nhfdcan1.Instance = FDCAN1;\n\nhfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV2;\n\n// More code removed\n\n}\n\nvoid MX_FDCAN2_Init(void)\n\n{\n\n/* USER CODE END FDCAN2_Init 1 */\n\nhfdcan2.Instance = FDCAN2;\n\nhfdcan2.Init.ClockDivider = FDCAN_CLOCK_DIV1;\n\n// More code removed\n\n}\n\n```\n\nCubeMx version 6.17.0",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dacf3ad9-b6f1-4bba-9874-2bef48797dc4.png"
+            ],
+            "author": "HamTomo",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106782\">@HamTomo</user-mention> </p>\n<p>I am checking this behavior. I will get back to you as soon as possible.</p>\n<p> </p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> <br/>.ioc is attached.<br/>MCU_A.ioc is with both set to Clock divider 1.<br/>MCU_A_2.ioc is with FDCAN1 set to Clock divider 2 and FDCAN2 set to Clock divider 1.<br/>Hope it helps.</p></div>",
+                    "author": "HamTomo",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"106782\">@HamTomo</user-mention> </p><p>Your contribution is much appreciated.</p><p>After  checking the RM0440 Rev 9</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dacf3ad9-b6f1-4bba-9874-2bef48797dc4.png\"/></figure><p>A ticket <strong>#0063313</strong> has been escalated to dev team to correct this behavior .</p><p>I will keep you posted with updates.</p><p>THX</p><p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have this answer but i cannot share here</p></div>",
+                    "author": "tauqirashraf",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

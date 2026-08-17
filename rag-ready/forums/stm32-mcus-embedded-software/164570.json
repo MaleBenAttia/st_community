@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "164570",
+            "publicId": "164570",
+            "title": "Failure recovery stratergy for UART Bootloader- STM32F446RET6",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/failure-recovery-stratergy-for-uart-bootloader-stm32f446ret6-164570",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bootloader",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-04-08T13:32:05+00:00",
+            "views": 492,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "So, I am stuck with this issue.\n\nI have only one option to run the application in slot A and keep backup in slot B. Steps followed will be\n\n1) when going for dfu, setting the metadata to upgrade status to updating and upgrade firmware in SLOT A.\n\n2) SLOT A because we have VTOR to the SLOT A address in compile time, after upgrade when reset the device starts from bootloader and check the upgrade status if **updating** change to **testing** and jump to Application SLOT\\_A.\n\n3)In Application in SLOT\\_A, after delay of 2sec the update status will change to **COMFIRM** but in between it crashes or reset bootloader check **5 times** for failure with the status **testing** it will copy the SLOT\\_B to SLOT\\_A (previous version is copied).\n\n4)when application in SLOT\\_A changes the status to **CONFIRM,** application will be copied from SLOT\\_A to SLOT\\_B.\n\n@TDK @Saket\\_Om @MM..1 @Pavel A. do you people think this will be good to implement. Please provide suggestions.",
+            "best_answer_author": "sneha_giby",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi\n\nI have a project with STM32F446RET6 which has custom bootloader and application in user defined location. This project does UART Bootloader for firmware upgrade - issue faced is if the device loses power while in between the firmware upgrade then the device is neither in UART bootloader/DFU mode nor has a valid firmware.\n\nThe solution which i want to implement is keeping two image of the application in two slot A and B. Normal working in Slot A  and backup in Slot B. Firmware upgrade happens in Slot A and if fails copy the firmware from Slot B otherwise copy Slot A to Slot B.\n\ncan anyone provide a simple logic which can be implemented to check if the firmware upgrade is completed and successful in SlotA.\n\nI would not like to add CRC check.",
+            "images": [],
+            "author": "sneha_giby",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Use a checksum.</p><p>Or write a value at the end of the flash region to signify \"firmware was written successfully\" Check that before booting to it.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>can you provide how this checksum will work (how to calculate)</p><p>I will require more details regarding</p><p>a) how to calculate the checksum</p><p>b) where to calculate the checksum in bootloader or application</p><p> </p></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105742\">@sneha_giby</user-mention> </p>\n<p>A simple and effective solution is to use an **image size check**. Store the expected firmware size in the image header, count how many bytes are actually written during the UART update, and only mark the image as valid if both values match. </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <strong>Original Issue: - </strong><span>Single Image without custom Bootloader, while dfu firmware upgrade through STM32Programmer power removed then device is not able to recover. Since the firmware is erased and no new firmware.</span></p><p>The built-in bootloader cannot be erased, it is always available for recovery. You only have to ensure the BOOT0 pin in the right position. <strong>Do you use the BOOT0 pin to start the built-in bootloader</strong>?</p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>no i am using software jump to bootloader. BOOT0 is always at GND.</p></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You start in ticket CUSTOM bootloader, then custom bootloader is in normal situation first started code. And always check fw A or B before start. Better is use A as factory and update only B. Less flash stress as copy delete A and B...</p><p>And primary code and VTOR is compiled for one place , you cant simply load it to A or B...</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So, I am stuck with this issue.</p><p>I have only one option to run the application in slot A and keep backup in slot B. Steps followed will be</p><p>1) when going for dfu, setting the metadata to upgrade status to updating and upgrade firmware in SLOT A.</p><p>2) SLOT A because we have VTOR to the SLOT A address in compile time, after upgrade when reset the device starts from bootloader and check the upgrade status if <strong>updating</strong> change to <strong>testing</strong> and jump to Application SLOT_A.</p><p>3)In Application in SLOT_A, after delay of 2sec the update status will change to <strong>COMFIRM</strong> but in between it crashes or reset bootloader check <strong>5 times</strong> for failure with the status <strong>testing</strong> it will copy the SLOT_B to SLOT_A (previous version is copied).</p><p>4)when application in SLOT_A changes the status to <strong>CONFIRM,</strong> application will be copied from SLOT_A to SLOT_B.</p><p><user-mention data-id=\"8205\">@TDK</user-mention> <user-mention data-id=\"1684\">@Saket_Om</user-mention> <user-mention data-id=\"22142\">@MM..1</user-mention> <user-mention data-id=\"37189\">@Pavel A.</user-mention> do you people think this will be good to implement. Please provide suggestions.</p></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

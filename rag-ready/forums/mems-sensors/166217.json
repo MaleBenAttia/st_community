@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "166199",
+            "publicId": "166217",
+            "title": "LSM6DSM, timestamp in FIFO occasionally incorrect",
+            "url": "https://community.st.com/mems-sensors-48/lsm6dsm-timestamp-in-fifo-occasionally-incorrect-166217",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "INEMO inertial modules"
+            ],
+            "published_at": "2026-06-17T02:22:39+00:00",
+            "views": 40,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@chobits ,\n\nThe issue is likely related to the FIFO timestamp setup rather than the accelerometer/gyroscope data themselves.\n\nIn the LSM6DSM, timestamp and step-counter information are stored in the FIFO as the 4th data set. According to [AN4987](https://www.st.com/resource/en/application_note/an4987-lsm6dsm-alwayson-3d-accelerometer-and-3d-gyroscope-stmicroelectronics.pdf), `TIMER_PEDO_FIFO_EN = 1` is required, but `DEC_DS4_FIFO[2:0]` in `FIFO_CTRL4` must also be different from `000b` in order to actually store the timestamp data in FIFO.\n\nIn your current configuration, `FIFO_CTRL4 = 0x08`, which means `DEC_DS4_FIFO = 000b`, so the 4th data set is not enabled in FIFO. This can lead to misalignment when parsing the FIFO stream and may explain the occasional backward/jump in the timestamp values.\n\nPlease also note that the timestamp FIFO format is not a standard contiguous 24-bit layout:\n\n* Byte1 = `TIMESTAMP[15:8]`\n\n* Byte2 = `TIMESTAMP[23:16]`\n\n* Byte3 = unused\n\n* Byte4 = `TIMESTAMP[7:0]`\n\n* Byte5/Byte6 = step counter\n\nTherefore, the FIFO pattern and byte ordering must be handled carefully when decoding the stream.\n\nFinally, if the timestamp resolution was changed from low-resolution to high-resolution, the timestamp counter should be reset by writing `0xAA` to `TIMESTAMP_REG2`.\n\nI would suggest updating `FIFO_CTRL4` so that `DEC_DS4_FIFO` is enabled, then re-checking the FIFO parsing logic and the FIFO pattern.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "acc + gyro + timestamp, ODR 208 hz, FIFO continous mode, timestamp resolution 25us, following is my register setting\n\nimu.\\_\\_write\\_reg(CTRL3\\_C, 0x44)\n\nimu.\\_\\_write\\_reg(WAKE\\_UP\\_DUR, 0x10)\n\nimu.\\_\\_write\\_reg(CTRL10\\_C, 0x34)\n\nimu.\\_\\_write\\_reg(CTRL1\\_XL, 0x5c)\n\nimu.\\_\\_write\\_reg(CTRL2\\_G, 0x5c)\n\nimu.\\_\\_write\\_reg(FIFO\\_CTRL2, 0x80)\n\nimu.\\_\\_write\\_reg(FIFO\\_CTRL1, 45)\n\nimu.\\_\\_write\\_reg(INT1\\_CTRL, 0x08)\n\nimu.\\_\\_write\\_reg(FIFO\\_CTRL3, 0x09)\n\nimu.\\_\\_write\\_reg(FIFO\\_CTRL4, 0x08)\n\nimu.\\_\\_write\\_reg(FIFO\\_CTRL5, 0x2E)\n\nOccasionally, I get incorrect timestamp value in FIFO (acc and gyro value is ok), following are some example\n\n530929, 531123, 531316, 531510, 531704, 531898, 532092, 532286, 532224, 532673 (timestamp go backward)\n\n165672, 165866, 166060, 166254, 166448, 166641, 167087, 167223, 167417, 167611, 167804 (timestamp jump)\n\nThank you very much for helping",
+            "images": [],
+            "author": "chobits",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107291\">@chobits</user-mention> ,</p><p>The issue is likely related to the FIFO timestamp setup rather than the accelerometer/gyroscope data themselves.</p><p>In the LSM6DSM, timestamp and step-counter information are stored in the FIFO as the 4th data set. According to <a href=\"https://www.st.com/resource/en/application_note/an4987-lsm6dsm-alwayson-3d-accelerometer-and-3d-gyroscope-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN4987</a>, <code>TIMER_PEDO_FIFO_EN = 1</code> is required, but <code>DEC_DS4_FIFO[2:0]</code> in <code>FIFO_CTRL4</code> must also be different from <code>000b</code> in order to actually store the timestamp data in FIFO.</p><p>In your current configuration, <code>FIFO_CTRL4 = 0x08</code>, which means <code>DEC_DS4_FIFO = 000b</code>, so the 4th data set is not enabled in FIFO. This can lead to misalignment when parsing the FIFO stream and may explain the occasional backward/jump in the timestamp values.</p><p>Please also note that the timestamp FIFO format is not a standard contiguous 24-bit layout:</p><ul><li>Byte1 = <code>TIMESTAMP[15:8]</code></li> <li>Byte2 = <code>TIMESTAMP[23:16]</code></li> <li>Byte3 = unused</li> <li>Byte4 = <code>TIMESTAMP[7:0]</code></li> <li>Byte5/Byte6 = step counter</li></ul><p>Therefore, the FIFO pattern and byte ordering must be handled carefully when decoding the stream.</p><p>Finally, if the timestamp resolution was changed from low-resolution to high-resolution, the timestamp counter should be reset by writing <code>0xAA</code> to <code>TIMESTAMP_REG2</code>.</p><p>I would suggest updating <code>FIFO_CTRL4</code> so that <code>DEC_DS4_FIFO</code> is enabled, then re-checking the FIFO parsing logic and the FIFO pattern.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

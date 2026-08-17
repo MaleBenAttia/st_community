@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "164974",
+            "publicId": "164974",
+            "title": "STM32_Programmer_CLI seg fault",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32-programmer-cli-seg-fault-164974",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer"
+            ],
+            "published_at": "2026-04-21T15:58:52+00:00",
+            "views": 213,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @Mike Rosing,\n\nModern STM32CubeProgrammer releases (Post v2.16) have migrated to Qt6 instead of Qt5. This change introduced a compatibility break with older OS (Like Ubuntu 18.04).\n\nWhat I suggest is to either update your OS or roll back to a previous tool version (v2.15 for example). Updating your OS is the better choice since you'll be able to utilize new STM32CubeProgrammer features and STM32s supported.\n\nHope you find this helpful !\n\nAziz",
+            "best_answer_author": "Aziz BRIGUI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have an old Ubuntu 18.04 system which allows STM32CubeIDE to run, but the STM32\\_Programmer failed because libm.so and libc.so were wrong. I found glibc-2.30 and copied the libraries into the same directory as the STM32\\_Programmer lib. Now I just get a seg fault, even when trying to just get the version number:\n\n```\n\nbin/STM32_Programmer_CLI --version\n\nSegmentation fault (core dumped)\n\n```\n\nIs there any way to figure out what might be the problem?",
+            "images": [],
+            "author": "Mike Rosing",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found the crash dump, but I'm not able to make much sense of it:</p><pre class=\"lia-code-sample language-c\"><code>#0 0x0000000000000000 in ?? ()\n#1 0x00007fca818e4d58 in _dl_vdso_vsym (name=name@entry=0x7fca81936570 \"__vdso_time\", \n vers=vers@entry=0x7ffdfb0c54b0) at ../sysdeps/unix/sysv/linux/dl-vdso.c:39\n#2 0x00007fca8186c9b6 in time_ifunc () at ../sysdeps/unix/sysv/linux/x86/time.c:43\n#3 0x00007fca83ba8d23 in elf_machine_lazy_rel (skip_ifunc=&lt;optimized out&gt;, \n reloc=0x7fca817d9058, l_addr=140507732475904, map=0x7fca83d335e0)\n at ../sysdeps/x86_64/dl-machine.h:577\n#4 elf_dynamic_do_Rela (skip_ifunc=&lt;optimized out&gt;, lazy=&lt;optimized out&gt;, \n nrelative=&lt;optimized out&gt;, relsize=&lt;optimized out&gt;, reladdr=&lt;optimized out&gt;, \n map=0x7fca83d335e0) at do-rel.h:77\n#5 _dl_relocate_object (scope=&lt;optimized out&gt;, reloc_mode=&lt;optimized out&gt;, \n consider_profiling=&lt;optimized out&gt;, consider_profiling@entry=0) at dl-reloc.c:258\n#6 0x00007fca83ba0327 in dl_main (phdr=&lt;optimized out&gt;, phnum=&lt;optimized out&gt;, \n user_entry=&lt;optimized out&gt;, auxv=&lt;optimized out&gt;) at rtld.c:2190\n#7 0x00007fca83bb6f50 in _dl_sysdep_start (start_argptr=start_argptr@entry=0x7ffdfb0c5900, \n dl_main=dl_main@entry=0x7fca83b9e660 &lt;dl_main&gt;) at ../elf/dl-sysdep.c:253\n#8 0x00007fca83b9e128 in _dl_start_final (arg=0x7ffdfb0c5900) at rtld.c:414\n#9 _dl_start (arg=0x7ffdfb0c5900) at rtld.c:521\n#10 0x00007fca83b9d098 in _start () from /lib64/ld-linux-x86-64.so.2\n#11 0x0000000000000001 in ?? ()\n#12 0x00007ffdfb0c5e62 in ?? ()\n#13 0x0000000000000000 in ?? ()</code></pre><p>Maybe some other lib*.so needs to be updated as well?</p></div>",
+                    "author": "Mike Rosing",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"27650\">@Mike Rosing</user-mention>,</p>\n<p>Modern STM32CubeProgrammer releases (Post v2.16) have migrated to Qt6 instead of Qt5. This change introduced a compatibility break with older OS (Like Ubuntu 18.04).</p>\n<p>What I suggest is to either update your OS or roll back to a previous tool version (v2.15 for example). Updating your OS is the better choice since you'll be able to utilize new STM32CubeProgrammer features and STM32s supported.</p>\n<p>Hope you find this helpful !</p>\n<p>Aziz</p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for explaining the problem. To update the OS will break everything else, so I've decided to just get a whole new computer with the latest OS so I can use the STM32CubeProgrammer on the newer processors. The older OS will work fine as a network disk drive storage device so I don't lose all the previous projects. </p></div>",
+                    "author": "Mike Rosing",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

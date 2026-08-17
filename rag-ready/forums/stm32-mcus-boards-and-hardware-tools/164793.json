@@ -1,0 +1,95 @@
+{
+    "forum": [
+        {
+            "id": "164793",
+            "publicId": "164793",
+            "title": "BlueCoin RCC configuration issue / BlueCoin board (STEVAL-BCNCS01V1)",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/bluecoin-rcc-configuration-issue-bluecoin-board-steval-bcncs01v1-164793",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32F4 series",
+                "ST boards"
+            ],
+            "published_at": "2026-04-15T21:48:44+00:00",
+            "views": 368,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n> ---\n\n>\n\n> @ghibli wrote:\n\n>\n\n> 3) If I switch to HSI, this is what I get (I guess USB-FS needs HSE):\n\n>\n\n> ![ghibli_0-1777101135560.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bba3b56-f467-8efd-74a3-679c0963680d.png \"ghibli_0-1777101135560.png\")\n\n>\n\n> ---\n\nBecause USB needs HSE with an external crystal to work properly in this product.\n\nForget about USB for now and deactivate it in CubeMx. Create a very simple project and select HSE with a 16MHz  with PLL as clock source. The test is to check whether there is an issue in your hardware.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi all,\n\nI am trying to implement simple USB-FS communication on a BlueCoin board (STEVAL-BCNCS01V1). I am following [the official STM tutorial on USB CDC](https://drive.google.com/file/d/1sjU9iNvh_khDZHDM9Qau03PGKwMd4u7U/view) and referencing [the official SW package for BlueCoin](https://www.st.com/en/embedded-software/stsw-bcnkt01.html).\n\nSo, for USB I need PLL source from HSE clock: BlueCoin [schematic](https://www.st.com/resource/en/schematic_pack/steval-bcnkt01v1_schematic.pdf) shows that there is a crystal oscillator @16Mhz (NDK NX2520SA) installed directly on the board, so I configured RCC HSE as Crystal/Ceramic Resonator; the problem is that the function *HAL\\_RCC\\_OscConfig(&RCC\\_OscInitStruct)* in *SystemClock\\_Config* retrieves HAL\\_TIMEOUT as a result. Timeout value is default at 100ms.\n\nClock configuration in STM32CubeMX is as suggested in the official USB tutorial:\n\n![ghibli_0-1776289461396.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7259246b-8d22-6d9e-8575-905a42814711.png \"ghibli_0-1776289461396.png\")\n\nMy current debug configuration has BlueCoin connected via SWD to a NUCLEO-G0B1RE, as suggested in [UM2240](https://www.st.com/resource/en/user_manual/um2240-getting-started-with-the-stevalbcnkt01v1-bluecoin-kit-augmented-acoustics-and-motion-sensing-development-platform-stmicroelectronics.pdf) (see page 14).\n\nCould you please help me? Am I missing something? Thanks to anybody who can help!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bba3b56-f467-8efd-74a3-679c0963680d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/12e49049-ab57-d474-723a-88754bdffbf7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/72bb9c50-ff99-e724-a5c6-56653f876e8c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1e28d45-f9dd-b963-1cee-1de876f24347.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7259246b-8d22-6d9e-8575-905a42814711.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a0860d6-0d73-4b18-7c52-06a66108875d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b59afc32-2f94-5532-471f-dc900ca4e07d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b175c877-c6d5-875f-f6ba-103f1da8f0a7.png"
+            ],
+            "author": "ghibli",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106140\">@ghibli</user-mention> and welcome to the ST community, </p>\n<p>I don't have idea about that <span>BlueCoin board but referring to its schematic, it has indeed a crystal on it of 16MHz:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1776337325379.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1776337325379.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b175c877-c6d5-875f-f6ba-103f1da8f0a7.png\" title=\"mALLEm_1-1776337325379.png\"/></span></p>\n<p>But from what you shared in the CubeMx screenshot, it seems you are configuring HSE in Bypass mode:</p>\n<p>Only one pin is used in this case while you need <strong>OSC_IN</strong> and <strong>OSC_OUT</strong> for a crystal.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_2-1776337424580.png\" style=\"width: 400px;\"><img alt=\"mALLEm_2-1776337424580.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a0860d6-0d73-4b18-7c52-06a66108875d.png\" title=\"mALLEm_2-1776337424580.png\"/></span></p>\n<p>So you need to select Crystal/Ceramic Resonator in CubeMx for your case:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_3-1776337549887.png\" style=\"width: 400px;\"><img alt=\"mALLEm_3-1776337549887.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b59afc32-2f94-5532-471f-dc900ca4e07d.png\" title=\"mALLEm_3-1776337549887.png\"/></span></p>\n<p>Bypass mode is used for example for crystal oscilators (XO) and not for crystals (XTAL).</p>\n<p><strong>PS</strong>: in your main.c you've attached, HSE is correctly configured! So that doesn't reflect the CubeMX configuration! which induces to some confisions here.. </p>\n<pre class=\"lia-code-sample language-c\"><code> RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;\n RCC_OscInitStruct.HSEState = RCC_HSE_ON;\n RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;\n RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;</code></pre>\n<p>Hope that helps.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention>, thanks for your feedback and for the welcome!!</p><p>The confusion is due to the late hour at which I wrote the post... The screenshot is wrong, please forgive me for that.</p><p>Anyway, the correct configuration that you suggested is the one that I definitely tested in <em>main.c</em> file, but still it gets stuck in <em>HAL_RCC_OscConfig</em> for the same reason; the screenshot comes from a previous configuration that I tested (and which did not obviously work...).</p><p>Do you know whether I have to set some other configurations in order to have the external oscillator on the board working properly (maybe on ST-Link side)?</p><p>Thanks again for your support!</p><p><strong>PS</strong>: the BlueCoin board is actually a product from ST, more information <a href=\"https://www.st.com/en/evaluation-tools/steval-bcnkt01v1.html\" rel=\"noopener noreferrer\" target=\"_self\">here</a>. It's a pity that I could not find much documentation or samples about that because it's definitely a very interesting board for prototyping.</p></div>",
+                    "author": "ghibli",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>1- You mentioned in a previous post <span>NUCLEO-G0B1RE. </span><span>So could you please confirm your are debugging on </span><span>STEVAL-BCNCS01V1 that contains a STM32F446 and not </span><span>NUCLEO-G0B1RE which contains a STM32G0B1 MCU?</span></p>\n<p><span>2- Check you have that crystal on your board and that was not unsoldered:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776339553203.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776339553203.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/72bb9c50-ff99-e724-a5c6-56653f876e8c.png\" title=\"mALLEm_0-1776339553203.png\"/></span></p>\n<p>3- Test if you can use HSI as source clock:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1776339611547.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1776339611547.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/12e49049-ab57-d474-723a-88754bdffbf7.png\" title=\"mALLEm_1-1776339611547.png\"/></span></p>\n<p>This is just for test.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention>, thanks for your feedback. I will try out your points and give a feedback as soon as possible.</p></div>",
+                    "author": "ghibli",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention>, I tested your points. Here are my findings:</p><p>1) I confirm, debug is active on STM32F446</p><p>2) The oscillator is present on the board</p><p>3) If I switch to HSI, this is what I get (I guess USB-FS needs HSE):</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"ghibli_0-1777101135560.png\" style=\"width: 400px;\"><img alt=\"ghibli_0-1777101135560.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1e28d45-f9dd-b963-1cee-1de876f24347.png\" title=\"ghibli_0-1777101135560.png\"/></span></p><p>Thanks again for your suppport.</p></div>",
+                    "author": "ghibli",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"106140\">@ghibli</user-mention> wrote:<br/>\n<p>3) If I switch to HSI, this is what I get (I guess USB-FS needs HSE):</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"ghibli_0-1777101135560.png\" style=\"width: 400px;\"><img alt=\"ghibli_0-1777101135560.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bba3b56-f467-8efd-74a3-679c0963680d.png\" title=\"ghibli_0-1777101135560.png\"/></span></p>\n<hr/></blockquote>\n<p>Because USB needs HSE with an external crystal to work properly in this product.</p>\n<p>Forget about USB for now and deactivate it in CubeMx. Create a very simple project and select HSE with a 16MHz  with PLL as clock source. The test is to check whether there is an issue in your hardware.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention>, good suggestion. I set up a simple project which switches LEDs on and off using HSE and a timer and it works fine, so I assume the external oscillator is ok. I attach the project, maybe it can be useful to someone in the community. </p><p>Getting back to the original USB project, I will compare the RCC_CR register to the simple project and check if something is wrong with the configuration.</p></div>",
+                    "author": "ghibli",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "165455",
+            "publicId": "165455",
+            "title": "Linker script puts bss into flash - why?",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/linker-script-puts-bss-into-flash-why-165455",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-05-06T19:56:19+00:00",
+            "views": 171,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hmm, maybe the orphaned  . = ALIGN(4) in line 20 causes the problem, because it is outside of any section block?",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "When I'm done compiling, the memory details show\n\n```\n\n\"FLASH\";\"0x08000000\";\"\";\"64 KB\"\n\n\".ITCMSection\";\"0x00000000\";\"0x080002a0\";\"1.36 KB\"\n\n\".isr_vector\";\"0x08000000\";\"0x08000000\";\"672 B\"\n\n\".text\";\"0x08000810\";\"0x08000810\";\"29.19 KB\"\n\n\".rodata\";\"0x08007cd0\";\"0x08007cd0\";\"84 B\"\n\n\".ARM\";\"0x08007d24\";\"0x08007d24\";\"8 B\"\n\n\".init_array\";\"0x08007d2c\";\"0x08007d2c\";\"4 B\"\n\n\".fini_array\";\"0x08007d30\";\"0x08007d30\";\"4 B\"\n\n\".data\";\"0x20000000\";\"0x08007d34\";\"144 B\"\n\n\".bss\";\"0x20000090\";\"0x08007dc4\";\"868 B\"\n\n\"RW_NONCACHEABLE\";\"0x200003f4\";\"0x08007dc4\";\"36 B\"\n\n\"._user_heap_stack\";\"0x20000418\";\"0x08007dc4\";\"190.98 KB\"\n\n```\n\nAll sections from .bss on should NOT be in FLASH. The linker script has\n\n```\n\n/* Used by the startup to initialize data */\n\n_sidata = LOADADDR(.data);\n\n/* Initialized data sections into \"RAM\" Ram type memory */\n\n.data :\n\n{\n\n. = ALIGN(4);\n\n_sdata = .; /* create a global symbol at data start */\n\n*(.data) /* .data sections */\n\n*(.data*) /* .data* sections */\n\n*(.RamFunc) /* .RamFunc sections */\n\n*(.RamFunc*) /* .RamFunc* sections */\n\n. = ALIGN(4);\n\n_edata = .; /* define a global symbol at data end */\n\n} >DTCM AT> FLASH\n\n/* Uninitialized data section into \"RAM\" Ram type memory */\n\n. = ALIGN(4);\n\n.bss (NOLOAD):\n\n{\n\n/* This is used by the startup in order to initialize the .bss section */\n\n_sbss = .; /* define a global symbol at bss start */\n\n__bss_start__ = _sbss;\n\n*(.bss)\n\n*(.bss*)\n\n*(COMMON)\n\n. = ALIGN(4);\n\n_ebss = . + 0x100; /* define a global symbol at bss end */\n\n/* __bss_end__ = _ebss; */\n\n} > DTCM\n\nRW_NONCACHEABLE (NOLOAD):\n\n{\n\n__NONCACHEABLEBUFFER_BEGIN = .;/* create symbol for start of section */\n\nKEEP(*(noncacheable_buffer))\n\n__NONCACHEABLEBUFFER_END = .; /* create symbol for start of section */\n\n/* } > RAM_NONCACHEABLEBUFFER*/\n\n} > DTCM\n\n*/\n\n/* User_heap_stack section, used to check that there is enough Ram type memory left */\n\n._user_heap_stack (NOLOAD):\n\n{\n\n. = ALIGN(8);\n\nPROVIDE ( end = . );\n\nPROVIDE ( _end = . );\n\n/* . = . + _Min_Heap_Size;\n\n. = . + _Min_Stack_Size; */\n\n. = ABSOLUTE(_estack);\n\n. = ALIGN(8);\n\n} > DTCM\n\n```\n\nThe fixed data should go into flash, but the rest of it should not. Why is the linker adding those sections to flash?",
+            "images": [],
+            "author": "Mike Rosing",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The problem was assuming \".\" is reset with section assignment. I had to add</p><pre class=\"lia-code-sample language-c\"><code> . = ORIGIN(DTCM) + SIZEOF(.data);</code></pre><p>before the .bss section. Now the linker is not trying to load the flash with empty space (and attempt to consume 3* as much memory as actually exists!)</p></div>",
+                    "author": "Mike Rosing",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hmm, maybe the orphaned  . = ALIGN(4) in line 20 causes the problem, because it is outside of any section block?</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That's worth an experiment:</p><p>Removing both lines does solve the problem - .bss is not in FLASH when the orphaned . = is removed, so that's a much simpler way to go!</p></div>",
+                    "author": "Mike Rosing",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

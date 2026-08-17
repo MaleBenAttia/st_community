@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "163712",
+            "publicId": "163712",
+            "title": "STM32U575 - programming water marks..",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u575-programming-water-marks-163712",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Flash",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-03-11T23:38:46+00:00",
+            "views": 209,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Oops.  It looks like I forgot to call\n\nHAL\\_FLASH\\_OB\\_Launch();\n\n(I was mistakenly calling NVIC\\_reset() )",
+            "best_answer_author": "Nicholas Parker",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi,\n\nI'm a bit stuck.   I'm trying to program watermarks for BANK2 (to make the entire bank secure so I can read the whole area using secure alias) for a custom boot-loader.\n\nThe code below is executing in secure context from BANK1 (and no bank swap).  It runs without error, but after a reset, the option bytes are still unchanged.\n\nIm calling it with (FLASH\\_BANK\\_2, 0, 63, 0) as arguments. (63 being the last flash page of a 512KB bank - device is 1MB)\n\nI am pretty sure I misunderstand something.\n\nKind Regards, Nick\n\n/\\*\\*\n\n\\* @brief Configures or Disables Secure Watermark for a specific bank.\n\n\\* @PArambank: FLASH\\_BANK\\_1 or FLASH\\_BANK\\_2\n\n\\* @PAramstart\\_page: Start page (Set > end\\_page to disable)\n\n\\* @PAramend\\_page: End page\n\n\\* @PAramlaunch: If SET, triggers a System Reset immediately to apply changes.\n\n\\* @return true if the operation was successful, false otherwise\n\n\\* @note to disable WM, set start\\_page > end\\_page (eg start\\_page=1, end\\_page=0)\n\n\\*/\n\nbool FLASH\\_OB\\_configure\\_watermarks(uint32\\_t bank, uint8\\_t start\\_page, uint8\\_t end\\_page, uint8\\_t launch)\n\n{\n\nHAL\\_FLASH\\_Unlock();\n\nHAL\\_FLASH\\_OB\\_Unlock();\n\nFLASH\\_OBProgramInitTypeDef obInit = {0};\n\nobInit.OptionType = OPTIONBYTE\\_WMSEC;\n\n// Set Area Config\n\nif (bank == FLASH\\_BANK\\_1)\n\nobInit.WMSecConfig = OB\\_WMSEC\\_SECURE\\_AREA\\_CONFIG | OB\\_WMSEC\\_AREA1;\n\nelse if (bank == FLASH\\_BANK\\_2)\n\nobInit.WMSecConfig = OB\\_WMSEC\\_SECURE\\_AREA\\_CONFIG | OB\\_WMSEC\\_AREA2;\n\nelse {\n\nHAL\\_FLASH\\_OB\\_Lock();\n\nHAL\\_FLASH\\_Lock();\n\nreturn false;\n\n}\n\nobInit.WMSecStartPage = start\\_page;\n\nobInit.WMSecEndPage = end\\_page;\n\n// HAL\\_FLASHEx\\_OBProgram handles unlock, set, program, and wait (BSY flag)\n\nif (HAL\\_FLASHEx\\_OBProgram(&obInit) != HAL\\_OK)\n\n{\n\nHAL\\_FLASH\\_OB\\_Lock();\n\nHAL\\_FLASH\\_Lock();\n\nreturn false;\n\n}\n\n// 5. Finalize and Reset if requested\n\nif (launch)\n\n{\n\nHAL\\_FLASH\\_OB\\_Launch();\n\n}\n\nHAL\\_FLASH\\_OB\\_Lock();\n\nHAL\\_FLASH\\_Lock();\n\nreturn true;\n\n}",
+            "images": [],
+            "author": "Nicholas Parker",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oops.  It looks like I forgot to call<br/><br/></p><div><div><span> </span><span>HAL_FLASH_OB_Launch</span><span>();</span></div><div> </div><div>(I was mistakenly calling <span>NVIC_reset() )</span></div><div> </div><div> </div></div></div>",
+                    "author": "Nicholas Parker",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

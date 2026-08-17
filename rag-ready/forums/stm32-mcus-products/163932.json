@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "163932",
+            "publicId": "163932",
+            "title": "STM32L4 USB Connectivity",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32l4-usb-connectivity-163932",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L4 series",
+                "USB"
+            ],
+            "published_at": "2026-03-18T09:16:53+00:00",
+            "views": 336,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @osamashah15\n\nI reviewed your host project .ioc file and found out that you disabled VBUS pin\n\n![Capture d'écran 2026-03-19 105932.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2fe34ac8-b54e-74a7-2190-79cc5aea1091.png \"Capture d'écran 2026-03-19 105932.png\")\n\nTo begin, enable the VBUS pin, as it is mandatory for host functionality.\n\nNext, I recommend that you test the CDC host project functionality independently. Perform the following procedure:\n\n-Configure the device board to send the \"hello world\" message continuously.\n\n-Configure the host board to receive the message and store it in a buffer allocated in a known memory region.\n\n-Flash both codes and connect the host board to the device board using a micro-B to micro-B USB cable.\n\n-In a debug session, track whether the host board receives the messages sent from the device board\n\nYou can review this [article](https://community.st.com/t5/stm32-mcus/management-of-vbus-sensing-for-usb-device-design/ta-p/49485). It may help you.\n\nBR\n\nGyessine",
+            "best_answer_author": "Gyessine",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone.\n\nI am running into a USB Host <--> Device connectivity issue.\n\nI have 2 STM32L496 MCUs, one as Host and other as Device.\n\nI cannot get the CDC connectivity to work for some reason. The connections are as follows:\n\nD+ <> D+, D- <>D-, GND<>GND.\n\nI have VBUS, SOF and NOE disabled.\n\nCubeMX forces to set Drive\\_VBUS as well over a GPIO, however, I am not using that in my circuit. Even though it is a recommendation in USB connectivity in AN4879, I believe it is possible for a simple connectivity without it as well. Would this be a wrong assumption (and hence the culprit)?\n\nAs a connection stability, I tested both MCUs individually as Devices, connecting to my PC and it sent data over USB just fine.\n\nThe attached code has NucleoL496 as the host.\n\nWould appreciate your support.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2fe34ac8-b54e-74a7-2190-79cc5aea1091.png"
+            ],
+            "author": "osamashah15",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"102651\">@osamashah15</user-mention> <br/> I reviewed your host project .ioc file and found out that you disabled VBUS pin<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Capture d'écran 2026-03-19 105932.png\" style=\"width: 739px;\"><img alt=\"Capture d'écran 2026-03-19 105932.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2fe34ac8-b54e-74a7-2190-79cc5aea1091.png\" title=\"Capture d'écran 2026-03-19 105932.png\"/></span></p>\n<p>To begin, enable the VBUS pin, as it is mandatory for host functionality.</p>\n<p>Next, I recommend that you test the CDC host project functionality independently. Perform the following procedure:</p>\n<p>-Configure the device board to send the \"hello world\" message continuously.</p>\n<p>-Configure the host board to receive the message and store it in a buffer allocated in a known memory region.</p>\n<p>-Flash both codes and connect the host board to the device board using a micro-B to micro-B USB cable.</p>\n<p>-In a debug session, track whether the host board receives the messages sent from the device board<br/><br/>You can review this <a href=\"https://community.st.com/t5/stm32-mcus/management-of-vbus-sensing-for-usb-device-design/ta-p/49485\" target=\"_self\">article</a>. It may help you.<br/>BR<br/>Gyessine</p>\n<p><br/><br/></p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"102651\">@osamashah15</user-mention> wrote:<br/><p>I tested both MCUs individually as Devices</p><hr/></blockquote><p>But did you test your Host against a known-good Device?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I figured out the problem was not really with the hardware but a small but very relevant oversight from my side. Ever since the CubeMX update, my default 12 MHz input frequency of the crystal oscillator (HSE) was likely automatically reset to 8 MHz and therefore, I was having timing issues - the 48 MHz required for USB was set incorrectly on my STM32L4 MCU. </p><p>My prior codes testing for device were with the computer as a host, and I believe the timing issues are not as apparent with that.</p><p>My Nucleo board was working fine with USB and since the Nucleo does not require the HSE, but it uses MSI, it wasn't problematic.</p><p>Interestingly, VBUS sensing is not a requirement for the code to work, especially since the device is bus-powred. But still, for the next iteration, I will follow the ST recommended circuit with STMPS2141 power switch as overcurrent notifier.</p><p>A small but critical oversight on my part. Apologies and thank you for the support!</p><p>Kind Regards,</p><p>Osama</p><p> </p></div>",
+                    "author": "osamashah15",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

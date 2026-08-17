@@ -1,0 +1,46 @@
+{
+    "forum": [
+        {
+            "id": "165438",
+            "publicId": "165438",
+            "title": "STM32U585: Start bootloader via RSS command",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32u585-start-bootloader-via-rss-command-165438",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "Bootloader",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-06T12:39:47+00:00",
+            "views": 179,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Through a support ticket I got the info that actually RSS Commands 0x01 and 0x02 have the desired effect.",
+            "best_answer_author": "OliM",
+            "best_answer_author_role": "Senior II",
+            "content_text": "I have a STM32U585 (edit: ...VIT6, so not the one where this doesn't work due to errata) product with Trustzone enabled, Bootlock disabled and RDP level 0.\n\nI want to bring this into ST bootloader mode from software (for easy Firmware change via USB).\n\nTo my understanding that would mean implementing the last entry of Pattern 12 from AN2606\n\n![OliM_1-1778070843232.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/82bb08e4-1e22-0014-d1d3-f342b0c20b79.png \"OliM_1-1778070843232.png\")\n\n![OliM_0-1778070786976.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5bd9986e-7029-6b65-98f4-2ba4007e5659.png \"OliM_0-1778070786976.png\")\n\nWhich means the following code, executed from secure side.\n\n```\n\nRCC->APB3ENR |= RCC_APB3ENR_SYSCFGEN; //clock is disabled after startup, so enable\n\n__DSB();//make sure data is written\n\nSYSCFG->RSSCMDR = 0x1C0; //pattern from AN2606, RM says any value will do?\n\n__DSB();//make sure data is written\n\n__NVIC_SystemReset(); //SW reset\n\n```\n\nBut all I get is a restart to SECBOOTADD0. And RSSCMDR is zeroed out afterwards, even though the RM states that it is only affected by power on reset.\n\nWhat am I doing wrong?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5bd9986e-7029-6b65-98f4-2ba4007e5659.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/82bb08e4-1e22-0014-d1d3-f342b0c20b79.png"
+            ],
+            "author": "OliM",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Noone ever did this?</p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Through a support ticket I got the info that actually RSS Commands 0x01 and 0x02 have the desired effect.</p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

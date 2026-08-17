@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "164623",
+            "publicId": "164623",
+            "title": "How to implement custom PAN ID for Zigbee in STM32WB55 MCU?",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/how-to-implement-custom-pan-id-for-zigbee-in-stm32wb55-mcu-164623",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Zigbee",
+                "STM32WB series"
+            ],
+            "published_at": "2026-04-10T03:19:58+00:00",
+            "views": 345,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @Phang,\n\nPlease find a snippet code below showing how to fix the Extended address for a Zigbee device :\n\n```\n\n/* Fixed 64-bit IEEE address - must be unique for each device */\n\nstatic const uint64_t g_ieee_addr = 0x00124B000025AA11ULL;\n\nvoid APP_ZIGBEE_Init(void)\n\n{\n\nstruct ZbInitT *zb_init;\n\nzb_init = ZbInit(g_ieee_addr, NULL, NULL);\n\nif (zb_init == NULL) {\n\nAPP_DBG(\"ZbInit failed\\r\\n\");\n\nreturn;\n\n}\n\nAPP_DBG(\"Zigbee stack initialized with fixed IEEE address: 0x%016llX\\r\\n\",\n\n(unsigned long long)g_ieee_addr);\n\n}\n\n```\n\nRegards,\n\nOuadi",
+            "best_answer_author": "Ouadi",
+            "best_answer_author_role": "",
+            "content_text": "Hi,\n\nOur product uses 2 x STM32WB55 MCUs, where one as Server/Coordinator and the other one as Client/Router for Zigbee.  However, our customer prefer to use customized PAN ID or Extended PAN ID so that more controllable and traceable by their application software later. Below is the setup of the Server/Coordinator and Client/Router in my firmware (modify based on sample code \"Zigbee\\_OnOff\\_Server\\_Coord & Zigbee\\_OnOff\\_Client\\_Router\").\n\n\\*\\* Server/Coordinator :\n\nstartupControl = ZbStartTypeForm;\n\nconfig.panId = 0x0001;  // range from 0x0001 to 0xfffe\n\nconfig.extendedPanId = 0x00001; // incremental from 0x01 onwards\n\n\\*\\* Client/Router:\n\nstartupControl = ZbStartTypeRejoin;\n\nconfig.panId = 0x0001;  // range from 0x0001 to 0xfffe\n\nconfig.extendedPanId = 0x00001; // incremental from 0x01 onwards\n\nQuestions:\n\n1. May I know the configuration above is enough and valid to do so?\n\n2. What are the steps needed or I missed out in order to use customized PAN ID or extended PAN ID or even the short address if question 1 above is not valid and enough?\n\n3. How to bypass the default auto PAN ID or extended PAN ID assignment by wireless stack?\n\n4. Do I need to rebind my client/router with the server/coord after changing the PAN ID on client/router to match server/coord's PAN ID?\n\n5. Under what circumstances we need to do binding? during pairing?  and only once will do?\n\nThanks.",
+            "images": [],
+            "author": "Phang",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"95308\">@Phang</user-mention>,</p>\n<p>Please find a snippet code below showing how to fix the Extended address for a Zigbee device : </p>\n<pre class=\"lia-code-sample language-c\"><code>/* Fixed 64-bit IEEE address - must be unique for each device */\nstatic const uint64_t g_ieee_addr = 0x00124B000025AA11ULL;\n\nvoid APP_ZIGBEE_Init(void)\n{\n struct ZbInitT *zb_init;\n zb_init = ZbInit(g_ieee_addr, NULL, NULL);\n if (zb_init == NULL) {\n APP_DBG(\"ZbInit failed\\r\\n\");\n return;\n }\n\n APP_DBG(\"Zigbee stack initialized with fixed IEEE address: 0x%016llX\\r\\n\",\n (unsigned long long)g_ieee_addr);\n}</code></pre>\n<p>Regards,</p>\n<p>Ouadi</p></div>",
+                    "author": "Ouadi",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Added from my previous post above, I have implemented persistent data NVM in both Serve/Coord and Client/Router and it is working well with auto PAN ID but unfortunately not with my custom PAN ID especially after unplug/plug back the server/coord device from USB port.</p></div>",
+                    "author": "Phang",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"95308\">@Phang</user-mention>,</p>\n<p>Thanks for contacting us through the support community channel, please find the answers to your questions :</p>\n<ol>\n<li>In principle, the configuration seems correct to me, on the Coordinator side, the device forms the Zigbee network using the configured <strong>PAN ID </strong>and <strong>EPID </strong>provided at startup. These parameters define the network identity at formation time. On the Router side, the joining device does not create the network parameters itself; instead, it uses the configured PAN ID / EPID as network selection criteria to discover and join only the network matching those identifiers</li>\n<li><span>In practice, </span><strong>PAN ID</strong><span> and especially </span><strong>Extended PAN ID</strong><span> are sufficient to define a customized Zigbee network identity. The </span><strong>16-bit short address</strong><span> is not a network formation parameter and is not used to identify the network during the form/join procedure. It is dynamically allocated by the network during association, so there is typically no need, and generally no mechanism, to fix it manually for this purpose.</span></li>\n<li>The previous config allow to bypass the auto setting of pan ID</li>\n<li>5. Regarding binding, it creates a persistent association between a<span> </span><span>source endpoint/cluster</span><span> </span><span>and a</span><span> </span><span>destination endpoint/cluster</span><span> </span><span>or</span><span> </span><span>group address</span><span>, allowing application-layer messages to be delivered without requiring explicit destination addressing for each transmission.</span></li>\n</ol>\n<p>Best regards,</p>\n<p>Ouadi</p></div>",
+                    "author": "Ouadi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Ouadi,</p><p>Thanks for the reply. The reason I asked these questions because our customer's existing product requires user to set 4/5 bytes server/coord ID onto the client device once in order to allow to join/form the network. So, they wanted this feature in their new product design for Zigbee as well so that they can control, trace and monitor connected devices.</p><p>Other than using the PANID and/or Ext PANID method, any other way can be used instead? This is because I ever seen the custom PANID and Ext PANID set inside the server/coord's persistent data NVM get changed but still able to receive data from clients. </p><p> </p></div>",
+                    "author": "Phang",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Phang,</p>\n<p>If I understand the concern correctly, the customer is looking for a<span> </span><strong>user-configurable identifier</strong><span> </span>to be provisioned from the<span> </span><strong>coordinator side</strong><span> </span>for each joining device, so that the application can later use this identifier for<span> </span><strong>control, traceability, and monitoring</strong>, correct?</p>\n<p>For such a use case, the most appropriate identifier is the device’s<span> </span><strong>IEEE address</strong>. This is a<span> </span><strong>64-bit globally unique address</strong><span> </span>that is stable and well suited for:</p>\n<ul>\n<li>uniquely identifying the coordinator</li>\n<li>uniquely identifying each router or end device</li>\n<li>storing trusted device identity in the application database</li>\n<li>validating or authorizing a joined device</li>\n<li>ensuring long-term traceability independently of the dynamically assigned short address</li>\n</ul>\n<p>At startup, the joining device can provide its own<span> </span><strong>extended IEEE address</strong><span> </span>through the Zigbee initialization flow, e.g:<span> </span><code>ZbInit()</code>. This address can then be provisioned or registered on the coordinator side, allowing the coordinator application to use it for<span> </span><strong>filtering, validation, and traceability</strong>.</p>\n<p>I hope this answers the question.</p>\n<p>Regards,</p>\n<p>Ouadi</p></div>",
+                    "author": "Ouadi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ouadi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ouadi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

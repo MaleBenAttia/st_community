@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164334",
+            "publicId": "164334",
+            "title": "NUCLEO-H563ZI: floating PD11 reads LOW with pull-up and HIGH with pull-down",
+            "url": "https://community.st.com/stm32-mcus-products-25/nucleo-h563zi-floating-pd11-reads-low-with-pull-up-and-high-with-pull-down-164334",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-31T09:07:16+00:00",
+            "views": 280,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Ok.\n\nI did the same test on the same board (NUCLEO-H563ZI) and the behavior is as expected when the pin is floating:\n\nGPIO\\_PULLUP -> HAL\\_GPIO\\_ReadPin(GPIOD, GPIO\\_PIN\\_11) reads GPIO as SET\n\nGPIO\\_PULLDOWN -> HAL\\_GPIO\\_ReadPin(GPIOD, GPIO\\_PIN\\_11) reads GPIO as RESET\n\nWith an oscilloscope:\n\n- The pin is high when GPIO\\_PULLUP\n\n- The pin is low when GPIO\\_PULLDOWN\n\nSo to me the behavior you are seeing is a hardware issue. Either there is something connected to that pin externally (nothing connected by default in this board) or the IO is broken!\n\nTo confirm, please share your test project so I can run it on the board I have.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am testing PD11 on an STM32H563ZI with a NUCLEO-H563ZI board.\n\nThe pin is configured as plain GPIO input using STM32 HAL:\n\n```\n\nGPIO_InitStruct.Pin = GPIO_PIN_11;\n\nGPIO_InitStruct.Mode = GPIO_MODE_INPUT;\n\nGPIO_InitStruct.Pull = GPIO_PULLUP; // or GPIO_PULLDOWN / GPIO_NOPULL\n\nHAL_GPIO_Init(GPIOD, &GPIO_InitStruct);\n\n```\n\nI rebuild and reflash the firmware for each case, then read the pin with HAL\\_GPIO\\_ReadPin(GPIOD, GPIO\\_PIN\\_11).\n\nWhat I observe is:\n\n* GPIO\\_MODE\\_INPUT + GPIO\\_PULLUP -> LOW\n\n* GPIO\\_MODE\\_INPUT + GPIO\\_PULLDOWN -> HIGH\n\n* GPIO\\_MODE\\_INPUT + GPIO\\_NOPULL -> LOW\n\nI also checked the pin with a multimeter, and the measured pin level matches what the MCU reads.\n\nI have rebuilt and reflashed multiple times and I keep getting the same pattern.\n\nMy expectation was that a floating input with internal pull-up should read HIGH, and with internal pull-down should read LOW.\n\nIs there anything special about PD11 on NUCLEO-H563ZI / STM32H563ZI, or any known STM32H5 GPIO behavior that could explain this?\n\nThanks.",
+            "images": [],
+            "author": "freshlife",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105652\">@freshlife</user-mention> and welcome to the ST community,</p>\n<p>Your assumption is correct. You need to read high level when the GPIO pin is configured in pull-up and low level  when the GPIO pin is configured in pull-down when the pin is floating.</p>\n<p> But this is something strange:</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"105652\">@freshlife</user-mention> wrote:\n<p>I also checked the pin with a multimeter, and the measured pin level matches what the MCU reads.</p>\n<p> </p>\n</blockquote>\n<p>Are you sure there is nothing connected to that pin apart the multimeter probe of the wire to set the level of the pin?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the warm welcome!</p><p>To clarify our use case: we are designing a PCBA that needs to detect hardware revisions (e.g., version A vs. version B) by reading whether a GPIO pin is left floating or tied to ground.</p><p>Before implementing this on our custom board, I wanted to validate the behavior first using the NUCLEO-H563ZI evaluation board.<br/>I reviewed the official NUCLEO-H563ZI schematic and confirmed that PD11 has no external components connected to it. During testing, I was only probing the test point on the EVB with a multimeter — nothing else was connected to the pin.</p><p><br/>So to answer your question: no, there is nothing else connected to that pin other than the multimeter probe.</p></div>",
+                    "author": "freshlife",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok.</p>\n<p>I did the same test on the same board (<span>NUCLEO-H563ZI</span>) and the behavior is as expected when the pin is floating:</p>\n<p><span>GPIO_PULLUP -&gt; HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11) reads GPIO as SET</span></p>\n<p><span>GPIO_PULLDOWN -&gt; HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11) reads GPIO as RESET</span></p>\n<p>With an oscilloscope:</p>\n<p>- The pin is high when <span>GPIO_PULLUP</span></p>\n<p><span>- The pin is low when GPIO_PULLDOWN </span></p>\n<p><span>So to me the behavior you are seeing is a hardware issue. Either there is something connected to that pin externally (nothing connected by default in this board) or the IO is broken!</span></p>\n<p><span>To confirm, please share your test project so I can run it on the board I have.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

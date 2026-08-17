@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "163330",
+            "publicId": "163330",
+            "title": "TCP packets ACKed ~50ms after",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/tcp-packets-acked-50ms-after-163330",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Ethernet"
+            ],
+            "published_at": "2026-03-02T08:54:41+00:00",
+            "views": 241,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @JMarq.1 ,\n\n> ---\n\n>\n\n> @JMarq.1 wrote:\n\n>\n\n> Hi, two years ago I posted this thread:\n\n>\n\n> [Solved: How to set \"Don't fragment\" flag LWIP short TCP pa... - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus-products/how-to-set-quot-don-t-fragment-quot-flag-lwip-short-tcp-paquets/td-p/572085)\n\n>\n\n> Now I just was reviewing it for another application that truly needed to send more data and was not allowed to wait 50ms for every sent packet.\n\n>\n\n> **Final root cause explanation**\n\n>\n\n> The 415-byte packets were being ACKed after ~40–50 ms because I was only sending one TCP segment at a time and waiting for it to be acknowledged within my application code, before sending the next one.\n\n>\n\n> This behavior is due to the **TCP Delayed ACK algorithm** implemented by Windows. When Windows receives a single TCP segment smaller than the MSS, it does not immediately send an ACK. Instead, it waits approximately 40–50 ms before acknowledging it.\n\n>\n\n> This behavior is described in **RFC 1122, section 4.2.3.2 (\"When to Send an ACK Segment\")**, which explains that a TCP implementation may delay sending an ACK in order to reduce protocol overhead.\n\n>\n\n> If a second TCP segment is received before the delayed ACK timer expires, Windows immediately sends a single ACK acknowledging both segments.\n\n>\n\n> After modifying my implementation to send two TCP segments consecutively (without waiting for the first ACK), Windows responds immediately with a combined ACK, and the 40–50 ms delay disappears.\n\n>\n\n> So the issue was not related to *Don't fragment* flag, LwIP configuration, MSS, or buffer sizes, but rather to my application-level logic implementing a stop-and-wait pattern on top of TCP.\n\n>\n\n> Sorry for getting you confused.\n\n>\n\n> Best regards.\n\n>\n\n> ---\n\nThank you very much for your detailed explanation and for sharing your findings. I truly appreciate the time you took to clarify the root cause and how the TCP Delayed ACK algorithm affected your application. Your insights are very helpful and clear, and I’m grateful for your effort in revisiting this issue and providing the update.\n\nTo make this post more visible and easier to find by others who may face the same issue, I mark my reply as the solution.\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi, two years ago I posted this thread:\n\n[Solved: How to set \"Don't fragment\" flag LWIP short TCP pa... - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus-products/how-to-set-quot-don-t-fragment-quot-flag-lwip-short-tcp-paquets/td-p/572085)\n\nNow I just was reviewing it for another application that truly needed to send more data and was not allowed to wait 50ms for every sent packet.\n\n**Final root cause explanation**\n\nThe 415-byte packets were being ACKed after ~40–50 ms because I was only sending one TCP segment at a time and waiting for it to be acknowledged within my application code, before sending the next one.\n\nThis behavior is due to the **TCP Delayed ACK algorithm** implemented by Windows. When Windows receives a single TCP segment smaller than the MSS, it does not immediately send an ACK. Instead, it waits approximately 40–50 ms before acknowledging it.\n\nThis behavior is described in **RFC 1122, section 4.2.3.2 (\"When to Send an ACK Segment\")**, which explains that a TCP implementation may delay sending an ACK in order to reduce protocol overhead.\n\nIf a second TCP segment is received before the delayed ACK timer expires, Windows immediately sends a single ACK acknowledging both segments.\n\nAfter modifying my implementation to send two TCP segments consecutively (without waiting for the first ACK), Windows responds immediately with a combined ACK, and the 40–50 ms delay disappears.\n\nSo the issue was not related to *Don't fragment* flag, LwIP configuration, MSS, or buffer sizes, but rather to my application-level logic implementing a stop-and-wait pattern on top of TCP.\n\nSorry for getting you confused.\n\nBest regards.",
+            "images": [],
+            "author": "JMarq.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"55146\">@JMarq.1</user-mention> ,</p>\n<blockquote><hr/><user-mention data-id=\"55146\">@JMarq.1</user-mention> wrote:<br/>\n<p>Hi, two years ago I posted this thread:</p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus-products/how-to-set-quot-don-t-fragment-quot-flag-lwip-short-tcp-paquets/td-p/572085\" target=\"_blank\">Solved: How to set \"Don't fragment\" flag LWIP short TCP pa... - STMicroelectronics Community</a></p>\n<p>Now I just was reviewing it for another application that truly needed to send more data and was not allowed to wait 50ms for every sent packet.</p>\n<p><strong>Final root cause explanation</strong></p>\n<p>The 415-byte packets were being ACKed after ~40–50 ms because I was only sending one TCP segment at a time and waiting for it to be acknowledged within my application code, before sending the next one.</p>\n<p>This behavior is due to the <strong>TCP Delayed ACK algorithm</strong> implemented by Windows. When Windows receives a single TCP segment smaller than the MSS, it does not immediately send an ACK. Instead, it waits approximately 40–50 ms before acknowledging it.</p>\n<p>This behavior is described in <strong>RFC 1122, section 4.2.3.2 (\"When to Send an ACK Segment\")</strong>, which explains that a TCP implementation may delay sending an ACK in order to reduce protocol overhead.</p>\n<p>If a second TCP segment is received before the delayed ACK timer expires, Windows immediately sends a single ACK acknowledging both segments.</p>\n<p>After modifying my implementation to send two TCP segments consecutively (without waiting for the first ACK), Windows responds immediately with a combined ACK, and the 40–50 ms delay disappears.</p>\n<p>So the issue was not related to <em>Don't fragment</em> flag, LwIP configuration, MSS, or buffer sizes, but rather to my application-level logic implementing a stop-and-wait pattern on top of TCP.</p>\n<p>Sorry for getting you confused.</p>\n<p>Best regards.</p>\n<hr/></blockquote>\n<p>Thank you very much for your detailed explanation and for sharing your findings. I truly appreciate the time you took to clarify the root cause and how the TCP Delayed ACK algorithm affected your application. Your insights are very helpful and clear, and I’m grateful for your effort in revisiting this issue and providing the update.</p>\n<p>To make this post more visible and easier to find by others who may face the same issue, I mark my reply as the solution.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

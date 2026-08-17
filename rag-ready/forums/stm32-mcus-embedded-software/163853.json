@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "163853",
+            "publicId": "163853",
+            "title": "STM32F303VET6 Jump to Bootloader",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f303vet6-jump-to-bootloader-163853",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bootloader",
+                "USB",
+                "STM32F3 series"
+            ],
+            "published_at": "2026-03-16T16:08:40+00:00",
+            "views": 244,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Interrupts need to be enabled.\n\nDon't jump from within an interrupt.\n\nHere is working jump to bootloader code:\n\n[How to jump to system bootloader from application ... - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424)",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nAs part of a new project, I'd like to use DFU mode for programming my STM32F303VET6.\n\nI have a button that controls BOOT0. If the button is pressed during the microcontroller reset, there's no problem; I successfully enter DFU mode and can reprogram without any issues.\n\nI'd like to be able to perform this step without any physical intervention on the board, but rather by creating a 'jump' from my application to the internal ST Bootloader.\n\nMy board is connected to the PC via a CDC connection. Using HyperTerminal, I send a command that calls a JumptoBootloader function.\n\nMy function is as follows:\n\n```\n\nvoid JumpToBootloader(void)\n\n{\n\n// 1. Stop USB peripheral\n\nRCC->APB1ENR &= ~RCC_APB1ENR_USBEN; // Disable USB clock\n\nRCC->APB1RSTR |= RCC_APB1RSTR_USBRST; // Reset USB\n\nRCC->APB1RSTR &= ~RCC_APB1RSTR_USBRST;\n\n// 2. Put USB pins (PA11/PA12) in analog mode\n\nRCC->AHBENR |= RCC_AHBENR_GPIOAEN;\n\nGPIOA->MODER |= (3U << (11 * 2)) | (3U << (12 * 2)); // Analog mode\n\n// 3. Disable all interrupts\n\n__disable_irq();\n\nfor (int i = 0; i < 8; i++)\n\nNVIC->ICER[i] = 0xFFFFFFFF;\n\n// 4. Stop SysTick\n\nSysTick->CTRL = 0;\n\nSysTick->LOAD = 0;\n\nSysTick->VAL = 0;\n\n// 5. Reset clock configuration\n\nHAL_RCC_DeInit();\n\n__DSB();\n\n// 6. Set MSP to bootloader's initial stack pointer\n\nuint32_t bootloader_addr = 0x1FFF0000; // System Memory for STM32F303\n\nuint32_t msp = *(volatile uint32_t *)bootloader_addr;\n\n__set_MSP(msp);\n\n// 7. Optional: set vector table offset\n\nSCB->VTOR = bootloader_addr;\n\n// 8. Jump to bootloader reset handler\n\nvoid (*bootloader)(void);\n\nbootloader = (void (*)(void)) (*(volatile uint32_t *)(bootloader_addr + 4));\n\nbootloader();\n\n}\n\n```\n\nUnfortunately, I can't debug it. All I know is that the card seems to be malfunctioning; the USB connection is no longer recognized, and no device is visible in Windows Device Manager after unplugging and replugging the USB cable.\n\nDo you have any ideas?",
+            "images": [],
+            "author": "DNA-)",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Interrupts need to be enabled.</p><p>Don't jump from within an interrupt.</p><p> </p><p>Here is working jump to bootloader code:</p><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424\" target=\"_blank\">How to jump to system bootloader from application ... - STMicroelectronics Community</a></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "164252",
+            "publicId": "164252",
+            "title": "What clock need to enabled for SDMMC1?",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/what-clock-need-to-enabled-for-sdmmc1-164252",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "SDIO-SDMMC",
+                "Other boards",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-27T20:49:31+00:00",
+            "views": 369,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @PatrickF\n\nHere is the feedback.\n\nLDO2 was connected to both VDDIO\\_SDMMC1 and VDD\\_SDMMC1. Did not work.\n\nI copy the node &sdmmc1 from DK. LDO2 drives VDDIO\\_SDMMC1 and BUCK7 drives VDD\\_SDMMC1.\n\nLinux is now booting.",
+            "best_answer_author": "DMårt",
+            "best_answer_author_role": "",
+            "content_text": "Hi!\n\nI have a STM32MP257F processor. The clock for SDMMC1 is constant at 3.3V. Therefore the U-boot cannot read the SD-card.\n\nMy question is: What clock need to be active/chosed in the device tree so it u-boot can read the SD-card sdmmc1?\n\n```\n\nHit any key to stop autoboot: 0\n\nBoot over mmc0!\n\nSaving Environment to MMC... stm32_sdmmc2 mmc@48220000: stm32_sdmmc2_getcd called\n\nstm32_sdmmc2 mmc@48220000: bus_with = 1, clock = 0\n\nstm32mp25_reset clock-controller@44200000: reset id=69 offset=0x830 bit=0 status=1\n\nstm32mp25_reset clock-controller@44200000: reset id=69 offset=0x830 bit=0 status=0\n\nD/TC:? 0 tee_ta_init_session_with_context:562 Re-open trusted service a8cfe406-d4f5-4a2e-9f8d-a25dc754c099\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x3 ptypes 0x3\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x4 ptypes 0x651\n\nF/TC:? 0 regulator_disable:142 v3v3\n\nD/TC:? 0 tee_ta_close_session:465 csess 0x8212f890 id 1\n\nD/TC:? 0 tee_ta_close_session:484 Destroy session\n\nD/TC:? 0 tee_ta_init_session_with_context:562 Re-open trusted service a8cfe406-d4f5-4a2e-9f8d-a25dc754c099\n\nF/TC:? 0 plat_prng_add_jitter_entropy:74 0xA7\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x3 ptypes 0x3\n\nF/TC:? 0 pta_scmi_invoke_command:404 SCMI command 0x4 ptypes 0x651\n\nF/TC:? 0 regulator_enable:94 v3v3\n\nD/TC:? 0 tee_ta_close_session:465 csess 0x8212f890 id 1\n\nD/TC:? 0 tee_ta_close_session:484 Destroy session\n\nstm32_sdmmc2 mmc@48220000: bus_with = 1, clock = 0\n\nstm32_sdmmc2 mmc@48220000: bus_with = 1, clock = 400000\n\nstm32_sdmmc2 mmc@48220000: send cmd 0 data: 0x0 @ 0x0000000000000000\n\nstm32_sdmmc2 mmc@48220000: timeout reading SDMMC_STA register\n\nstm32_sdmmc2 mmc@48220000: send STOP command to abort dpsm treatments\n\nstm32_sdmmc2 mmc@48220000: timeout reading SDMMC_STA register\n\nstm32_sdmmc2 mmc@48220000: end for CMD 0, ret = -110\n\nNo block device\n\nFailed (1)\n\n```",
+            "images": [],
+            "author": "DMårt",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"642\">@PatrickF</user-mention> </p><p> </p><p>Here is the feedback.</p><p>LDO2 was connected to both VDDIO_SDMMC1 and VDD_SDMMC1. Did not work.</p><p> </p><p>I copy the node &amp;sdmmc1 from DK. LDO2 drives VDDIO_SDMMC1 and BUCK7 drives VDD_SDMMC1.</p><p>Linux is now booting.</p><p> </p></div>",
+                    "author": "DMårt",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI <user-mention data-id=\"44549\">@DMårt</user-mention> </p>\n<p> </p>\n<ul>\n<li>SDMMC1 bus clock is from FlexClkGen channel 1 (ck_icn_sdmmc --&gt; ck_icn_m_sdmmc1). max 200MHz</li>\n<li>SDMMC1 kernel clock is from FlexClkGen channel 51 (ck_ker_sdmmc1). Max 200MHz</li>\n</ul>\n<p>on our board DT, come from PLL4 (1200 MHz from HSE)</p>\n<p><a href=\"https://wiki.st.com/stm32mpu/wiki/Clock_device_tree_configuration#STM32MP2_series_for_A35-TD_flavor\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/Clock_device_tree_configuration#STM32MP2_series_for_A35-TD_flavor</a></p>\n<p> </p>\n<p>As I see in the log that clock is set to bus width 1 and 400kHz (this is normal during card discovery/init), maybe clock tree is correct.</p>\n<pre class=\"lia-code-sample line-numbers language-c\" tabindex=\"0\"><code>stm32_sdmmc2 mmc@48220000: bus_with = 1, clock = 400000</code></pre>\n<p>If clock is still not present on pin, please cross-check your pinmux.</p>\n<p> </p>\n<p>Regards.</p>\n<p> </p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"642\">@PatrickF</user-mention> </p><p>I have activated the clock and still no success. Instead, I got some new messages. </p><p>Can you scroll through this and see if you seeing som interesting why the SDMMC1 returns -110 = Time out?</p><p>The clock works at TF-A, but not in U-boot. The Clock of SDMMC1 is constant 3.3V.</p><p>I think it might be optee that is not giving any access to the GPIO pins.</p><p>See the attached .txt file.</p><p> </p><p>Note: I'm using no-1-8-v in my DT for SDMMC1. I'm planning to use constant 3.3V at pull-up. perhaps this is the issue?</p></div>",
+                    "author": "DMårt",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>SD-Card will work with 3.3V I/Os, just the UHS-I speed will not be available (but here seems to block before any negotiation). <br/>Warning: If you play with VDDIO1VRSEL to set IOs for 1.8V operation while you still have 3.3V supply, this could destroy the IOs.</p>\n<p>Please note that in addition to security concerns, the IOs domain supplied by VDDIO1 should be enabled by VDDIO1SV bit (but this is done by BootROM in case of SD-Card boot).</p>\n<p> </p>\n<p>as BootROM and TF-A are accessing SD-Card, and the fail only occurs on uBoot, the HW should be OK.</p>\n<p> </p>\n<p>Maybe compare your DT with those of STM32MP257F-EV1 or -DK as boot starter package from SD-Card is done natively.<br/><br/><a href=\"https://wiki.st.com/stm32mpu/wiki/STM32_MPU_device_tree#STM32MP2_series\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/STM32_MPU_device_tree#STM32MP2_series</a></p>\n<p> </p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

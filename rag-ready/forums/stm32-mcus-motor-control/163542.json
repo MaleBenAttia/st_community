@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "163542",
+            "publicId": "163542",
+            "title": "EVSPIN32G4: Current sense feedback resistor values",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/evspin32g4-current-sense-feedback-resistor-values-163542",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "MCSDK6",
+                "Motor Pilot",
+                "FOC",
+                "MC workbench"
+            ],
+            "published_at": "2026-03-06T15:25:26+00:00",
+            "views": 496,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Seems you could try this, with 150k + 2x 300k , to get a 2A max. range (about) . But you get high impedance then, very sensitive to stray in.\n\n![Bildschirmfoto_2026-03-09_12-34-24.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41ca95da-bc6a-671b-41b7-9fe48f368485.png \"Bildschirmfoto_2026-03-09_12-34-24.png\")\n\nBut why not reducing the input of the diff-amp , R44 + 50 ?  try 1k5 -> 150 r , so you get 10x gain and 1/10 current range; you really need only so low range ?",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "I all,\n\nI have a question regarding the EVSPIN32G4 board, specifically concerning the feedback resistors used in the current sensing network (default value: 11 kΩ).\n\nI am considering replacing them with 150 kΩ resistors. My main concern is whether this significant change will trigger the Overcurrent Protection (OCP) prematurely or cause stability issues with the internal op-amps.\n\nHas anyone experimented with such values, or are there specific hardware limitations I should be aware of?\n\nBest regards, Jules",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41ca95da-bc6a-671b-41b7-9fe48f368485.png"
+            ],
+            "author": "JulesC",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>just : WHY you want <span>replacing them with 150 kΩ ? ( = this spoils the opamp bridge. )</span></p><p><span>+</span></p><p><span>Now -with 11k - the current measuring range of the opamp -&gt; ADC is about 0...50A ;</span></p><p><span>this matches the capability of the board (and the 100A mosfets) quite good;</span></p><p><span>your change would spoil the opamp bridge and give a range of about 0...3 A , what seems quite useless to me.</span></p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"34409\">@AScha.3</user-mention>,</p><p>Thanks for the response.</p><p>I thought I could get better precision because I don't need such a wide range, as I am operating with small motors. But, based on what you’re saying, it seems I would be sacrificing stability or hitting the op-amp's limits ? Even if I change the resistors R41 &amp; R47 to 300kOhm ?</p><p> </p><p> </p></div>",
+                    "author": "JulesC",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Seems you could try this, with 150k + 2x 300k , to get a 2A max. range (about) . But you get high impedance then, very sensitive to stray in.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bildschirmfoto_2026-03-09_12-34-24.png\" style=\"width: 576px;\"><img alt=\"Bildschirmfoto_2026-03-09_12-34-24.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41ca95da-bc6a-671b-41b7-9fe48f368485.png\" title=\"Bildschirmfoto_2026-03-09_12-34-24.png\"/></span></p><p>But why not reducing the input of the diff-amp , R44 + 50 ?  try 1k5 -&gt; 150 r , so you get 10x gain and 1/10 current range; you really need only so low range ?</p><p> </p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

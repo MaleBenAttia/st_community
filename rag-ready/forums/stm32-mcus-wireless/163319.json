@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "163319",
+            "publicId": "163319",
+            "title": "BlueNRG-M2 not responding to SPI on custom STM32U5 PCB",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/bluenrg-m2-not-responding-to-spi-on-custom-stm32u5-pcb-163319",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "BLE Mesh",
+                "Low power RF solutions"
+            ],
+            "published_at": "2026-03-01T21:12:46+00:00",
+            "views": 661,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "It seems like the BlueNRG module's crystal was dead.\n\nI programmed it with the GPIO example code available in the DK and debugging it I saw that it stopped when initializing the HS crystal. I am know trying with another module and SPI seems to be alive",
+            "best_answer_author": "Jaume",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi all,\n\nI recently designed and built a custom PCB for data acquisition and transmission through bluetooth using an STM32U575 as the main MCU and a BlueNRG-M2SA module for bluetooth data transmission configured as a Network Coprocessor. They are connected via SPI following the pinout on the BlueNRG-M2 datasheet and also looking at the X-NUCLEO-BNRG2A1 schematics. The BlueNRG-M2SA is connected to an external connector via SWD for flashing using an STLink-V3Minie. Resistor R13 is not usually soldered and is just used to enable the bootloader during image flashing. Schematic for the BlueNRG-M2 on the custom PCB provided below:\n\n![BlueNRG-M2_Schematics.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/94789856-a02c-a4cc-2396-1aa883fb608b.jpg \"BlueNRG-M2_Schematics.jpg\")The problem is that I have not been able to achieve communication between the STM32U575 and the BlueNRG-2 module as whenever the main MCU waits for the IRQ signal from the BlueNRG-M2, it doesn't receive any and therefore returns BLE\\_STATUS\\_TIMEOUT and gets stuck after aci\\_hal\\_set\\_tx\\_power\\_level() during Device\\_init(). I have tried uploading different DTM images to the BlueNRG module, the ones on the BlueNRG-M2 website, both 2.1c & 2.1e and the ones provided with the BlueNRG-1\\_2 DK 3.2.3: DTM\\_SPI\\_M2SA.hex and also the NO\\_UPDATER version. On the MCU side, I am using the X-Cube-BLE2 middleware pack with HCI\\_TL set to Basic and HCI\\_TL\\_INTERFACE set to UserBoard and I have tried both the Beacon and SensorDemoBLE applications.\n\nNone of the previous has worked and I still get the same error always which seems to be that the BlueNRG-M2 is not generating the IRQ signal. I attach the STM32CubeIDE project I'm using to test just the BLE.\n\nI have checked all suply voltages and they are correct for the MCU & the BlueNRG, they are both supplied with 3.3V.\n\nIf anyone knows something about this problem or knows any solution I will be grateful as I have been trying to solve this for more than two months. Also ask me for any additional information you might want to know about my build or configuration.\n\nThanks for the help!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/94789856-a02c-a4cc-2396-1aa883fb608b.jpg"
+            ],
+            "author": "Jaume",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum.</p><p>Please see <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" target=\"_blank\" title=\"How to write your question to maximize your chances to find a solution\">How to write your question to maximize your chances to find a solution</a></em> for best results.</p><p> </p><p>Please show the full schematic - including the STM32.</p><p>Before committing to a custom PCB, have you got this working on known-good hardware; eg, the <span> X-NUCLEO-BNRG2A1 with an STM32U5 Nucleo board?</span></p><p>Have you used an oscilloscope to verify your SPI signal integrity?</p><p>Have you used an analyser to verify your SPI comms?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I attach the full schematic including the STM32 and the BlueNRG-M2. The project has two other schematic pages but are not related to the problem and are not connected to the BlueNRG-M2, they are additional sensors and external connectors.</p><p>I did not test with the X-NUCLEO-BNRG2A1 due to time and resource limitations but anyway, as I connected the BlueNRG-M2 module as in the X-NUCLEO-BNRG2A1 board and the only connection with the STM32 was via the standard SPI protocol and an External Interrupt, I didn't expect there to be any problem regarding the physical connections. However, I fully understand that this would have been a wise step to try before building the custom PCB.</p><p>I don't currently have access neither to an oscilloscope nor a logic analyzer but I should get access to an osciloscope in the following days with which I plan to look at SPI signal integrity and also the physical IRQ signal. I will update when I have that measured.</p></div>",
+                    "author": "Jaume",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have finally gotten access to an Oscilloscope and the results are attached. As I imagined, the BlueNRG doesn't seem to produce the IRQ signal. The setup has been the same as I stated on the post, the BlueNRG-M2SA is flashed with the DTM_SPI_M2SA.hex provided in <span>BlueNRG-1_2 DK 3.2.3 and the STM32 is flashed with the project I also provided in the initial post. The attached images show the following:</span></p><ol><li><span><strong>CS_IRQ.JPG</strong>: The yellow signal shows the CS signal from power-up while the blue signal is the IRQ or the DIO7 pin from the BlueNRG. The IRQ signal stays at 0V during the whole timespan. The CS signal is set low for 400ms, corresponding to the TIMEOUT_DURATION variable in <em>hci_tl_interface.c</em>. This happens a total of two times and afterwards stays constant at 3.3V. I have interpreted that these correspond to the <em>hci_reset()</em> and <em>aci_hal_set_tx_power_level(1,4)</em> when the STM32 tries to communicate with the BlueNRG-M2. Also the spacing between these two is 3 seconds, corresponding to the 1 second from TIMEOUT_IRQ_HIGH and 2 seconds as a delay between instructions.</span></li><li><strong>CS_RST.JPG</strong>: Here the yellow signal is CS and the blue one is RST signal. The STM32 correctly resets the BlueNRG-M2 before pulling the CS pin low which corresponds to the reset performed when <em>hci_init()</em> is called.</li><li><strong>SPI_MOSI_SCK.JPG</strong>: As the STM32 does not read an IRQ signal, it never starts sending any data via SPI if I interpreted the code correctly. Therefore, to check that the SPI would work fine, I wrote a separate code that sent a short message through SPI. The image shows the MOSI signal in yellow and the SCK signal in blue. Apparently the signals look good.</li></ol><p>So after these tests I think I can conclude that the STM32 is working as expected but the BlueNRG-M2 is not generating the needed IRQ signal indicating that it is ready to communicate. If you need me to measure something else let me know and I will.</p></div>",
+                    "author": "Jaume",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It seems like the BlueNRG module's crystal was dead.</p><p>I programmed it with the GPIO example code available in the DK and debugging it I saw that it stopped when initializing the HS crystal. I am know trying with another module and SPI seems to be alive</p></div>",
+                    "author": "Jaume",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

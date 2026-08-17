@@ -1,0 +1,94 @@
+{
+    "forum": [
+        {
+            "id": "165819",
+            "publicId": "165819",
+            "title": "Initial programming via USB (DFU) without external crystal - Specifically for STM32C071K8U6",
+            "url": "https://community.st.com/stm32-mcus-products-25/initial-programming-via-usb-dfu-without-external-crystal-specifically-for-stm32c071k8u6-165819",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "USB",
+                "STM32C0 series"
+            ],
+            "published_at": "2026-05-19T21:25:30+00:00",
+            "views": 290,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hi @Ricko\n\nThe STM32C071K8U6 can use its built-in USB DFU bootloader without requiring an external crystal. The device uses its internal HSI48 oscillator, and the CRS ensures the oscillator is accurate enough for USB device operation.\n\nThe STM32C071K8U6 USB DFU bootloader operates at USB Full Speed. You can refer to AN2606.\n\nAbout required hardware connections for USB DFU programming, you can refer to schematics provided on our reference board. If VBUS is not connected or not sensed properly, the ROM bootloader may **not enumerate over USB** as expected.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi all,\n\nI'm planning to use USB (DFU mode) for production programming of the STM32C071K8U6 — including the very first firmware upload. The board has no external crystal; I intend to rely solely on the internal RC oscillator.\n\nA few questions:\n\n**1) Is USB DFU feasible on this specific part without an external crystal?** I've read that not all STM32 variants support USB boot without an external crystal (due to clock accuracy requirements for USB). Can anyone confirm whether the STM32C071K8U6's internal oscillator is sufficiently accurate for this?\n\n**2) Are there any specific hardware or configuration requirements** I should be aware of for first-time USB DFU programming on this part? As the moment I just have the two USB traces connected to the USB connector but no 5V (VBUS) connected anywhere to the micro. I also have a pushbutton on the BOOT0 pin.\n\n**3) What USB speed does the built-in bootloader use, and is it possible to force a lower speed?** The reason I ask is that the USB D+/D− lines have relatively long stubs — because after programming, these traces are repurposed for other functionality and never for USB, so they branch out to various areas of the PCB. USB is used exclusively for programming, and I'd like to understand whether the stub lengths could be problematic and whether reducing the speed would help mitigate signal integrity issues.\n\nThank you in advance",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/56fd41e8-eb15-b0f0-951f-73a8a5859b56.png"
+            ],
+            "author": "Ricko",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"76854\">@Ricko</user-mention> wrote:<br/><p class=\"\">I'm planning to use USB (DFU mode) for production programming of the STM32C071K8U6 — including the very first firmware upload.</p><hr/></blockquote><p>For the very first firmware load, you would have to rely on the built-in System bootloader - so see Application Notes: </p><p><a href=\"https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>AN2606</strong></a>, <em>Introduction to system memory boot mode on STM32 MCUs</em>.</p><p><a href=\"https://www.st.com/resource/en/application_note/an3156-how-to-use-usb-dfu-protocol-in-bootloader-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>AN3156</strong></a>, <em>How to use USB DFU protocol in bootloader on STM32 MCUs</em>.</p><p><a href=\"https://www.st.com/resource/en/application_note/an5673-getting-started-with-stm32c0-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>AN5673</strong></a>, Getting started with STM32C0 MCU hardware development.</p><p><a href=\"https://www.st.com/resource/en/application_note/an4879-introduction-to-usb-hardware-and-pcb-guidelines-using-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>AN4879</strong></a>, <em>Introduction to USB hardware and PCB guidelines using STM32 MCUs</em>.</p><p> </p><p>Also: <a href=\"https://wiki.st.com/stm32mcu/wiki/Introduction_to_USB_with_STM32\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mcu/wiki/Introduction_to_USB_with_STM32</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As <user-mention data-id=\"35659\">@Andrew Neil</user-mention> said above, you'll find all answers to your questions in the documents he listed. I'd just want to add some details:</p><p>&gt; Can anyone confirm whether the STM32C071K8U6's internal oscillator is sufficiently accurate for this?</p><p>The 'C071 DFU bootloader does not need an external crystal or external crystal oscillator.</p><p>The internal oscillator (HSI48) in itself wouldn't be sufficiently accurate, but it uses what ST calls <em>clock recovery system (CRS)</em>, which esentially is a PLL which locks the HSI48 to the incoming USB signal (more exactly to the 1ms SOF timestamps). So, with this PLL/lock, the internal oscillator is then sufficiently precise and stable for USB FS operation.</p><p>&gt; What USB speed does the built-in bootloader use, and is it possible to force a lower speed?</p><p>Full Speed (i.e. 12MBaud). The USB device module in 'C071 does not support other speed. The only lower speed would be Low Speed (1.5MBaud), but no STM32 USB device supports that.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"76854\">@Ricko</user-mention> </p>\n<p><span>The STM32C071K8U6 can use its built-in USB DFU bootloader without requiring an external crystal. The device uses its internal HSI48 oscillator, and the CRS ensures the oscillator is accurate enough for USB device operation.</span></p>\n<p><span>The STM32C071K8U6 USB DFU bootloader operates at USB Full Speed. You can refer to AN2606.</span></p>\n<p><span>About </span>required hardware connections for USB DFU programming, you can refer to schematics provided on our reference board. If VBUS is not connected or not sensed properly, the ROM bootloader may<span> </span><strong>not enumerate over USB</strong><span> </span>as expected.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2057\">@FBL</user-mention> ,</p><p>&gt; you can refer to schematics provided on our reference board</p><p>Which board in this case is the reference board you're referring to?</p><p>&gt; If VBUS is not connected or not sensed properly, the ROM bootloader may not enumerate over USB as expected.</p><p>There's no pin listed in AN2606 to connect VBUS to.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p>\n<p>I answered 2 questions here </p>\n<p class=\"\"><strong>2) Are there any specific hardware or configuration requirements</strong></p>\n<p class=\"\"><strong>I meant he can refer to <a href=\"https://www.st.com/resource/en/schematic_pack/mb2046-c071rb-b03-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">MB2046</a> </strong></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FBL_0-1779274083951.png\" style=\"width: 400px;\"><img alt=\"FBL_0-1779274083951.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/56fd41e8-eb15-b0f0-951f-73a8a5859b56.png\" title=\"FBL_0-1779274083951.png\"/></span></p>\n<p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2057\">@FBL</user-mention> ,</p><p> </p><p>thanks for the explanation. I wasn't aware of the fact that Nucleo64 now contain more than the bare chip and STLink, so I looked at the 144 Nucleos, there's no 'C0 there (logically, but I gave it a try).</p><p>(Btw, pity that ST decided to remove the infographics which contained *all* Nucleos at one place, which was very convenient to find the proper board to start with. The multiple subpages are very clumsy to navigate. In that infographics, it would be also very easy to indicate (using graphical symbols or in color), which of the boards do contain extra circuitry such as the USB here.)</p><p>I still don't think the factory bootloader does detect VBUS. I believe that would be documented in AN2606, wouldn't it?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yess <user-mention data-id=\"17162\">@waclawek.jan</user-mention> , I got the confirmation, vbus sensing is not required. An internal ticket CDM0062785 is submitted to add this info in AN2606.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you all for the feedback! :) </p></div>",
+                    "author": "Ricko",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

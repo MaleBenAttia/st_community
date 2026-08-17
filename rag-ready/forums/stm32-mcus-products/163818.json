@@ -1,0 +1,100 @@
+{
+    "forum": [
+        {
+            "id": "163818",
+            "publicId": "163818",
+            "title": "STM32U585OIY6QTR ADC reading garbage values",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u585oiy6qtr-adc-reading-garbage-values-163818",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32CubeMX",
+                "ADC",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-03-16T03:19:22+00:00",
+            "views": 898,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Thanks you for the reminder.\n\nFinally, i found the root cause. I use the \"erase full chip memory\" function of Cube programmer to restore all option byte, and didn't check the actual value of TZEN, so TZEN is opened when i did the test. The correct method to close the TrustZone is set RDP first and close TZEN.",
+            "best_answer_author": "Francis_Fu",
+            "best_answer_author_role": "",
+            "content_text": "I am planning to do an aging test which need capture the voltage of a net, but i found STM32U585OIY6QTR report a value about 40 while the actual voltage of ADC channel is close to VREF.\n\nThen i write a simple ADC demo to verify ADC configuration, and run my code on B-U585I-IOT02A board(based on STM32U585AII6Q), it report a correct value, but the same code report a wrong value on my board.I use ADC1  CHANNEL2(GPIOC GPIO\\_PIN\\_1) on both board.\n\nThe only difference between B-U585I-IOT02A and my hardware is the different VREF i think(B-U585I-IOT02A use 3.3V, but my board use 2.5V).\n\nIs there any difference on ADC usage between STM32U585AII6Q and STM32U585OIY6QTR?\n\nYou can find my ioc file and code in attachment, can anyone help me check my configuration?\n\n![Image20260316112201.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d65bd310-22e7-6c29-4ea2-1f3bf37350c3.png \"Image20260316112201.png\")![Image20260316112207.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3608b59d-0015-efb6-f9e5-69cdc85f8edd.png \"Image20260316112207.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d65bd310-22e7-6c29-4ea2-1f3bf37350c3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3608b59d-0015-efb6-f9e5-69cdc85f8edd.png"
+            ],
+            "author": "Francis_Fu",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Thanks you for the reminder.</p><p>Finally, i found the root cause. I use the \"erase full chip memory\" function of Cube programmer to restore all option byte, and didn't check the actual value of TZEN, so TZEN is opened when i did the test. The correct method to close the TrustZone is set RDP first and close TZEN.</p></div>",
+                    "author": "Francis_Fu",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Frankly speaking, your descriptions and your results can't match.</p><p>As your code did not work on your board, you may do simple test on your board - to measure 0V and Vref first to see if OK or not - to ensure your board (hardware) is OK first.</p></div>",
+                    "author": "jiangfan",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your reply!</p><p>Sure, I fogot to add these message. This ADC channel return a value about 40 when connected to 0V and VDDA, it doesn't change according to channel voltage.</p><p>Actually, i have a project with trustzone enabled shows that hardware have no issue, but i don't have the source code.</p></div>",
+                    "author": "Francis_Fu",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>According to your explanation, you use same code on <span>B-U585I-IOT02A board (based on STM32U585AII6Q) and your board (STM32U585OIY6QTR), you need to ensure that the ADC channel and GPIO pin (you did not share such information) are the same between 2 boards. So, you may check and ensure same the ADC channel and GPIO pin.</span></p></div>",
+                    "author": "jiangfan",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Is your board designed correctly? Is there a cap on VDDA/VREF+ and is the voltage buffer enabled? Show schematic if you can.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your reply!</p><p>Actually, i have a project with trustzone enabled shows that hardware have no issue, but i don't have the source code.</p><p>So, this issue more likely to caused by configuration.</p></div>",
+                    "author": "Francis_Fu",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>&gt;&gt; <em>\"The only difference between B-U585I-IOT02A and my hardware is the different VREF i think(B-U585I-IOT02A use 3.3V, but my board use 2.5V).\"</em></p>\n<p>In your code I see :</p>\n<p>/* Value of analog reference voltage (Vref+), connected to analog voltage */<br/>/* supply Vdda (unit: mV). */<br/>#define VDDA_APPLI (3300UL). Maybe you have to update to #define VDDA_APPLI (2500UL)</p>\n<p>Another thing I see in the code, is that the ADC1 input frequency is on the low end (HSI16 / ADC presc 2 = 8MHz). Too high or too low frequency may give wrong reading, don't know if this is the case here, but please check the STM32U585 datasheet.</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Mike_ST",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK, in the end it turns out that the issue was due to <span>TrustZone security (TZEN = 1). The issue description is in line with behavior of TrustZone not properly treated.</span></p></div>",
+                    "author": "jiangfan",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "jiangfan",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "jiangfan",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Mike_ST",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "jiangfan",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

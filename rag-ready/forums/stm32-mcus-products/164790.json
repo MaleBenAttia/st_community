@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "164790",
+            "publicId": "164790",
+            "title": "Transition from onboard RAM to external SRAM for STM32H753",
+            "url": "https://community.st.com/stm32-mcus-products-25/transition-from-onboard-ram-to-external-sram-for-stm32h753-164790",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FMC-FSMC",
+                "RAM",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-15T20:15:40+00:00",
+            "views": 213,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @RandyB\\_42 and welcome to the ST community,\n\nIndeed that's possible but you need to consider two thinhs:\n\n1- The FMC and the corresponding GPIOs needs to be intilized before to jump to main (at the scatter load phase).\n\nFor example in the examples provided in the CubeH7, there are the following defines: **DATA\\_IN\\_ExtSRAM** and **DATA\\_IN\\_ExtSDRAM**.\n\nEach one activates the initialisation of an external memeory: SRAM or SDRAM.\n\nLook at system\\_stm32h7xx.c implementation for STM32H743-Eval board especially the implemzntation of:\n\n```\n\nvoid SystemInit_ExtMemCtl(void)\n\n```\n\nIt initilizes the GPIOs and the FMC interface of the external RAM memories on the STM32H743-Eval board. That SystemInit\\_ExtMemCtl() is called before the main().\n\nYou can refer to the example provided in the STM32CubeH7 package: <https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Examples/FMC/FMC_SDRAM_DataMemory>.\n\n2- The data read/write relocation needs to be done with the linker file.\n\nRefer to the [X-CUBE-PERF-H7](https://www.st.com/en/embedded-software/x-cube-perf-h7.html) and open the project *\"6 - D1\\_ITCM - D1\\_SDRAM\"* the code is located in ITCM and all the data are located in SDRAM. So refer to that project linker file implementation. The application note linked to that X-CUBE-PERF-H7 package is the *[AN4981](https://www.st.com/content/ccc/resource/technical/document/application_note/group0/0d/b5/e7/b7/47/0c/4a/ae/DM00306681/files/DM00306681.pdf/jcr:content/translations/en.DM00306681.pdf) \"STM32H72x, STM32H73x, and single-core STM32H74x/75x*\n\n*system architecture and performance\"*. You can find valuable information there.\n\nHope that answers your question.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am working on a new design using the using the STM32H753XIH6.  The microcontroller has 1Mbyte of RAM onboard.  The software requirement calls for 4Mbyte of RAM.  I plan to add 4Mbyte of SRAM using the FMC parallel bus.  How does the STM32H753 handle the transition from onboard RAM to off chip RAM data?  Any tips or recommendations for implementing the design?\n\nI have also wondered how this same situation would be handled with the FLASH portion of the memory, but that might call for another thread to be started for that answer.\n\nThank you",
+            "images": [],
+            "author": "RandyB_42",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>TL;DR the FMC of STM32H7 allows what you want. Note that it consumes many pins. Choose a suitable MCU variant. For external flash: FMC again (parallel flash) or QSPI.</p><p>The best way to start: get a<a href=\"https://www.st.com/en/evaluation-tools/stm32h753i-eval.html\" rel=\"noopener noreferrer\" target=\"_blank\"> STM32H7-EVAL</a> board which has both external RAM and flash. Run provided examples, see how it works.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106137\">@RandyB_42</user-mention> and welcome to the ST community,</p>\n<p>Indeed that's possible but you need to consider two thinhs:</p>\n<p>1- The FMC and the corresponding GPIOs needs to be intilized before to jump to main (at the scatter load phase).</p>\n<p>For example in the examples provided in the CubeH7, there are the following defines: <span><strong>DATA_IN_ExtSRAM</strong> and <strong>DATA_IN_ExtSDRAM</strong>. </span></p>\n<p><span>Each one activates the initialisation of an external memeory: SRAM or SDRAM.</span></p>\n<p><span>Look at system_stm32h7xx.c implementation for STM32H743-Eval board especially the implemzntation of:</span></p>\n<pre class=\"lia-code-sample language-c\"><code>void SystemInit_ExtMemCtl(void)</code></pre>\n<p><span>It initilizes the GPIOs and the FMC interface of the external RAM memories on the STM32H743-Eval board. That SystemInit_ExtMemCtl() is called before the main().</span></p>\n<p><span>You can refer to the example provided in the STM32CubeH7 package: <a href=\"https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Examples/FMC/FMC_SDRAM_DataMemory\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H743I-EVAL/Examples/FMC/FMC_SDRAM_DataMemory</a>.</span></p>\n<p>2- The data read/write relocation needs to be done with the linker file. </p>\n<p>Refer to the <a href=\"https://www.st.com/en/embedded-software/x-cube-perf-h7.html\" rel=\"noopener noreferrer\" target=\"_blank\">X-CUBE-PERF-H7</a> and open the project <em>\"6 - D1_ITCM - D1_SDRAM\"</em> the code is located in ITCM and all the data are located in SDRAM. So refer to that project linker file implementation. The application note linked to that X-CUBE-PERF-H7 package is the <em><a href=\"https://www.st.com/content/ccc/resource/technical/document/application_note/group0/0d/b5/e7/b7/47/0c/4a/ae/DM00306681/files/DM00306681.pdf/jcr:content/translations/en.DM00306681.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AN4981</a> \"STM32H72x, STM32H73x, and single-core STM32H74x/75x</em><br/><em>system architecture and performance\"</em>. You can find valuable information there.</p>\n<p>Hope that answers your question.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

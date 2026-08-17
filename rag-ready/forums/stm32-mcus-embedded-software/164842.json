@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "164842",
+            "publicId": "164842",
+            "title": "Erasing Internal Flash in NUCLEO-H533RE",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/erasing-internal-flash-in-nucleo-h533re-164842",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-04-16T23:36:09+00:00",
+            "views": 226,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n> ---\n\n>\n\n> PS - I am trying to learn STM32CubeIDE and the processor using only\n\n>\n\n> code I write. i.e. no CubeMX or HAL drivers.\n\n>\n\n> ---\n\n1- That's definitely not a CubeIDE question. So no need to post that thread in STM32CubeIDE forum board\n\n2- Ok you need to learn and you don't use HAL ok.. but before going ahead with the direct access to the registers, try to use HAL and inspire from the examples provided in CubeHAL package: <https://github.com/STMicroelectronics/STM32CubeH5/tree/main/Projects/NUCLEO-H533RE/Examples/FLASH/FLASH_EraseProgram>\n\nIf all is ok inspire from the register access sequence in the HAL.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am not able to erase a section of internal flash of the NUCLEO-H633RE.\n\nUsing the debugger I see the Flash is all 0x00 before I try to erase.  I verify that Flash is not locked i.e.\n\n```\n\nif (*FLASH_NSCR && LOCK)\n\n{\n\n*FLASH_NSKEYR = 0x45670123;\n\n*FLASH_NSKEYR = 0xcdef89ab;\n\n}\n\n```\n\nthen I try to erase a section of Flash i.e.\n\n```\n\n/* ************************************************************************* */\n\n/* */\n\n/* EraseFla - Erases 8K page of Flash, Waits for Flash not busy. */\n\n/* Inputs: uint32_t page holds the page to erase. */\n\n/* Outputs: None */\n\n/* */\n\n/* ************************************************************************* */\n\nvoid EraseFla(int EraPage)\n\n{ while (*FLASH_NSCR && BSY){};\n\nn = *FLASH_PRIVCFGR; // just testing\n\nn = EraPage >> 7;\n\nif (n && 0x0800)\n\n{ n &= 0x07C0;\n\nn |= 0x80000004;} // BKSEL and SER\n\nelse\n\n{ n &= 0x07C0;\n\nn |= 0x00000004;}\n\n*FLASH_NSCR |= n;\n\n*FLASH_NSCR |= STRT;\n\nwhile (*FLASH_NSCR && BSY){};\n\n}\n\n```\n\nWith the debugger I read 0x00000000 at \\*FLASH\\_NSCR but when I write\n\n0x80000684 to \\*FLASH\\_NSCR it still reads as 0x00000000.\n\nI suspect there is another way Flash is disabled, if so why?\n\nI am trying to erase Flash at start up before I run my application.\n\nWhy would the IDE environment disable the flash and how do I enable\n\nthe flash again?\n\nPS - I am trying to learn STM32CubeIDE and the processor using only\n\ncode I write. i.e. no CubeMX or HAL drivers.\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [],
+            "author": "BrucePB",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/>\n<div>\n<div>\n<div>\n<p><span>PS - I am trying to learn STM32CubeIDE and the processor using only </span></p>\n<p><span>code I write. i.e. no CubeMX or HAL drivers.</span></p>\n</div>\n</div>\n</div>\n<hr/></blockquote>\n<p>1- That's definitely not a CubeIDE question. So no need to post that thread in STM32CubeIDE forum board</p>\n<p>2- Ok you need to learn and you don't use HAL ok.. but before going ahead with the direct access to the registers, try to use HAL and inspire from the examples provided in CubeHAL package: <a href=\"https://github.com/STMicroelectronics/STM32CubeH5/tree/main/Projects/NUCLEO-H533RE/Examples/FLASH/FLASH_EraseProgram\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeH5/tree/main/Projects/NUCLEO-H533RE/Examples/FLASH/FLASH_EraseProgram</a></p>\n<p>If all is ok inspire from the register access sequence in the HAL.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>1.  I think the problem is my understanding of what CubeIDE is doing on startup. i.e. how and why erasing Flash is not useable when the default conditions says it should be working.  I cannot find the source for SystemInit.</p><p>2. I have looked at HAL code to write my code and do not see why it does not work.  Again, I think the problem is my understanding of what CubeIDE is doing on startup.</p></div>",
+                    "author": "BrucePB",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

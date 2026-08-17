@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "163948",
+            "publicId": "163948",
+            "title": "How to Fix ADC Sampling Triggered by Counter Rollover",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-fix-adc-sampling-triggered-by-counter-rollover-163948",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G4 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-18T13:59:44+00:00",
+            "views": 474,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "> I implemented this using a capture/compare configuration.\n\nThere is no \"capture/compare\" configuration. The individual channels in a timer can be set to either Output Compare (TIMx\\_CCMRx.CCxS = 0b00), or to Input Capture (all 3 other settings of TIMx\\_CCMRx.CCxS). You've set TIM8\\_CH4 (i.e. not \"an additional counter alongside the PWM\" as you've written in your initial post, but an additional channel in the same TIM8 where you've set CH1 and CH3 to PWM),  to Output Compare; and, what's important in this context, to Toggle mode (by setting TIM8\\_CCMR2.OC4M=0b0011, even if it was Cube/HAL which set it for you). You've set - consistently to your initial description - TIM8\\_CCR4=TIM8\\_ARR (=1699), and thus the CH4 CCx signal - i.e. which you probably want to propagate to ADC via TRGO2 - should indeed provide a pulse when TIM8\\_CNT reaches TIM8\\_ARR.\n\nNeither of the channels is inverted by setting TIMx\\_CCER.CCxP, and CH1 and CH3 are set to PWM1 mode (i.e. TIMx\\_CCMRx.OCxM=0b0110), for which:\n\n![Clipboard_03-19-2026_01.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f79f12b9-0df6-45d9-f9e9-a463721c022d.png \"Clipboard_03-19-2026_01.png\")\n\nwhich means, that:\n\n![aaa.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/68897680-d574-1e9a-b7f2-fd83800eb7e6.png \"aaa.png\")\n\nso, as you see, TIM8\\_CH4 toggles exactly as you've set it, at TIM8\\_CNT=TIM8\\_ARR=1699.\n\nThe reason why it's different than your drawing of expected waveform is, that the polarity of PWM channels is opposite to what you expect. You can either change that or change to PWM2 mode; but note, that the pulse-high-length is then not given directly by TIM8\\_CCRx, but by TIM8\\_ARR - TIM8\\_CCRx.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi,\n\nI am currently working on a project where I want to adjust the duty cycle and trigger an ADC measurement on every counter rollover.\n\nI managed to get the PWM running in center-aligned mode, but I’m having trouble triggering the counter rollover at the correct moment.\n\nTo verify whether the trigger is correct, I routed the output compare signal to an external pin and observed it on an oscilloscope.\n\nThe basic idea is to run an additional counter alongside the PWM. This counter should count up to ARR and then generate a trigger that starts the ADC conversion. Becuase in the center aligned mode two update event occurs both on CNT=0 and CNT=ARR.\n\nOn the oscilloscope, it looks like the trigger—presumably when CNT = 0 (at least that’s my assumption)—produces an edge.\n\nIm using NUCLEO-G491RE.\n\nWhat could I be missing here? What might be causing this behavior?\n\n![Trigger at roll-over.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4d5e2f16-3844-7e67-7722-57b4a565078f.png \"Trigger at roll-over.png\")\n\n![Tim8-2.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2222a23e-3a36-6aea-5c44-37cf22008be6.png \"Tim8-2.png\")\n\n![7132fb09-ab46-4a54-afc4-71f9fc1be1d6.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41c16895-e8d9-9e1e-9d3c-92adf38966d8.png \"7132fb09-ab46-4a54-afc4-71f9fc1be1d6.png\")\n\nYellow (PWM TIM8 Channel3), Blue (PWM TIM8 Channel1), Orange (Capture Compare TIM8 Channel 4)\n\n![62f7908e-e8f8-4218-8e5a-8dcd55ba8b4d.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0834f1d8-effd-f151-2034-046fda7e8a51.png \"62f7908e-e8f8-4218-8e5a-8dcd55ba8b4d.png\")\n\nThank you in advance!\n\nSimon",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f79f12b9-0df6-45d9-f9e9-a463721c022d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41c16895-e8d9-9e1e-9d3c-92adf38966d8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/68897680-d574-1e9a-b7f2-fd83800eb7e6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4d5e2f16-3844-7e67-7722-57b4a565078f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2222a23e-3a36-6aea-5c44-37cf22008be6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0834f1d8-effd-f151-2034-046fda7e8a51.png"
+            ],
+            "author": "Simon151",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>I don't understand, what's the problem. What is the expected behaviour and how is the observed one different from that? Maybe try too sketch a timing diagram.</span></p><p><span>&gt; The basic idea is to run an additional counter alongside the PWM. </span></p><p><span>Do you display that additional counter's output in some way on that oscilloscope picture? </span></p><p><span>JW</span></p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Hi, </span><span>I’m sorry if my previous explanation was unclear — I’ll try to describe it more precisely.</span></p><p class=\"\"><span>In my understanding, in center-aligned mode the counter (CNT) counts up to ARR and then back down to 0. I would like to trigger an ADC measurement exactly when CNT = ARR. However, I am not sure how to implement this correctly.</span></p><p class=\"\"><span>My approach was to use a second channel to generate a signal when CNT = ARR. I implemented this using a capture/compare configuration. To verify whether the trigger actually occurs at CNT = ARR, I routed the capture/compare signal to an output pin, which toggles when CNT reaches the compare value.</span></p><p class=\"\"><span>However, the oscilloscope measurement shows that the capture/compare signal (orange) toggles when CNT = 0, not when CNT = ARR.</span></p><p class=\"\"><span>Based on my understanding, the behavior should match the attached drawing: the edge of the capture/compare signal should trigger the ADC measurement, so that the measurement occurs in the center of the PWM.</span></p><p class=\"\"><span>Additionally, I have another question:</span><br/><span>How can I ensure that all channels always start simultaneously?</span></p><p class=\"\"><span>I hope this explanation is clearer.</span></p><p><span>Best regards,</span><br/><span>Simon</span></p></div>",
+                    "author": "Simon151",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; I implemented this using a capture/compare configuration.</p><p>There is no \"capture/compare\" configuration. The individual channels in a timer can be set to either Output Compare (TIMx_CCMRx.CCxS = 0b00), or to Input Capture (all 3 other settings of TIMx_CCMRx.CCxS). You've set TIM8_CH4 (i.e. not \"an additional counter alongside the PWM\" as you've written in your initial post, but an additional channel in the same TIM8 where you've set CH1 and CH3 to PWM),  to Output Compare; and, what's important in this context, to Toggle mode (by setting TIM8_CCMR2.OC4M=0b0011, even if it was Cube/HAL which set it for you). You've set - consistently to your initial description - TIM8_CCR4=TIM8_ARR (=1699), and thus the CH4 CCx signal - i.e. which you probably want to propagate to ADC via TRGO2 - should indeed provide a pulse when TIM8_CNT reaches TIM8_ARR.</p><p>Neither of the channels is inverted by setting TIMx_CCER.CCxP, and CH1 and CH3 are set to PWM1 mode (i.e. TIMx_CCMRx.OCxM=0b0110), for which:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Clipboard_03-19-2026_01.png\" style=\"width: 707px;\"><img alt=\"Clipboard_03-19-2026_01.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f79f12b9-0df6-45d9-f9e9-a463721c022d.png\" title=\"Clipboard_03-19-2026_01.png\"/></span></p><p>which means, that:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"aaa.png\" style=\"width: 999px;\"><img alt=\"aaa.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/68897680-d574-1e9a-b7f2-fd83800eb7e6.png\" title=\"aaa.png\"/></span></p><p>so, as you see, TIM8_CH4 toggles exactly as you've set it, at TIM8_CNT=TIM8_ARR=1699.</p><p>The reason why it's different than your drawing of expected waveform is, that the polarity of PWM channels is opposite to what you expect. You can either change that or change to PWM2 mode; but note, that the pulse-high-length is then not given directly by TIM8_CCRx, but by TIM8_ARR - TIM8_CCRx.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ahh, that makes sense. Thank you very much for your excellent explanation — it helped me a lot.</p><p>Best regards,<br/>Simon</p></div>",
+                    "author": "Simon151",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

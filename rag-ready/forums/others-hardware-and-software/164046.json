@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164046",
+            "publicId": "164046",
+            "title": "Missing ')' error while building code for STM8S105.",
+            "url": "https://community.st.com/others-hardware-and-software-57/missing-error-while-building-code-for-stm8s105-164046",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STM8 MCUs"
+            ],
+            "published_at": "2026-03-21T14:54:47+00:00",
+            "views": 204,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "When you call a function with no parameters, you don't put void.\n\n```\n\n//sw_state(void); // invalid\n\nsw_state(); // valid\n\n```",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi guys,\n\nI am a newbie in STM world. I am struggling with a small code but failing every attempt modifying the code googling for several times. Please have a look to my code. I have defined three functions, i.e. inv\\_on(), inv\\_off(), and sw\\_state().  When these functions are called in other defined functions, two errors, i.e. missing ')' and missing ';' are showing against each called functions. But when called in main(), one error i.e. missing ')' is showing. The error messages are given as comment. Suggestion is solicited please.\n\nRegards\n\nankhola\n\n```\n\n#include \"STM8S.h\"\n\n#include \"ccp.h\"\n\nvoid inv_on(void);\n\nvoid inv_off(void);\n\nvoid sw_state(void);\n\nunsigned int pwm_duty1 = 40;\n\nunsigned int pwm_duty2 = 50;\n\nunsigned int i=0;\n\nunsigned int duty;\n\nunsigned char toggle=0;\n\nunsigned char off_state;\n\nunsigned char on_state;\n\n@far @interrupt void TIM2_UPD_OVF_IRQHandler(void) {\n\n// 1. Clear the Interrupt Pending Bit\n\nif (TIM2->SR1 & TIM2_SR1_UIF)\n\n{\n\nif (toggle == 0) {\n\nTIM1_SetCompare2 (0);\n\ni++;\n\nif(i == 125) {\n\ni = 0;\n\ntoggle = ~ toggle;\n\n}\n\nTIM1_SetCompare1(table[i]);\n\n}\n\nelse {\n\nTIM1_SetCompare1 (0);\n\ni++;\n\nif(i == 125) {\n\ni = 0;\n\ntoggle = ~ toggle;\n\n}\n\nTIM1_SetCompare2(table[i]);\n\n}\n\nTIM2->SR1 &= ~TIM2_SR1_UIF;\n\n}\n\n}\n\nvoid sw_state(void) {\n\nif (GPIO_ReadInputPin, SW == 1)\n\non_state = 1;\n\nelse\n\non_state = 0;\n\n}\n\nvoid inv_on() {\n\nClock_Config();\n\nTIM1_ComplementaryPWM_Init();\n\nTIM2_OC_Init();\n\n//GPIO_Init(GPIOD,GPIO_PIN_7, GPIO_MODE_OUT_PP_HIGH_FAST);\n\nenableInterrupts();\n\ndo {\n\nsw_state(void); // #error cpstm8 main.c:79(9) missing )\n\n// #error cpstm8 main.c:79(15) missing ;\n\n} while (on_state == 1);\n\n}\n\nvoid inv_off () {\n\nTIM1 -> CCER1 &= 0xFA;\n\nTIM2 -> IER = TIM2_IER_UIF;\n\ndo {\n\nsw_state(void); // #error cpstm8 main.c:79(9) missing )\n\n// #error cpstm8 main.c:79(15) missing ;\n\n} while (on_state == 0);\n\n}\n\nvoid main(void)\n\n{\n\ndo {\n\nsw_state(void); // #error cpstm8 main.c:79(9) missing )\n\nif (on_state == 1)\n\ninv_on(void); // #error cpstm8 main.c:79(9) missing )\n\nelse\n\ninv_off(void); // #error cpstm8 main.c:79(9) missing )\n\n} while (1);\n\n//while(1) {\n\n// Main loop can be used for other tasks or dynamically changing PWM values\n\n// }\n\n}\n\n#ifdef USE_FULL_ASSERT\n\nvoid assert_failed(uint8_t* file, uint32_t line)\n\n{\n\nwhile (1)\n\n{\n\n}\n\n}\n\n#endif\n\n```",
+            "images": [],
+            "author": "ankhola",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>When you call a function with no parameters, you don't put void.</p><pre class=\"lia-code-sample language-c\"><code>//sw_state(void); // invalid\nsw_state(); // valid</code></pre></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks TDK. Problem is over.</p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

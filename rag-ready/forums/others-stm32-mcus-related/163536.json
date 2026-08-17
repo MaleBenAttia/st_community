@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "163536",
+            "publicId": "163536",
+            "title": "USB-C Connector for Power Delivery and communication with STM32F767ZIT6",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/usb-c-connector-for-power-delivery-and-communication-with-stm32f767zit6-163536",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32F7 series"
+            ],
+            "published_at": "2026-03-06T13:56:31+00:00",
+            "views": 601,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "*> it looks like VBUS Sensing PA9*\n\nIf that's the only hangup, use a clamping diode to ensure voltage on PA9 doesn't exceed a threshold.\n\nOr, if the device is bus powered, you don't need to monitor VBUS at all.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi\n\nHere is my scenario:\n\nI want to use USB Type C Connector for Power Delivery(upto 65W) and also, for communicating with STM32F767ZIT6 on my Hardware.\n\nPower Delivery is used to charge a 14.4V Li Ion Battery using Battery charger on my hardware. So,\n\nAnd USB Communication takes place with STM32F767ZIT6 Full Speed. Charging and Communication don't need to happen at the same time.\n\n**So, USB-C Connector will either be used to charge the battery using a AC-DC wall adapter or communicate with STM32 on my hardware using a USB-C Cable from PC. Only one of these things will happen at a time.**\n\nI was thinking of using STUSB4500 for Power Delivery such that it negotiates 20V, 3.25A with Wall Adapter but it looks like VBUS Sensing PA9 would be a problem when PC is connected(VBUS= 5V) or wall adapter is connected(VBUS= 20V).\n\nSo, wondering if there are better/easier options to do this? Changing the STM32F767ZIT6 to something like STM32 UCPD MCUs is unfortunately not an option.",
+            "images": [],
+            "author": "Circuit",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; it looks like VBUS Sensing PA9</em></p><p>If that's the only hangup, use a clamping diode to ensure voltage on PA9 doesn't exceed a threshold.</p><p>Or, if the device is bus powered, you don't need to monitor VBUS at all.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes VBUS PA9 Pin is causing this issue.</p><p>So, was thinking of using a voltage divider on VBUS at input of PA9. But, VBUS changing from 5V(Full Speed Communication) to 20V(for Power Delivery) makes the voltage divider output out of range for PA9 one way or the other. </p><p>I just read FUSB307B can be an option? Or any other option that might be helpful?</p></div>",
+                    "author": "Circuit",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You opened another similar thread called \"<span>USB VBus Sensing during USB 2.0 Full Speed Communication\".</span></p>\n<p><span>It is better to close this one.</span></p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

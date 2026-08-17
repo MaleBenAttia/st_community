@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "163736",
+            "publicId": "163736",
+            "title": "ST25DV64KC-IE8T3 - GPO with no VCC",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25dv64kc-ie8t3-gpo-with-no-vcc-163736",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 Dynamic NFC Tags – ST25DV series"
+            ],
+            "published_at": "2026-03-12T15:02:31+00:00",
+            "views": 605,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nWhat is the value of the external pull-up resistor you have connected on the GPO pin?\n\nTo what power supply is this pull-up resistor connected to? Is it the same power supply as the one connected to the VCC pin?\n\nBy the way, a comment on your registers dump: those registers (and the default values you show) are the one of the ST25DV04K. Your device is a ST25DV04KC, which has slightly different registers: the GPO, IT\\_TIME, MB\\_MODE and more importantly the MB\\_WDG are different. The MB\\_WDG is I2C\\_CFG in the ST25DV04KC and defines the I2C device address. So, if you write the default value of the ST25DV04K (0x07) your I2C address will be changed, be careful.\n\nBest regards.",
+            "best_answer_author": "JL. Lebon",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi\n\nI would like to know the state of the GPO pin when VCC=0 on the ST25DV64KC-IE8T3. The GPO output is open drain and should be in high independence when VCC=0, but it seems that the MOSFET remains activated.\n\nBR\n\nGilberto",
+            "images": [],
+            "author": "gilberto-falker",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, <br/>As you stated, it is an open drain output, which means it can only drive low and is Hi-Z when the GPO output is supposed to be high. An external pull-up is required for the high state.</p><p>This works even if VCC is not present, as long as RF field is present to power the internal logic of the GPO output, and off course, as long as there is power on the external pull-up resistor.</p><p>So, when VCC=0V, the state of the GPO is same as when VCC is present: it reflects the interruptions or the static state set by the ManageGPO command.</p><p>What do you mean by \"it seems that the MOSFET remains activated\"?</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">Hi<br/>The state of GPO is low when VCC=0. It goes up when VCC=3.3V.<br/>BR<br/>Gilberto<br/></div>",
+                    "author": "gilberto-falker",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi</p><p>As additional diagnostic information, here are the values ​​of the non-volatile registers of a tag that maintains the GPO at logic level 0:</p><p>[ST25DV] @0x0000 GPO = 0x71 (default 0x88) &lt;!=<br/>[ST25DV] @0x0001 IT_TIME = 0x0C (default 0x03) &lt;!=<br/>[ST25DV] @0x0002 EH_MODE = 0x01 (default 0x01)<br/>[ST25DV] @0x0003 RF_MNGT = 0x00 (default 0x00)<br/>[ST25DV] @0x0004 RFA1SS = 0x00 (default 0x00)<br/>[ST25DV] @0x0005 ENDA1 = 0xFF (default 0x0F) &lt;!=<br/>[ST25DV] @0x0006 RFA2SS = 0x00 (default 0x00)<br/>[ST25DV] @0x0007 ENDA2 = 0xFF (default 0x0F) &lt;!=<br/>[ST25DV] @0x0008 RFA3SS = 0x00 (default 0x00)<br/>[ST25DV] @0x0009 ENDA3 = 0xFF (default 0x0F) &lt;!=<br/>[ST25DV] @0x000A RFA4SS = 0x00 (default 0x00)<br/>[ST25DV] @0x000B I2CSS = 0x00 (default 0x00)<br/>[ST25DV] @0x000C LOCK_CCFILE = 0x00 (default 0x00)<br/>[ST25DV] @0x000D MB_MODE = 0x01 (default 0x00) &lt;!=<br/>[ST25DV] @0x000E MB_WDG = 0x1A (default 0x07) &lt;!=<br/>[ST25DV] @0x000F LOCK_CFG = 0x00 (default 0x00)<br/>[ST25DV] @0x0012 DSFID = 0x00 (default 0x00)<br/>[ST25DV] @0x0013 AFI = 0x00 (default 0x00)</p><p> </p></div>",
+                    "author": "gilberto-falker",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>What is the value of the external pull-up resistor you have connected on the GPO pin? <br/>To what power supply is this pull-up resistor connected to? Is it the same power supply as the one connected to the VCC pin?</p><p>By the way, a comment on your registers dump: those registers (and the default values you show) are the one of the ST25DV04K. Your device is a ST25DV04KC, which has slightly different registers: the GPO, IT_TIME, MB_MODE and more importantly the MB_WDG are different. The MB_WDG is I2C_CFG in the ST25DV04KC and defines the I2C device address. So, if you write the default value of the ST25DV04K (0x07) your I2C address will be changed, be careful.</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

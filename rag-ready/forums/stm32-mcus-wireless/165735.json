@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "165735",
+            "publicId": "165735",
+            "title": "NUCLEO-WB09KE: PB1 held high and not switching when used as RADIO_ANTENNA_ID_1",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/nucleo-wb09ke-pb1-held-high-and-not-switching-when-used-as-radio-antenna-id-1-165735",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32CubeIDE",
+                "BLE",
+                "STM32WB0 series"
+            ],
+            "published_at": "2026-05-15T20:03:11+00:00",
+            "views": 121,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I found a relatively weird solution.\n\nIn the .ioc file, I changed the PB1 configuration from RADIO\\_ANTENNA\\_ID\\_1 to GPIO\\_Output.\n\nFirst I generated the code such that it outputs low. I compiled and flashed the code, then observed PB1 using the logic analyser to confirm its output. Successful debug.\n\nWent back, changed GPIO\\_Output to high. Generated, compiled, flashed, observed. Successful debug.\n\nWent back, changed it back to RADIO\\_ANTENNA\\_ID\\_1. Generated, compiled, flashed, observed. The pin is now successfully switching.\n\nidk.",
+            "best_answer_author": "MuradV",
+            "best_answer_author_role": "Associate II",
+            "content_text": "**Environment:**\n\nMCU: STM32WB09KE, Cortex-M0+\n\nBoard: NUCLEO-WB09KE\n\nIDE: STM32CubeIDE 2.1.0\n\nSTM32CubeIDE Build: 27993\\_20260219\\_1630 (UTC)\n\nSTM32CubeMX Version: 6.17.0\n\nOS: Windows 11 Home\n\nFirmware package: STM32Cube\\_FW\\_WB0\\_V1.4.0\n\nExample project used: BLE\\_DirectionFinding\\_Central\\_Locator\n\n**Setup:**\n\nI am using the STM32WB09 Direction Finding example project on the NUCLEO-WB09KE board.\n\nThe project is based on ST’s provided STM32CubeWB0 package and the NUCLEO-WB09KE board files available here: <https://www.st.com/en/evaluation-tools/nucleo-wb09ke.html#cad-resources>\n\nThe goal is to use two GPIO pins as antenna-switching control signals for AoA direction finding:\n\nRADIO\\_ANTENNA\\_ID\\_0 -> PB0\n\nRADIO\\_ANTENNA\\_ID\\_1 -> PB1\n\nPB0 works correctly. When configured as RADIO\\_ANTENNA\\_ID\\_0, I can observe the expected switching signal on a Saleae logic analyzer. Screenshot provided here: <https://imgur.com/a/uk8L8tq> Not much here, but zooming in into each pulse shows rapid switching- you can trust me.\n\nPB1 does not work correctly. The pin appears to be held high, and I don't understand why!\n\n* It is not configured in the .ioc file.\n\n* Even when RADIO\\_ANTENNA\\_ID\\_1 is removed and not configured, pin holds high.\n\n* There are no solder bridges that connect PB1 to anything on the MB1801D\n\n* And no external signal is intentionally connected to it.\n\n**Problem:**\n\nPB1 is high by default on the NUCLEO-WB09KE board.\n\nWhen I try to configure PB1 as RADIO\\_ANTENNA\\_ID\\_1, it does not produce the expected antenna-switching waveform. It remains high instead of switching.\n\nBy comparison, PB0 works correctly as RADIO\\_ANTENNA\\_ID\\_0.\n\nWhat I have checked:\n\nI inspected the NUCLEO-WB09KE board files from ST’s CAD resources in Altium Designer.\n\nFrom what I can see, PB1 does not appear to be connected to any active external circuit on the board, apart from being routed to a header. I do not see any solder bridge configuration that should force PB1 high.\n\nI also checked the .ioc file. PB1 is not configured there unless I explicitly assign it for antenna switching, even then no change occurs.\n\nDespite that, PB1 still reads high and does not switch when used as RADIO\\_ANTENNA\\_ID\\_1.\n\nThe relevant code has been implemented:\n\n```\n\nst = aci_hal_set_antenna_switch_parameters(\n\n0x01 | 0x02,\n\n0,\n\n0,\n\n0\n\n);\n\n```\n\nMy understanding is that this should enable both antenna ID control signals, where bit 0 corresponds to RADIO\\_ANTENNA\\_ID\\_0 and bit 1 corresponds to RADIO\\_ANTENNA\\_ID\\_1.\n\n* Is PB1 used internally by the NUCLEO-WB09KE board or firmware in a way that would explain why it is held high?\n\n* Is there an additional configuration step required besides aci\\_hal\\_set\\_antenna\\_switch\\_parameters() to make RADIO\\_ANTENNA\\_ID\\_1 switch on PB1?\n\nDo feel welcome to request files or more information. I'll attach a few code files I think might help any attempts of troubleshooting.\n\nEdit: Inn file app\\_ble.c, I noticed in line 614 that it says \"0x01 | 0x10\", it's supposed to say \"0x01 | 0x02\". 0x01 | 0x02 was the code flashed and was not the solution. I accidentally attached the file while I was experimenting with RADIO\\_ANTENNA\\_ID\\_4.",
+            "images": [],
+            "author": "MuradV",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found a relatively weird solution.</p><p>In the .ioc file, I changed the PB1 configuration from RADIO_ANTENNA_ID_1 to GPIO_Output.</p><p>First I generated the code such that it outputs low. I compiled and flashed the code, then observed PB1 using the logic analyser to confirm its output. Successful debug.</p><p>Went back, changed GPIO_Output to high. Generated, compiled, flashed, observed. Successful debug.</p><p>Went back, changed it back to RADIO_ANTENNA_ID_1. Generated, compiled, flashed, observed. The pin is now successfully switching.</p><p> </p><p> </p><p> </p><p>idk.</p></div>",
+                    "author": "MuradV",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

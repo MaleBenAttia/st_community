@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164342",
+            "publicId": "164342",
+            "title": "\"No proper path for Current Sensing\" error despite connectAlgo.log finding TripleADC route on STM32G474",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/no-proper-path-for-current-sensing-error-despite-connectalgo-log-finding-tripleadc-route-on-stm32g474-164342",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "MC firmware",
+                "FOC",
+                "MC workbench"
+            ],
+            "published_at": "2026-03-31T10:27:51+00:00",
+            "views": 480,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @TKara.2,\n\nAs shown in the *Current sampling in isolated current sensor topology* chapter of the user manual, available through Workbench tool > About > Documentations > Documentation, the STO-PLL FOC algorithm supports only the two ICS topology (U and V phases, refer to [wiki page](https://wiki.st.com/stm32mcu/wiki/STM32MotorControl:Motor_Control_Boards_Description)).\n\nThe three ICS topology is available only with the high sensitivity observer (HSO) speed sensorless mode.",
+            "best_answer_author": "GMA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**Label:** MC Workbench\n\n**[PN]:** STM32G474RBT6 (Custom Board)\n\n**[VERSION]:** MCSDK 6.3.2\n\n**[TOOL]:** MC Workbench\n\n**[DETAILS]:** I am trying to create a new FOC project for a custom board driving a BLDC motor with Three Isolated Current Sensors (3-ICS). I am constantly getting the following UI error preventing me from creating the project: *\"It is not possible to create a motor control project with the FOC algorithm using the selected hardware. No proper path for motor control signals was found for the following mandatory features: - Current Sensing\"*\n\nHowever, when I check the .st\\_workbench/connectAlgo.log, the solver successfully finds a valid TripleADC route for my pins without any conflicts: DEBUG - CSConnect: ThreeICSCurrents TripleADCs processing start DEBUG - CSConnect: ThreeICSCurrents TripleADCs route: CURRENT\\_ICS\\_U PA0 ADC1\\_IN1 DEBUG - CSConnect: ThreeICSCurrents TripleADCs route: CURRENT\\_ICS\\_W PB12 ADC4\\_IN3 DEBUG - CSConnect: ThreeICSCurrents TripleADCs route: CURRENT\\_ICS\\_V PC4 ADC2\\_IN5 DEBUG - CSConnect: ThreeICSCurrents TripleADCs processing completed\n\nThe PWM pins (TIM1: PA8, PA9, PA10) and Hall Sensor pins (TIM2: PA5, PB3, PB10) are also processed with cost 0 successfully. There seems to be a mismatch/bug between the solver finding the valid TripleADC paths and the Workbench GUI accepting them.\n\n**[EXPECTED BEHAVIOR]:** MC Workbench should accept the valid TripleADC routing for the Isolated Current Sensors (ADC1, ADC2, ADC4) without throwing the \"No proper path\" GUI error, allowing the project to be generated.\n\n**[HOW TO REPRODUCE]:**\n\n1. Open MC Workbench 6.3.2.\n\n2. Create a New Project -> Custom Board -> Select STM32G474RBTx.\n\n3. Select FOC Algorithm -> Three Isolated Current Sensors.\n\n4. Assign signals in the UI:\n\n* Phase U = PA0\n\n* Phase V = PC4\n\n* Phase W = PB12\n\n5. Assign Driving High/Low sides to PA8, PA9, PA10 (TIM1).\n\n6. Assign Hall Sensors to PA5, PB3, PB10 (TIM2).\n\n7. Notice the persistent red Error popup regarding Current Sensing.\n\n*(See attached .stwb6 / JSON file and connectAlgo.log for further details).*",
+            "images": [],
+            "author": "TKara.2",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"55963\">@TKara.2</user-mention>,</p>\n<p>As shown in the<span> </span><em>Current sampling in isolated current sensor topology</em><span> </span>chapter of the user manual, available through Workbench tool &gt; About &gt; Documentations &gt; Documentation, the STO-PLL FOC algorithm supports only the two ICS topology (U and V phases, refer to <a href=\"https://wiki.st.com/stm32mcu/wiki/STM32MotorControl:Motor_Control_Boards_Description\" rel=\"noopener noreferrer\" target=\"_blank\">wiki page</a>).</p>\n<p>The three ICS topology is available only with the high sensitivity observer (HSO) speed sensorless mode.</p>\n<p><span> </span></p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

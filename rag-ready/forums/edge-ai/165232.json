@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "165232",
+            "publicId": "165232",
+            "title": "Use a 4-channel (H x W x 4) input for NPU acceleration on STM32N6 (STM32Cube.AI)?",
+            "url": "https://community.st.com/edge-ai-134/use-a-4-channel-h-x-w-x-4-input-for-npu-acceleration-on-stm32n6-stm32cube-ai-165232",
+            "category": "Edge AI",
+            "tags": [
+                "ST Edge AI Core",
+                "STM32N6 series",
+                "X Cube AI",
+                "STM32CubeAI Studio"
+            ],
+            "published_at": "2026-04-29T11:20:25+00:00",
+            "views": 238,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @qldrh\n\nQuestion: if I bypass the standard camera pipeline and manually feed a 4-channel UINT8 buffer directly to the NPU input memory, is that supported at the hardware/runtime level?\n\nShort answer: yes, it should be.\n\n**from the NPU point of view, there is no inherent restriction on the number of input channels**.\n\nSo **H×W×3H×W×3**, **H×W×4H×W×4**, and more generally **H×W×CH×W×C** inputs are supported in principle. This is also consistent with what happens inside the network itself, since intermediate feature maps naturally use many different channel counts.\n\ntips:\n\n![JulianE_0-1778160801811.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ef702b97-d744-d192-e480-d7746ccf1413.png \"JulianE_0-1778160801811.png\")\n\n[https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart\\_operator\\_support.html](https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart_operator_support.html \"https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart_operator_support.html\")\n\nThat said, the **channel count** and the **data type / quantization format** are two slightly different topics:\n\n* On the **channel dimension**, the NPU should not be limited to RGB-only input.\n\n* On **`UINT8` vs `INT8`**, it can be more subtle depending on:\n\n+ the original model format\n\n+ how the model was quantized\n\n+ whether the source model comes from **TFLite** or **ONNX**\n\n+ the exact input tensor expectations after conversion\n\nThere may still be a **`UINT8` to `INT8` conversion step**, but as far as I know, that is supported by the hardware.\n\nIf you could please link me where you found this, it would be great, thanks\n\n\"- The constraint I mentioned — \"Only RGB888 format is tested for Neural Network Input\" and \"Only UINT8 format is supported\" — was from the STM32N6 documentation / NPU\\_Validation firmware reference, not a direct error from the ST Edge AI Core conversion step itself.\"\n\nHave a good day,\n\nJulian",
+            "best_answer_author": "Julian E.",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello ST Community,\n\nI am currently developing a coin recognition vision model (MobileNetV4) to be deployed on the **NUCLEO-N657X0-Q (STM32N657X0H3Q)** board. I am trying to fully utilize the integrated NPU using STM32Cube.AI.\n\n**[My Approach]** To maximize feature extraction of the coin's engraved patterns, I am using a Photometric Stereo-like approach. I capture 4 grayscale images using a global shutter camera with 4 directional lights (Top, Bottom, Left, Right). My goal is to stack these 4 images into a **single 4-channel tensor (H x W x 4)** and feed it directly into the NPU. I have already modified the first Conv2d layer of my PyTorch model to accept in\\_chans=4 and trained it successfully.\n\n**[The Issue]** When trying to validate and deploy this model, I encountered the following constraints regarding the Neural Network Input:\n\n* *\"Only RGB888 format is tested for Neural Network Input.\"*\n\n* *\"Only UINT8 format is supported.\"*\n\nThe UINT8 constraint is perfectly fine for our quantization pipeline. However, the RGB888 (3-channel) restriction seems to block my 4-channel approach.\n\n**[My Questions]**\n\n1. **Is there any way to bypass the RGB888 constraint and feed a custom 4-channel (H x W x 4) UINT8 tensor into the STM32N6 NPU?**\n\n2. If the tool strictly enforces 3-channel (RGB) specifically for \"Image\" inputs, **is there a workaround?** (For example, configuring the input as a \"generic generic tensor/array\" rather than an image, so the NPU just processes it as standard 4-channel data?)\n\n3. Alternatively, does the NPU hardware/DMA2D inherently limit input buffers to standard color formats (like ARGB8888 or RGB888)?\n\nAny guidance or workarounds for deploying a 4-channel input model on the STM32N6 NPU would be greatly appreciated.\n\nThank you in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ef702b97-d744-d192-e480-d7746ccf1413.png"
+            ],
+            "author": "qldrh",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106347\">@qldrh</user-mention>,</p>\n<p> </p>\n<p>Which package are you using? </p>\n<p>I believe the error messages you get are not errors from the ST Edge AI Core, but from an application we provide, right?</p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Julian,</p><p>To clarify my setup:<br/>-I am using STM32Cube.AI Studio (local installation) for model<br/>conversion, validation, and quantization.<br/>- The constraint I mentioned — \"Only RGB888 format is tested for Neural Network Input\" and \"Only UINT8 format is supported\" — was from the STM32N6 documentation / NPU_Validation firmware reference, not a direct error from the ST Edge AI Core conversion step itself.</p><p>The ST Edge AI Core conversion of my 4-channel ONNX model actually completes successfully. My concern was whether the NPU runtime on the STM32N6 hardware can actually accept and process a 4-channel (H×W×4) UINT8 tensor at inference time, given that the documented pipeline seems to assume RGB888 as the standard input format.</p><p>So my main question is: if I bypass the standard camera pipeline and manually feed a 4-channel UINT8 buffer directly to the NPU input memory, is that supported at the hardware/runtime level?</p><p>Thanks again for your help!</p></div>",
+                    "author": "qldrh",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106347\">@qldrh</user-mention> </p>\n<p> </p>\n<p>Question: <span>if I bypass the standard camera pipeline and manually feed a 4-channel UINT8 buffer directly to the NPU input memory, is that supported at the hardware/runtime level?</span></p>\n<p>Short answer: yes, it should be.</p>\n<p> </p>\n<p><strong>from the NPU point of view, there is no inherent restriction on the number of input channels</strong><span>.</span><br/><span>So </span><strong><span class=\"katex\"><span class=\"katex-mathml\">H×W×3</span><span aria-hidden=\"true\" class=\"katex-html\"><span class=\"base textstyle uncramped\"><span class=\"mord mathit\">H</span><span class=\"mbin\">×</span><span class=\"mord mathit\">W</span><span class=\"mbin\">×</span><span class=\"mord mathrm\">3</span></span></span></span></strong><span>, </span><strong><span class=\"katex\"><span class=\"katex-mathml\">H×W×4</span><span aria-hidden=\"true\" class=\"katex-html\"><span class=\"base textstyle uncramped\"><span class=\"mord mathit\">H</span><span class=\"mbin\">×</span><span class=\"mord mathit\">W</span><span class=\"mbin\">×</span><span class=\"mord mathrm\">4</span></span></span></span></strong><span>, and more generally </span><strong><span class=\"katex\"><span class=\"katex-mathml\">H×W×C</span><span aria-hidden=\"true\" class=\"katex-html\"><span class=\"base textstyle uncramped\"><span class=\"mord mathit\">H</span><span class=\"mbin\">×</span><span class=\"mord mathit\">W</span><span class=\"mbin\">×</span><span class=\"mord mathit\">C</span></span></span></span></strong><span> inputs are supported in principle. This is also consistent with what happens inside the network itself, since intermediate feature maps naturally use many different channel counts.</span></p>\n<p> </p>\n<p>tips:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JulianE_0-1778160801811.png\" style=\"width: 400px;\"><img alt=\"JulianE_0-1778160801811.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ef702b97-d744-d192-e480-d7746ccf1413.png\" title=\"JulianE_0-1778160801811.png\"/></span></p>\n<p><a href=\"https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart_operator_support.html\" rel=\"noreferrer noopener nofollow\" target=\"_blank\" title=\"https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart_operator_support.html\">https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart_operator_support.html</a></p>\n<p> </p>\n<p>That said, the<span> </span><strong>channel count</strong><span> </span>and the<span> </span><strong>data type / quantization format</strong><span> </span>are two slightly different topics:</p>\n<ul>\n<li>On the<span> </span><strong>channel dimension</strong>, the NPU should not be limited to RGB-only input.</li>\n<li>On<span> </span><strong><code>UINT8</code><span> </span>vs<span> </span><code>INT8</code></strong>, it can be more subtle depending on:\n<ul>\n<li>the original model format</li>\n<li>how the model was quantized</li>\n<li>whether the source model comes from<span> </span><strong>TFLite</strong><span> </span>or<span> </span><strong>ONNX</strong></li>\n<li>the exact input tensor expectations after conversion</li>\n</ul>\n</li>\n</ul>\n<p><li-wrapper><span data-teams=\"true\"> There may still be a <strong><code>UINT8</code> to <code>INT8</code> conversion step</strong>, but as far as I know, that is supported by the hardware.</span></li-wrapper></p>\n<p> </p>\n<p><span data-teams=\"true\">If you could please link me where you found this, it would be great, thanks<br/>\"- The constraint I mentioned — \"Only RGB888 format is tested for Neural Network Input\" and \"Only UINT8 format is supported\" — was from the STM32N6 documentation / NPU_Validation firmware reference, not a direct error from the ST Edge AI Core conversion step itself.\"<br/></span></p>\n<p> </p>\n<p><span data-teams=\"true\">Have a good day,</span></p>\n<p><span data-teams=\"true\">Julian</span></p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "166004",
+            "publicId": "166016",
+            "title": "How to select a specific STLInk for debugging in VSCode",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/how-to-select-a-specific-stlink-for-debugging-in-vscode-166016",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "Debug",
+                "VSCode for STM32",
+                "ST-Link"
+            ],
+            "published_at": "2026-06-10T09:43:42+00:00",
+            "views": 166,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@SJB\n\nThe only way is to use the Serial ID.\n\nAs you said before, copy it using the copy ID button then add this parameter in the launch file\n\n\"serverSerialNumber\": \"Copied\\_Serial\\_ID\\_from\\_button\",",
+            "best_answer_author": "Nawres GHARBI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have multiple STLinks on multiple Nucleo boards.  I can debug only if I connect one at a time, but it is tedious to connect and reconnect to switch boards. When I plug in multiple devices I see them listed (bottom left) but I can’t work out how to select a specific STLink to use.  If I try to debug it fails with a “**bound doStepConnectToTarget Failed: could not connect: Operation timed out.”** and suggests I open launch.json.\n\nDisconnecting the cables is additionally tedious because I’m using the VCP on each, and disconnecting breaks the connection to the terminals, which then all need to be reconnected.\n\nI know that with the stand-alone STM32CubeIDE it possible to have separate configurations for each STLink (defined by Serial ID) and then I select the one to use as needed, without having to disconnect any hardware (and the VCPs for the devices I’m not debugging stay connected).\n\nIs there a way to specify the STLink serial ID to use in the launch.json file?  In VSCode I notice there is a button to copy the Serial ID to the clipboard - but how do I use that?\n\nThere’s a Knowledge base article [here](https://community.st.com/stm32-mcus-60/stm32cubeide-for-vs-code-debug-configuration-launch-json-161009)  by ​@Nawres GHARBI  but there is no mention of the STLink Serial ID. Maybe there is another way to do this?\n\nI’m using this launch configuration that was auto generated:\n\n```\n\n\"configurations\": [\n\n{\n\n\"type\": \"stlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"STM32Cube: Launch ST-Link GDB Server\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n\n\"runEntry\": \"main\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n\n}\n\n]\n\n}\n\n]\n\n```\n\nI’m on macOS, and using two NUCLEO-F303K boards and two NUCLEO-H7S3L8 boards. VSCode 1.123.1 and STM32CubeIDE for VSCode v3.9.0",
+            "images": [],
+            "author": "SJB",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>with the stand-alone STM32CubeIDE it possible to have separate configurations for each STLink (defined by Serial ID) </p></blockquote><p> </p><p>Indeed it is - and that is an invaluable feature!</p><p>I don’t use VSCode yet, but not being able to do this would be a major blocking issue for me!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"99347\">@SJB</user-mention> </p><p>The only way is to use the Serial ID. </p><p>As you said before, copy it using the copy ID button then add this parameter in the launch file <br/>\"serverSerialNumber\": \"Copied_Serial_ID_from_button\",              </p></div>",
+                    "author": "Nawres GHARBI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"443\">@Nawres GHARBI</user-mention>  Thank you. That now works for me. I now have two separate configuration in launch.json that I can select from the drop-down box in the Debug tab.</p><p>BTW, I would never have guessed that that setting name. I did try ‘serialID’ as that's what it’s called when it’s copied.  Also tried targetID and serialNumber based on some googling.   Maybe it's obvious when you know.<br/><br/>Could I suggest an update of your useful Knowledge base article, as I’m sure its not an unusual to have multiple ST-Links connected.</p></div>",
+                    "author": "SJB",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><a href=\"https://community.st.com/stm32-mcus-60/stm32cubeide-for-vs-code-debug-configuration-launch-json-161009\" rel=\"noopener noreferrer\" target=\"_self\">STM32CubeIDE for VS Code debug configuration (launch.json) | Community</a></p><p> </p><p>but I didn’t describe all the parameters. You can type in the launch.json “server” and in the help popup will show you all the parameters related to your debugger with a little description </p><p> </p></div>",
+                    "author": "Nawres GHARBI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Nawres GHARBI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Nawres GHARBI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

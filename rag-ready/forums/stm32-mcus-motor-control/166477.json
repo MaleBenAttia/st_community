@@ -1,0 +1,95 @@
+{
+    "forum": [
+        {
+            "id": "166454",
+            "publicId": "166477",
+            "title": "How To Change PWM Frequency With Only The Prescaler",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/how-to-change-pwm-frequency-with-only-the-prescaler-166477",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "TIM"
+            ],
+            "published_at": "2026-06-26T14:25:37+00:00",
+            "views": 92,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Always start with stating, which STM32, and perhaps add, what harware and what software are you using.\n\nTIMx\\_SMCR=0x200004 means, that some external source (possibly another timer) resets this timer. In debugger, set SMCR=0, you should see again 50% duty and 3/2 of the original period (see below).\n\nPrescaler is (PSC+1), i.e. 1 is prescaler 2, and 2 is prescaler 3. If you want half the frequency, use PSC=3 (ie. prescaler 4).\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI have inherited some code where a 5kHz 50% PWM is output in center aligned mode using TIM1. CK\\_PSC is 275MHz, CK\\_CNT is 137.5MHz (I think) because PSC = 1.\n\nThe pattern output matches the implementation:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb34c354-f433-452d-ae3b-2c05b6832c70.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aecca8e6-3729-4f4d-8968-b6ddad7cc4b7.png)\n\nThe yellow trace is a GPIO pin that is toggled in the ISR HAL\\_TIM\\_PeriodElapsedCallback().\n\n**I want to to keep the same 50% duty but half the frequency to 2.5kHz using the prescaler**.\n\nFrom the TRM, it seems I just have to modify PSC from 1 to 2. However, when I do this by poking the SFR register using the debugger, I get the following output:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/875b0d1e-470a-4972-8438-47d72d278cdc.png)\n\nAs you can see, the PWM ratio changes but the frequency does not. I’m at a loss to understand why. So would be grateful for any suggestions.\n\nThank you.\n\nIn case it helps, here’s my register dump. I have no idea what DMAR is that is my next step.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bda7bb22-9e45-4159-8884-8d773a73d011.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b75adb9c-93a3-4b32-82ef-c79ee4c5adcf.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb34c354-f433-452d-ae3b-2c05b6832c70.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/299318f9-475b-4389-9498-b3d60c287db1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/875b0d1e-470a-4972-8438-47d72d278cdc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/46feb4b4-657a-440d-a25a-bef3058f4968.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bda7bb22-9e45-4159-8884-8d773a73d011.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aecca8e6-3729-4f4d-8968-b6ddad7cc4b7.png"
+            ],
+            "author": "Kier",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"78753\">@Kier</user-mention> <br/>Is modifying only the PSC a condition in your case?<br/>because with 137.5 MHZ frequency, configuring the PSC to 54, ARR to 999 and CCR to 500 should be just enough to create the wanted 2.5 KHZ signal<br/>simple and easy way.<br/>BR<br/>Gyessine<br/> </p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"88547\">@Gyessine</user-mention> </p><p>Thank you for the suggested modifications.</p><p>Apologies, but the target 2.5kHz was really just an example. I only want understand how the TIM module PSC works. My aim first is to change (reduce) the frequency without changing the duty cycle using only PSC.</p></div>",
+                    "author": "Kier",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Which chip you used?</p><p>Is the code use DMA?</p></div>",
+                    "author": "Richard Li",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you ​<user-mention data-id=\"31371\">@Richard Li</user-mention> </p><p>I’m using the NUCLEO-H723ZG. Sorry, I assumed (incorrectly) that the TIM1 module would be the same for all STM32.</p><p>The code is using DMA for UART. There’s no DMA set-up for the TIM1 module.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b75adb9c-93a3-4b32-82ef-c79ee4c5adcf.png\"/></figure><p> </p></div>",
+                    "author": "Kier",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Always start with stating, which STM32, and perhaps add, what harware and what software are you using.</p><p>TIMx_SMCR=0x200004 means, that some external source (possibly another timer) resets this timer. In debugger, set SMCR=0, you should see again 50% duty and 3/2 of the original period (see below).</p><p>Prescaler is (PSC+1), i.e. 1 is prescaler 2, and 2 is prescaler 3. If you want half the frequency, use PSC=3 (ie. prescaler 4).</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, quite right, apologies. I’m using the STM32H7 on NUCLEO-H723ZG.</p><p>Thank you very much, great spot!</p><p>Setting TIMx_SMCR to 0 fixes the problem. I can now adjust PSC only and keep the duty cycle.</p><p>I found that some other part of the application was changing the Slave Mode after the MX initialization which was set to Disabled.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/299318f9-475b-4389-9498-b3d60c287db1.png\"/></figure><p>Thanks again.</p><p> </p></div>",
+                    "author": "Kier",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"78753\">@Kier</user-mention> <br/>&gt;Apologies, but the target 2.5kHz was really just an example. I only want understand how the TIM module PSC works. My aim first is to change (reduce) the frequency without changing the duty cycle using only PSC.</p><p>Based on the reference manual, the actual prescaler value is the value entered as input plus 1. Therefore, when a prescaler value of 1 is used, the actual value is 2. To halve the frequency, you should always apply this formula</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/46feb4b4-657a-440d-a25a-bef3058f4968.png\"/></figure><p>For more details<br/>you can check the timer section in the <a href=\"https://www.st.com/resource/en/reference_manual/rm0468-stm32h723733-stm32h725735-and-stm32h730-value-line-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">STM32H723 reference manual</a>.<br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the information. Yes, I misunderstood the register mapping to real value. The main problem is solved now. I can change PSC and retain the duty cycle.</p></div>",
+                    "author": "Kier",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

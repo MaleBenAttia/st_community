@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164392",
+            "publicId": "164392",
+            "title": "FLASH STM32U5 Quad Word Size - Confused!",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/flash-stm32u5-quad-word-size-confused-164392",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Flash",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-04-01T15:38:04+00:00",
+            "views": 274,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Rob Ashworth,\n\nA word typically denotes the native data size of a CPU, corresponding to its architecture. For example, on a 16-bit CPU, a word is 16 bits; on a 32-bit CPU, it is 32 bits, and so forth. In the case of the x86 architecture, originally a 16-bit design, the term \"word\" referred to 16 bits. With the evolution to 32-bit (x86) and 64-bit (x86-64) architectures, the native word size expanded accordingly to 32 bits and 64 bits, respectively, reflecting the CPU’s data handling capabilities. I hope this clarifies the misunderstanding.\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I'm confused by ST's seeming definition of what they think a QUAD word is....according to most of the planet a WORD is 16-bits, so a QUAD word is 64-Bits.  However according to ST a quad word is 128 bits on the STM32U535.\n\nI enclose a section of my code - essentially I want to write 11520 values which are U32's and then read them again when I power it back up, bit its getting confused because I can't get my head around whether there's 64, or 128 bits in a QUAD WORD!\n\nxnLookup[][][] is the Parameter I want to write, and the read back which is a U32\n\nThis is the WRITE:\n\n```\n\ni=0;//Channel 0..3\n\nj=0;//Temperature 0..180 (-50 to +130DegC)\n\nk=0;//Term X0, X1, X2, X3 etc\n\nn=1;//Counter for every 4th flash word\n\nMemCount=0;//Total memory locations\n\n//was 11520 for -50 to +130DegC. change to\n\nfor(m=0;m<11520;m++)//Total number of parameters to write - //12160\n\n{\n\n//Copy the polynomial term into the flash array\n\nflashdata32[n-1].l=xnlookup[k][i][j].l;//Put the polynomial term onto the flash array\n\n//Every 4 itterations, write the array to flash\n\nif(n==4)\n\n{\n\nn=0;//reset the counter\n\nHAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, FLASH_TLOOKUP+MemCount, ((u32)flashdata32));\n\nMemCount=MemCount+16;//Next QUAD word - 16 BYTES\n\n}\n\n//Do the relevant index incrementing - next temperature, next channel, or next term\n\nif(j>=180)\n\n{\n\nj=0;\n\ni++;//i is the channel number 0..3\n\nif(i>=16)\n\n{\n\ni=0;\n\nj=0;\n\nk++;//k goes 0,1,2,3 for each polynomial term\n\n}\n\n}\n\nn++;//n is the Flashword index 0..3 4 words =16 bytes\n\nj++;//j is the temperature index\n\n}\n\n//Now lock the flash\n\nHAL_FLASH_Lock();\n\n}\n\n```\n\nThis is the READ:\n\n```\n\n//Read all of the configuration data\n\nvoid Read_TLookup(void)\n\n{\n\nu16 i,j,k,l;\n\nu32 MemCount;\n\nl=0;\n\nk=0;\n\n//Read the Polynomial Calibration values\n\nl=0;\n\nfor(k=0;k<4;k++)//Polynomial order index (X0, X1, X2, X3)\n\n{\n\nfor(i=0;i<16;i++)//channel\n\n{\n\nfor(j=0;j<180;j++)//temperature index - was 180, change to 190\n\n{\n\nMemCount=l*4;\n\nxnlookup[k][i][j].l=*(u32*)(FLASH_TLOOKUP+MemCount);//floating point representation\n\nl++;\n\n}\n\n}\n\n}\n\n}\n\n```",
+            "images": [],
+            "author": "Rob Ashworth",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"30080\">@Rob Ashworth</user-mention>,</p>\n<p><span>A word typically denotes the native data size of a CPU, corresponding to its architecture. For example, on a 16-bit CPU, a word is 16 bits; on a 32-bit CPU, it is 32 bits, and so forth. In the case of the x86 architecture, originally a 16-bit design, the term \"word\" referred to 16 bits. With the evolution to 32-bit (x86) and 64-bit (x86-64) architectures, the native word size expanded accordingly to 32 bits and 64 bits, respectively, reflecting the CPU’s data handling capabilities. I hope this clarifies the misunderstanding.</span></p>\n<p><span>Best regards,</span></p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the reply - I guess understand even if in my view ST shouldn't have called it a \"WORD\" to avoid confusion.</p></div>",
+                    "author": "Rob Ashworth",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; according to most of the planet a WORD is 16-bits, so a QUAD word is 64-Bits</em></p><p>The size of a \"word\" is dependent upon context. It is definitely not almost always 16 bits. It's generally the native size of whatever you're working with. On a 32-bit mcu, it's generally 32 bits.</p><p>Here, it is 32 bit.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Basically today \"word\" is equivalent to 16 bits only in Intel x86 world. When 8086 was introduced in 1979, the widest data it could handle was 16-bit, so that was called a \"word\".</p><p>All the computer architectures introduced after 1980 define word as 32-bit, 16-bit entity is called \"halfword\", and 64-bit - \"doubleword\". It is and was the same for MIPS, SPARC, ARM, POWER, RISC-V, ARC and Xtensa. There is no modern architecture using \"word\" to refer to 16-bits.</p><p>It's the architecture owner/designer who names the things - in the case of STM32 which uses ARM architecture, we should follow the ARM dictionary of names.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

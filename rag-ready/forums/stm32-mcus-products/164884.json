@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "164884",
+            "publicId": "164884",
+            "title": "STM32F407 CAN works at 125 kbps but fails at 250/500 kbps",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f407-can-works-at-125-kbps-but-fails-at-250-500-kbps-164884",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "CAN",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-04-18T11:47:42+00:00",
+            "views": 174,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nThe transceiver you are using is a **5V device** incompatible with STM32 and it doesn't have VIO input to adapt the voltage levels like many other transceivers.\n\nFrom the transceiver's datasheet:\n\n![mALLEm_0-1776522622203.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00a980b9-3f34-76f6-81c8-ce71138ec3d8.png \"mALLEm_0-1776522622203.png\")\n\n**VIHmin** = 0.7\\*VCC = 0.7\\*5V = **3.5V which is > VDD MCU**.\n\nYou will say, ok but it's is working with 125kb/s. Yes it's working but out of specification. So you will face random issues and unstable communication.\n\nSo please use another CAN transceiver such as SN65HVD230. It's already used in many STM32 eval boards.\n\nSo replace that PCA82C251 tranceiver before going ahead.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am working with an STM32F407VGT on the Discovery board using bxCAN.\n\nI can communicate successfully at **125 kbps**, but when I switch to **250 kbps or 500 kbps**, communication completely fails:\n\n* No messages are transmitted or received\n\n* PCAN shows **Bus Heavy / error frames**\n\n### Setup:\n\n* MCU: STM32F407VGT\n\n* CAN interface: bxCAN\n\n* Transceiver: PCA82C251\n\n* Tool: PCAN-USB\n\n* Termination: 2 x 120Ω (verified ~60Ω between CANH and CANL)\n\n* Cabling: short wires, common GND connected\n\n### Observations:\n\n* 125 kbps works reliably\n\n* At 250 kbps and 500 kbps:\n\n+ No TX/RX activity\n\n+ PCAN reports Bus Heavy\n\n* Same wiring and hardware used for all speeds\n\n### Additional checks:\n\n* Filters configured to accept all messages\n\n* CAN1 clock enabled\n\n* GPIO configured as AF9, very high speed\n\n* Tested with single node + PCAN\n\n### Question:\n\nWhat could cause CAN to work at 125 kbps but completely fail at higher bitrates on STM32F407?\n\nAny suggestions or known hardware limitations on the Discovery board?\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00a980b9-3f34-76f6-81c8-ce71138ec3d8.png"
+            ],
+            "author": "Ymtr",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>The transceiver you are using is a <strong>5V device</strong> incompatible with STM32 and it doesn't have VIO input to adapt the voltage levels like many other transceivers.</p>\n<p>From the transceiver's datasheet:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776522622203.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776522622203.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00a980b9-3f34-76f6-81c8-ce71138ec3d8.png\" title=\"mALLEm_0-1776522622203.png\"/></span></p>\n<p><strong>VIHmin</strong> = 0.7*VCC = 0.7*5V = <strong>3.5V which is &gt; VDD MCU</strong>.</p>\n<p>You will say, ok but it's is working with 125kb/s. Yes it's working but out of specification. So you will face random issues and unstable communication.</p>\n<p>So please use another CAN transceiver such as SN65HVD230. It's already used in many STM32 eval boards.</p>\n<p>So replace that <span>PCA82C251 tranceiver before going ahead.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "164859",
+            "publicId": "164859",
+            "title": "PDM2PCM library on STM32N6: Target is not responding",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/pdm2pcm-library-on-stm32n6-target-is-not-responding-164859",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "SAI",
+                "Audio and voice",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-17T08:11:46+00:00",
+            "views": 281,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Sure,\n\nYou can take a look here\n\n[How to use multifunction digital filter (MDF) to capture sound on STM32 MCUs - Application note](https://www.st.com/resource/en/application_note/an5795-how-to-use-multifunction-digital-filter-mdf-to-capture-sound-on-stm32-mcus-stmicroelectronics.pdf)\n\nalso, Audio-kit package provides source code example.\n\nBr\n\nJonathan",
+            "best_answer_author": "JonathanC",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hey there,\n\nI'm currently trying to port a project that I was using successfully on the STM32U5A5, to the STM32N657.\n\nThe project utilises the PDM2PCM library to convert a PDM audio stream received from a MEMS microphone via the SAI interface of the MCU into PCM audio data. It is based on an example from the STM32U3 MCU firmware package (STM32Cube/Repository/STM32Cube\\_FW\\_U3\\_V1.3.0/Projects/NUCLEO-U385RG-Q/Examples/SAI/SAI\\_AudioRecord\\_PDM), parts of which I have incorporated into my own application on the STM32U5A5.\n\nI'm now trying to port this project to the STM32N657 on a NUCLEO-N657X0-Q board. I've found the matching PDM2PCM library for the N6's M55 core in the X-CUBE-AUDIO-KIT as mentioned [here](https://community.st.com/t5/stm32-mcus-embedded-software/pdm2pcm-library-missing-for-cm55/m-p/892178/highlight/true#M74629).\n\nNow, when I integrate this library (libPDMFilter\\_CM55\\_GCC\\_wc32.a) into my project and start the debugger of the STM32CubeIDE it starts printing \"Target is not responding, retrying...\" in the debugging console as soon as the program flow reaches the call to the PDM2PCM\\_init function of the library.\n\nIt tried to find out if any of the fault handler functions (HardFault\\_Handler, etc.) are being called but it seems like the debugger just crashes (I have to unplug and plug the USB cable so that I can get it to work again).\n\nI'm just running out of ideas here so any hint or help would be highly appreciated!\n\nThanks in advance and best regards,\n\nJens",
+            "images": [],
+            "author": "jenssiebertswarm",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><div>It’s hard to say for sure, but I suspect the CRC initialization might be missing. You could try enabling it explicitly by calling:</div><p> </p><pre class=\"lia-code-sample language-c\"><code>static void s_enable_CRC_peripheral(void)\n{\n__HAL_RCC_CRC_CLK_ENABLE();\nCRC-&gt;CR = CRC_CR_RESET;\n}</code></pre><div>On the DK, the microphones are connected via the MDF. For your microphone interface, you could use the same approach. This would allow you to remove the dependency on the PCM2PDM library and reuse audio capture code similar to what is provided in the DK BSP.</div><p><br/>Br </p><p>Jonathan</p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey <user-mention data-id=\"92804\">@JonathanC</user-mention>,</p><p>thanks for your reply! I’ve already enabled the CRC peripheral clock, as you suggested (I do the same on the U5), but that doesn’t seem to be the actual cause — unless I need to make an additional change in the CubeMX configuration for this to work on the N6.</p><p>I’ll spend a little more time on this problem, and if that doesn’t work, I’ll try MDF as a fallback solution, as you suggested.</p><p>Best regards,</p><p>Jens</p></div>",
+                    "author": "jenssiebertswarm",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey Jens,<br/>I made a quick test based on the audio-kit package on the DK. <br/><br/>In stm32_audio_capture_conf.h, I forced</p><pre class=\"lia-code-sample language-c\"><code>//#define UTIL_AUDIO_IN_PDM2PCM_USED (UTIL_AUDIO_PERSIST_CONFIG_get_cur()-&gt;audioInUsePdm2Pcm)\n#define UTIL_AUDIO_IN_PDM2PCM_USED 1</code></pre><p><br/><br/>In Utilities/Audio; add file stm32_audio_pdm2pcm.c to project<br/><br/>In the main call UTIL_AUDIO_PDM2PCM_Init after main_hooks_post_init();</p><p>I see no error at init. <br/>I think (it's hard to say for sure again, sorry about that) you may have an issue with memory configuration. <br/>I would suggest you look at the Audio-Kit for :</p><ol><li>Linker file: It configures a single RAM zone including NPU Ram (it must be clocked so if you do the same, please call similar function as NPURam_enable in audio-kit core_init.c to do so, otherwise do not include it).</li><li>core_init.c (MPU config maybe try things around RISAF).</li></ol><p>Br</p><p>Jonathan </p><p><br/>  </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey <user-mention data-id=\"92804\">@JonathanC</user-mention>,</p><p>thanks again for your tips! It's really very much appreciated!</p><p>Unfortunately, I haven't had any luck getting PDM2PCM to work on my board, and since I'm running out of time, I'm going to put that on hold for now and try to get MDF up and running. Maybe I’ll come back to PDM2PCM later, since the topic really bugs me... ;)</p><p>Do you perhaps have any tips on tutorials or examples of how to convert PDM data streams to PCM audio using MDF?</p><p> </p><p>Thanks again and best regards,</p><p>Jens</p></div>",
+                    "author": "jenssiebertswarm",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sure,<br/>You can take a look here <br/><a href=\"https://www.st.com/resource/en/application_note/an5795-how-to-use-multifunction-digital-filter-mdf-to-capture-sound-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">How to use multifunction digital filter (MDF) to capture sound on STM32 MCUs - Application note</a><br/><br/>also, Audio-kit package provides source code example.<br/>Br<br/>Jonathan </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

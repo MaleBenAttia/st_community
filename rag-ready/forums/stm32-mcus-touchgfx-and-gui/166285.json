@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "166264",
+            "publicId": "166285",
+            "title": "Difference between OSWrappers.cpp in target\\generated and touchgfx\\os",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/difference-between-oswrappers-cpp-in-target-generated-and-touchgfx-os-166285",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "STM32H7 series",
+                "TouchGFX"
+            ],
+            "published_at": "2026-06-19T10:49:28+00:00",
+            "views": 54,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello Nico.\n\nThe one in touchgfx/os is an old file that is kept only to preserve backward compatibility. However, it is no longer maintained and therefore does not support newer versions of FreeRTOS. That is why you see differences between the two files.\n\nThe file in target/generated is the one that is actually used and maintained. The other file can be ignored in all new projects.\n\nBest regards,\n\nJohan",
+            "best_answer_author": "JohanAstrup",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I’m seeing that there’s the same file OSWrappers.cpp in both `target\\generated` and `touchgfx\\os`\n\nThe one in `touchgfx\\os` is slightly different as it contains\n\n```\n\nstatic portBASE_TYPE IdleTaskHook(void* p)\n\n{\n\nif ((int)p) // Idle task sched out\n\n{\n\ntouchgfx::HAL::getInstance()->setMCUActive(true);\n\n}\n\nelse // Idle task sched in\n\n{\n\ntouchgfx::HAL::getInstance()->setMCUActive(false);\n\n}\n\nreturn pdTRUE;\n\n}\n\n// FreeRTOS specific handlers\n\nextern \"C\"\n\n{\n\nvoid vApplicationStackOverflowHook(xTaskHandle xTask,\n\nsigned portCHAR* pcTaskName)\n\n{\n\nwhile (1);\n\n}\n\nvoid vApplicationMallocFailedHook(xTaskHandle xTask,\n\nsigned portCHAR* pcTaskName)\n\n{\n\nwhile (1);\n\n}\n\nvoid vApplicationIdleHook(void)\n\n{\n\n// Set task tag in order to have the \"IdleTaskHook\" function called when the idle task is\n\n// switched in/out. Used solely for measuring MCU load, and can be removed if MCU load\n\n// readout is not needed.\n\nvTaskSetApplicationTaskTag(NULL, IdleTaskHook);\n\n}\n\n}\n\n```\n\nThe one in `target\\generated` seems to be actively used meanwhile I can’t understand when the one in `touchgfx\\os` is used.",
+            "images": [],
+            "author": "nico23",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>up</p></div>",
+                    "author": "nico23",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Nico.</p><p>The one in touchgfx/os is an old file that is kept only to preserve backward compatibility. However, it is no longer maintained and therefore does not support newer versions of FreeRTOS. That is why you see differences between the two files.<br/>The file in target/generated is the one that is actually used and maintained. The other file can be ignored in all new projects.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

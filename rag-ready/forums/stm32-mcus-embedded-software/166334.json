@@ -1,0 +1,85 @@
+{
+    "forum": [
+        {
+            "id": "166313",
+            "publicId": "166334",
+            "title": "STM32F429 LWIP project stops all network comms after running for a few hours.",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f429-lwip-project-stops-all-network-comms-after-running-for-a-few-hours-166334",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeMX",
+                "Ethernet",
+                "LwIP"
+            ],
+            "published_at": "2026-06-22T14:47:15+00:00",
+            "views": 123,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "I finally found the problem.  It turns out that in the STM32CubeMx generated code, the function, low\\_level\\_output(), was being called simultaneously by two freertos tasks (EthLink and tcpip\\_thread) - and they were over-writing each other.  I have patched it by putting a mutex on low\\_level\\_output() which seems so far to have resolved the issue.\n\nIt took me a while to realize that many of the errors flagged by the ethernet hardware peripheral were not real.  They actually occurred after I hit my breakpoints or otherwise stopped the CPU.  I was also hindered by the fact that it often took many hours for the lock up to occur.",
+            "best_answer_author": "paulrbryson",
+            "best_answer_author_role": "Associate III",
+            "content_text": "My STM32F429 LWIP project stops all network comms after running for a few hours.\n\nI am hoping that this is a known bug with a known fix. But I would appreciate any insight that anyone can provide.\n\nI have a CubeMX generated project using LWIP and FreeRTOS running on an STM32F429. I have an ethernet interface using a LAN8742A.\n\nAfter running for a few hours my project stops communicating and does not recover. I think I have ruled out any kind of memory or buffer exhaustion.  I suspect a race condition of some sort.\n\nEvery time the comms stop, all of the RX descriptors are owned by the CPU and the ethernet RX descriptors are stuck in this same pattern.\n\nThe numbers change but RxDescIdx is always (RxBuildDescIdx + 1).  And the counts are always = 1.\n\nheth->RxDescList->\n\nItMode =          1\n\nRxDescIdx    =          27\n\nRxDescCnt =          1\n\nRxDataLength =      118\n\nRxBuildDescIdx =    26\n\nRxBuildDescCnt =    1\n\npRxLastRxDesc    =      7734049\n\nFreeRTOS is still running the idle task and my one non-network task.  All of my networking tasks are blocked.  They all have time outs on their network calls but they do not seem to time out.\n\nI would like to find a way to eliminate this comms bug.  But I would settle for a graceful way to detect and recover from it.",
+            "images": [],
+            "author": "paulrbryson",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was mistaken about the memory exhaustion.  My RX_POOL was momentarily maxing out periodically.  This did not immediately cause a deadlock; but I have increased the number of RX buffers and I am re-testing.  This should not create a permanent deadlock. <br/>I have also discovered that I sometimes get a hard fault in pbuf_free() called from HAL_ETH_TxFreeCallback().  The pointer p is invalid and not NULL.  But this happens much less often and is not a direct cause of my deadlock.</p></div>",
+                    "author": "paulrbryson",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt;  I sometimes get a hard fault in pbuf_free() called from HAL_ETH_TxFreeCallback().  The pointer p is invalid and not NULL. </p><p>This is a known issue with the example code. We could not find the reason quickly, but  seen it “fixed” or worked-around in some 3rd party ETH driver variants.</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Some LwIP debug/diagnostic tips/resources:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-products/lwip-ethernet-in-stm32h7-working-in-stm32cubeide-but-not-in-iar/m-p/748501/highlight/true#M267524\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">https://community.st.com/t5/stm32-mcus-products/lwip-ethernet-in-stm32h7-working-in-stm32cubeide-but-not-in-iar/m-p/748501/highlight/true#M267524</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I finally found the problem.  It turns out that in the STM32CubeMx generated code, the function, low_level_output(), was being called simultaneously by two freertos tasks (EthLink and tcpip_thread) - and they were over-writing each other.  I have patched it by putting a mutex on low_level_output() which seems so far to have resolved the issue.<br/><br/>It took me a while to realize that many of the errors flagged by the ethernet hardware peripheral were not real.  They actually occurred after I hit my breakpoints or otherwise stopped the CPU.  I was also hindered by the fact that it often took many hours for the lock up to occur.</p></div>",
+                    "author": "paulrbryson",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"paulrbryson\"><div class=\"content-quote-content\"> <p>I finally found the problem. </p> </div></content-quote><p>Excellent! So please <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">mark <em>that post </em>as the solution</a>  - not this one!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>But TX_Config is not the end of it.<br/>low_level_output() through <u>HAL_ETH_Transmit_IT() and </u>ETH_Prepare_Tx_Descriptors() also write to global “heth” and actually writes the ethernet hardware registers and the DMA TX descriptors.  </p></div>",
+                    "author": "paulrbryson",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Normally this situation of two threads calling low_level_output() at same time should not happen with the example configuration.</p><p>In lwipopts.h, is NO_SYS defined to 0 ? (RTOS is used)</p><p>is LWIP_TCPIP_CORE_LOCKING set to 1 ? (if not set in lwipopts.h, the default value 1 is defined in LwIP/src/include/lwip/opt.h )</p><p>Are you calling lwip “raw” APIs (tcp_write(), tcp_output(), udp_sendto() ...) while NO_SYS = 0  ?</p><p> </p><p> </p><p> </p></div>",
+                    "author": "Guillaume K",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>NO_SYS is 0.<br/>I am not using the raw api.<br/>However, I do have LWIP_TCPIP_CORE_LOCKING set to 0.  I don’t remember exactly why I originally set it to 0 (probably suggested by an AI).  I tried many many things trying to address my original problem.  It is likely that I created new problems while trying to fix the original problem. <br/>I just now tried setting LWIP_TCPIP_CORE_LOCKING to 1 and my application stopped working.</p></div>",
+                    "author": "paulrbryson",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Guillaume K",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

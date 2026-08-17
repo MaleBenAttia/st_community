@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "165418",
+            "publicId": "165418",
+            "title": "TouchGFX Application Shows Black Screen After Bootloader Jump",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/touchgfx-application-shows-black-screen-after-bootloader-jump-165418",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "Bootloader",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-06T07:56:49+00:00",
+            "views": 269,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Yes, please see my post.",
+            "best_answer_author": "Sasa1234",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello everyone,\n\nI am working on a custom bootloader for an STM32H743-based TouchGFX project and facing a very strange issue specifically with the TouchGFX application after jumping from bootloader.\n\nSTM32H743 Bootloader Successfully Jumps to Simple App but TouchGFX Application Shows Black Screen After Bootloader Jump.\n\nI would appreciate any guidance from people who have experience with STM32H7 + TouchGFX + bootloader integration.\n\n---\n\n## Hardware / Project Details\n\nMCU:\n\n* STM32H743IIT6\n\nFrameworks:\n\n* STM32CubeIDE\n\n* TouchGFX\n\n* FreeRTOS\n\nPeripherals Used in TouchGFX App:\n\n* FMC SDRAM\n\n* LTDC\n\n* DMA2D\n\n* QSPI\n\n* I2C\n\n* TIM2\n\nExternal Memories:\n\n* SDRAM framebuffer at 0xD0000000\n\n* QSPI assets at 0x90000000\n\n---\n\n## Bootloader Functionality\n\nThe bootloader:\n\n* Initializes USB Host + FATFS\n\n* Detects pendrive\n\n* Reads image.bin and extflash.bin\n\n* Programs internal flash and external QSPI successfully\n\n* Uses APPLICATION\\_ADDRESS = 0x08040000\n\n* After flashing, bootloader jumps to application\n\nImportant:\n\n* Simple LED blinking application works correctly through the same jump function\n\n* Only TouchGFX application fails\n\n---\n\n## Symptoms\n\n1. TouchGFX application works perfectly when flashed using STM32CubeProgrammer directly.\n\n2. But after bootloader flashing + jump:\n\n* Display stays completely black\n\n* No GUI appears\n\n* No LED toggles inside main()\n\n* HardFault / MemFault / BusFault handlers are NOT entered\n\n* Application seems to die before reaching main()\n\n3. If same binary is programmed manually via CubeProgrammer:\n\n* GUI works correctly even after reset\n\nThis strongly suggests:\n\n* The binary itself is valid\n\n* Flashing process mostly works\n\n* Problem happens specifically during bootloader jump/startup\n\n---\n\n## Application Linker Configuration\n\nApplication FLASH origin:\n\nFLASH (rx) :\n\nORIGIN = 0x08040000\n\nVector table offset in system\\_stm32h7xx.c:\n\n#define USER\\_VECT\\_TAB\\_ADDRESS\n\n#define VECT\\_TAB\\_OFFSET 0x00040000U\n\nFramebuffer sections:\n\nBufferSection (NOLOAD) > SDRAM\n\nBitmapCacheSection (NOLOAD) > SDRAM1\n\nExtFlashSection > QSPI\n\nStack pointer at application start:\n\n* 0x24000000 region (AXI SRAM)\n\n---\n\n## Current Jump Function\n\nCurrent jump code:\n\n```\n\ntypedef void (*pFunction)(void);\n\nvoid Jump_To_User_Application(void)\n\n{\n\nuint32_t appStack;\n\nuint32_t appEntry;\n\nappStack = *(__IO uint32_t*)APPLICATION_ADDRESS;\n\nappEntry = *(__IO uint32_t*)(APPLICATION_ADDRESS + 4);\n\nif (((appStack & 0xFF000000) == 0x24000000) ||\n\n((appStack & 0xFF000000) == 0x20000000))\n\n{\n\n__disable_irq();\n\nSysTick->CTRL = 0;\n\nSysTick->LOAD = 0;\n\nSysTick->VAL = 0;\n\nfor (uint32_t i = 0; i < 8; i++)\n\n{\n\nNVIC->ICER[i] = 0xFFFFFFFF;\n\nNVIC->ICPR[i] = 0xFFFFFFFF;\n\n}\n\nHAL_MPU_Disable();\n\nSCB_DisableICache();\n\nSCB_DisableDCache();\n\n__DSB();\n\n__ISB();\n\nSCB->VTOR = APPLICATION_ADDRESS;\n\n__set_MSP(appStack);\n\npFunction JumpToApp;\n\nJumpToApp = (pFunction)(appEntry);\n\nJumpToApp();\n\n}\n\n}\n\n```\n\n---\n\n## Debugging Already Done\n\n1. Verified linker FLASH origin = 0x08040000\n\n2. Verified VECT\\_TAB\\_OFFSET = 0x00040000U\n\n3. Verified application vector table exists at 0x08040000\n\n4. Verified MSP points to 0x24000000 region\n\n5. Verified TouchGFX binary works when flashed manually\n\n6. Added LED toggles between all init calls in main()\n\n7. Added HardFault / BusFault / MemFault handlers with LED blinking\n\n8. Application never reaches main() after bootloader jump\n\n9. Fault handlers are also never reached\n\n10. Simple non-TouchGFX LED application works correctly with same jump function\n\n---\n\n## Main Question\n\nWhy would:\n\n* Simple application jump correctly\n\n* But TouchGFX application fail before entering main()\n\neven though:\n\n* linker script is correct\n\n* vector table offset is correct\n\n* binary works through CubeProgrammer\n\n* flash contents appear correct\n\nCould this be related to:\n\n* AXI SRAM stack pointer\n\n* cache state\n\n* MPU state\n\n* SDRAM/FMC state\n\n* incorrect binary flashing alignment\n\n* Thumb bit/reset vector issue\n\n* startup code incompatibility after bootloader jump\n\nHas anyone successfully implemented STM32H7 bootloader + TouchGFX application jump reliably?\n\nAny suggestions would be greatly appreciated.\n\nThank you.",
+            "images": [],
+            "author": "jumman_JHINGA",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, please see my post.</p></div>",
+                    "author": "Sasa1234",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"66979\">@Sasa1234</user-mention> which post are talking about? could you share me link?</p></div>",
+                    "author": "jumman_JHINGA",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><a href=\"https://community.st.com/t5/stm32-mcus-touchgfx-and-gui/trouble-jumping-to-bootloader-from-application-on-stm32h747-with/td-p/803369\" target=\"_blank\">Solved: Trouble Jumping to Bootloader from Application on ... - STMicroelectronics Community</a></p></div>",
+                    "author": "Sasa1234",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>before jumping to main application i added :</p><pre>__enable_irq(); </pre><p> after that it started working.<br/><br/>thanks <user-mention data-id=\"66979\">@Sasa1234</user-mention> for sharing the soltution. </p></div>",
+                    "author": "jumman_JHINGA",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

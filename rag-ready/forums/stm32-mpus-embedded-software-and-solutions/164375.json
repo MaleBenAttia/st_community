@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "164375",
+            "publicId": "164375",
+            "title": "STM32MP2: \"stm32_sdmmc2_mmc_init: DT error\" after build of custom board with emmc booting",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/stm32mp2-stm32-sdmmc2-mmc-init-dt-error-after-build-of-custom-board-with-emmc-booting-164375",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "OpenSTLinux",
+                "TF-A",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-04-01T08:23:08+00:00",
+            "views": 242,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "After talking to the AI, I found out the problem myself. The mx/.../tf-a/...-simon-mx.dts needs to have it enabled. Adding this makes the board boot:\n\n```\n\n/* USER CODE BEGIN addons */\n\n&sdmmc2 {\n\npinctrl-names = \"default\";\n\npinctrl-0 = <&sdmmc2_b4_pins_a &sdmmc2_d47_pins_a>;\n\nnon-removable;\n\nno-sd;\n\nno-sdio;\n\nst,neg-edge;\n\nbus-width = <8>;\n\nvmmc-supply = <&vdd_emmc>;\n\nvqmmc-supply = <&vddio2>;\n\nstatus = \"okay\";\n\n};\n\n/* USER CODE END addons */\n\n```\n\nnow on to other issues...",
+            "best_answer_author": "SimonKagstrom",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I'm working on adding a custom STM32MP257 board based on the openstlinux distribution package, and I'm currently using the STM32MP257F-EV1 board. I'm having problems with booting on eMMC with a stm32cubemx-generated device tree. What I've done:\n\n\\* Created a STM32MP257F-EV1 project in CubeMX. I've only changed the project name, no pinning etc (based on instructions from <https://wiki.st.com/stm32mpu/wiki/How_to_create_STM32MPU_projects_with_STM32CubeMX#Create_an_STM32MP2_series_project>)\n\n\\* Copied the generated output into layers/meta-st/meta-st-stm32mp-addons/mx\n\n\\* Copied stm32mp25-mx.conf to a custom one and edited (per\n\n<https://wiki.st.com/stm32mpu/wiki/How_to_create_your_own_machine>)\n\n```\n\nBOOTSCHEME_LABELS += \"optee\"\n\n[...]\n\nBOOTDEVICE_LABELS += \"sdcard\"\n\nBOOTDEVICE_LABELS += \"emmc\"\n\n```\n\n\\* Built the image using\n\n```\n\nDISTRO=openstlinux-weston MACHINE=stm32mp257f-simon source layers/meta-st/scripts/envsetup.sh\n\nbitbake st-image-weston\n\n```\n\nwhich finishes successfully (CUBEMX\\_DTB, CUBEMX\\_PROJECT etc being set in the conf. I had them wrong first, and then the build fails).\n\n\\* Flashed using\n\n```\n\nSTM32_Programmer_CLI -c port=usb1 -w flashlayout_st-image-weston/optee/FlashLayout_emmc_stm32mp257f-stm32mp257f-simon-mx-optee.tsv\n\n```\n\nand started with the boot switches set to emmc booting.\n\nHowever, it doesn't boot. On the serial terminal, I see\n\n```\n\nPANIC at PC : 0x000000000e0276ac\n\nNOTICE: CPU: STM32MP257FAI Rev.Y\n\nNOTICE: Model: STMicroelectronics STM32MP257F-EV1 STM32CubeMX board - openstlinux-6.6-yocto-scarthgap-mpu-v26.02.18\n\nNOTICE: Board: MB1936 Var1.0 Rev.D-01\n\nNOTICE: Reset reason: Power-on reset (por_rstn) (0x2035)\n\nINFO: PMIC2 version = 0x11\n\nINFO: PMIC2 product ID = 0x20\n\nINFO: FCONF: Reading TB_FW firmware configuration file from: 0xe011000\n\nINFO: FCONF: Reading firmware configuration information for: stm32mp_fuse\n\nINFO: FCONF: Reading firmware configuration information for: stm32mp_io\n\nINFO: Using EMMC\n\nINFO: Instance 2\n\nINFO: Boot used partition fsbl1\n\nERROR: stm32_sdmmc2_mmc_init: DT error\n\nERROR: SDMMC2 init failed\n\nBACKTRACE: START: boot_mmc\n\n0: EL3: 0xe017bac\n\n1: EL3: 0xe0276a4\n\n2: EL3: 0xe0170dc\n\nBACKTRACE: END: boot_mmc\n\nPANIC at PC : 0x000000000e0276ac\n\n```\n\nSo how do I get booting via emmc working? What works:\n\n\\* Flashing on the sdcard from the same build (with the boot switches set to sdcard boot).\n\n\\* Building with\n\n```\n\nDISTRO=openstlinux-weston MACHINE=stm32mp2 source layers/meta-st/scripts/envsetup.sh\n\n```\n\ninstead, and flashing the -ev1 board for emmc, i.e., without my cubemx stuff and custom conf.\n\nWhat I want is basically to prepare for pinning changes via CubeMX, and setup an environment where I can modify u-boot, the kernel, device trees etc for my custom design. I need to boot on emmc, which is all I'll have. Any clues to what to do to get this running?",
+            "images": [],
+            "author": "SimonKagstrom",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After talking to the AI, I found out the problem myself. The mx/.../tf-a/...-simon-mx.dts needs to have it enabled. Adding this makes the board boot:<br/><br/></p><pre class=\"lia-code-sample language-c\"><code>/* USER CODE BEGIN addons */\n\n&amp;sdmmc2 {\n\tpinctrl-names = \"default\";\n\tpinctrl-0 = &lt;&amp;sdmmc2_b4_pins_a &amp;sdmmc2_d47_pins_a&gt;;\n\tnon-removable;\n\tno-sd;\n\tno-sdio;\n\tst,neg-edge;\n\tbus-width = &lt;8&gt;;\n\tvmmc-supply = &lt;&amp;vdd_emmc&gt;;\n\tvqmmc-supply = &lt;&amp;vddio2&gt;;\n\tstatus = \"okay\";\n};\n\n/* USER CODE END addons */</code></pre><p> <br/>now on to other issues...</p></div>",
+                    "author": "SimonKagstrom",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

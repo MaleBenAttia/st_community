@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "163661",
+            "publicId": "163661",
+            "title": "Serial terminal",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/serial-terminal-163661",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-10T19:26:16+00:00",
+            "views": 616,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "hi @ANeam.1\n\nSemihosting support inside *STM32CubeIDE for Visual Studio Code* is based onto rdimon library. Here is a good article on how to update your code:\n\n[How to use semihosting with STM32CubeIDE and STM32 - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus/how-to-use-semihosting-with-stm32cubeide-and-stm32/ta-p/49742 \"https://community.st.com/t5/stm32-mcus/how-to-use-semihosting-with-stm32cubeide-and-stm32/ta-p/49742\")\n\nUsage of SWO for printf is known in STM32CubeIDE Eclipse as \"SWV ITM Data Console and printf redirection\" (from User Manual, chapter 3.2.3.5). It will be supported later in *STM32CubeIDE for Visual Studio Code.*\n\nBR,\n\nLudovicR",
+            "best_answer_author": "LudovicR",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi, I am seeking some guidance.\n\nWith the new release STM32CubeIDE for Visual Studio Code 3.8.0, it says it comes with new features including\n\n\" **Serial terminal**: Enabling developers to easily setup serial communication for example leveraging the ST-LINK virtual com port.\"\n\nIn the docs, there is not much explanation on how to get this working. I only see:\n\n\"If the serverPort attribute is defined, two ports are used by the ST-LINK GDB server: one for the debug session and serverPort + 1 for the SWO connection.\n\nThese ports are reserved even if SWO is not activated in the debug configuration.\"\n\nHow would one activate the SWO in the launch.json? I went through all the options with completition and none seem to activate or configure the SWO.\n\nI know that with the extension \"Cortex-Debug\" provided by marus25 we could configure the SWO as so:\n\n```\n\n\"swoConfig\": {\n\n\"enabled\": true,\n\n\"cpuFrequency\": 275000000, // must match -a (Hz) :contentReference[oaicite:4]{index=4}\n\n\"swoFrequency\": 1375000, // 2MHz example (Hz) :contentReference[oaicite:5]{index=5}\n\n// This is the key: read SWO from a socket (ST-LINK_gdbserver -z)\n\n\"source\": \"socket\",\n\n\"swoPort\": \"localhost:61235\",\n\n\"decoders\": [\n\n{\n\n\"label\": \"ITM Port 0 (printf)\",\n\n\"type\": \"console\",\n\n\"port\": 0\n\n}\n\n]\n\n}\n\n```\n\nMy actual configuration is (I am using a STM32H735G-DK board):\n\n```\n\n{\n\n\"type\": \"stlinkgdbtarget\",\n\n\"request\": \"launch\",\n\n\"name\": \"STM32Cube: STM32 Launch ST-Link GDB Server\",\n\n\"origin\": \"snippet\",\n\n\"cwd\": \"${workspaceFolder}\",\n\n\"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n\n\"runEntry\": \"main\",\n\n\"imagesAndSymbols\": [\n\n{\n\n\"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\",\n\n}\n\n],\n\n\"serverExtLoader\": [\n\n{\n\n\"loader\": \"${env:CUBE_BUNDLE_PATH}\\\\programmer\\\\2.22.0+st.1\\\\bin\\\\ExternalLoader\\\\MX25LM51245G_STM32H735G-DK.stldr\",\n\n\"initialize\": false\n\n}\n\n],\n\n\"liveWatch\": {\n\n\"enabled\": true,\n\n\"samplesPerSecond\": \"4\"\n\n},\n\n/*\"serverRtos\": {\n\n\"enabled\": true,\n\n\"port\": \"60000\",\n\n\"driver\": \"freertos\"\n\n},*/\n\n\"serverPort\": \"61234\",\n\n},\n\n```\n\nSo, if I understand correctly the docs, if we set a serverPort to 61234, it will reserve this port for ST-LINK GDB server and 61235 for SWO connection.\n\nAny guidance on how to make this work and display the SWO strings to a terminal within VSCode?\n\nThank you!",
+            "images": [],
+            "author": "ANeam.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hi <user-mention data-id=\"54134\">@ANeam.1</user-mention> </p>\n<p>Try with this tag</p>\n<div>\n<div><span>          </span><span>\"serverSemihosting\"</span><span>: {</span></div>\n<div><span>                </span><span>\"enabled\"</span><span>: </span><span>true</span><span>,</span></div>\n<div><span>                </span><span>\"mode\"</span><span>: </span><span>\"console\"</span><span>,</span></div>\n<div><span>                </span><span>\"port\"</span><span>: </span><span>\"61260\"</span></div>\n<div><span>            },</span></div>\n</div></div>",
+                    "author": "Nawres GHARBI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"443\">@Nawres GHARBI</user-mention> ,</p><p>Thank you for the prompt reply.</p><p><br/>Sorry for my ignorance, I did try with \"serverSemihosting\". It did indeed create a new tab called \"STM32CUBE TCP CONSOLE\", but when I run the debug, it does not print anything to the console. I did try with port 61235 and also 61260 as suggested, none worked. I have a bunch of printfs in my code, and I did configure the <span>__io_putchar() to forward the char to </span>ITM_SendChar(). The same code worked well with the STM32CubeIDE and SWO. Is this Semihosting something other than SWO? I was expecting to setup the cpuFrequency, the swoFrequency and enable the ITM ports we desire, as we always do in STM32CubeIDE?</p><p> </p><p>Thank you!</p></div>",
+                    "author": "ANeam.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>hi </span><user-mention data-id=\"54134\">@ANeam.1</user-mention><span> </span></p>\n<p> </p>\n<p><span>Semihosting support inside <i>STM32CubeIDE for Visual Studio Code</i> is based onto rdimon library. </span><span>Here is a good article on how to update your code:</span></p>\n<p><a aria-label=\"Link How to use semihosting with STM32CubeIDE and STM32 - STMicroelectronics Community\" class=\"fui-Link ___1q1shib f2hkw1w f3rmtva f1ewtqcl fyind8e f1k6fduh f1w7gpdv fk6fouc fjoy568 figsok6 f1s184ao f1mk8lai fnbmjn9 f1o700av f13mvf36 f1cmlufx f9n3di6 f1ids18y f1tx3yz7 f1deo86v f1eh06m1 f1iescvh fhgqx19 f1olyrje f1p93eir f1nev41a f1h8hb77 f1lqvz6u f10aw75t fsle3fq f17ae5zn\" href=\"https://community.st.com/t5/stm32-mcus/how-to-use-semihosting-with-stm32cubeide-and-stm32/ta-p/49742\" id=\"menur1t6\" target=\"_blank\" title=\"https://community.st.com/t5/stm32-mcus/how-to-use-semihosting-with-stm32cubeide-and-stm32/ta-p/49742\">How to use semihosting with STM32CubeIDE and STM32 - STMicroelectronics Community</a></p>\n<p> </p>\n<p><span>Usage of SWO for printf is known in STM32CubeIDE Eclipse as \"SWV ITM Data Console and printf redirection\" (from User Manual, chapter 3.2.3.5). It will be supported later in <i>STM32CubeIDE for Visual Studio Code.</i></span></p>\n<p> </p>\n<p>BR,</p>\n<p>LudovicR</p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "LudovicR",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"54134\">@ANeam.1</user-mention> wrote:<br/><p><span>\" </span><strong>Serial terminal</strong><span>: Enabling developers to easily setup serial communication for example leveraging the ST-LINK virtual com port.\"</span></p><hr/></blockquote><p>The Virtual COM Port (VCP) is used with a UART on the Target MCU; not SWO - that's something different.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"35659\">@Andrew Neil</user-mention> ,</p><p>Yes, I read after my post about SemiHosting vs VCP vs SWO. It is all more clear now.</p><p>In my project I was already redirecting also the chars towards the UART. While connected to the ST-LINK I was debugging my App in VSCode and in parallel I was opening a TeraTerm connected to the VCP. This setup works, but reading the line you also commented on I was hoping to have this terminal (the TeraTerm equivalent) directly inside VSCode. Is that something we can do? If not I will stick with TeraTerm till <i>STM32CubeIDE for Visual Studio Code </i>extension will implement the true SWO as in CubeIDE.</p><p>Thank you!</p></div>",
+                    "author": "ANeam.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>A COM port (virtual or otherwise) can only be opened by one thing at a time;  so if you were already using it in TeraTerm, then nothing else - incliding VSCode - would be able to use it.</p><p>Personally, I find it easier to stick to using a standalone terminal rather than one integrated with the IDE.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Nawres GHARBI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "LudovicR",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "164825",
+            "publicId": "164825",
+            "title": "STM32H7RS USB USB_OTG_HS PCD_SPEED_FULL as CDC Device: Enumeration Fails, Trace shows Stalls",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h7rs-usb-usb-otg-hs-pcd-speed-full-as-cdc-device-enumeration-fails-trace-shows-stalls-164825",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "USB"
+            ],
+            "published_at": "2026-04-16T12:23:44+00:00",
+            "views": 399,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi @h p\n\nBased on your code provided,\n\n```\n\n#if MOD_4 == 600\n\nRCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI;\n\n```\n\nHSI48 should not be part of the SYSCLK source setup.\n\nOn STM32H7RS, HSI48 is intended as a kernel clock for specific peripherals such as USB and RNG, as described in the reference manual and the CubeMX clock tree. It is not meant to feed the main system clock.\n\nSecond, you should use better dividers like\n\n```\n\nRCC_OscInitStruct.PLL1.PLLM = 8; //instead of 32\n\nRCC_OscInitStruct.PLL1.PLLN = 75; //instead of 300\n\n```\n\nThis would be more consistent with generating a 600 MHz system clock, depending on your input clock source and the rest of the PLL configuration.\n\nAlso here, I assume this should be inversed\n\n```\n\n#if MOD_4 != 0\n\nRCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;\n\n#else\n\nRCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;\n\n#endif\n\n```",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nOn a STM32H7RS are using the USB\\_OTG\\_HS peripheral in PCD\\_SPEED\\_FULL mode using internal clock.\n\nAfter I was able to configure the clock so that the MCU is responding on enumeration requests. The responses however seem to be partially incorrect; the trace tool shows stalls.\n\nI did not found an example in current <https://github.com/STMicroelectronics/STM32CubeH7RS>\n\nThe following changes are applied to a CubeMX generated project\n\n**main.c SystemClock\\_Config:**\n\nLL3.PLLN was set to output 24 MHz\n\n```\n\nRCC_OscInitStruct.PLL3.PLLState = RCC_PLL_ON;\n\nRCC_OscInitStruct.PLL3.PLLSource = RCC_PLLSOURCE_HSI;\n\nRCC_OscInitStruct.PLL3.PLLM = 4;\n\nRCC_OscInitStruct.PLL3.PLLN = 60;\n\nRCC_OscInitStruct.PLL3.PLLP = 2;\n\nRCC_OscInitStruct.PLL3.PLLQ = 40;\n\nRCC_OscInitStruct.PLL3.PLLR = 16;\n\nRCC_OscInitStruct.PLL3.PLLS = 2;\n\nRCC_OscInitStruct.PLL3.PLLT = 2;\n\n```\n\nConfigure CRS\n\n```\n\n__HAL_RCC_CRS_CLK_ENABLE();\n\nRCC_CRSInitTypeDef RCC_CRSInitStruct = {0};\n\nRCC_CRSInitStruct.Prescaler = RCC_CRS_SYNC_DIV1; // default\n\nRCC_CRSInitStruct.Source = RCC_CRS_SYNC_SOURCE_USB_OTG_HS; //RCC_CRS_SYNC_SOURCE_USB_OTG_FS;\n\nRCC_CRSInitStruct.Polarity = RCC_CRS_SYNC_POLARITY_RISING;\n\nRCC_CRSInitStruct.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000,1000); // RCC_CRS_RELOADVALUE_DEFAULT = 0x0000BB7FU\n\nRCC_CRSInitStruct.ErrorLimitValue = 34; // = RCC_CRS_ERRORLIMIT_DEFAULT\n\nRCC_CRSInitStruct.HSI48CalibrationValue = 32; // = RCC_CRS_HSI48CALIBRATION_DEFAULT\n\nHAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);\n\n```\n\n**usbd\\_conf.c**\n\n```\n\nvoid HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)\n\n{\n\nRCC_PeriphCLKInitTypeDef PeriphClkInit = {0};\n\nif(pcdHandle->Instance==USB_OTG_HS)\n\n{\n\n/* USER CODE BEGIN USB_OTG_FS_MspInit 0 */\n\n/* USER CODE END USB_OTG_FS_MspInit 0 */\n\n/** Initializes the peripherals clock\n\n*/\n\nPeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USBPHYC;\n\nPeriphClkInit.UsbPhycClockSelection = RCC_USBPHYCCLKSOURCE_PLL3Q;\n\nif (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Enable USB Voltage detector\n\n*/\n\nif(HAL_PWREx_EnableUSBVoltageDetector() != HAL_OK)\n\nError_Handler();\n\nHAL_PWREx_EnableUSBHSregulator();\n\n/* Peripheral clock enable */\n\n__HAL_RCC_USB_OTG_HS_CLK_ENABLE();\n\n__HAL_RCC_USBPHYC_CLK_ENABLE();\n\n/* Peripheral interrupt init */\n\nHAL_NVIC_SetPriority(OTG_HS_IRQn, 5, 0);\n\nHAL_NVIC_EnableIRQ(OTG_HS_IRQn);\n\n/* USER CODE BEGIN USB_OTG_FS_MspInit 1 */\n\n/* USER CODE END USB_OTG_FS_MspInit 1 */\n\n}\n\n}\n\n```\n\nI checked the following related posts\n\n<https://community.st.com/t5/stm32-mcus/faq-troubleshooting-a-usb-core-soft-reset-stuck-on-an-stm32/ta-p/803224>\n\n<https://community.st.com/t5/stm32-mcus-embedded-software/stm32h7rs-usb-hs-failure-device-descriptor-request-failed/m-p/729048/>\n\n[STM32H7R3 USB FS device enumeration problem | Community](https://stmicroelectronics-en-sandbox-hub.insided.com/stm32-mcus-embedded-software-32/stm32h7r3-usb-fs-device-enumeration-problem-155941)\n\nWhat is missing/wrong in my configuration?\n\nMany thanks for any help.",
+            "images": [],
+            "author": "h p",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"24678\">@h p</user-mention> </p>\n<p>Would you attach your example code to reproduce on my end?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"2057\">@FBL</user-mention> <br/><br/>I created a CubeMX Project and applied necessary patches (MOD_1, MOD2, optionally MOD_3 switches in <span>stm32h7rsxx_hal_conf</span>). It works on the <span>STM32H7S78-DK. The enumeration works successfully. The SYSCLK is 64MHz (MOD_4 set to 0).</span></p><p>When the SYSCLK is switched to 600 MHz using <span>PLLCLK (MOD_4 set to 600) I observe the same problem as on our board: The enumeration fails. Either the trace shows incomplete frames or no activity at all.</span></p><p><span>The attached project demonstrates the problem. If MOD_4 is set back to 0 then the enumeration is successful.<br/><br/>Best reards,</span></p><p><span><user-mention data-id=\"24678\">@h p</user-mention> </span></p></div>",
+                    "author": "h p",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"24678\">@h p</user-mention> </p>\n<p>Based on your code provided,</p>\n<pre class=\"lia-code-sample language-c\"><code>#if MOD_4 == 600\n RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI;</code></pre>\n<p>HSI48 should not be part of the SYSCLK source setup.<br/>On STM32H7RS, HSI48 is intended as a kernel clock for specific peripherals such as USB and RNG, as described in the reference manual and the CubeMX clock tree. It is not meant to feed the main system clock.</p>\n<p>Second, you should use better dividers like  </p>\n<pre class=\"lia-code-sample language-c\"><code>RCC_OscInitStruct.PLL1.PLLM = 8; //instead of 32 \nRCC_OscInitStruct.PLL1.PLLN = 75; //instead of 300</code></pre>\n<p>This would be more consistent with generating a 600 MHz system clock, depending on your input clock source and the rest of the PLL configuration.</p>\n<p> Also here, I assume this should be inversed </p>\n<pre class=\"lia-code-sample language-c\"><code>#if MOD_4 != 0\n RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;\n#else\n RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;\n#endif</code></pre>\n<p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div><div><p>Hello <user-mention data-id=\"2057\">@FBL</user-mention> </p><p>Thanks a lot for your advice. I changed the code accordingly. To make the provided test project work in case 600 MHz is used, the RCC must be configured as follows. This is missing in the provided test project.</p></div></div><pre class=\"lia-code-sample language-c\"><code> RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;\n RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV2;\n RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;\n if (HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)\n {\n Error_Handler();\n }</code></pre><p> By this USBD FS on OTG FS works with all clock configuration (HSI/HSE) on both the eval board and our HW.<br/><br/>In the original project I had an additional error: I copied the code from <span>MX_USB_DEVICE_Init  (</span><span>USBD_Init/USBD_RegisterClass/USBD_CDC_RegisterInterface and used another name for the USBD_HandleTypeDef instance). I missed that the instance is also used in usbd_cdc_if.c.<br/><br/>Best regards,<br/><user-mention data-id=\"24678\">@h p</user-mention> <br/></span></p></div>",
+                    "author": "h p",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "166456",
+            "publicId": "166479",
+            "title": "STM32 UART receives data intermittently after enabling DMA",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/stm32-uart-receives-data-intermittently-after-enabling-dma-166479",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32U5 series"
+            ],
+            "published_at": "2026-06-26T18:51:50+00:00",
+            "views": 57,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@jonsmith67\n\nYou can take inspiration from the STM32CubeMX / STM32CubeIDE example projects provided by ST for UART communication with DMA. In the “New Project from Example” window, simply search for the following example names: UART\\_TwoBoards\\_ComDMA, UART\\_Hyperterminal\\_DMA, and UART\\_ReceptionToIdle\\_CircularDMA. These examples illustrate the main recommended approaches for UART reception, including basic DMA transfers, continuous reception, and DMA circular mode with IDLE line detection, which is especially useful for robust reception of variable-length frames. Even if the example is available for a different STM32 board, it can still serve as a very good reference for the HAL configuration, interrupt handling, DMA setup, and callback usage to adapt into your STM32F407 project.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6a39cc5b-9ad1-45dc-8fe3-2a955b5c68fe.png)\n\nYou can also refer to ST’s official wiki page “Getting started with UART”, which provides a useful introduction to UART communication on STM32 and complements the example projects well: [Getting started with UART](https://wiki.st.com/stm32mcu/wiki/Getting_started_with_UART)",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI'm working on an STM32 project where UART communication uses DMA for receiving data. The application works correctly after startup, but after running for a few minutes, the UART stops receiving data intermittently.\n\nProject details:\n\n* MCU: STM32F407VG\n\n* STM32CubeIDE 1.16\n\n* HAL drivers\n\n* UART2 configured with DMA in Normal Mode\n\n* FreeRTOS enabled\n\nI've already tried:\n\n* Increasing the DMA buffer size.\n\n* Lowering the baud rate from 115200 to 57600.\n\n* Verifying the UART wiring.\n\n* Checking for overrun errors.\n\nThe DMA interrupt still occurs, but the receive callback is not always executed.\n\nHas anyone experienced a similar issue? Is there a recommended way to keep UART DMA reception running continuously?\n\n**Solution**\n\nThe issue was related to how DMA reception was configured.\n\nThe following changes resolved the problem:\n\n1. Configure the DMA channel in **Circular Mode** if continuous reception is required.\n\n2. Restart DMA reception inside the `HAL_UART_RxCpltCallback()` when using Normal Mode.\n\n3. Check for UART error flags such as Overrun (ORE), Framing Error (FE), and Noise Error (NE), and clear them if necessary.\n\n4. Ensure the NVIC priorities for both UART and DMA interrupts are configured correctly, especially when using FreeRTOS.\n\n5. Avoid lengthy processing inside interrupt callbacks. Instead, copy the received data to a queue or buffer and process it in a separate task.\n\n6. Verify that the DMA buffer is not being overwritten before the application finishes reading the data.\n\nAfter switching to Circular Mode and moving packet processing out of the interrupt callback, UART reception became stable and no further data loss occurred.\n\nIf anyone has additional recommendations or best practices for continuous UART DMA communication on STM32 devices, I'd be interested in hearing them.\n\nIf you want any information [click here](https://btutowatts.com).",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6a39cc5b-9ad1-45dc-8fe3-2a955b5c68fe.png"
+            ],
+            "author": "jonsmith67",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107793\">@jonsmith67</user-mention> </p><p>You can take inspiration from the STM32CubeMX / STM32CubeIDE example projects provided by ST for UART communication with DMA. In the “New Project from Example” window, simply search for the following example names: UART_TwoBoards_ComDMA, UART_Hyperterminal_DMA, and UART_ReceptionToIdle_CircularDMA. These examples illustrate the main recommended approaches for UART reception, including basic DMA transfers, continuous reception, and DMA circular mode with IDLE line detection, which is especially useful for robust reception of variable-length frames. Even if the example is available for a different STM32 board, it can still serve as a very good reference for the HAL configuration, interrupt handling, DMA setup, and callback usage to adapt into your STM32F407 project.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6a39cc5b-9ad1-45dc-8fe3-2a955b5c68fe.png\"/></figure><p> </p><p>You can also refer to ST’s official wiki page “Getting started with UART”, which provides a useful introduction to UART communication on STM32 and complements the example projects well: <a href=\"https://wiki.st.com/stm32mcu/wiki/Getting_started_with_UART\" rel=\"noreferrer noopener\" target=\"_blank\">Getting started with UART</a></p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "165353",
+            "publicId": "165353",
+            "title": "STM32C011J4M - issue with pin overlapp",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32c011j4m-issue-with-pin-overlapp-165353",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "I2C",
+                "STM32C0 series"
+            ],
+            "published_at": "2026-05-04T11:32:32+00:00",
+            "views": 200,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Fix CubeMX by removing all the pin overlaps and using only valid STM32C011J4M I2C pins, then regenerate code don’t manually edit SYSCFG.",
+            "best_answer_author": "drakeshawn",
+            "best_answer_author_role": "Graduate",
+            "content_text": "Hello to whom this might concern,\n\nI was recently experimenting with STM32C011J4M for a small hobby project (I am trying to fit into a about coin size) and want to comunnicate with other chip over I2C. Due the size of the package I cannot use debugging to find core of the issue, so I used multimeter and legs 4 to 7 as signal outputs.\n\nI let CubeMx to generate signal configuration and try to use PA8 as output signal (overlaping with PA11[PA9]). The resulting behavior is that the physical leg 4 is stuck on 1.2V and output is not detectable. If I leave PA11 set as analog-nopull, but remove PA11 from 'HAL\\_SYSCFG\\_SetPinBinding' the output becomes readable.\n\nFrom rading on the other pins, I can see, that the communication doesn't work. The I2C is also on overlaping pins (default generation put the pins on PC14[leg 1] and PB6[leg8], which also overlaps with programming connections). I try to communicate with lp5817 and am wondering, if I should also remove pins PB7, PA14 and PC15 form 'HAL\\_SYSCFG\\_SetPinBinding' for communication to start working, or if I should look for the mistake somewhere else?\n\nThank you for the response in advance and best regards,\n\nMartin",
+            "images": [],
+            "author": "engeneering_sockpuppet",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Fix CubeMX by removing all the pin overlaps and using only valid STM32C011J4M I2C pins, then regenerate code don’t manually edit SYSCFG.</p></div>",
+                    "author": "drakeshawn",
+                    "role": "Graduate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the response, but I am unsure, where in the cubeMX do I do that. I attached ioc file, which generated me the non-working code. I touched only parts, I'll need to use, but this led to non-working behaviour described above.</p></div>",
+                    "author": "engeneering_sockpuppet",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

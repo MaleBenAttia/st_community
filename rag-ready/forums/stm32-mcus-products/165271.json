@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "165271",
+            "publicId": "165271",
+            "title": "How to Debug STM32N645 above 0x34200000",
+            "url": "https://community.st.com/stm32-mcus-products-25/how-to-debug-stm32n645-above-0x34200000-165271",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-30T15:30:48+00:00",
+            "views": 213,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Finally I found the reason why it was not possible to run code RAM 0x3420'0000 and above.\n\nCubeMX didn't power on the SRAM3, 4, 5 and 6, even though they were activated in CubeMX. This might be a bug in CubeMX. @stm Please fix that. I used STM32CubeMX v6.17.0\n\nI had to add the following code into main.c of FSBL\n\n```\n\n/* USER CODE BEGIN SysInit */\n\n/* Power up AXI SRAM3-6 and enable their memory clocks.\n\n* SRAMSD bit must be cleared BEFORE enabling the clock.\n\n* Without this, SRAM3-6 are physically shut down even after RAMCFG_Init. */\n\n__HAL_RCC_RAMCFG_CLK_ENABLE();\n\n/* SRAM3 */\n\nRAMCFG_SRAM3_AXI_NS->CR &= ~RAMCFG_CR_SRAMSD;\n\nHAL_Delay(1);\n\n__HAL_RCC_AXISRAM3_MEM_CLK_ENABLE();\n\n/* SRAM4 */\n\nRAMCFG_SRAM4_AXI_NS->CR &= ~RAMCFG_CR_SRAMSD;\n\nHAL_Delay(1);\n\n__HAL_RCC_AXISRAM4_MEM_CLK_ENABLE();\n\n/* SRAM5 */\n\nRAMCFG_SRAM5_AXI_NS->CR &= ~RAMCFG_CR_SRAMSD;\n\nHAL_Delay(1);\n\n__HAL_RCC_AXISRAM5_MEM_CLK_ENABLE();\n\n/* SRAM6 */\n\nRAMCFG_SRAM6_AXI_NS->CR &= ~RAMCFG_CR_SRAMSD;\n\nHAL_Delay(1);\n\n__HAL_RCC_AXISRAM6_MEM_CLK_ENABLE();\n\n/* USER CODE END SysInit */\n\n```",
+            "best_answer_author": "mraehle",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi\n\nI have setup a small project in CubeMX v6.17.0 with FSBL and an application (secure domain only). As long as I use the default Flash and RAM region, debugging works fine.\n\n```\n\nROM (xrw) : ORIGIN = 0x34000400, LENGTH = 511K\n\nRAM (xrw) : ORIGIN = 0x34080000, LENGTH = 1536K\n\n```\n\nIn the future the application will be way bigger (using TouchGFX), therfore I increased the Flash Region to 1.5 MB and the RAM Region will start at 0x34200000 with a length of 1.5 MB as well.\n\n```\n\nROM (xrw) : ORIGIN = 0x34000400, LENGTH = 1536K\n\nRAM (xrw) : ORIGIN = 0x34200000, LENGTH = 1536K\n\n```\n\nSince I made this change it is not possible to step into the application. FSBL works well and is loading the App data from external Flash into SRAM (0x34000000) as requested. After jumping into the app connection to target is lost as soon as SystemInit funciton is called. Debugger can't write any more:\n\n```\n\nCannot remove breakpoints because program is no longer writable.\n\nFurther execution is probably impossible.\n\n0x3400095a in SystemInit () at ../Core/Src/system_stm32n6xx_s.c:177\n\n```\n\n![mraehle_1-1777562667042.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/81e9cae2-7a25-eaea-ef1e-7e54ff18ea02.png \"mraehle_1-1777562667042.png\")\n\nHas someone an idea what the problem could be.\n\nthanks a lot\n\nMarkus",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/81e9cae2-7a25-eaea-ef1e-7e54ff18ea02.png"
+            ],
+            "author": "mraehle",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Finally I found the reason why it was not possible to run code RAM 0x3420'0000 and above. <br/>CubeMX didn't power on the SRAM3, 4, 5 and 6, even though they were activated in CubeMX. This might be a bug in CubeMX. <user-mention data-id=\"9115\">@stm</user-mention> Please fix that. I used STM32CubeMX v6.17.0<br/><br/></p><p>I had to add the following code into main.c of FSBL</p><pre class=\"lia-code-sample language-c\"><code> /* USER CODE BEGIN SysInit */\n\n /* Power up AXI SRAM3-6 and enable their memory clocks.\n * SRAMSD bit must be cleared BEFORE enabling the clock.\n * Without this, SRAM3-6 are physically shut down even after RAMCFG_Init. */\n __HAL_RCC_RAMCFG_CLK_ENABLE();\n\n /* SRAM3 */\n RAMCFG_SRAM3_AXI_NS-&gt;CR &amp;= ~RAMCFG_CR_SRAMSD;\n HAL_Delay(1);\n __HAL_RCC_AXISRAM3_MEM_CLK_ENABLE();\n\n /* SRAM4 */\n RAMCFG_SRAM4_AXI_NS-&gt;CR &amp;= ~RAMCFG_CR_SRAMSD;\n HAL_Delay(1);\n __HAL_RCC_AXISRAM4_MEM_CLK_ENABLE();\n\n /* SRAM5 */\n RAMCFG_SRAM5_AXI_NS-&gt;CR &amp;= ~RAMCFG_CR_SRAMSD;\n HAL_Delay(1);\n __HAL_RCC_AXISRAM5_MEM_CLK_ENABLE();\n\n /* SRAM6 */\n RAMCFG_SRAM6_AXI_NS-&gt;CR &amp;= ~RAMCFG_CR_SRAMSD;\n HAL_Delay(1);\n __HAL_RCC_AXISRAM6_MEM_CLK_ENABLE();\n\n /* USER CODE END SysInit */</code></pre><p><br/><br/></p></div>",
+                    "author": "mraehle",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I reported the same problem:</p><p><a href=\"https://community.st.com/t5/stm32cubemx-mcus/cubemx-fails-to-load-ioc-file-after-enabling-ramcfg/m-p/882479/highlight/true#M35257\" target=\"_blank\">https://community.st.com/t5/stm32cubemx-mcus/cubemx-fails-to-load-ioc-file-after-enabling-ramcfg/m-p/882479/highlight/true#M35257</a></p><p>But it appears ST is not responding if forum topic has already some answer.</p></div>",
+                    "author": "Mikk Leini",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"35942\">@Mikk Leini</user-mention> ,</p>\n<p>Sorry to hear that, and thank you for raising it. This is not a general rule, although it can sometimes happen. To help us keep track and follow up properly, we recommend one topic per thread, so I’ll move the new reply from the other thread into a separate discussion (see <a href=\"https://community.st.com/t5/stm32cubemx-mcus/sram3-4-5-and-6-clock-enable-missing-in-stm32cubemx-generated/td-p/882479\" target=\"_self\">https://community.st.com/t5/stm32cubemx-mcus/sram3-4-5-and-6-clock-enable-missing-in-stm32cubemx-generated/td-p/882479</a>).</p>\n<p><user-mention data-id=\"101086\">@mraehle</user-mention>, glad to know that you find a solution. I'll push for a fix in STM32CubeMX.</p>\n<p>-Amel</p></div>",
+                    "author": "Amel NASRI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Amel NASRI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

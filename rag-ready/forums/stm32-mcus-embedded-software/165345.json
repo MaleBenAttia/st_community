@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "165345",
+            "publicId": "165345",
+            "title": "CCID USBD transfer block on F1",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/ccid-usbd-transfer-block-on-f1-165345",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB"
+            ],
+            "published_at": "2026-05-04T09:56:13+00:00",
+            "views": 231,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "resolved",
+            "best_answer_author": "Ayoub-Marghoub",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Split from this [thread](https://community.st.com/t5/stm32-mcus-embedded-software/ccid-usbd-transfer-block-splitting/m-p/827455#M66620)\n\nMy firmware is based on this ccid usbd driver [https://github.com/STMicroelectronics/stm32-mw-usb-device/blob/master/Class/CCID/Src/usbd\\_ccid.c](https://github.com/STMicroelectronics/stm32-mw-usb-device/blob/master/Class/CCID/Src/usbd_ccid.c \"ccid usbd driver\") .\n\nThe issue that I face, the PC finishes receiving data immediately after receiving 256 bytes (10 bytes of header + 246 bytes of data). when I want to send to pc 253 bytes of data + 10 bytes of header (263 bytes in total) by splitting (64 bytes by 64 bytes) the PC finishes receiving data immediately after receiving the fourth chunk which is 256 bytes (10 bytes of header and 243 bytes of data), It doesn't wait for the fifth chunk, which carries the remaining 7 bytes of my data which arrives in an unknown message despite the fact that I define the size of the data to be sent as 253 bytes. Images 1 and 2 show these details captured by wireshark software.![1](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c7264082-98fc-2965-cf28-63d27054cd97.png \"Screenshot 2026-04-23 160831.png\")1![2](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/91de9eb1-139f-f463-e017-0d17c3da6292.png \"Screenshot 2026-05-04 104623.png\")2\n\nthis is my code used to send data by chunks :\n\n```\n\nuint8_t SC_Itf_XferBlock(uint8_t *ptrBlock, uint32_t blockLen, uint16_t expectedLen,\n\nUSBD_CCID_BulkIn_DataTypeDef *CCID_BulkIn_Data)\n\n{\n\nuint8_t ErrorCode = SLOT_NO_ERROR;\n\nUNUSED(CCID_BulkIn_Data);\n\nUNUSED(expectedLen);\n\nUNUSED(blockLen);\n\nUNUSED(ptrBlock);\n\nif (ProtocolNUM_OUT == 0x00U)\n\n{\n\n/* Add your code here */\n\n}\n\nif (ProtocolNUM_OUT == 0x01U)\n\n{\n\n/* Add your code here */\n\ndata_to_send_size = 253;\n\nCCID_BulkIn_Data->dwLength = data_to_send_size;\n\nmemcpy(CCID_BulkIn_Data->abData, data_to_send, data_to_send_size);\n\nif (data_to_send_size > 54U)\n\n{\n\ntx_remaining_ptr = &data_to_send[54];\n\ntx_remaining_len = data_to_send_size - 54;\n\ntx_in_progress = 1;\n\n}\n\nelse\n\n{\n\ntx_remaining_ptr = NULL;\n\ntx_remaining_len = 0;\n\ntx_in_progress = 0;\n\n}\n\n}\n\nif (ErrorCode != SLOT_NO_ERROR)\n\n{\n\nreturn ErrorCode;\n\n}\n\nreturn ErrorCode;\n\n}\n\nstatic uint8_t USBD_CCID_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)\n\n{\n\nUSBD_CCID_HandleTypeDef *hccid = (USBD_CCID_HandleTypeDef *)pdev->pClassDataCmsit[pdev->classId];\n\n#ifdef USE_USBD_COMPOSITE\n\n/* Get the Endpoints addresses allocated for this class instance */\n\nCCIDInEpAdd = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);\n\nCCIDCmdEpAdd = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_INTR, (uint8_t)pdev->classId);\n\n#endif /* USE_USBD_COMPOSITE */\n\nif (epnum == (CCIDInEpAdd & 0x7FU))\n\n{\n\n/* Filter the epnum by masking with 0x7f (mask of IN Direction) */\n\n/*************** Handle Bulk Transfer IN data completion *****************/\n\nswitch (hccid->blkt_state)\n\n{\n\ncase CCID_STATE_SEND_RESP:\n\n/* won't wait ack to avoid missing a command */\n\nif(tx_in_progress && tx_remaining_len > 0)\n\n{\n\nuint8_t chunk = (tx_remaining_len > 64) ? 64 : tx_remaining_len;\n\nUSBD_LL_Transmit(pdev, CCIDInEpAdd, (uint8_t *)tx_remaining_ptr, chunk);\n\ntx_remaining_ptr += chunk;\n\ntx_remaining_len -= chunk;\n\n}\n\nelse\n\n{\n\ntx_in_progress = 0;\n\nhccid->blkt_state = CCID_STATE_IDLE;\n\n/* Prepare EP to Receive Cmd */\n\n(void)USBD_LL_PrepareReceive(pdev, CCID_OUT_EP,\n\nhccid->data, hccid->MaxPcktLen);\n\n}\n\nbreak;\n\ndefault:\n\nbreak;\n\n}\n\n}\n\nelse if (epnum == (CCIDCmdEpAdd & 0x7FU))\n\n{\n\n/* Filter the epnum by masking with 0x7f (mask of IN Direction) */\n\n/*************** Handle Interrupt Transfer IN data completion *****************/\n\n(void)USBD_CCID_IntMessage(pdev);\n\n}\n\nelse\n\n{\n\nreturn (uint8_t)USBD_FAIL;\n\n}\n\nreturn (uint8_t)USBD_OK;\n\n}\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/91de9eb1-139f-f463-e017-0d17c3da6292.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c7264082-98fc-2965-cf28-63d27054cd97.png"
+            ],
+            "author": "Ayoub-Marghoub",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI  <user-mention data-id=\"96329\">@Ayoub-Marghoub</user-mention> </p>\n<p>Your custom modification in <strong>USBD_CCID_DataIn</strong> is not recommended.</p>\n<p>In my understanding, CCID is length driven, not chunk driven. I mean, the host does<span> </span>not wait for a fifth chunk just because you intended one. It should wait for:</p>\n<ul>\n<li>the number of bytes declared in the CCID header</li>\n<li>or a short packet that terminates the transfer</li>\n</ul></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>resolved</p></div>",
+                    "author": "Ayoub-Marghoub",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I resolved this issue, thanks.</p></div>",
+                    "author": "Ayoub-Marghoub",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"96329\">@Ayoub-Marghoub</user-mention> </p>\n<p> </p>\n<p> </p>\n<p>Could you please share how you resolved the issue, so it can help other community members as well?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164659",
+            "publicId": "164659",
+            "title": "How to use HRTIM for pulse width measurement",
+            "url": "https://community.st.com/stm32-mcus-products-25/how-to-use-hrtim-for-pulse-width-measurement-164659",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-11T14:22:32+00:00",
+            "views": 414,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "The HRTIM has a resolution of 2.5 ns, and the shortest measurable pulse is 2.5 ns. Since it has two \"capture\" channels, it should be able to measure both the pulse arrival time and the pulse width (rise time and fall time). But here it’s important to know what pulse widths and resolution you’re targeting.\n\nThe TDC-GP22 has a minimum start-stop interval of 3.5 ns (which probably wouldn’t bother you). I've tested the AS6500 (which had too low a data throughput for my purposes) and the TDC-GPX2, which turned out to contain a bug that complicates the measurement of times longer than about 500 ns (if needed, I can find a detailed description).\n\nThe solution involving the sweeping of the transmit and read pulses also works for long times. Exactly as you suggest, you generate the coarse step using a timer from the MCU and the fine step by configuring the delay line. We currently operate just such a \"dual delay pulser\" to compensate for photon delays in optical fibers (see the schematic). The HRTIM generates two PWM signals with selectable delay (2.5 ns step), and the NB6L295 dual delay line implements the fine delay (<2.5 ns) and also adjusts the pulse width here (two sightly shifted signals with are mixed at an AND gate).\n\n![Adjustable delay pulser](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c897f88-c85e-3b04-b020-87063c828cee.png \"pulser1.png\")Adjustable delay pulser\n\nHowever, I can also see a solution using the STM32F334. It’s equipped with an HRTIM with a output (!) resolution of about 220 ps. It can sweep a test pulse, and to detect the arrival time, you could theoretically use the timer input itself or an external flip-flop circuit (minimum of external components). As far as I know, the HRTIM outputs on the 334 are a bit jittery, but that shouldn’t be a problem if you can “average” across multiple measurements. I’d believe it’s possible to achieve a resolution below 1 ns with this. But as I said, it depends on what time resolution you’re aiming for. If you’re aiming for fractions of a nanosecond, then it will definitely be easier to use a ready-made TDC (like the GP22, assuming it doesn’t have the same bug as the GPX2, if that bothers you at all).\n\nJust to be clear, I’ve never actually built a TDC this way myself. But I’ve experimentally verified that a flip-flop circuit (MC100EP29 / EP51 ...) can distinguish whether the “clock” or “data” signal arrived first with 95% certainty within a worst-case interval of 40 ps. And that the above-mentioned procedure/schematic can generate two pulses with an adjustable interval of approximately 10 ps up to a range of ±50 ns (and likely even more).",
+            "best_answer_author": "Michal Dudka",
+            "best_answer_author_role": "Lead",
+            "content_text": "Hello,\n\nCan anyone tell me how to measure pulse width with the HRTIM? I need to measure a very short pulse from my time domain reflectometer. I am thinking of using the NUCLEO-H753ZI board with the STM32H753ZI MCU. All I know about measuring pulses with the HRTIM is that I need to use the external event registers and that the minimum pulse width must be >2.5 ns. Any help would be greatly appreciated.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83e10829-0ed3-ad40-23d9-cfc38f430231.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c897f88-c85e-3b04-b020-87063c828cee.png"
+            ],
+            "author": "domen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HRTIM is designed for output. Input capture isnt more precise as TIM32 maybe less.</p><p>And for measure with error less as 1% resolution is from 250ns up...</p><p> </p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HRTIM has a resolution that is one-third better than that of the best timer on the fastest STM32 (the 300 MHz TIM on the STM32H7S3I8). What makes you think that HRTIM will have less accurate input capture than standard timers? Do you have any observations ?<br/>I’m asking, among other things, because I sometimes need such precise timing measurements, but I haven’t yet had the opportunity to use HRTIM in “input capture” mode.</p><p>I typically measure time using general-purpose 32-bit timers on the STM32H725 and observe virtually no noise or jitter when measuring at maximum resolution (250 MHz).<br/><br/></p><p>BTW: The HRTIM outputs on the STM32H743 have practically immeasurable jitter (on a 10 GHz scope, I observed ~25 ps, and I assume that was a measurement artifact).</p></div>",
+                    "author": "Michal Dudka",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I haven't used the HRTIM capture mode. I stumbled upon it when I was searching for a meathead to measure short pulses for my TDR. This post got me thinking that if i could use the HRTIM as a way to measure pulse width <strong><a href=\"https://community.st.com/t5/stm32-mcus-products/is-there-a-possibility-to-read-the-hrtim-timer-value/td-p/591622\" target=\"_self\">https://community.st.com/t5/stm32-mcus-products/is-there-a-possibility-to-read-the-hrtim-timer-value/td-p/591622</a> </strong></p></div>",
+                    "author": "domen",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Just out of curiosity, what resolution do you need for that TDR, and how do you plan to measure it? I once built a coincidence unit, and for its calibration, I tried a procedure similar to TDR and achieved a resolution of practically 10 ps (the absolute accuracy was naturally worse). And the solution was relatively simple: essentially just an adjustable delay line such as the SY89295U, MC100EP195/196, or NB6L295 to sweep the \"read pulse,\" and a fast flip-flop (e.g., MC100EP51) to detect whether the read pulse or the measured pulse arrived first (in your case, the reflected pulse).</p><p><br/><br/></p><p> </p></div>",
+                    "author": "Michal Dudka",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\">I am using the LMG1020 gate driver to generate a fast rise time step and enough current into my coax. A fast window comparator is used to detect the reflections. If I am correct, in my circuit the resolution is determined by how fast I can sample the signal (because it is my bottleneck). Right now I am reading the datasheet for the TDC-GP22. It is a time-to-digital converter that allows me to measure the time when the reflection happens and its width.</p><p class=\"\">Your solution is very interesting! I don't know if it would work in my application because of the length of my coaxial cable. I would need to have a timer that would trigger the delay line when it reaches its maximum delay (fine + coarse delay).</p></div>",
+                    "author": "domen",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The HRTIM has a resolution of 2.5 ns, and the shortest measurable pulse is 2.5 ns. Since it has two \"capture\" channels, it should be able to measure both the pulse arrival time and the pulse width (rise time and fall time). But here it’s important to know what pulse widths and resolution you’re targeting.</p><p>The TDC-GP22 has a minimum start-stop interval of 3.5 ns (which probably wouldn’t bother you). I've tested the AS6500 (which had too low a data throughput for my purposes) and the TDC-GPX2, which turned out to contain a bug that complicates the measurement of times longer than about 500 ns (if needed, I can find a detailed description).</p><p>The solution involving the sweeping of the transmit and read pulses also works for long times. Exactly as you suggest, you generate the coarse step using a timer from the MCU and the fine step by configuring the delay line. We currently operate just such a \"dual delay pulser\" to compensate for photon delays in optical fibers (see the schematic). The HRTIM generates two PWM signals with selectable delay (2.5 ns step), and the NB6L295 dual delay line implements the fine delay (&lt;2.5 ns) and also adjusts the pulse width here (two sightly shifted signals with are mixed at an AND gate).<br/><br/></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"Adjustable delay pulser\" style=\"width: 999px;\"><img alt=\"Adjustable delay pulser\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c897f88-c85e-3b04-b020-87063c828cee.png\" title=\"pulser1.png\"/><span class=\"lia-inline-image-caption\" onclick=\"event.preventDefault();\">Adjustable delay pulser</span></span></p><p> </p><p> However, I can also see a solution using the STM32F334. It’s equipped with an HRTIM with a output (!) resolution of about 220 ps. It can sweep a test pulse, and to detect the arrival time, you could theoretically use the timer input itself or an external flip-flop circuit (minimum of external components). As far as I know, the HRTIM outputs on the 334 are a bit jittery, but that shouldn’t be a problem if you can “average” across multiple measurements. I’d believe it’s possible to achieve a resolution below 1 ns with this. But as I said, it depends on what time resolution you’re aiming for. If you’re aiming for fractions of a nanosecond, then it will definitely be easier to use a ready-made TDC (like the GP22, assuming it doesn’t have the same bug as the GPX2, if that bothers you at all). <br/><br/>Just to be clear, I’ve never actually built a TDC this way myself. But I’ve experimentally verified that a flip-flop circuit (MC100EP29 / EP51 ...) can distinguish whether the “clock” or “data” signal arrived first with 95% certainty within a worst-case interval of 40 ps. And that the above-mentioned procedure/schematic can generate two pulses with an adjustable interval of approximately 10 ps up to a range of ±50 ns (and likely even more).</p></div>",
+                    "author": "Michal Dudka",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Consider analog approach, outlined <a href=\"https://www.analog.com/media/en/technical-documentation/application-notes/an62.pdf\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">in this app. note page 5:</a></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"an-62 triangle 100psec resolution.png\" style=\"width: 200px;\"><img alt=\"an-62 triangle 100psec resolution.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83e10829-0ed3-ad40-23d9-cfc38f430231.png\" title=\"an-62 triangle 100psec resolution.png\"/></span></p><p> Since there is microcontroller presents, all you need is fast BJT to convert time to voltage.</p><p>H753 also  has 16-bits ADC.</p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

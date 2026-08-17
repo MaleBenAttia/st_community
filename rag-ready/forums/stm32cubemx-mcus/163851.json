@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163851",
+            "publicId": "163851",
+            "title": "Changing MCU in CubeMX and CubeIDE, Not all settings importing",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/changing-mcu-in-cubemx-and-cubeide-not-all-settings-importing-163851",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-03-16T15:46:14+00:00",
+            "views": 336,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "*> Will this change be overwritten every time I re-generate from the ioc file since it still references the old MCU KEU6?*\n\nNo\n\n*> Can I safely rename the files in the project since they are currently STM32G0B1KEUX\\_FLASH.ld etc?*\n\nYou can, but you will also need to update project settings to refer to the new names.\n\n*> Is it not possible to import a new ioc into an existing CubeIDE project and then refer to that?*\n\nSTM32CubeIDE doesn't deal with IOC files at all. It doesn't know or care about what's in your IOC.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "I've read other posts and the relevant app notes about this and tried some testing on my side but still not finding an easy or even effective way to do this.\n\nI have a CubeIDE project built on a CubeMX ioc file for STM32G0B1KEU6 and want to change to STM32G0B1KCU6 (smaller flash). Same package, same core, same pinout, just smaller flash size. Should be easy.\n\nCubeIDE 2.1.0\n\nCubeMX 6.17.0\n\nI open the CubeIDE project and then the existing ioc file within that.\n\nI click Pinout -> List Pinout Compatible MCU's and select new the MCU. I click Import.\n\nIt creates a new ioc file (instead of updating the existing file within this project which is what I actually want) and attempts to import all of the existing ioc project settings.\n\nIt fails to import DAC and USB settings for some reason which I now need to go and manually edit and hope that everything else is correct. It is completely unclear what has and has not ported over successfully so I'll need to very carefully review everything.\n\nNow I want to change the CubeIDE project to compile and run from this new file.\n\nDo I really need to completely re-make a new project and carefully copy everything over? Is there no way to easily change the target MCU in CubeIDE? it seems to be a very common use case.",
+            "images": [],
+            "author": "jgbkhs",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No, it's not a supported use case to change the MCU on an already existing project because peripherals and settings vary between devices. It would be near impossible to ensure seamless changes to the MCU between arbitrary chips.</p><p>If you're just changing the flash size, you can edit the linker script (*.ld) with the new size and it will work. No other update is necessary.</p><p> </p><p>Alternatively, do a diff of the code and/or IOC file before/after changes to ensure everything has been imported correctly. WinMerge is a good tool for this.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Understood, this is a situation where the MCU's in discussion are identical package, pinout, peripherals and within the same single datasheet. Only the flash size is changed. That's why I was hoping for a more integrated method of changing targets. </p><p>Will this change be overwritten every time I re-generate from the ioc file since it still references the old MCU KEU6?</p><p>Can I safely rename the files in the project since they are currently STM32G0B1KEUX_FLASH.ld etc? </p><p>Is it not possible to import a new ioc into an existing CubeIDE project and then refer to that?</p></div>",
+                    "author": "jgbkhs",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; Will this change be overwritten every time I re-generate from the ioc file since it still references the old MCU KEU6?</em></p><p>No</p><p><em>&gt; Can I safely rename the files in the project since they are currently STM32G0B1KEUX_FLASH.ld etc? </em></p><p>You can, but you will also need to update project settings to refer to the new names.</p><p><em>&gt; Is it not possible to import a new ioc into an existing CubeIDE project and then refer to that?</em></p><p>STM32CubeIDE doesn't deal with IOC files at all. It doesn't know or care about what's in your IOC.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "164278",
+            "publicId": "164278",
+            "title": "Touchgfx + STM32F411+ SPIFLASH",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/touchgfx-stm32f411-spiflash-164278",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "STM32F4 series",
+                "SPI"
+            ],
+            "published_at": "2026-03-29T20:22:54+00:00",
+            "views": 280,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nat the end, the idea comes.\n\nI override the default .ddf file (STM32F411RE.ddf) adding this new line (missing because STM32F411 hasn't any module mapped here)\n\n**Memory = ExtDev Memory 0x60000000 0x9FFFFFFF W**\n\nand I restarted IAR.\n\nWhen I fire a debug session now C-SPY flashes the app with its default flash loader then does it for external spi with my custom loader, after that it can  retrieve symbols for this interval range (the line added above works here) and the debugger session place the breakpoint at main and everything goes as usual.\n\nObviously now when the app tries to access data in spiflash range gives hard fault.... I have to implement the wrapper for that but it's a further step ahead.....\n\nThanks guys.",
+            "best_answer_author": "DVill",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi guys,\n\nI'm working on custom board with STM32F411 + spiflash for a project with Touchgfx (partial buffer).\n\nAt the moment I got spiflash and STM32F411 working via SP1 + DMA and that's fine.\n\nI'm using IAR 9.70 for this project and I'm facing an issue with external flash loader when I do a debugging session.\n\nWhen I start a debugging session, flash is programmed and the external loader programs the spiflash too.\n\nBut on the end of the programming the procedure fails with:\n\nSun Mar 29, 2026 21:45:19: Initial reset was performed\n\nSun Mar 29, 2026 21:45:19: Loaded debugee: C:\\Program Files\\IAR Systems\\Embedded Workbench 9.2\\_3\\arm/config/flashloader/ST/FlashSTM32F4xxxRAM128K.out\n\nSun Mar 29, 2026 21:45:19: Target reset\n\nSun Mar 29, 2026 21:45:26: Unloaded macro file: C:\\Program Files\\IAR Systems\\Embedded Workbench 9.2\\_3\\arm/config/flashloader/ST/FlashSTM32F4xxx.mac\n\nSun Mar 29, 2026 21:45:26: Loaded macro file: D:\\ARM\\STM32F411\\AlphaTui\\CubeMx\\AlphaTui\\EWARM/icf/ExtSPIFLd.mac\n\nSun Mar 29, 2026 21:45:26: Loaded debugee: D:\\ARM\\STM32F411\\AlphaTui\\CubeMx\\AlphaTui\\EWARM/icf/ExtSPIFLd.out\n\nSun Mar 29, 2026 21:45:26: Target reset\n\nSun Mar 29, 2026 21:45:26: Unloaded macro file: D:\\ARM\\STM32F411\\AlphaTui\\CubeMx\\AlphaTui\\EWARM/icf/ExtSPIFLd.mac\n\nSun Mar 29, 2026 21:45:26: Downloaded D:\\ARM\\STM32F411\\AlphaTui\\CubeMx\\AlphaTui\\EWARM\\AlphaTui\\Exe\\AlphaTui.out to flash memory.\n\nSun Mar 29, 2026 21:45:26: 227026 bytes downloaded into FLASH (28.38 Kbytes/sec)\n\n**Sun Mar 29, 2026 21:45:27: ELF/DWARF Error: Unknown**\n\nSun Mar 29, 2026 21:45:27: Failed to load debugee: D:\\ARM\\STM32F411\\AlphaTui\\CubeMx\\AlphaTui\\EWARM\\AlphaTui\\Exe\\AlphaTui.out\n\nSun Mar 29, 2026 21:45:27: Unloaded macro file: C:\\Program Files\\IAR Systems\\Embedded Workbench 9.2\\_3\\arm/config/debugger/ST/STM32F4xx.dmac\n\nSun Mar 29, 2026 21:45:28: Loading the ST-LINK Driver driver\n\nthe debugging session is aborted and it seems that the debugger is unable to retrieve symbols.\n\nIf I put my spisflash data temporarly in flash and not in (0x90000000...0x907FFFFF) everything is ok and I can debug.\n\nI'm sure that spiflash is programmed because I read it and the data are the desidered\n\nHave you any idea what is going wrong?\n\nAttached here I put my .board/flash/icf.\n\nThanks.",
+            "images": [],
+            "author": "DVill",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>at the end, the idea comes.</p><p>I override the default .ddf file (STM32F411RE.ddf) adding this new line (missing because STM32F411 hasn't any module mapped here) </p><p><strong>Memory = ExtDev Memory 0x60000000 0x9FFFFFFF W </strong></p><p>and I restarted IAR.</p><p>When I fire a debug session now C-SPY flashes the app with its default flash loader then does it for external spi with my custom loader, after that it can  retrieve symbols for this interval range (the line added above works here) and the debugger session place the breakpoint at main and everything goes as usual.</p><p>Obviously now when the app tries to access data in spiflash range gives hard fault.... I have to implement the wrapper for that but it's a further step ahead.....</p><p>Thanks guys.</p><p> </p><p> </p><p> </p></div>",
+                    "author": "DVill",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

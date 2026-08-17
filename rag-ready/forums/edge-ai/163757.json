@@ -1,0 +1,98 @@
+{
+    "forum": [
+        {
+            "id": "163757",
+            "publicId": "163757",
+            "title": "Accuracy of STM32ai modelzoo for STM32N6570-DK",
+            "url": "https://community.st.com/edge-ai-134/accuracy-of-stm32ai-modelzoo-for-stm32n6570-dk-163757",
+            "category": "Edge AI",
+            "tags": [
+                "Model zoo",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-13T06:20:02+00:00",
+            "views": 693,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "OK I see.\n\nShared Onnx models from from pytorch (with \\_pt in their name) don't have the softmax at the end, so output is not a probability.\n\nThis doesn't change the ranking but you can't interpret the output as a probability...",
+            "best_answer_author": "Laurent FOLLIOT",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I've tried several models provided in STM32 ai model zoo. I'm wondering why some models does not show the acceptable accuracy. My test results are as follows.\n\nefficientnetv2/Public\\_pretrainedmodel\\_public\\_dataset/ImageNet/efficientnetv2b0\\_224/efficientnetv2b0\\_224\\_qdq\\_int8.onnx  --> Not Good\n\nmobilenetv2/Public\\_pretrainedmodel\\_public\\_dataset/ImageNet/mobilenetv2\\_a100\\_224/mobilenetv2\\_a100\\_224\\_qdq\\_int8.onnx -> Good\n\nmobilenetv2\\_pt/Public\\_pretrainedmodel\\_public\\_dataset/ImageNet/mobilenetv2\\_a100\\_pt\\_224/mobilenetv2\\_a100\\_pt\\_224\\_qdq\\_int8.onnx -> Not Good\n\nresnet50v2//Public\\_pretrainedmodel\\_public\\_dataset/ImageNet/resnet50v2\\_224/resnet50v2\\_224\\_qdq\\_int8.onnx -> Good\n\nMy testing environment\n\n- stm32ai-modelzoo : 4.0\n\n- stm32ai-modelzoo-services : 4.0\n\n- STEdgeAI : 3.0\n\n- STM32CubeIDE : 2.0.0\n\n- Windows 11\n\nAnd in order to generate network file and bin file, I used the python file in stm32ai-modelzoo-services/image\\_classification as follows.\n\npython stm32ai\\_main.py --config-path=.\\config\\_file\\_examples --config-name=deployment\\_n6\\_config.yaml",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a641c22-8991-cfb4-5d3a-853e7a89d5d6.JPG"
+            ],
+            "author": "JaeLee",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,<br/>Could you share the 4 .yaml you are using for these deployments please?<br/>Could you precise also what means \"good\" and \"not good\", understanding that these models are trained on ImageNet, so with accuracies very different depending on the class to be recognized?<br/><br/>Thanks,</p></div>",
+                    "author": "Laurent FOLLIOT",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1279\">@Laurent FOLLIOT</user-mention> </p><p>Thanks for your support.</p><p>As you might know, the inference result is keep changing when using camera module. So I decided to embed an image file to test the several models. I used two images for testing. One is banana and the other is daisy, which are attached in this reply.</p><p>The inference code is from <a href=\"https://github.com/STMicroelectronics/STM32N6-GettingStarted-ImageClassification,\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32N6-GettingStarted-ImageClassification,</a> v2.2.0 and when generating network.c, *.h, and *.raw file I used STM32AI-MODELZOO-SERVICES v4.0.</p><p><br/>I've attached my yaml file, where only model_path changes according to the onnx file that I want to use.<br/><br/></p><p>I've tested 5 models and the results are as follows. All the models are about ImageNet.</p><p> </p><table><tbody><tr><td> </td><td> </td><td>Banana</td><td>Daisy</td></tr><tr><td> </td><td> </td><td> </td><td> </td></tr><tr><td>efficientnetv2</td><td>efficientnetv2b0_224_qdq_int8.onnx</td><td>88%</td><td>72%</td></tr><tr><td> </td><td> </td><td> </td><td> </td></tr><tr><td>mobilenetv2_pt</td><td>mobilenetv2_a100_pt_224_qdq_int8.onnx</td><td>&gt;1000%</td><td>&gt;1000%</td></tr><tr><td> </td><td> </td><td> </td><td> </td></tr><tr><td>mobilenetv2</td><td>mobilenetv2_a100_224_qdq_int8.onnx</td><td>100%</td><td>96%</td></tr><tr><td> </td><td> </td><td> </td><td> </td></tr><tr><td>resnet50v2</td><td>resnet50v2_224_qdq_int8.onnx</td><td>100%</td><td>96%</td></tr><tr><td> </td><td> </td><td> </td><td> </td></tr><tr><td>mobilenetv4</td><td>mobilenetv4small_pt_224_qdq_int8.onnx</td><td>&lt;-2000%</td><td>&lt;-1000%</td></tr><tr><td> </td><td> </td><td> </td><td> </td></tr></tbody></table></div>",
+                    "author": "JaeLee",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Some models in the STM32 AI Model Zoo can show lower accuracy after <strong>INT8 quantization</strong>, especially depending on how they were trained or calibrated. Architectures like <strong>EfficientNetV2</strong> are often more sensitive to quantization compared to models such as <strong>MobileNetV2</strong> or <strong>ResNet50</strong>, which tend to be more quantization-friendly.</p><p>You may want to check whether the models that performed poorly were <strong>quantized with a different calibration dataset or preprocessing pipeline</strong> than the one you're using for testing. Even small differences in <strong>input normalization, image size, or preprocessing steps</strong> can noticeably affect accuracy.</p><p>It could also help to test the <strong>FP32 version of the same models</strong> first to confirm the baseline accuracy, then compare it with the INT8 results to see how much accuracy is lost during quantization.</p></div>",
+                    "author": "Anonymous",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,<br/>Yes, the dataset used for quantization can impact a lot. We internally used a small subset, and this can be quantized differently with the quantization service, starting from the pre-trained model for instance.<br/>I am not sure to understand your table with the % of accuracy using only one image. You used the camera on one  printed image?<br/><br/></p></div>",
+                    "author": "Laurent FOLLIOT",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>I know that the quantization might deteriorate the classification performance. But I am afraid that the accuracy rate should not be over 100% or under 0%.<br/>For my testing, I directly copied the bmp image data to the input buffer (stai_ptr nn_in) before running inference. I didn't use the streaming data from the camera module.</p></div>",
+                    "author": "JaeLee",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/>Yes fully agree.<br/>Where do these numbers come from? A log file or on the terminal or printed on the screen of the device?<br/>Thanks</p></div>",
+                    "author": "Laurent FOLLIOT",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've attached several files for references.</p><p>- STM32N6570-DK.zip: network.c, .bin and etc. for mobilenetv4small_pt_224_qdq_int8.onnx</p><p>- main.c: modified version</p><p>- input_image.h : bitmap image data</p><p> </p><p>Thanks</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"IMG_4054.JPG\" style=\"width: 400px;\"><img alt=\"IMG_4054.JPG\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a641c22-8991-cfb4-5d3a-853e7a89d5d6.JPG\" title=\"IMG_4054.JPG\"/></span></p><p> </p></div>",
+                    "author": "JaeLee",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK I see.<br/>Shared Onnx models from from pytorch (with _pt in their name) don't have the softmax at the end, so output is not a probability.<br/>This doesn't change the ranking but you can't interpret the output as a probability...</p></div>",
+                    "author": "Laurent FOLLIOT",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Laurent FOLLIOT",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Laurent FOLLIOT",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Laurent FOLLIOT",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Laurent FOLLIOT",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

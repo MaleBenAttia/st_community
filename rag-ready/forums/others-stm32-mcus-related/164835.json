@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "164835",
+            "publicId": "164835",
+            "title": "Best practice for STM32 communicating with ESP32 over I2C (No UART traces)",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/best-practice-for-stm32-communicating-with-esp32-over-i2c-no-uart-traces-164835",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32L1 series",
+                "STM32L4 series"
+            ],
+            "published_at": "2026-04-16T15:31:21+00:00",
+            "views": 458,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n> ---\n\n>\n\n> @MaddyGitBase wrote:\n\n>\n\n> 1. is there any advanced or obscure method to flash an ESP32 via an STM32 strictly over an I2C bus?\n\n>\n\n> ---\n\nThat's more linked to ESP32 than to STM32 question.\n\nYou need to ask that question in their forums.\n\n> ---\n\n>\n\n> @MaddyGitBase wrote:\n\n>\n\n> 1. **The Software Architecture:** Assuming I tack-solder the board to flash a custom program onto the ESP32, what is the most robust architecture for runtime communication? Should I configure the STM32 as an I2C Master and the ESP32 as an I2C Slave to pass the sensor data\n\n>\n\n> ---\n\nIf ESP32 is receiving the data acquired by STM32 on which the sensor is connected, need to configure it as I2C slave.\n\nOtherwise, what's your problem with using UART? and UART0 of ESP32? So use UART0 to pass the sensor's data and to flash ESP32 as well.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI am working on a custom PCB designed , but I’ve run into a hardware design constraint and would appreciate some architectural advice on the best way forward.\n\n**The Setup:**\n\n* **Main MCU:** STM32L476 (Programming via STM32CubeIDE / HAL)\n\n* **Coprocessor/WiFi:** ESP32-WROOM (Intended to handle AWS IoT connections)\n\n* **The Constraint:** The PCB designer connected the STM32 and ESP32 exclusively via an I2C bus. There are **no physical UART traces** connecting the two chips.\n\n**The Original Goal:** The initial plan was to use the STM32 to write firmware directly to the ESP32 over UART, or to use a UART software bridge, and then use UART for passing sensor data to the ESP32 for AWS publishing.\n\n**The Dilemma:** Because the ESP32 ROM bootloader requires UART0 (TX0/RX0) for flashing, I realize a software bridge from the STM32 over I2C to flash the ESP32 is physically impossible.\n\n**My Questions for the Community:**\n\n1. **The Initial Flash:** Aside from tack-soldering temporary wires to the ESP32's TX0/RX0 pins to perform the initial flash, is there any advanced or obscure method to flash an ESP32 via an STM32 strictly over an I2C bus?\n\n2. **The Software Architecture:** Assuming I tack-solder the board to flash a custom program onto the ESP32, what is the most robust architecture for runtime communication? Should I configure the STM32 as an I2C Master and the ESP32 as an I2C Slave to pass the sensor data, or is there a better paradigm for this specific Master-Coprocessor relationship using the HAL libraries?\n\nAny advice on handling this missing-UART scenario would be hugely appreciated. Thank you!",
+            "images": [],
+            "author": "MaddyGitBase",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If the ESP32 requires that you use UART to flash it, you will have to use UART to flash the ESP32. To use UART, you will need a UART connection between the two. This is very basic logic. There is no magic solution to avoid this.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"104111\">@MaddyGitBase</user-mention> wrote:<br/>\n<ol>\n<li>\n<p>is there any advanced or obscure method to flash an ESP32 via an STM32 strictly over an I2C bus?</p>\n</li>\n</ol>\n<hr/></blockquote>\n<p>That's more linked to ESP32 than to STM32 question.</p>\n<p>You need to ask that question in their forums.</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"104111\">@MaddyGitBase</user-mention> wrote:\n<ol>\n<li>\n<p><strong>The Software Architecture:</strong> Assuming I tack-solder the board to flash a custom program onto the ESP32, what is the most robust architecture for runtime communication? Should I configure the STM32 as an I2C Master and the ESP32 as an I2C Slave to pass the sensor data</p>\n</li>\n</ol>\n<hr/></blockquote>\n<p>If ESP32 is receiving the data acquired by STM32 on which the sensor is connected, need to configure it as I2C slave.</p>\n<p>Otherwise, what's your problem with using UART? and UART0 of ESP32? So use UART0 to pass the sensor's data and to flash ESP32 as well.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"104111\">@MaddyGitBase</user-mention> wrote:<br/><p><span>Any advice on handling this missing-UART scenario would be hugely appreciated. Thank you!</span></p><hr/></blockquote><p>As the others have said, if the ESP32 requires a UART, then a UART you must use - there's no way to change that by anything you can do outside the ESP32.</p><p> </p><p>It's not clear what connection you do have between the 2 microcontrollers?</p><ul><li>If the connected ESP pins have UART update support, but the STM32 pins don't, you could implement a Software UART on the STM32</li><li>Could you write a custom bootloader within the ESP?<br/>(again, you'd have to go to Espressif for support with that)</li></ul><p> </p><p>If you're going to hack the PCB to provide a UART connection, then you might as well use that for <em>all</em> communication between the 2 microcontrollers.</p><p> </p><p><strong><u>PS</u>:</strong></p><p>Do you really need 2 microcontrollers?</p><p>Could the ESP32 not handle everything itself?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "163365",
+            "publicId": "163365",
+            "title": "Driver stm32_tamp_nvram on node nvram@46010100 failed",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/driver-stm32-tamp-nvram-on-node-nvram-46010100-failed-163365",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "Other boards",
+                "OP-TEE",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-03T07:33:49+00:00",
+            "views": 273,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @PatrickF\n\nI solved this by setting this inside &tamp of op-tee DT. The CubeMX assumes that &tamp is default OK and requires LSE as usual. I think it's not good to construct ST Op-tee and ST TF-A to just suit DK/EV.\n\n```\n\n&tamp {\n\nstatus = \"disable\";\n\n};\n\n```",
+            "best_answer_author": "DMårt",
+            "best_answer_author_role": "",
+            "content_text": "I having some issues with nvram in op-tee.\n\nI don't know what this happen. It seems that op-tee want to say to me that 0xffff0006 is TEE\\_ERROR\\_BAD\\_PARAMETERS. In this case, I don't use any tamper and don't have LSE.\n\nI think this is a bug because my ST TF-A and ST Op-tee assumes that LSE must be available to proceed. I made a specific hack in ST TF-A that avoids the LSE configuration to continue working. When ST TF-A was starting. It was going to enable clock ID 5, which is LSE, no matter if I have LSE disabled or enable. An if-statement solved this issue.\n\nDo you have any clue what's can be the cause of this?\n\nProcessor: STM32MP257FAK\n\n```\n\nF/TC:0 0 process_probe_list:657 Probe loop 6 after 4 for deferral(s)\n\nD/TC:0 0 print_probe_list:504 Probe list: 3 elements\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-gpu probes on node gpu@48280000\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-tamp probes on node tamp@46010000\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-cpu probes on node cpu@0\n\nD/TC:0 0 print_probe_list:510 `- Probe list end\n\nD/TC:0 0 print_probe_list:516 Failed list: 0 elements\n\nD/TC:0 0 print_probe_list:521 `- Failed list end\n\nF/TC:0 0 probe_driver_node:543 Probing stm32-cpu on node cpu@0\n\nD/TC:0 0 probe_driver_node:556 element: stm32-cpu on node cpu@0 deferred 1 time(s)\n\nF/TC:0 0 probe_driver_node:543 Probing stm32-tamp on node tamp@46010000\n\nD/TC:0 0 gic_it_set_cpu_mask:410 cpu_mask: writing 0x3ff0000 to 0x72a1082c\n\nD/TC:0 0 gic_it_set_cpu_mask:412 cpu_mask: 0x3030000\n\nD/TC:0 0 gic_it_set_prio:426 prio: writing 0x1 to 0x72a1042e\n\nD/TC:0 0 stm32_tamp_parse_passive_conf:1649 Passive conf from dt: precharge=0, nb_sample=0, clk_div=32768\n\nD/TC:0 0 stm32_tamp_parse_active_conf:1874 Active conf from dt: no filter clk_div=1\n\nF/TC:0 0 stm32_tamp_probe:2057 STM32 TAMPER V3.4\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:636 Backup registers mapping :\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:637 ********START of zone 1********\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:638 Protection Zone 1-RIF1 begins at register: 0\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:639 Protection Zone 1-RIF2 begins at register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:641 Protection Zone 1-RIF2 ends at register: 127\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:643 ********END of zone 1********\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:644 ********START of zone 2********\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:645 Protection Zone 2-RIF1 begins at register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:647 Protection Zone 2-RIF2 begins at register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:649 Protection Zone 2-RIF2 ends at register: 0\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:652 ********END of zone 2********\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:653 ********START of zone 3********\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:654 Protection Zone 3-RIF1 begins at register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:656 Protection Zone 3-RIF0 begins at register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:658 Protection Zone 3-RIF2 begins at register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:660 Protection Zone 3-RIF2 ends at the last register: 128\n\nD/TC:0 0 stm32_tamp_apply_bkpr_rif_conf:661 ********END of zone 3********\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP1 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP2 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP3 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP4 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP5 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP6 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP7 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP8 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP9 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP10 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP11 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP12 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP14 disabled\n\nF/TC:0 0 stm32_tamp_set_int_config:790 INT_TAMP15 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP1 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP2 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP3 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP4 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP5 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP6 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP7 disabled\n\nF/TC:0 0 stm32_tamp_set_ext_config:840 EXT_TAMP8 disabled\n\nF/TC:0 0 stm32_tamp_set_config:1163 Set passive conf 00000080\n\nF/TC:0 0 stm32_tamp_set_config:1168 Set active conf1 00000000\n\nF/TC:0 0 stm32_tamp_set_config:1172 Set active conf2 00000000\n\nD/TC:0 0 add_node_to_probe:748 element: stm32_tamp_nvram on node nvram@46010100\n\nD/TC:0 0 print_probe_list:504 Probe list: 3 elements\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-gpu probes on node gpu@48280000\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-cpu probes on node cpu@0\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32_tamp_nvram probes on node nvram@46010100\n\nD/TC:0 0 print_probe_list:510 `- Probe list end\n\nD/TC:0 0 print_probe_list:516 Failed list: 0 elements\n\nD/TC:0 0 print_probe_list:521 `- Failed list end\n\nD/TC:0 0 probe_driver_node:550 element: stm32-tamp on node tamp@46010000 initialized\n\nF/TC:0 0 probe_driver_node:543 Probing stm32-gpu on node gpu@48280000\n\nD/TC:0 0 probe_driver_node:556 element: stm32-gpu on node gpu@48280000 deferred 4 time(s)\n\nF/TC:0 0 process_probe_list:657 Probe loop 7 after 5 for deferral(s)\n\nD/TC:0 0 print_probe_list:504 Probe list: 3 elements\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-cpu probes on node cpu@0\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32_tamp_nvram probes on node nvram@46010100\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-gpu probes on node gpu@48280000\n\nD/TC:0 0 print_probe_list:510 `- Probe list end\n\nD/TC:0 0 print_probe_list:516 Failed list: 0 elements\n\nD/TC:0 0 print_probe_list:521 `- Failed list end\n\nF/TC:0 0 probe_driver_node:543 Probing stm32-gpu on node gpu@48280000\n\nD/TC:0 0 probe_driver_node:556 element: stm32-gpu on node gpu@48280000 deferred 5 time(s)\n\nF/TC:0 0 probe_driver_node:543 Probing stm32_tamp_nvram on node nvram@46010100\n\nE/TC:0 0 probe_driver_node:565 Failed to probe stm32_tamp_nvram on node nvram@46010100: 0xffff0006\n\nF/TC:0 0 probe_driver_node:543 Probing stm32-cpu on node cpu@0\n\nD/TC:0 0 probe_driver_node:556 element: stm32-cpu on node cpu@0 deferred 2 time(s)\n\nD/TC:0 0 process_probe_list:697 Unresolved dependencies after 7 rounds, 6 deferred\n\nE/TC:0 0 probe_dt_drivers:902 Probe sequence result: 0x80000000\n\nD/TC:0 0 print_probe_list:504 Probe list: 2 elements\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-gpu probes on node gpu@48280000\n\nD/TC:0 0 print_probe_list:506 |- Driver stm32-cpu probes on node cpu@0\n\nD/TC:0 0 print_probe_list:510 `- Probe list end\n\nD/TC:0 0 print_probe_list:516 Failed list: 1 elements\n\nE/TC:0 0 print_probe_list:518 |- Driver stm32_tamp_nvram on node nvram@46010100 failed\n\nD/TC:0 0 print_probe_list:521 `- Failed list end\n\nE/TC:0 0 Panic at /usr/src/debug/optee-os-stm32mp/4.0.0-stm32mp-r2/core/kernel/dt_driver.c:904 <probe_dt_drivers>\n\nE/TC:0 0 TEE load address @ 0x82000000\n\nE/TC:0 0 Call stack:\n\nE/TC:0 0 0x82008140\n\nE/TC:0 0 0x82046c74\n\nE/TC:0 0 0x82042ca0\n\nE/TC:0 0 0x82048980\n\nE/TC:0 0 0x82007bac\n\nE/TC:0 0 0x82007f44\n\n```",
+            "images": [],
+            "author": "DMårt",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"642\">@PatrickF</user-mention> </p><p>I solved this by setting this inside &amp;tamp of op-tee DT. The CubeMX assumes that &amp;tamp is default OK and requires LSE as usual. I think it's not good to construct ST Op-tee and ST TF-A to just suit DK/EV.</p><pre class=\"lia-code-sample language-c\"><code>&amp;tamp {\n status = \"disable\";\n};</code></pre><p> </p></div>",
+                    "author": "DMårt",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI <user-mention data-id=\"44549\">@DMårt</user-mention> </p>\n<p>The fail sound linked to op-TEE init of TAMP Backup_registers (or at least init some security inside).</p>\n<p><a href=\"https://wiki.st.com/stm32mpu/wiki/STM32MP2_backup_registers\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/STM32MP2_backup_registers</a></p>\n<p><br/>I'm not sure about that, but maybe this fail because the RTC/TAMP IP does not receive its ck_ker_rtc clock (default from LSE on our platforms, but could come from LSI or HSE/RTCDIV). or RTC/TAMP IP is not enabled (RTCEN).<br/><br/></p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"642\">@PatrickF</user-mention> </p><p>In this case, my custom board does not have LSE. I assume that the TF-A and op-TEE is built to fit DK/EV.</p><p>I will look up the clocks and see why.</p><p>Do you have any registers I should look on at, more than RTCEN?</p></div>",
+                    "author": "DMårt",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/>RTC/TAMP kernel clock source is defined by RTCSRC[1:0] in RCC_BDCR.</p>\n<p>Notice that this field is write once and the register is write-protected by DBD3P in PWR_BDCR1.</p>\n<p>Regards.</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

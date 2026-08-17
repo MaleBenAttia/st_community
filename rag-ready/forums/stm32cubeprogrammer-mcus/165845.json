@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "165845",
+            "publicId": "165845",
+            "title": "STM32CubeProgrammer CLI v2.19.0 — Cannot program second double-word of an OTP row (STM32U385)",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32cubeprogrammer-cli-v2-19-0-cannot-program-second-double-word-of-an-otp-row-stm32u385-165845",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32U3 series"
+            ],
+            "published_at": "2026-05-20T16:19:04+00:00",
+            "views": 104,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @murali.karicheri\n\nThis issue was detected internally and was fixed in STM32CubeProgrammer v2.22.0. Could you try and confirm on your side?\n\nAziz",
+            "best_answer_author": "Aziz BRIGUI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Product/Tool: STM32CubeProgrammer CLI v2.19.0\n\nTarget MCU: STM32U385RG-Q (Nucleo-U385RG-Q board)\n\nConnection: SWD, mode=UR (Under Reset)\n\nTZEN: 0 (non-secure)\n\n================================================================================\n\nSUMMARY\n\n================================================================================\n\nWe are unable to program a full 16-byte OTP row using STM32\\_Programmer\\_CLI.\n\nOnly the first double-word (8 bytes) of a row can be written. Any attempt to\n\nprogram the second double-word of the same row fails silently (word remains\n\n0xFFFFFFFF) or is rejected by the flash controller, even though the row should\n\nnot be locked until both double-words are programmed.\n\nPer the reference manual, the OTP lock granularity is one 16-byte row\n\n(2 double-words). We expect to be able to program both double-words within a\n\nrow independently (each in a single operation), provided neither has been\n\nwritten previously. However in practice, programming the first double-word\n\nappears to immediately lock the entire row, preventing the second double-word\n\nfrom being written.\n\n================================================================================\n\nOTP ADDRESS LAYOUT\n\n================================================================================\n\n- OTP base: 0x0BFA0000\n\n- Each row: 16 bytes = 2 double-words (DW0 at offset+0, DW1 at offset+8)\n\n- Example: Row at offset 160 -> DW0 = 0x0BFA00A0, DW1 = 0x0BFA00A8\n\n================================================================================\n\nWHAT WE TRIED\n\n================================================================================\n\nAll commands below use:\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR\n\n--------------------------------------------------------------------------------\n\nAttempt 1: Two separate -w32 commands (2 words each)\n\n--------------------------------------------------------------------------------\n\n# Program first double-word (offset 160) — SUCCEEDS\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR -w32 0x0BFA00A0 0x33323130 0x00003534\n\n# Program second double-word (offset 168) — FAILS (stays 0xFFFFFFFF)\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR -w32 0x0BFA00A8 0xDEADBEEF 0xCAFEBABE\n\nReadback after both commands shows DW0 programmed correctly, DW1 remains\n\n0xFFFFFFFF FFFFFFFF.\n\n--------------------------------------------------------------------------------\n\nAttempt 2: Single -w32 command with 4 words (16 bytes)\n\n--------------------------------------------------------------------------------\n\n# Write all 4 words in one command\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR \\\n\n-w32 0x0BFA00A0 0x33323130 0x00003534 0xDEADBEEF 0xCAFEBABE\n\nResult: Only the first 2 words (DW0) are programmed. The second 2 words (DW1)\n\nremain 0xFFFFFFFF.\n\n--------------------------------------------------------------------------------\n\nAttempt 3: Binary file write (-w with .bin file)\n\n--------------------------------------------------------------------------------\n\nCreated a 16-byte binary file containing the desired data and wrote it:\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR -w 0x0BFA00A0 otp\\_data.bin\n\nResult: Same — only the first 8 bytes are written.\n\n--------------------------------------------------------------------------------\n\nAttempt 4: Chained commands in one invocation\n\n--------------------------------------------------------------------------------\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR \\\n\n-w32 0x0BFA00A0 0x33323130 0x00003534 \\\n\n-w32 0x0BFA00A8 0xDEADBEEF 0xCAFEBABE\n\nResult: First double-word succeeds, second double-word fails.\n\n--------------------------------------------------------------------------------\n\nAttempt 5: Different row to rule out damaged OTP\n\n--------------------------------------------------------------------------------\n\nMoved to offset 176 (a fresh row) and successfully programmed DW0. Confirmed\n\nthe previous row (160) failure is repeatable on multiple fresh rows — only DW0\n\ncan be written.\n\n================================================================================\n\nVERIFICATION\n\n================================================================================\n\nReading via:\n\nSTM32\\_Programmer\\_CLI -c port=SWD mode=UR -r32 0x0BFA00A0 4\n\nConsistently shows the first 2 words written correctly and the last 2 words\n\nas 0xFFFFFFFF.\n\n================================================================================\n\nQUESTIONS\n\n================================================================================\n\n1. Is this a known limitation of the STM32U3 OTP or the flash controller\n\nwhen TZEN=0?\n\n2. Is there a required sequence (e.g., specific register unlocking, delay\n\nbetween double-words, or a different programming mode) to write the second\n\ndouble-word of an OTP row?\n\n3. Does STM32CubeProgrammer internally lock the row after programming the\n\nfirst double-word? If so, is there a CLI flag or workaround to defer row\n\nlocking?\n\n4. Is this addressed in a newer version of STM32CubeProgrammer?\n\n================================================================================\n\nENVIRONMENT\n\n================================================================================\n\n- STM32CubeProgrammer: v2.19.0 (Linux x86\\_64)\n\n- Board: NUCLEO-U385RG-Q\n\n- MCU: STM32U385RGT6\n\n- TZEN: 0\n\n- Connection: SWD via ST-LINK, mode=UR",
+            "images": [],
+            "author": "murali.karicheri",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"62303\">@murali.karicheri</user-mention></p>\n<p>This issue was detected internally and was fixed in STM32CubeProgrammer v2.22.0. Could you try and confirm on your side?</p>\n<p>Aziz</p>\n<p> </p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><a href=\"https://nam04.safelinks.protection.outlook.com/?url=https%3A%2F%2Fcommunity.st.com%2Ft5%2Fstm32cubeprogrammer-mcus%2Fstm32cubeprogrammer-cli-v2-19-0-cannot-program-second-double%2Fm-p%2F899736%23M10172&amp;data=05%7C02%7Cmurali.karicheri%40sandc.com%7C21f3d0f21f734bcfa12c08deb7201d97%7C21c4b724f908455e813c11c8d17f3e9a%7C0%7C0%7C639149545770699255%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&amp;sdata=IGmLe3SiAYRmVRqfRcQlzy9UVpEyCI9%2BPOHlmgjYECs%3D&amp;reserved=0\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">Hi Aziz,</a></p><p>Thanks for your quick response and support. Confirm that <span>v2.22.0 has fixed the bug. </span></p></div>",
+                    "author": "murali.karicheri",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

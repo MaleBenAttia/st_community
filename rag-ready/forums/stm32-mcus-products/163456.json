@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "163456",
+            "publicId": "163456",
+            "title": "STM32H755 HRTIM and USB multiplexing",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h755-hrtim-and-usb-multiplexing-163456",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "HRTIM",
+                "STM32H7 series",
+                "USB"
+            ],
+            "published_at": "2026-03-04T22:48:36+00:00",
+            "views": 329,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @chrkaras\n\n**PA11 / PA12**are **USB OTG FS DM/DP** pins. They are also available as **HRTIM\\_CHD1 / HRTIM\\_CHD2** alternate functions.\n\n![FBL_3-1777386871180.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7e8489e0-8993-d6de-06d4-8b00438b7d83.png \"FBL_3-1777386871180.png\")\n\nSo, on the Nucleo board, those pins are part of the **USB routing.** You need to redirect them manually. Checking board user manual, you need to set SB26 SB27 OFF; Then you can reuse them.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone,\n\nI am using the NUCLEO-H755ZI-Q board for a project. I have noticed that the HRTIMs that\n\nare not multiplexed with some USB pins (like the HRTIM\\_D1 with the D+ for programming the IC via usb)\n\nwork normally, while if they do, I can't output any PWM pulse. Is this actually a thing and to overcome it\n\nI have to remove some of the Zero Ohm resistors behind the nucleo board or design a custom pcb for my needs\n\nor am I messing something up? In my situation specifically, i can output from all HRTIM channels except the D1\n\nand D2, both of which map to a pin with USB.\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7e8489e0-8993-d6de-06d4-8b00438b7d83.png"
+            ],
+            "author": "chrkaras",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"99291\">@chrkaras</user-mention> </p>\n<p>Can you tell me which HRTIM outputs are you using ? Which resistors you removed?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2057\">@FBL</user-mention>,</p><p>I tried using all HRTIM channels at once in the default pins that the cubemx assigns, and the only two that were not working are the D1 and D2 where both channels maps to the USB. I also had the same issue with the other channels when I reassigned them to other pins where there can be USB functionality. I DO NOT want to use the USB in my project, except when flashing the chip. Also I haven't disoldered any resistors. I am asking because I want to implement a custom board.</p><p> </p><p>Thanks!</p></div>",
+                    "author": "chrkaras",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>what do you mean by D1, D2? could you please give out the GPIO port and pin?</p></div>",
+                    "author": "Shirley.Ye",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"99291\">@chrkaras</user-mention> </p>\n<p><strong>PA11 / PA12 </strong>are<span> </span><strong>USB OTG FS DM/DP</strong><span> </span>pins. They are also available as<span> </span><strong>HRTIM_CHD1 / HRTIM_CHD2</strong><span> </span>alternate functions.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FBL_3-1777386871180.png\" style=\"width: 400px;\"><img alt=\"FBL_3-1777386871180.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7e8489e0-8993-d6de-06d4-8b00438b7d83.png\" title=\"FBL_3-1777386871180.png\"/></span></p>\n<p>So, <span>on the Nucleo board, those pins are part of the </span><strong>USB routing.</strong> You need to redirect them manually. Checking board user manual, you need to set SB26 SB27 OFF; Then you can reuse them.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Shirley.Ye",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

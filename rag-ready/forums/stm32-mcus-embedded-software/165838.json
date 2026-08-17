@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "165838",
+            "publicId": "165838",
+            "title": "Question about the STM32 HAL SPI driver",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/question-about-the-stm32-hal-spi-driver-165838",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F4 series",
+                "SPI",
+                "HAL"
+            ],
+            "published_at": "2026-05-20T13:57:11+00:00",
+            "views": 163,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "HAL does nothing really mystic here.\n\nFor each  SPI you have one DR register. Writing to this register transmits the written value to the transmit buffer, while reading the register copies a value from the receive buffer as described in RM0430 file:///home/klwa4731/Downloads/rm0430-stm32f413423-advanced-armbased-32bit-mcus-stmicroelectronics.pdf (section 29.3.9).\n\nThe transmission itself is handled in HW, regardless of HAL or LL or nothing at all is used.\n\nHAL just covers finding the register by accessing it through the handle (and maybe hides differences between STM32 variants).",
+            "best_answer_author": "mfgkw",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I am using the Analog Devices EVAL-ADE9430 Evaluation board for testing one of their devices. The Evaluation board uses the NUCLEO-144 STM32F413ZH processor. I am using the Keil uVision development setup to run and debug code.  I am specifically concentrating on the SPI Bus Driver and the timing. I have no previous experience with STM Devices and how the SPI transfers happen in the processor. so I apologize a head of time.\n\nMy question is very basic I am trying to understand how the NUCLEO-144 STM32F413ZH board is transmitting the data over the SPI Bus. What setup is involved and what kicks off the actual transmission in the the **HAL\\_SPI\\_Transmit()** code below. The code i am using is transmitting 8 bits at a time.\n\n* The Chip Enable (SS) is set active prior to this code.\n\n* I see a structure called hspi that has a bunch of parameters that are initialized at line 29 below\n\n* By single stepping know when line 108 below executes I can see 8 bits of data on my scope. I am assuming that this line of code starts the transmission. More specifically writing the data from the transmit buffer to the \"**hspi->Instance->DR\"** seems to kick off the SPI Bus transmission.\n\n**\\*((\\_\\_IO uint8\\_t \\*)&hspi->Instance->DR) = (\\*hspi->pTxBuffPtr);**I am trying to understand what's is this statement doing. Does writing this register do something special to kick off the transmission? If there is a good source to read I would appreciate it.  Best  regards - mike\n\n```\n\nHAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout)\n\n{\n\nuint32_t tickstart;\n\nHAL_StatusTypeDef errorcode = HAL_OK;\n\nuint16_t initial_TxXferCount;\n\n/* Check Direction parameter */\n\nassert_param(IS_SPI_DIRECTION_2LINES_OR_1LINE(hspi->Init.Direction));\n\n/* Process Locked */\n\n__HAL_LOCK(hspi);\n\n/* Init tickstart for timeout management*/\n\ntickstart = HAL_GetTick();\n\ninitial_TxXferCount = Size;\n\nif (hspi->State != HAL_SPI_STATE_READY)\n\n{\n\nerrorcode = HAL_BUSY;\n\ngoto error;\n\n}\n\nif ((pData == NULL) || (Size == 0U))\n\n{\n\nerrorcode = HAL_ERROR;\n\ngoto error;\n\n}\n\n/* Set the transaction information */\n\nhspi->State = HAL_SPI_STATE_BUSY_TX;\n\nhspi->ErrorCode = HAL_SPI_ERROR_NONE;\n\nhspi->pTxBuffPtr = (uint8_t *)pData;\n\nhspi->TxXferSize = Size;\n\nhspi->TxXferCount = Size;\n\n/*Init field not used in handle to zero */\n\nhspi->pRxBuffPtr = (uint8_t *)NULL;\n\nhspi->RxXferSize = 0U;\n\nhspi->RxXferCount = 0U;\n\nhspi->TxISR = NULL;\n\nhspi->RxISR = NULL;\n\n/* Configure communication direction : 1Line */\n\nif (hspi->Init.Direction == SPI_DIRECTION_1LINE)\n\n{\n\nSPI_1LINE_TX(hspi);\n\n}\n\n#if (USE_SPI_CRC != 0U)\n\n/* Reset CRC Calculation */\n\nif (hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE)\n\n{\n\nSPI_RESET_CRC(hspi);\n\n}\n\n#endif /* USE_SPI_CRC */\n\n/* Check if the SPI is already enabled */\n\nif ((hspi->Instance->CR1 & SPI_CR1_SPE) != SPI_CR1_SPE)\n\n{\n\n/* Enable SPI peripheral */\n\n__HAL_SPI_ENABLE(hspi);\n\n}\n\n/* Transmit data in 16 Bit mode */\n\nif (hspi->Init.DataSize == SPI_DATASIZE_16BIT)\n\n{\n\nif ((hspi->Init.Mode == SPI_MODE_SLAVE) || (initial_TxXferCount == 0x01U))\n\n{\n\nhspi->Instance->DR = *((uint16_t *)hspi->pTxBuffPtr);\n\nhspi->pTxBuffPtr += sizeof(uint16_t);\n\nhspi->TxXferCount--;\n\n}\n\n/* Transmit data in 16 Bit mode */\n\nwhile (hspi->TxXferCount > 0U)\n\n{\n\n/* Wait until TXE flag is set to send data */\n\nif (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_TXE))\n\n{\n\nhspi->Instance->DR = *((uint16_t *)hspi->pTxBuffPtr);\n\nhspi->pTxBuffPtr += sizeof(uint16_t);\n\nhspi->TxXferCount--;\n\n}\n\nelse\n\n{\n\n/* Timeout management */\n\nif ((((HAL_GetTick() - tickstart) >= Timeout) && (Timeout != HAL_MAX_DELAY)) || (Timeout == 0U))\n\n{\n\nerrorcode = HAL_TIMEOUT;\n\ngoto error;\n\n}\n\n}\n\n}\n\n}\n\n/* Transmit data in 8 Bit mode */\n\nelse\n\n{\n\nif ((hspi->Init.Mode == SPI_MODE_SLAVE) || (initial_TxXferCount == 0x01U))\n\n{\n\n*((__IO uint8_t *)&hspi->Instance->DR) = (*hspi->pTxBuffPtr);\n\nhspi->pTxBuffPtr += sizeof(uint8_t);\n\nhspi->TxXferCount--;\n\n}\n\nwhile (hspi->TxXferCount > 0U)\n\n{\n\n/* Wait until TXE flag is set to send data */\n\nif (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_TXE))\n\n{\n\n*((__IO uint8_t *)&hspi->Instance->DR) = (*hspi->pTxBuffPtr); 16 bits sent\n\nhspi->pTxBuffPtr += sizeof(uint8_t);\n\nhspi->TxXferCount--;\n\n}\n\nelse\n\n{\n\n/* Timeout management */\n\nif ((((HAL_GetTick() - tickstart) >= Timeout) && (Timeout != HAL_MAX_DELAY)) || (Timeout == 0U))\n\n{\n\nerrorcode = HAL_TIMEOUT;\n\ngoto error;\n\n}\n\n}\n\n}\n\n}\n\n```",
+            "images": [],
+            "author": "mike_m",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HAL does nothing really mystic here.</p><p>For each  SPI you have one DR register. Writing to this register transmits the written value to the transmit buffer, while reading the register copies a value from the receive buffer as described in RM0430 <a rel=\"noopener\" target=\"_blank\">file:///home/klwa4731/Downloads/rm0430-stm32f413423-advanced-armbased-32bit-mcus-stmicroelectronics.pdf</a> (section 29.3.9).</p><p>The transmission itself is handled in HW, regardless of HAL or LL or nothing at all is used.</p><p>HAL just covers finding the register by accessing it through the handle (and maybe hides differences between STM32 variants).</p><p> </p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the explanation, it helps out a great deal! - mike</p></div>",
+                    "author": "mike_m",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

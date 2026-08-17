@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "165545",
+            "publicId": "165545",
+            "title": "STM32L073RZ LCD Configuration: CubeMX Cannot Assign VLCDrail1 to PB12",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32l073rz-lcd-configuration-cubemx-cannot-assign-vlcdrail1-to-pb12-165545",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32L0 series"
+            ],
+            "published_at": "2026-05-10T17:55:00+00:00",
+            "views": 161,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @ECSL\n\nLet me thank you for posting.\n\nLet me thank you for bringing this issue to our attention.\n\nThe issue has been escalated to the development team under this internal ticket: **CDM0062552**\n\nI will let you know as soon as the problem is solved.\n\nThanks.\n\nMahmoud",
+            "best_answer_author": "Mahmoud Ben Romdhane",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I’m setting up a new project in STM32CubeMX for an STM32L073RZ using the internal LCD controller in 1/3 bias mode.\n\nAccording to the STM32L0 reference manual (RM0367), the LCD voltage rails should be configured as:\n\nPB12 - VLCDrail1\n\nPB2 - VLCDrail2\n\n![ECSL_0-1778435574858.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/926c5c41-dc9b-7c92-0bd3-bb423a8c6245.png \"ECSL_0-1778435574858.png\")\n\nHowever, in STM32CubeMX, the GPIO configuration only allows:\n\nPB12 - VLCDrail2\n\nPB2 - VLCDrail2\n\n![ECSL_1-1778435619125.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d317868-2091-f9ba-e932-8597c981828c.png \"ECSL_1-1778435619125.png\")\n\n![ECSL_2-1778435630027.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e7244f58-5d9d-1ccb-1297-f387b062352d.png \"ECSL_2-1778435630027.png\")\n\nThere does not appear to be any option to configure either pin as VLCDrail1.\n\nAm I misunderstanding the LCD rail configuration for 1/3 bias mode on STM32L073RZ, or is this a limitation/bug in STM32CubeMX?\n\nThank you!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d317868-2091-f9ba-e932-8597c981828c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e7244f58-5d9d-1ccb-1297-f387b062352d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/926c5c41-dc9b-7c92-0bd3-bb423a8c6245.png"
+            ],
+            "author": "ECSL",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106828\">@ECSL</user-mention> </p>\n<p>Let me thank you for posting.</p>\n<p>Let me thank you for bringing this issue to our attention.</p>\n<p><span>The issue has been escalated to the development team under this internal ticket: <strong>CDM0062552</strong></span></p>\n<p>I will let you know as soon as the problem is solved.</p>\n<p>Thanks.</p>\n<p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Mahmoud,</p><p> </p><p>Thank you. Is there any update on the ticket?</p><p>In the meantime, would it be sufficient to configure PB2 as LCD_VLCD2 and add this code after the LCD initialization?</p><pre><code class=\"language-c\">GPIO_InitTypeDef GPIO_InitStruct = { 0 };<br/>\tGPIO_InitStruct.Pin = GPIO_PIN_12;<br/>\tGPIO_InitStruct.Mode = GPIO_MODE_AF_PP;<br/>\tGPIO_InitStruct.Pull = GPIO_NOPULL;<br/>\tGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;<br/>\tHAL_GPIO_Init(GPIOB, &amp;GPIO_InitStruct);<br/><br/>\t__HAL_SYSCFG_VLCD_CAPA_CONFIG(SYSCFG_VLCD_PB12_EXT_CAPA_ON | SYSCFG_VLCD_PB2_EXT_CAPA_ON);<br/></code></pre><p> </p></div>",
+                    "author": "ECSL",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

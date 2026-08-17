@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "164213",
+            "publicId": "164213",
+            "title": "Can I write data to multiple files using FileX?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/can-i-write-data-to-multiple-files-using-filex-164213",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-26T12:33:19+00:00",
+            "views": 348,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\n>each file write takes about 10 milliseconds.\n\nDepending on the amount you write (you didnt give any number) this is already a \"good\" time.\n\n> If I want to write multiple files in a short amount of time\n\nJust try this on a PC , with a SD-card as target, and check the time. ( = fastest possible on SD...)\n\nBecause every command to a card needs about 1ms (0.5...100ms possible), you cannot get much more speed , no matter what you try, the card will not be faster. Fastest way is to write a big block to one file, because after command phase its just the time for data transfer and storing on the card in one block access.\n\nThe more different commands you use, the more time it will need to respond to every command, added to the time, needed to transfer data and store it. Depends a lot on type of card and the connection mode (1bit, 4bit, >Both interfaces support the SD memory card specifications version 4.1. and the SDIO card specification version 4.0. in two different databus modes: 1 bit (default) and 4 bits. < from H755 ds)\n\nHere a speed check , on PC /Linx , on USB3 (5Gbit possible), to see, what cards doing...\n\n![Intenso_16GB_USB3_neu_SDXC_usb3.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b510815-d379-da37-8db8-cd97947637b9.png \"Intenso_16GB_USB3_neu_SDXC_usb3.png\")\n\nred: write, from 4...60MB/s ; green access time : 0.5 ...10ms . card: Intenso, 16GB , SDHC, class 10 .\n\nThe up and down on writing 10MB blocks come from....whatever the card doing internally.\n\nAnd this is a new card....you dont wanna see, what a 2 y old doing, if all day used for logging data.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello, everyone on the forum.\n\nI am using an STM32H735IG, ThreadX, and FileX to create files on an SD card and write data to them.\n\nIn each iteration, I open the file using `fx\\_file\\_open`, seek to the end of the file using `fx\\_file\\_relative\\_seek`, write data using `fx\\_file\\_write`, close the file using `fx\\_file\\_close`, and finally flush the media using `fx\\_media\\_flush`.\n\nWhen performing this operation, each file write takes about 10 milliseconds.\n\nIf I want to write multiple files in a short amount of time, should I use multithreading and have each thread write a file?\n\nAlso, when writing data to a file on a regular basis, is it okay to keep the file open and write the data without calling `Open` and `Close`?\n\nHow often should I run fx\\_media\\_flush?\n\nI’d appreciate any advice you can offer.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b510815-d379-da37-8db8-cd97947637b9.png"
+            ],
+            "author": "Hey0256",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"91031\">@Hey0256</user-mention> wrote:<br/><p>If I want to write multiple files in a short amount of time, should I use multithreading and have each thread write a file?</p><hr/></blockquote><p>You will still have only 1 physical storage medium; if the bottleneck is writing to the medium, this can't help.</p><p> </p><p>Are you using blocking calls for your writes?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt;<span>each file write takes about 10 milliseconds.</span></p><p>Depending on the amount you write (you didnt give any number) this is already a \"good\" time.</p><p>&gt; <span>If I want to write multiple files in a short amount of time</span></p><p><span>Just try this on a PC , with a SD-card as target, and check the time. ( = fastest possible on SD...)</span></p><p><span>Because every command to a card needs about 1ms (0.5...100ms possible), you cannot get much more speed , no matter what you try, the card will not be faster. Fastest way is to write a big block to one file, because after command phase its just the time for data transfer and storing on the card in one block access.</span></p><p><span>The more different commands you use, the more time it will need to respond to every command, added to the time, needed to transfer data and store it. Depends a lot on type of card and the connection mode (1bit, 4bit, &gt;Both interfaces support the SD memory card specifications version 4.1. and the SDIO card specification version 4.0. in two different databus modes: 1 bit (default) and 4 bits. &lt; from H755 ds)</span></p><p> </p><p><span>Here a speed check , on PC /Linx , on USB3 (5Gbit possible), to see, what cards doing...</span></p><p><span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Intenso_16GB_USB3_neu_SDXC_usb3.png\" style=\"width: 778px;\"><img alt=\"Intenso_16GB_USB3_neu_SDXC_usb3.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b510815-d379-da37-8db8-cd97947637b9.png\" title=\"Intenso_16GB_USB3_neu_SDXC_usb3.png\"/></span></span></p><p><span>red: write, from 4...60MB/s ; green access time : 0.5 ...10ms . card: Intenso, 16GB , SDHC, class 10 .</span></p><p><span>The up and down on writing 10MB blocks come from....whatever the card doing internally.</span></p><p><span>And this is a new card....you dont wanna see, what a 2 y old doing, if all day used for logging data.</span></p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your advice.</p><p>I now understand that there is an upper limit to the file write speed.<br/>I will make sure to write data in block-sized units.</p><p>Thank you very much.</p></div>",
+                    "author": "Hey0256",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

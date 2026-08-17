@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "163533",
+            "publicId": "163533",
+            "title": "STM32N6 Nucleo Board ADC",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32n6-nucleo-board-adc-163533",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-06T13:15:29+00:00",
+            "views": 406,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @guillerminaborrazas\n\nI understand that you are converting external voltage on PG15 (ADC2\\_INP7) using CN4 #A5 connector.\n\nRefer to NUCLEO-N657X-0Q schematic in page 10 for Arduino connectors below:\n\n<https://www.st.com/resource/en/schematic_pack/mb1940-n657x0q-c02-schematic.pdf>\n\nThere is an operational amplifier in follower mode U9B with divider resistor (ratio 0.54) between signal ARD\\_A5R to ARD\\_A5 (PG15). You can recompute it by firmware using the same ratio.\n\nThis is why you measure input voltage less than expected. The resistor divider is used to be able to measure external voltage up to 3.3V while all ADC inputs are only 1.8V tolerant on STM32N6.\n\nI hope it answer to your question.\n\nBest regards,\n\nRomain,",
+            "best_answer_author": "RomainR.",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi! I'm using a STM32N657 Nucleo Board, and, considering the 1.8 V reference voltage for the ADC, the value returned by the ADC is half of what it should be. For example, for a 1,410 V value in the pin, the reading is 1742. Here is the initialization for reference:\n\n```\n\nstatic void MX_ADC2_Init(void)\n\n{\n\n/* USER CODE BEGIN ADC2_Init 0 */\n\n/* USER CODE END ADC2_Init 0 */\n\nADC_ChannelConfTypeDef sConfig = {0};\n\nADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};\n\n/* USER CODE BEGIN ADC2_Init 1 */\n\n/* USER CODE END ADC2_Init 1 */\n\n/** Common config\n\n*/\n\nhadc2.Instance = ADC2;\n\nhadc2.Init.Resolution = ADC_RESOLUTION_12B;\n\nhadc2.Init.GainCompensation = 0;\n\nhadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;\n\nhadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;\n\nhadc2.Init.LowPowerAutoWait = DISABLE;\n\nhadc2.Init.ContinuousConvMode = DISABLE;\n\nhadc2.Init.NbrOfConversion = 1;\n\nhadc2.Init.DiscontinuousConvMode = DISABLE;\n\nhadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;\n\nhadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;\n\nhadc2.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;\n\nhadc2.Init.Overrun = ADC_OVR_DATA_PRESERVED;\n\nhadc2.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;\n\nhadc2.Init.OversamplingMode = DISABLE;\n\nif (HAL_ADC_Init(&hadc2) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Configure Regular Channel\n\n*/\n\nsConfig.Channel = ADC_CHANNEL_7;\n\nsConfig.Rank = ADC_REGULAR_RANK_1;\n\nsConfig.SamplingTime = ADC_SAMPLETIME_1499CYCLES_5;\n\nsConfig.SingleDiff = ADC_SINGLE_ENDED;\n\nsConfig.OffsetNumber = ADC_OFFSET_NONE;\n\nsConfig.Offset = 0;\n\nif (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Configure the regular channel to be monitored by WatchDog 2 or 3\n\n*/\n\nAnalogWDGConfig.FilteringConfig = ADC_AWD_FILTERING_NONE;\n\nif (HAL_ADC_AnalogWDGConfig(&hadc2, &AnalogWDGConfig) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN ADC2_Init 2 */\n\nif (HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE END ADC2_Init 2 */\n\n}\n\n```\n\nAny ideas what can be happening? Thank you!",
+            "images": [],
+            "author": "guillerminaborrazas",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93269\">@guillerminaborrazas</user-mention> </p>\n<p>I understand that you are converting external voltage on PG15 (ADC2_INP7) using CN4 #A5 connector.</p>\n<p>Refer to NUCLEO-N657X-0Q schematic in page 10 for Arduino connectors below:</p>\n<p><a href=\"https://www.st.com/resource/en/schematic_pack/mb1940-n657x0q-c02-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/schematic_pack/mb1940-n657x0q-c02-schematic.pdf</a></p>\n<p>There is an operational amplifier in follower mode U9B with divider resistor (ratio 0.54) between signal ARD_A5R to ARD_A5 (PG15). You can recompute it by firmware using the same ratio.</p>\n<p>This is why you measure input voltage less than expected. The resistor divider is used to be able to measure external voltage up to 3.3V while all ADC inputs are only 1.8V tolerant on STM32N6.</p>\n<p>I hope it answer to your question.</p>\n<p>Best regards,</p>\n<p>Romain,   </p>\n<p> </p></div>",
+                    "author": "RomainR.",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93269\">@guillerminaborrazas</user-mention> How did you managed to get the ADC working ? I dont know wich GPIO on the nucleo board is linked to the choice I have in Cube MX... And I cannot find any informations. <br/><br/>Thank you so much</p></div>",
+                    "author": "Tyrell",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Many posters hardly ever come back when their problem is solved.</p><p><span><font color=\"#0000FF\"><em>I dont know wich GPIO on the nucleo board is linked to the choice I have in Cube MX... And I cannot find any informations.</em></font> </span></p><p><span>Your source of information would be the schematic of the Nucleo board in question, and the datasheet + reference manual of the specific MCU.<br/><br/></span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "RomainR.",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

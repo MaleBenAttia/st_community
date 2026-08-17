@@ -1,0 +1,76 @@
+{
+    "forum": [
+        {
+            "id": "163630",
+            "publicId": "163630",
+            "title": "STM32H7R7Z8 XSPI has timing issue in Quad mode",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h7r7z8-xspi-has-timing-issue-in-quad-mode-163630",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F7 series",
+                "XSPI"
+            ],
+            "published_at": "2026-03-10T07:46:01+00:00",
+            "views": 409,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Leo2Ruan ;\n\nPlease look at [Getting started with STM32H7Rx/7Sx MCUs hardware development - Application note](https://www.st.com/resource/en/application_note/an5935-getting-started-with-stm32h7rx7sx-mcus-hardware-development-stmicroelectronics.pdf) and check the hardware.\n\n*Caution:* The I/O HSLV configuration bit must not be set if the I/O supply (VDD) is above 2.7 V. **Setting it while the voltage is higher than 2.7 V can damage the device**.\n\nThank you.\n\nKaouthar",
+            "best_answer_author": "KDJEM.1",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi, Everyone\n\nI am trying to setup STM32H7R7Z8 XSPI2 in Quad mode for APS6404L-3SQR QSPI PSRAM.\n\nThe original code is generated from MX v6.116.1 and developed with IDE v2.0.0.\n\n**HW info:**\n\n* The PSRAM is connected to XSPI2 with NCS, CLK, IO0~3. There is no DQS pin (PSRAM does not support it).\n\n* The XSPI2 is setup in 133MHz frequency PSRAM supported.\n\n* APS6404L-3SQR: 133MHz for 32 Bytes Wrapped Burst, 64Mb, 8M x 8bits, pagesize 1024 bytes,\n\n**SW configuration:**\n\n```\n\n/* XSPI2 parameter configuration */\n\nhxspi2.Instance = XSPI2;\n\nhxspi2.Init.FifoThresholdByte = 4;\n\nhxspi2.Init.MemoryMode = HAL_XSPI_SINGLE_MEM;\n\nhxspi2.Init.MemoryType = HAL_XSPI_MEMTYPE_APMEM_16BITS;\n\nhxspi2.Init.MemorySize = HAL_XSPI_SIZE_64MB;\n\nhxspi2.Init.ChipSelectHighTimeCycle = 2;\n\nhxspi2.Init.FreeRunningClock = HAL_XSPI_FREERUNCLK_DISABLE;\n\nhxspi2.Init.ClockMode = HAL_XSPI_CLOCK_MODE_0;\n\nhxspi2.Init.WrapSize = HAL_XSPI_WRAP_32_BYTES;\n\nhxspi2.Init.ClockPrescaler = 0;\n\nhxspi2.Init.SampleShifting = HAL_XSPI_SAMPLE_SHIFT_HALFCYCLE;\n\nhxspi2.Init.ChipSelectBoundary = HAL_XSPI_BONDARYOF_NONE;\n\nhxspi2.Init.MaxTran = 0;\n\nhxspi2.Init.Refresh = 0;\n\nhxspi2.Init.MemorySelect = HAL_XSPI_CSSEL_NCS1;\n\nif (HAL_XSPI_Init(&hxspi2) != HAL_OK)\n\n{Error_Handler();}\n\nsXspiManagerCfg.nCSOverride = HAL_XSPI_CSSEL_OVR_NCS1;\n\nsXspiManagerCfg.IOPort = HAL_XSPIM_IOPORT_2;\n\nsXspiManagerCfg.Req2AckTime = 1;\n\nif (HAL_XSPIM_Config(&hxspi2, &sXspiManagerCfg, HAL_XSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n\n{Error_Handler();}\n\n------------------------------------------------------------------------------------------\n\n/* memory manager: EXTMEMORY_1 */\n\nextmem_list_config[0].MemType = EXTMEM_PSRAM;\n\nextmem_list_config[0].Handle = (void*)&hxspi2;\n\nextmem_list_config[0].ConfigType = EXTMEM_LINK_CONFIG_4LINES;\n\nextmem_list_config[0].PsramObject.psram_public.MemorySize = HAL_XSPI_SIZE_64MB;\n\nextmem_list_config[0].PsramObject.psram_public.FreqMax = 133 * 1000000u;\n\nextmem_list_config[0].PsramObject.psram_public.NumberOfConfig = 0u;\n\n/* Memory command configuration */\n\nextmem_list_config[0].PsramObject.psram_public.ReadREG = 0u;\n\nextmem_list_config[0].PsramObject.psram_public.WriteREG = 0u;\n\nextmem_list_config[0].PsramObject.psram_public.ReadREGSize = 0u;\n\nextmem_list_config[0].PsramObject.psram_public.REG_DummyCycle = 0u;\n\nextmem_list_config[0].PsramObject.psram_public.Write_command = 0x38u;\n\nextmem_list_config[0].PsramObject.psram_public.Write_DummyCycle = 0u;\n\nextmem_list_config[0].PsramObject.psram_public.Read_command = 0xEBu;\n\nextmem_list_config[0].PsramObject.psram_public.WrapRead_command = 0x00u;\n\nextmem_list_config[0].PsramObject.psram_public.Read_DummyCycle = 6u;\n\nEXTMEM_Init(EXTMEMORY_1, HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_XSPI2));\n\n```\n\nWhen system startup, the SW can properly initializes the PSRAM with reset, toggle-burst-boundary(chip specific feature), readID and enabled to memory-mapped mode successfully. Below image shows the registers after init:\n\n![xspi-register.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c26bd449-61f5-0b22-0ac9-718ffff5a6de.png \"xspi-register.png\")\n\nAccording to Errata: 2.4.1 Memory-mapped write error response when DQS output is disable\n\nDescription: If the DQSE control bit of the XSPI\\_WCCR register is cleared for memories without DQS pin, it results in an error response for every memory-mapped write request.\n\nWorkaround: When doing memory-mapped writes, set the DQSE bit of the XSPI\\_WCCR register, even for memories that have no DQS pin.\n\nSo I did  \"commandBase.DQSMode = HAL\\_XSPI\\_DQS\\_ENABLE\" for memory-mapped write instruction.\n\n**Problem:**\n\nIn memory-mapped mode, SW try to write 0x55 to RAM from start-address 0x70000000 and then read back for verification.\n\n* The verification is success at beginning 24KB size - whatever the start-address is.\n\n* After 24KB, the verification is failed time to time. And errors happen more if read run more time.\n\n* The MCU hangup with free-run-read through whole PSRAM size.\n\nIt seems the XSPI has timing drift problem. Does anyone get the problem?\n\n**Question: Does XSPI support Quad mode for PSRAM without DQS pin?**",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40711eed-0557-18f7-fe69-884b614d5440.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c26bd449-61f5-0b22-0ac9-718ffff5a6de.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d67a4b22-0289-590d-3212-7e20d9d03908.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8c711382-a587-252c-1f12-016968e13071.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0cd5bef1-c5ca-ae38-6fd1-4351760056ab.png"
+            ],
+            "author": "Leo2Ruan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97335\">@Leo2Ruan</user-mention> ;</p>\n<p> </p>\n<p><span>You can used a memory that have no DQS pin, you need only to set the DQSE bit of the XSPI_WCCR register when doing memory-mapped writes.</span></p>\n<p><span>To solve the issue, I recommend you to </span><span>check:</span></p>\n<p><span>- The HSLV. Please look at <a href=\"https://community.st.com/t5/stm32-mcus/recommendations-for-high-speed-low-voltage-mode-hslv-on-the/ta-p/760516\" target=\"_blank\">Recommendations for high-speed low-voltage mode (HSLV) on the STM32H7RS.</a></span></p>\n<p><span>- I/O compensation cell. I/O compensation might create skewed output rise and fall times. For that, I advise you to check the <a href=\"https://www.st.com/resource/en/errata_sheet/es0596-stm32h7rxx7sxx-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">errata sheet</a> precisely 2.215 I/O compensation could alter duty-cycle of high-frequency output signal erratum.</span></p>\n<div class=\"mceNonEditable lia-copypaste-placeholder\" id=\"tinyMceEditor_d9e200588c4abKDJEM1_0\"> </div>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Kaouthar, Thanks for your reply!</p><p>For HSLV, I checked the high-speed-option are disabled on both XSPI 1 and 2. See:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"XSPI_HSLV.png\" style=\"width: 999px;\"><img alt=\"XSPI_HSLV.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d67a4b22-0289-590d-3212-7e20d9d03908.png\" title=\"XSPI_HSLV.png\"/></span></p><p>But the HSLV are enabled from MX-&gt;SBS. Shall I disable it too?</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MX_SBS.png\" style=\"width: 999px;\"><img alt=\"MX_SBS.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0cd5bef1-c5ca-ae38-6fd1-4351760056ab.png\" title=\"MX_SBS.png\"/></span></p><p>We will check the I/O/compensation from errata 2.2.15, and get back later.</p><p> </p></div>",
+                    "author": "Leo2Ruan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2019\">@KDJEM.1</user-mention>,</p><p>I did test according to errata 2.2.15. See below:</p><p><strong>1) The error rate is significantly reduced by disabling automatic I/O compensation on XSPI pins (SW compensation is not applied), and slowdown the speed:</strong></p><table border=\"1\" width=\"99.73032352561066%\"><tbody><tr><td width=\"24.910179640718564%\">XSPI-2 Clock (MHz)</td><td width=\"24.940047961630697%\">Total Bytes</td><td width=\"24.940047961630697%\">Error Bytes</td><td width=\"24.940047961630697%\">Error Rate</td></tr><tr><td width=\"24.910179640718564%\">133</td><td width=\"24.940047961630697%\">8MiB</td><td width=\"24.940047961630697%\">525740 ~ 685629</td><td width=\"24.940047961630697%\">8.57%</td></tr><tr><td width=\"24.910179640718564%\">66.5</td><td width=\"24.940047961630697%\">8MiB</td><td width=\"24.940047961630697%\">800 ~ 1000</td><td width=\"24.940047961630697%\">120 PPM</td></tr><tr><td width=\"24.910179640718564%\">33.25</td><td width=\"24.940047961630697%\">8MiB</td><td width=\"24.940047961630697%\">17</td><td width=\"24.940047961630697%\">2 PPM</td></tr></tbody></table><p><strong>2) Then apply SW I/O compensation on XSPI (Follow workaround from Errata 2.2.15)</strong></p><p>The value of flash memory at address 0x08FFF840 @3.3 V is 0xFFFFFFFF. So we go with case-1: The calibration value from register SBS_CCVALR is 8. The result shows the SW compensation does not help in high speed, and a little bad with low speed:</p><table border=\"1\" width=\"99.76047904191617%\"><tbody><tr><td width=\"30.778443113772454%\">XSPI-2 Clock (MHz)</td><td width=\"18.802395209580837%\">Total Bytes</td><td width=\"32.09580838323353%\">Error Bytes</td><td width=\"18.08383233532934%\">Error Rate</td></tr><tr><td width=\"30.778443113772454%\">133</td><td width=\"18.802395209580837%\">8MiB</td><td width=\"32.09580838323353%\">527700 ~ 685694</td><td width=\"18.08383233532934%\">8.57%</td></tr><tr><td width=\"30.778443113772454%\">66.5</td><td width=\"18.802395209580837%\">8MiB</td><td width=\"32.09580838323353%\">800 ~ 1191</td><td width=\"18.08383233532934%\">200 PPM</td></tr><tr><td width=\"30.778443113772454%\">33.25</td><td width=\"18.802395209580837%\">8MiB</td><td width=\"32.09580838323353%\">13 ~ 30</td><td width=\"18.08383233532934%\">4 PPM</td></tr></tbody></table><p>Double check the SBS registers:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"SBS_CCCSR.png\" style=\"width: 999px;\"><img alt=\"SBS_CCCSR.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40711eed-0557-18f7-fe69-884b614d5440.png\" title=\"SBS_CCCSR.png\"/></span></p><p>Summary:</p><ul><li>The DQSE bit of the XSPI_WCCR register is set for doing memory-mapped writes.</li><li>Both XSPI1_HSLV and XSPI2_HSLV are disabled.</li><li>Automatic I/O compensation is disabled in XSPI1 and XSPI2, with or without SW compensation applied.</li></ul><p>All these can't fix the unstable problem. <strong>Any suggest?</strong></p><p>By testing with lower speed, we find there may be EMC issue on board.</p><p>Thanks!</p><p>Leo Ruan</p><p> </p><p> </p><p> </p></div>",
+                    "author": "Leo2Ruan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97335\">@Leo2Ruan</user-mention> ;</p>\n<p> </p>\n<p>Please look at <a href=\"https://www.st.com/resource/en/application_note/an5935-getting-started-with-stm32h7rx7sx-mcus-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Getting started with STM32H7Rx/7Sx MCUs hardware development - Application note</a> and check the hardware.</p>\n<p><em>Caution:</em> The I/O HSLV configuration bit must not be set if the I/O supply (VDD) is above 2.7 V. <strong>Setting it while the voltage is higher than 2.7 V can damage the device</strong>. </p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2019\">@KDJEM.1</user-mention></p><p>The VDD for MCU and PSRAM is 3.3v. It is confirmed that I/O HSLV is not set on my board.</p><p>To avoid the damage case, I checked the HSLV and do all tests on 3 boards. Get same result.</p><p>I did not check the pin-mux settings since this is generated by MX.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"2026-03-13_17h27_10.png\" style=\"width: 942px;\"><img alt=\"2026-03-13_17h27_10.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8c711382-a587-252c-1f12-016968e13071.png\" title=\"2026-03-13_17h27_10.png\"/></span></p><p>Thanks!</p><p>Leo Ruan</p><p> </p></div>",
+                    "author": "Leo2Ruan",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

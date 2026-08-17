@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "165553",
+            "publicId": "165553",
+            "title": "stm32h743xi6 emmc and spi flash chips selection for pcb",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/stm32h743xi6-emmc-and-spi-flash-chips-selection-for-pcb-165553",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-11T05:27:10+00:00",
+            "views": 172,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "STM32h743, STM32H745 and STM32H750 share the same die.\n\nYou can use MTFC4GACAJCN  as suggested.\n\nFor the availability I don't know you need to contact the eMMC manufacturer.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi all,\n\nI'm looking for recommendations on eMMC chips that are known to work reliably with the STM32H743 via SDMMC1 in 8-bit mode.\n\nI've gone through a number of threads here and put together what I've found so far:\n\n- Micron 4GB (MTFC4GACAJCN) — comes up often, though some posts mention HAL misreading certain CSD fields (appears cosmetic rather than functional)\n\n- Kingston 4GB — confirmed working with SDMMC1 + FatFS + FreeRTOS, corruption reports seem tied to FatFS rather than the chip itself\n\n- Samsung KLM series — functional but VCCQ voltage negotiation adds complexity\n\n- Kioxia THGBMDG5D1LBAIL — 153-ball WFBGA, eMMC 5.0, fewer reports but looks promising\n\nHappy to keep things simple — 3.3V on both VCC and VCCQ, no need for HS200/HS400.\n\nWould love to hear from anyone who has had long-term success with a particular chip, or any that are worth avoiding. Any layout tips for the 153-ball WFBGA package are also welcome.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6cb813ab-da4f-8639-e407-1ded5657ab26.png"
+            ],
+            "author": "chonkzman",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106835\">@chonkzman</user-mention> and welcome to the ST community,</p>\n<blockquote><hr/><user-mention data-id=\"106835\">@chonkzman</user-mention> wrote:<br/>\n<p>- Micron 4GB (MTFC4GACAJCN) — comes up often, though some posts mention HAL misreading certain CSD fields (appears cosmetic rather than functional)</p>\n<hr/></blockquote>\n<p>MTFC4GACAJCN is available already on STM32H7 disco board such as STM32H745-DISCO and STM32H750-DISCO. Need to use the BSP drivers provided in the CubeHAL of the boards:</p>\n<p>eMMC driver for STM32H745-DISCO:</p>\n<p><a href=\"https://github.com/STMicroelectronics/stm32h745i-disco-bsp/blob/a853043cbeb37280747f5554dc791e4ee58c91b0/stm32h745i_discovery_mmc.c\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32h745i-disco-bsp/blob/a853043cbeb37280747f5554dc791e4ee58c91b0/stm32h745i_discovery_mmc.c</a></p>\n<p>eMMC driver for STM32H750-DISCO:</p>\n<p><a href=\"https://github.com/STMicroelectronics/stm32h750b-dk-bsp/blob/e15ab34e23e2929f768f3f00efe9aac75f057b50/stm32h750b_discovery_mmc.c\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32h750b-dk-bsp/blob/e15ab34e23e2929f768f3f00efe9aac75f057b50/stm32h750b_discovery_mmc.c</a></p>\n<p>And this is the <a href=\"https://www.st.com/resource/en/schematic_pack/mb1381-h750xb-b01-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">schematic</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1778492245765.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1778492245765.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6cb813ab-da4f-8639-e407-1ded5657ab26.png\" title=\"mALLEm_1-1778492245765.png\"/></span></p>\n<p>Hope that helps.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thank you , pls note I'm using stm32h743xi and plan to use this emmc for multiple boards , is there not a full proof emmc that is still being manufactured and in stock (digikey,mouser)? </p></div>",
+                    "author": "chonkzman",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>STM32h743, STM32H745 and STM32H750 share the same die.</span></p>\n<p><span>You can use MTFC4GACAJCN  as suggested.</span></p>\n<p><span>For the availability I don't know you need to contact the eMMC manufacturer.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

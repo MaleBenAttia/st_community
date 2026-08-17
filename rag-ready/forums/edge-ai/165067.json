@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "165067",
+            "publicId": "165067",
+            "title": "camera doesn't detect- Deploying custom object detection model on stm32n6 nucleo board",
+            "url": "https://community.st.com/edge-ai-134/camera-doesn-t-detect-deploying-custom-object-detection-model-on-stm32n6-nucleo-board-165067",
+            "category": "Edge AI",
+            "tags": [
+                "Model zoo",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-23T20:10:42+00:00",
+            "views": 266,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "@Julian E. , you were right, for object detection also **CubeIDE v1.17.0** works. Thank you so much",
+            "best_answer_author": "faiq",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi, I am trying to deploy a custom object detection model on the STM32N6-Nucleo board.\n\nI started with this:\n\n<https://github.com/STMicroelectronics/stm32ai-modelzoo-services/tree/main/object_detection>\n\nThe training gets done, I get the performance metrics,\n\npython stm32ai\\_main.py\n\nThe deployment code works fine, and I get the deployment complete message. But when I change from development mode to flash boot mode. It doesn't detect the camera.\n\nWhen I program the demo camera.hex file\n\n<https://github.com/STMicroelectronics/x-cube-n6-camera-capture/tree/main/Binary/NUCLEO-N657X0-Q>\n\nor object detection .hex file,\n\n<https://github.com/STMicroelectronics/STM32N6-GettingStarted-ObjectDetection/tree/main/Binary/NUCLEO-N657X0-Q/USB-UVC-Display>\n\nthe camera works perfectly.\n\nBelow are the training and deployment configuration files. These are the only files I changed. I would really appreciate any help in this regard. Thank you,\n\n# training configure.yaml file:\n\ngeneral:\n\nproject\\_name: custom\\_food\\_yoloxn\\_256\n\nlogs\\_dir: logs\n\nsaved\\_models\\_dir: saved\\_models\n\ndisplay\\_figures: false\n\ngpu\\_memory\\_limit: 16\n\nnum\\_threads\\_tflite: 12\n\nglobal\\_seed: 127\n\noperation\\_mode: chain\\_tqe\n\nmodel:\n\nmodel\\_type: st\\_yoloxn\n\nmodel\\_name: st\\_yoloxn\\_d033\\_w025\n\ninput\\_shape: (256,256,3)\n\ndataset:\n\nformat: darknet\\_yolo\n\ndataset\\_name: darknet\\_yolo\n\nclass\\_names: [beverage, food]\n\nexclude\\_unlabeled: true\n\ndownload\\_data: false\n\nmax\\_detections: 50\n\ntrain\\_images\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/train\n\ntrain\\_annotations\\_path: path/r/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/labels/train\n\nval\\_images\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/val\n\nval\\_annotations\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/labels/val\n\ntest\\_images\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/test\n\ntest\\_annotations\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/labels/test\n\ntest\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/tfs\\_labels/test\n\nquantization\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/test\n\npreprocessing:\n\nrescaling:\n\nscale: 1/255\n\noffset: 0\n\nresizing:\n\naspect\\_ratio: fit\n\ninterpolation: nearest\n\ncolor\\_mode: rgb\n\ndata\\_augmentation:\n\nrandom\\_contrast:\n\nfactor: 0.4\n\nrandom\\_brightness:\n\nfactor: 0.3\n\nrandom\\_flip:\n\nmode: horizontal\n\nrandom\\_translation:\n\nwidth\\_factor: 0.15\n\nheight\\_factor: 0.15\n\nfill\\_mode: reflect\n\ninterpolation: nearest\n\nrandom\\_rotation:\n\nfactor: 0.02\n\nfill\\_mode: reflect\n\ninterpolation: nearest\n\nrandom\\_crop:\n\ncrop\\_center\\_x: (0.25, 0.75)\n\ncrop\\_center\\_y: (0.25, 0.75)\n\ncrop\\_width: (0.6, 0.9)\n\ncrop\\_height: (0.6, 0.9)\n\nchange\\_rate: 0.9\n\ntraining:\n\ndropout: null\n\nbatch\\_size: 64\n\nepochs: 100\n\noptimizer:\n\nAdam:\n\nlearning\\_rate: 0.0025\n\ncallbacks:\n\nLRWarmupCosineDecay:\n\ninitial\\_lr: 1.0e-05\n\nwarmup\\_steps: 20\n\nmax\\_lr: 0.00125\n\nhold\\_steps: 20\n\ndecay\\_steps: 300\n\nend\\_lr: 1.0e-06\n\nEarlyStopping:\n\nmonitor: val\\_loss\n\npatience: 60\n\nrestore\\_best\\_weights: true\n\nverbose: 1\n\nquantization:\n\nquantizer: TFLite\\_converter\n\nquantization\\_type: PTQ\n\nquantization\\_input\\_type: uint8\n\nquantization\\_output\\_type: int8\n\nexport\\_dir: quantized\\_models\n\npostprocessing:\n\nconfidence\\_thresh: 0.300\n\nNMS\\_thresh: 0.5\n\nIoU\\_eval\\_thresh: 0.5\n\nplot\\_metrics: true\n\nmax\\_detection\\_boxes: 100\n\nmlflow:\n\nuri: ./tf/src/experiments\\_outputs/mlruns\n\nhydra:\n\nrun:\n\ndir: ./tf/src/experiments\\_outputs/custom\\_food\\_yoloxn\\_256\n\n# deploying custom model configure file\n\ngeneral:\n\nproject\\_name: custom\\_food\\_yoloxn\\_256\n\nlogs\\_dir: logs\n\nsaved\\_models\\_dir: saved\\_models\n\ndisplay\\_figures: false\n\ngpu\\_memory\\_limit: 16 #24\n\nnum\\_threads\\_tflite: 12\n\nglobal\\_seed: 127\n\noperation\\_mode: deployment\n\nmodel:\n\nmodel\\_type: st\\_yoloxn\n\nmodel\\_path: C:/stm32zoo/stm32ai-modelzoo-services/object\\_detection/tf/src/experiments\\_outputs/custom\\_food\\_yoloxn\\_256/quantized\\_models/quantized\\_model.tflite\n\ndataset:\n\nformat: darknet\\_yolo\n\ndataset\\_name: darknet\\_yolo\n\nclass\\_names: [beverage, food]\n\nexclude\\_unlabeled: true\n\ndownload\\_data: false\n\nmax\\_detections: 50\n\ntrain\\_images\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/train\n\ntrain\\_annotations\\_path: path/r/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/labels/train\n\nval\\_images\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/val\n\nval\\_annotations\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/labels/val\n\ntest\\_images\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/test\n\ntest\\_annotations\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/labels/test\n\ntest\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/tfs\\_labels/test\n\nquantization\\_path: path/yolov5/yolo\\_dataset\\_prep/yolo\\_ready\\_dataset\\_416/images/test\n\npreprocessing:\n\nrescaling:\n\nscale: 1/255\n\noffset: 0\n\nresizing:\n\naspect\\_ratio: fit\n\ninterpolation: nearest\n\ncolor\\_mode: rgb\n\ndata\\_augmentation:\n\nrandom\\_contrast:\n\nfactor: 0.4\n\nrandom\\_brightness:\n\nfactor: 0.3\n\nrandom\\_flip:\n\nmode: horizontal\n\nrandom\\_translation:\n\nwidth\\_factor: 0.15\n\nheight\\_factor: 0.15\n\nfill\\_mode: reflect\n\ninterpolation: nearest\n\nrandom\\_rotation:\n\nfactor: 0.02\n\nfill\\_mode: reflect\n\ninterpolation: nearest\n\nrandom\\_crop:\n\ncrop\\_center\\_x: (0.25, 0.75)\n\ncrop\\_center\\_y: (0.25, 0.75)\n\ncrop\\_width: (0.6, 0.9)\n\ncrop\\_height: (0.6, 0.9)\n\nchange\\_rate: 0.9\n\ntraining:\n\ndropout: null\n\nbatch\\_size: 64\n\nepochs: 100\n\noptimizer:\n\nAdam:\n\nlearning\\_rate: 0.0025\n\ncallbacks:\n\nLRWarmupCosineDecay:\n\ninitial\\_lr: 1.0e-05\n\nwarmup\\_steps: 20\n\nmax\\_lr: 0.00125\n\nhold\\_steps: 20\n\ndecay\\_steps: 300\n\nend\\_lr: 1.0e-06\n\nEarlyStopping:\n\nmonitor: val\\_loss\n\npatience: 60\n\nrestore\\_best\\_weights: true\n\nverbose: 1\n\nquantization:\n\nquantizer: TFLite\\_converter\n\nquantization\\_type: PTQ\n\nquantization\\_input\\_type: uint8\n\nquantization\\_output\\_type: int8\n\nexport\\_dir: quantized\\_models\n\npostprocessing:\n\nconfidence\\_thresh: 0.300\n\nNMS\\_thresh: 0.5\n\nIoU\\_eval\\_thresh: 0.5\n\nplot\\_metrics: true\n\nmax\\_detection\\_boxes: 10\n\ntools:\n\nstedgeai:\n\noptimization: balanced\n\non\\_cloud: False\n\npath\\_to\\_stedgeai: C:/ST/STEdgeAI/4.0/Utilities/windows/stedgeai.exe\n\npath\\_to\\_cubeIDE: C:/ST/STM32CubeIDE\\_2.0.0/STM32CubeIDE/stm32cubeide.exe\n\ndeployment:\n\nc\\_project\\_path: ../application\\_code/object\\_detection/STM32N6/\n\nIDE: GCC\n\nverbosity: 1\n\nhardware\\_setup:\n\nserie: STM32N6\n\nboard: NUCLEO-N657X0-Q\n\noutput: \"UVCL\"\n\nmlflow:\n\nuri: ./tf/src/experiments\\_outputs/mlruns\n\nhydra:\n\nrun:\n\ndir: ./tf/src/experiments\\_outputs/custom\\_food\\_yoloxn\\_256",
+            "images": [],
+            "author": "faiq",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106370\">@faiq</user-mention>,</p>\n<p> </p>\n<p>Do you specifically need yolox? </p>\n<p>I saw a lot of questions and issues regarding yolo deployment and I specifically asked for the tutorial to deploy ultralytics models to be updated.</p>\n<p>If you think yolov8n, yolov11n and yolo26 are suitable for you, I suggest following the updated tutorial here:</p>\n<p><a href=\"https://github.com/stm32-hotspot/ultralytics/tree/main/examples/YOLOv8-STEdgeAI\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">ultralytics/examples/YOLOv8-STEdgeAI at main · stm32-hotspot/ultralytics</a></p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2125\">@Julian E.</user-mention> Thank you for your comment.<br/>Actually, the issue seems to be with the hardware setup somehow. because I posted same question on stm32-modelzoo (<a href=\"https://github.com/STMicroelectronics/stm32ai-modelzoo-services/issues/46#issuecomment-4327097772\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32ai-modelzoo-services/issues/46#issuecomment-4327097772</a>)<br/>and the person tested my quantized model and shared the results. I explained my hardware setup and he agreed everything I was doing was fine. Maybe, I need to clone the repo again and do the deploymnet again or something. You can check our conversation on that issue (<a href=\"https://github.com/STMicroelectronics/stm32ai-modelzoo-services/issues/46#issuecomment-4327097772\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32ai-modelzoo-services/issues/46#issuecomment-4327097772</a>). <br/><br/></p></div>",
+                    "author": "faiq",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106370\">@faiq</user-mention>,</p>\n<p> </p>\n<p>Thanks for the update.</p>\n<p>Indeed, these kinds of error are very strange because most of the time, we cannot reproduce them..</p>\n<p>You can try to update model zoo and try again.</p>\n<p>Please use the recommended version of cubeIDE, I know for example that the audio event detection is working for cubeIDE 1.17 only (I don't know why).</p>\n<p>Please look at the readme of the application (in /application_code/)</p>\n<p> </p>\n<p>Let us know if you find the cause.</p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2125\">@Julian E.</user-mention> , you were right, for object detection also <strong>CubeIDE v1.17.0 </strong>works. Thank you so much</p></div>",
+                    "author": "faiq",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

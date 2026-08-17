@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163797",
+            "publicId": "163797",
+            "title": "What's the Recommended CLI Environment Variable Path after VS Code Integration?",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/what-s-the-recommended-cli-environment-variable-path-after-vs-code-integration-163797",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-14T16:44:58+00:00",
+            "views": 471,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "After further research, it appears that you can use both options:\n\n1. **STM32 VS Code only** - Command line possible via VS Code's [*Terminal > \"File Compilation\"]*which launches automatically with project and sets the PATH.\n\n2. **STM32 VS Code + STM32CubeCLT** - Manually setting CLT in the PATH environment variable.\n\nOutcomes:\n\n* Option 1\n\n+ PRO: Appears to use less hard drive space\n\n+ CON: Global PATH environment variable changes during each upgrade.\n\n+ CON: Terminal > \"File Compilation\" doesn't always appear.. leaving you to search for the extension path.\n\n* Option 2\n\n+ You'll have duplicated copies of build tools\n\n+ PRO: Can execute commands from any terminal. Good for testing CI/CD commands ahead of time.\n\n+ CON: Uses an additional ~1.7 GB of space.",
+            "best_answer_author": "Suess",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nAfter updating to the latest VS Code extension pack v3.8, what is the recommended path for executing CMake commands from command line? I uninstalled the STM32CubeCLT since it's now bundled, perhaps this the wrong choice?\n\nI want to test running commands to upgrade our CI/CD pipelines to be up-to-date.  Also found following path which contains `cube.exe` as a CLI wrapper. My concern is setting an environment variable to a path with a version number (`/...-core-1.2.0-.../`) that ends up being a moving target.\n\n> `C:\\Users\\USERNAME\\.vscode\\extensions\\stmicroelectronics.stm32cube-ide-core-1.2.0-win32-x64\\resources\\binaries\\win32\\x86\\_64`\n\nAny assistance would be greatly appreciated.",
+            "images": [],
+            "author": "Suess",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After further research, it appears that you can use both options:</p><ol><li><strong>STM32 VS Code only</strong> - Command line possible via VS Code's [<em>Terminal &gt; \"File Compilation\"] </em>which launches automatically with project and sets the PATH.</li><li><strong>STM32 VS Code + STM32CubeCLT</strong> - Manually setting CLT in the PATH environment variable. </li></ol><p>Outcomes:</p><ul><li>Option 1<ul><li>PRO: Appears to use less hard drive space</li><li>CON: Global PATH environment variable changes during each upgrade.</li><li>CON: Terminal &gt; \"File Compilation\" doesn't always appear.. leaving you to search for the extension path.</li></ul></li><li>Option 2<ul><li>You'll have duplicated copies of build tools</li><li>PRO: Can execute commands from any terminal. Good for testing CI/CD commands ahead of time.</li><li>CON: Uses an additional ~1.7 GB of space.</li></ul></li></ul></div>",
+                    "author": "Suess",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"94018\">@Suess</user-mention><br/>I would no shoot for CLT myself because is going to be deprecated see <a href=\"https://community.st.com/t5/stm32cubeide-for-visual-studio/support-sharing-toolchains-between-stm32cube-for-vs-code-and/td-p/834619\" target=\"_blank\">https://community.st.com/t5/stm32cubeide-for-visual-studio/support-sharing-toolchains-between-stm32cube-for-vs-code-and/td-p/834619</a><br/><br/>I would recommend to rely on brand new STM32Cube bundles instead. You can set them all based on integrated bundle manager of Thanks couple of CLI calls.<br/><br/>To start based on a VS Code integrated terminal have a try to get `cube`:</p><pre class=\"lia-code-sample language-c\"><code>cube bundle install cube-wrapper</code></pre><p>You're going to get cube out of any VS Code context. Just use it out of VS Code pointing to.<br/><br/>You can too get '.bundle' files which are basically zip files and possibly you get all of them per platform (for CI/CD):</p><pre class=\"lia-code-sample language-c\"><code>cube bundle download cube-wrapper --platform x86_64-linux</code></pre><pre class=\"lia-code-sample language-c\"><code>cube bundle download cmake --platform x86_64-linux\ncube bundle download ninja --platform x86_64-linux \ncube bundle download gnu-tools-for-stm32@14.3.1+st.2 --platform x86_64-linux\n\ncube bundle install cmake-4.2.3+st.1-x86_64-linux.bundle\n....</code></pre><p>Ends with on request atomic setup so saving hard disk space, flexibility about versions management,  .... let's say all good :)<br/><br/></p></div>",
+                    "author": "Cartu38 OpenDev",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, <user-mention data-id=\"27674\">@Cartu38 OpenDev</user-mention> for the added information and reference link for myself and future readers!</p><p>When they spoke of stop CubeCLT, I'm assuming he was referring to the use case of the build tools and VS Code, and not CubeCLT as a whole. Overall, people will still need the ability to perform CI/CD on their build servers, which that tool (though bloated) comes handy.</p><p>I really like that they're moving forward with the Bundles for smaller install sizes / no duplicated tooling. That's a win!</p><p> </p><p>Thanks again!</p></div>",
+                    "author": "Suess",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "164432",
+            "publicId": "164432",
+            "title": "Intermittent debugging error with STM32MP257F-DK and STM32CubeIDE",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/intermittent-debugging-error-with-stm32mp257f-dk-and-stm32cubeide-164432",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "ST-boards",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-04-03T00:26:59+00:00",
+            "views": 299,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @rdmikkelsen ,\n\nPlease check you .tsv file.. there are chances that you are using wrong .tsv.\n\nFor ex:) I usually use FlashLayout\\_sdcard\\_stm32mp257f-dk-ca35tdcid-ostl-m33-examples-optee.tsv for CM33 related work.\n\nIn order to give better visibility on the answered topics, please click on ***'Accept as Solution'*** on the reply which solved your issue or answered your question.",
+            "best_answer_author": "shivam203",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I am trying to debug a project I have created in STM32CubeMX and edited in STM32CubeIDE with the STM32MP257F-DK. I am seeing an intermittent error which is mentioned in the [troubleshooting grid](https://wiki.st.com/stm32mpu/wiki/Cortex-M_remote_processor_management_troubleshooting_grid), but it's not clear to me how to fix it.\n\nAfter it builds with no errors, I get a familiar message:\n\nError in final launch sequence:\n\nFailed pre launch\n\nFailed pre launch\n\nFirmware remoteproc load failed, please:\n\n1. make sure that /lib/firmware on your target has space\n\n2. make sure that /lib/firmware has write access\n\n> you can open a Console View for this..\n\nWhen I check dmesg on the board, I see the lines\n\n[ 58.546876] remoteproc remoteproc0: powering up m0\n\n[ 58.628708] remoteproc remoteproc0: Booting fw image Project\\_Name\\_CM33.elf, size 3097880\n\n[ 58.631958] remoteproc remoteproc0: bad phdr da 0x80100000 mem 0x540\n\n[ 58.638236] remoteproc remoteproc0: Failed to load program segments: -22\n\n[ 58.645251] remoteproc remoteproc0: Boot failed: -22\n\nThis \"bad phdr\" line is mentioned in Table 1 of the troubleshooting grid, but it's not clear to me what I need to do to fix it. I have noticed that sometimes it works and sometimes it doesn't, so I will need to hit the reset button and wait to reconnect a few times until I get it to work without the error, but I don't have a repeatable way to actually fix the problem.\n\nIs there something I can do to fix this issue more reliably? I am just using the project as imported from STM32CubeMX with only minimal code changes made in the IDE.\n\nThis is a different error than what I had [posted about before](https://community.st.com/t5/stm32-mpus-embedded-software-and/failed-pre-launch-debugging-with-stm32cubeide/td-p/835803), although the error message is similar. The guide I have been using is [the same ST page as before](http://wiki.st.com/stm32mpu/wiki/Getting_started/STM32MP2_boards/STM32MP257x-DK/Develop_on_Arm_Cortex-M33/Modify,_rebuild_and_reload_the_firmware), although some things look slightly different. I am on the most recent versions of STM32CubeIDE and STM32CubeMX for Linux (Ubuntu).",
+            "images": [],
+            "author": "rdmikkelsen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"97514\">@rdmikkelsen</user-mention> ,<br/><br/>I  work on windows but I can give you some steps to debug.<br/>Please check the following.<br/>1. Are you building example for CM33 or CM0+? Because your log shows \"Powering up CM0\".</p><p>2. These logs means<br/><span>[ 58.546876] remoteproc remoteproc0: powering up m0</span><br/><span>[ 58.628708] remoteproc remoteproc0: Booting fw image Project_Name_CM33.elf, size 3097880</span><br/><span>[ 58.631958] remoteproc remoteproc0: bad phdr da 0x80100000 mem 0x540</span><br/><span>[ 58.638236] remoteproc remoteproc0: Failed to load program segments: -22</span><br/><span>[ 58.645251] remoteproc remoteproc0: Boot failed: -22</span></p><p><span>You are loading at the wrong core.<br/>Please check whether you flashed correct image or not.<br/><u>                                                                                                                                                                                </u><br/>In order to give better visibility on the answered topics, please click on <strong><i>'Accept as Solution'</i></strong> on the reply which solved your issue or answered your question.<br/></span></p></div>",
+                    "author": "shivam203",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Thank you for taking a look at this. I have the project set up to use CM33, so it seems odd that sometimes it would use CM0. Is there a place I need to specify this in the project or debug settings so it doesn't change?</p></div>",
+                    "author": "rdmikkelsen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"97514\">@rdmikkelsen</user-mention> ,</p><p>Please check you .tsv file.. there are chances that you are using wrong .tsv.<br/>For ex:) I usually use FlashLayout_sdcard_stm32mp257f-dk-ca35tdcid-ostl-m33-examples-optee.tsv for CM33 related work.<br/><br/><u>                                                                                                                                                                                </u><br/><span>In order to give better visibility on the answered topics, please click on </span><strong><i>'Accept as Solution'</i></strong><span> on the reply which solved your issue or answered your question.</span></p></div>",
+                    "author": "shivam203",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "shivam203",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "shivam203",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

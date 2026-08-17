@@ -1,0 +1,89 @@
+{
+    "forum": [
+        {
+            "id": "164731",
+            "publicId": "164731",
+            "title": "STM32F103C8T6 USB Buffer Descriptor Table",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f103c8t6-usb-buffer-descriptor-table-164731",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F1 series",
+                "USB",
+                "Interrupt"
+            ],
+            "published_at": "2026-04-14T09:21:24+00:00",
+            "views": 463,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I didn't find why BDT for endpoint 3 and 4 is changed by some code. I tried to set watch points and debug fw but, debugger stops incorrectly. For my task I start to use endpoint 5, for which BDT stays correct after configuring it and it works as described in programming manual.",
+            "best_answer_author": "Vladimir Mitrofanov",
+            "best_answer_author_role": "",
+            "content_text": "@FBL Can you explain me about buffer descriptor table (BDT)?\n\nIs it fixed?\n\nI have got behavior that I can't explain.\n\nDumping packets on host I got wrong data. Length is ok, but data is wrong.\n\nIn BDT I wrote correct address and length. Data wrote in pma (adress that is in BDT) is correct.\n\nBut when I stop in debugging address in BDT is changed. As I think in BDT there is a place for each endpoint (or it is like cyclic buffer?)\n\nWhat I found if I set break point with \"if\" condition, just before sending address in BDT is OK, and data on host is OK.\n\nIt seems to me that I am working incorrectly with BDT.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7a197d9-35f1-860c-6888-848011c1b0ca.png"
+            ],
+            "author": "Vladimir Mitrofanov",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>I didn't find why BDT for endpoint 3 and 4 is changed by some code. I tried to set watch points and debug fw but, debugger stops incorrectly. For my task I start to use endpoint 5, for which BDT stays correct after configuring it and it works as described in programming manual.</p></div>",
+                    "author": "Vladimir Mitrofanov",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The issues you are seeing are likely caused by these two point :<br/><br/>1) The Address Gap: The PMA is 16 bits wide but mapped to a 32-bit CPU bus. Every 2 bytes of data are followed by a 2-byte hole in memory. If you use memcpy(), your data will be corrupted. You must use a custom copy function that skips every other half-word. Offsets, Not Addresses: The BDT expects offsets from the start of the PMA, not absolute CPU addresses (e.g., use 0x40, not 0x40006040).<br/><br/>2) Debugger Illusion: The address in the BDT doesn't \"change\" on its own, but the hardware might mask bits, or your debugger might be struggling with the 32-bit/16-bit aliasing.<br/><br/>Ensure your code writes 16-bit values to 32-bit aligned addresses in the PMA. Are you using a custom USB stack, or are you modifying the standard ST/HAL library?</p></div>",
+                    "author": "isikli",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi  <user-mention data-id=\"38189\">@Vladimir Mitrofanov</user-mention> </p>\n<p>Could you please provide more details about your setup ? Are you using <a href=\"https://github.com/STMicroelectronics/STM32CubeF1\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">CubeF1</a> Do you reproduce using a reference board?</p>\n<p>Did you check this article <a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-the-packet-memory-area-in-stm32-usb-controllers/ta-p/834991\" target=\"_blank\">How to configure the packet memory area in STM32</a></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2057\">@FBL</user-mention> <user-mention data-id=\"102484\">@isikli</user-mention> Hi, colleagues.<br/>I didn't still solve this. I use standard ST/HAL library.</p><p>Board looks OK, because I generated simple HID project and interrupt endpoint data goes ok.<br/>I configure endpoint in my project using<br/>HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev-&gt;pData , 0x84 , PCD_SNG_BUF, 0x150);<br/>and data writes to it by USB_EPStartXfer that calls USB_WritePMA and PCD_SET_EP_TX_CNT.<br/><user-mention data-id=\"102484\">@isikli</user-mention> USB_WritePMA align/skips data.<br/><br/></p></div>",
+                    "author": "Vladimir Mitrofanov",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>OK <user-mention data-id=\"38189\">@Vladimir Mitrofanov</user-mention> </span></p>\n<p>Could you please verify the values configured for<span> </span><strong>USB_BTABLE</strong>,<span> </span><strong>BLSIZE</strong>, and<span> </span><strong>NUM_BLOCK </strong>in the failing endpoint?</p>\n<p>USB_BTABLE defines the base address of the buffer descriptor table, while<span> </span>BLSIZE<span> </span>and<span> </span>NUM_BLOCK determine the memory allocation size for the buffer. An incorrect combination may lead to unexpected behavior even if the buffer content appears correct while debugging firmware. <span>If possible, it is preferable to use a </span><strong>USB analyzer</strong><span> rather than relying only on debugging.</span></p>\n<p>Please refer to the<span> </span><strong>reference manual</strong><span> </span>and the<span> </span><strong><a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-the-packet-memory-area-in-stm32-usb-controllers/ta-p/834991\" target=\"_self\">article</a> on PMA configuration</strong><span> </span>for the table that maps buffer size allocation according to<span> </span>NUM_BLOCK and<span> </span>BLSIZE.</p>\n<p>If the issue persists, could you please provide a<span> </span><strong>minimum firmware</strong><span> </span>that reproduces the problem on our<span> </span><strong>reference board</strong>? This would help us narrow down the root cause more efficiently.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"38189\">@Vladimir Mitrofanov</user-mention> </p>\n<p>First, debugger watchpoints/breakpoints are unreliable for catching the exact moment of change in USB app.</p>\n<p>&gt;<span>I didn't find why BDT for endpoint 3 and 4 is changed by some code.</span></p>\n<p><span>Do you mean EP 0x03 or 0x83? or maybe 0x84?  Maybe your EP sizes are overlapping.</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FBL_0-1776871312867.png\" style=\"width: 999px;\"><img alt=\"FBL_0-1776871312867.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7a197d9-35f1-860c-6888-848011c1b0ca.png\" title=\"FBL_0-1776871312867.png\"/></span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, <user-mention data-id=\"2057\">@FBL</user-mention> <br/>As you wrote about overlapping, I had this thought. I check device descriptor and other place where endpoint size used, but without results.<br/>Second, buffer descriptor table is changed, not data area.<br/>I set watch point with constraints to BDT (0x40006040 - for endpoint 4) for data changing/writing but constraints not working (or I do something wrong) and it is difficult to catch moment when corruption happens.<br/>A bit later I will continue to debug. Now I use endpoint 5 for my goal.<br/>Thank you.</p></div>",
+                    "author": "Vladimir Mitrofanov",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

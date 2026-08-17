@@ -1,0 +1,121 @@
+{
+    "forum": [
+        {
+            "id": "166471",
+            "publicId": "166494",
+            "title": "New project advice",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/new-project-advice-166494",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "FatFS",
+                "STM32H5 series",
+                "FileX"
+            ],
+            "published_at": "2026-06-29T01:36:10+00:00",
+            "views": 205,
+            "reply_count": 12,
+            "best_answer": true,
+            "best_answer_content": "​@geneM Long time no see!\n\nAs always, understanding requirements is the key. For the RTOS choice: The staple today is Zephyr. It has a learning ramp, but very popular and resources are available.\n\nIf you need more UARTs and not limited by power: consider external multi-port chips. (we’ve used MAX14830 4-port chip, not sure why the customer chose it).",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "I’m about to start a new embedded project that is probably outside my skill set (as usual) and I’m hoping to get some recommendations on what STM MCU might have a reasonable learning curve to build up the MCU part of this system. It’s another autonomous oceanographic observing platform like I’ve built in the past with a lot of help from people on this forum. That system used a STM32H7 MCU. For this case, I need a few more serial ports and an ethernet connection to a new sensor. And I’ll need a file system and lots of Flash and SRAM. Low power matters, but the MCU is pretty low on the power consumption histogram.\n\nThe STM32H5 looks like a good choice since it has lots of serial ports and the Nucleo STM32H563 has an Ethernet phy and a USB-C connector that theoretically could support a USB Flash driver.. Here are a few specific questions\n\nQ0 Is there a better MCU choice with an easier learning curve that might meet my requirements?\n\nQ1. It looks like the H5 and STMCubeMX/IDE now use FileX which seems to require ThreadX to deal with a USB Flash drive. I’m not enthusiastic about have to use ThreadX but I did build a simple CubeMX project with that functionality enabled. It looks like it takes 68K just to handle the Flash drive. Does that seem right? Should I just drop the Flash Drive and fall back to the uSD card I’ve used in the past?\n\nQ2. Per some posts on this forum, it seems like I could fall back to FatFS which I’m more used to. I’ve been trying to get a CubeIDE project running using the STM Classic middleware but it’s a heavy lift for me. Is this approach as complicated as it seems to be?\n\nQ3 I’ve never had to deal with Ethernet in an embedded system. Are there enough examples around that I might be able to get this running without going insane?\n\nThanks - Gene",
+            "images": [],
+            "author": "geneM",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt;  It’s another autonomous oceanographic observing platform like I’ve built in the past …</em></span></p><p>I suppose a more detailed description of your requirements (IO channels for sensors and communication, power supply, storage) would help to narrow recommendations down.</p><p>Without knowing those details, I personally would consider a Linux SBC with MCU-based sensor boards.<br/>With the Linux system being either a STM32MPxxx or a commercial one like a Raspberry Pi.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"100715\">@geneM</user-mention> </p><p>For your situation, <strong>the easiest learning curve is often “use what is closest to what already worked”</strong>, so <strong>another H7 variant is probably the safest recommendation</strong> unless H5 gives you a very specific advantage you need.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><a href=\"https://www.st.com/content/st_com/en/stm32-mcu-product-selector.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">STM32 MCU product selector</a></p><p> </p><p>Distributors often have good parametric search engines.</p><p> </p><p>Have you tried asking Sidekick?</p><oembed url=\"https://community.st.com/stm32-software-tools-165/stm32-sidekick-the-ai-powered-tool-that-accelerates-your-design-journey-158956\"></oembed><oembed url=\"https://community.st.com/community-guidelines-160/how-to-use-stm32-sidekick-159179\"></oembed><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>Q0 Is there a better MCU</p></blockquote><p>As ​<user-mention data-id=\"48557\">@Ozone</user-mention> said, I think you first need to think about whether an MCU is the best approach <em>at all</em>…</p><p> </p><p>You need to give more details of the application.</p><p> </p><blockquote><p>FileX which seems to require ThreadX</p></blockquote><p>See:</p><oembed url=\"https://community.st.com/stm32-mcus-products-25/how-can-i-use-usbx-and-filex-without-threadx-165387\"></oembed><p> </p><blockquote><p> I’m not enthusiastic about have to use ThreadX</p></blockquote><p>Why not?</p><p>What’s the blocker here?</p><p>It certainly sounds like you’re going to need <em>some sort</em> of OS/RTOS ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>“reuse of components”</p><p>is a good way to get things working.</p><p>So if you already used an H7 with SD card, why not keep that?</p><p>I think most (if not all?) H7s have ethernet.</p><p>I recommend the H723 .. H735 types, these have working OCTOSPI interfaces for external flash and RAM (both on H735-DK).</p><p> </p><p>Ethernet: when I started using STM32 with ethernet (in 2021 or so) the HAL drivers were terrible (still are, IMHO), but CubeMx and the ST examples gave me something that basically worked with a few tweaks.<br/>Because I needed some 100% reliable TCP streaming with a few special features, I re-wrote the driver completely. With the added benefit that I understand it completely. :D</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"LCE\"><div class=\"content-quote-content\"> <p>So if you already used an H7 with SD card, why not keep that?</p> </div></content-quote><p>Indeed!</p><p> </p><blockquote><p>I think most (if not all?) H7s have ethernet.</p></blockquote><p>The Product Selector says there’s 31 without, out of 133 total:</p><p><a href=\"https://www.st.com/en/microcontrollers-microprocessors/stm32h7-series/products.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.st.com/en/microcontrollers-microprocessors/stm32h7-series/products.html</a></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The H5F5 has 2X the Flash, a little more SRAM, 2 more UARTs. I’m working on the assumption that almost all of my H7 code will port over pretty easily except the FatFS stuff. I’m going to have to learn how to use Ethernet in both cases. If I can get a file system up and running without pulling too much hair out, the advantages listed above might be worth it.</p><p>If I’m being too optimistic about how easy it might be to jump from the H7 to the H5, please let me know.</p><p>Thanks </p></div>",
+                    "author": "geneM",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don’t see why porting FatFS should be particularly hard?</p><p>It’s a very widely-used independent 3rd-party library - its hardware dependencies are confined to just one file</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"100715\">@geneM</user-mention> Long time no see!</p><p>As always, understanding requirements is the key. For the RTOS choice: The staple today is Zephyr. It has a learning ramp, but very popular and resources are available.</p><p>If you need more UARTs and not limited by power: consider external multi-port chips. (we’ve used MAX14830 4-port chip, not sure why the customer chose it).</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Re Q1: 68K is plausible — most of that is the USBX host/MSC stack, not ThreadX itself (which is small). For a deployed instrument, I'd drop USB MSC and stick with the uSD card: SDMMC+FatFS has no RTOS dependency, you already know it, and it avoids USB host complexity (enumeration, drive-removal handling) that adds risk for unattended field use. Worth it mainly if you specifically need a tech to swap a USB drive on-site.</p></div>",
+                    "author": "pavich",
+                    "role": "Explorer"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’m glad I asked. All your responses are making me reconsider my approach. @Pavel had the most disruptive suggestion: use Zephyr. I’ve never used an OS for the few embedded systems I’ve developed but maybe now is the time. I’m going to take a look at it with the goal of answering few upfront questions like this.</p><p>Q1. Is the pain of learning Zephyr less than that of me trying to implement my own bare-metal Ethernet TCP/IP functionality?</p><p>Q2. Does Zephyr get in the way of my preferred single threaded, non-blocking state machine architecture?</p><p>Thanks for all the help</p></div>",
+                    "author": "geneM",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"100715\">@geneM</user-mention> - best to start a new thread with your new Zephyr questions …</p><p> </p><p>(you can always link back to this thread for reference)</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’m probably dragging this conversation out longer than necessary but ​<user-mention data-id=\"37189\">@Pavel A.</user-mention> comments about requirements is important. I learned a long time ago to start by defining project requirements. Here are a few for this project.</p><p>Req1. Minimize the time and risk associated with learning new technologies</p><p>Req2. At least 11 UARTs including 1 LPUART. A few more would be good to support future expansion</p><p>Req3. Need to add Ethernet to support a new high bandwidth instruments</p><p>Req4. Performance similar to our current STM32H7A3</p><p>Req5. Learn from other peoples mistakes and successes</p><p>This whole thread has brought me to the conclusion that the only new technology I should really be investing in is Ethernet. And I may be able to side step a tonne of stress by buying a fully packaged Ethernet module with a SPI interface like one of the Wiznet modules.</p></div>",
+                    "author": "magene",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, good, clear, well-defined requirements are key.</p><p>These ones a still a bit woolly:</p><blockquote><p>Req3. Need to add Ethernet to support a new high bandwidth instruments</p></blockquote><p>What is “high” - 10Mbit/s ? 1 Gbit/s ?</p><p> </p><blockquote><p>Req4. Performance similar to our current STM32H7A3</p></blockquote><p>Define “performance” ?</p><p>What is “similar” ?</p><p> </p><p><strong><u>PS</u>:</strong></p><p>and from the OP:</p><blockquote><p>a few more serial ports</p></blockquote><p>How many ?</p><p> </p><blockquote><p>lots of Flash and SRAM</p></blockquote><p>How much is “lots” ?</p><p> </p><blockquote><p>Low power matters</p></blockquote><p>What does that actually mean - how low is “low” ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

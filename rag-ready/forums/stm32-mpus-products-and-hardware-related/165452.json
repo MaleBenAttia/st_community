@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "165452",
+            "publicId": "165452",
+            "title": "STM32MP257 OCTOSPI MSEL is broken ?",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257-octospi-msel-is-broken-165452",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-05-06T17:26:32+00:00",
+            "views": 147,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Further investigation found that MSEL affects which IO nibble is used as input. It seems that output signals are always copied to both nibbles. If you write/erase/read data then both flash chips will execute the command. But when reading you can use MSEL to select which chip data you get.\n\nSo to support two chips for both single and dual (DMM) operations it is needed to use external mux for second chip select and switch is between NCS1 (DMM=1 use) and NCS2 (DMM=0, CSSEL=MSEL use).\n\nMartin",
+            "best_answer_author": "Martin Devera",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi,\n\nthis one is similar to\n\n<https://community.st.com/t5/stm32-mcus-products/ioselect-option-in-stm32h563-is-not-working/m-p/681099>\n\nbut not the same. While testing OSPI1 on our MP257 board and our FSBL I found that\n\nMSEL in OCTOSPI1->CR is ignored.\n\nCSSEL and DMM are honored and works as expected but when DMM=0 then output signals\n\nare the same on both IO[3:0] and IO[7:4].\n\nAttached is analyzer output of CLK,CS,IO0,IO4 for transaction with relevant regs:\n\n0x50430000: 00000f01\n\n0x50430100: 04002101\n\nAR was 0xfa0000 and 8 bytes was sent to DR.\n\nMartin",
+            "images": [],
+            "author": "Martin Devera",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Further investigation found that MSEL affects which IO nibble is used as input. It seems that output signals are always copied to both nibbles. If you write/erase/read data then both flash chips will execute the command. But when reading you can use MSEL to select which chip data you get.</p><p>So to support two chips for both single and dual (DMM) operations it is needed to use external mux for second chip select and switch is between NCS1 (DMM=1 use) and NCS2 (DMM=0, CSSEL=MSEL use).</p><p>Martin</p></div>",
+                    "author": "Martin Devera",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

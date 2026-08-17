@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164262",
+            "publicId": "164262",
+            "title": "[stm32u585] wakeup failed from standby mode, \"Wait till LSI is disabled\" timeout in HAL_RCC_OscConfig()",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u585-wakeup-failed-from-standby-mode-wait-till-lsi-is-disabled-timeout-in-hal-rcc-oscconfig-164262",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "RCC",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-03-28T14:36:51+00:00",
+            "views": 343,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @lll\n\nThe LSI should only be initialized once at power-on reset (POR). Re-initializing or reconfiguring the LSI after each wake-up from standby can cause issues, as the oscillator may already be in use by IWDG, and the LSIRDY flag may not behave as expected.",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "hello,\n\nI encountered a problem while developing for stm32u585. When the stm32 wakes up from standby mode, the HAL\\_RCC\\_OscConfig() function occasionally fails, \"Wait till LSI is disabled\" timeout in HAL\\_RCC\\_OscConfig() (this project uses IWDG)\n\nThe specific process is as follows:\n\n```\n\n1. start boot\n\nHAL_Init();\n\nSystemClock_Config();\n\nMX_GPIO_Init();\n\nMX_ICACHE_Init();\n\nMX_UART4_Init();\n\nboot to other address(app)\n\n2. app init\n\nHAL_Init();\n\nSystemClock_Config();\n\nRCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_LSI\n\n|RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;\n\nRCC_OscInitStruct.HSEState = RCC_HSE_ON;\n\nRCC_OscInitStruct.LSEState = RCC_LSE_ON_RTC_ONLY;\n\nRCC_OscInitStruct.HSI48State = RCC_HSI48_ON;\n\nRCC_OscInitStruct.LSIState = RCC_LSI_ON;\n\nRCC_OscInitStruct.LSIDiv = RCC_LSI_DIV128;\n\nRCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;\n\nRCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;\n\nRCC_OscInitStruct.PLL.PLLMBOOST = RCC_PLLMBOOST_DIV1;\n\nRCC_OscInitStruct.PLL.PLLM = 1;\n\nRCC_OscInitStruct.PLL.PLLN = 40;\n\nRCC_OscInitStruct.PLL.PLLP = 2;\n\nRCC_OscInitStruct.PLL.PLLQ = 2;\n\nRCC_OscInitStruct.PLL.PLLR = 2;\n\nRCC_OscInitStruct.PLL.PLLRGE = RCC_PLLVCIRANGE_1;\n\nRCC_OscInitStruct.PLL.PLLFRACN = 0;\n\nif (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n3. timeout in HAL_RCC_OscConfig()\n\n/* Turn off LSI before changing RCC_BDCR_LSIPREDIV */\n\nif ((bdcr_temp & RCC_BDCR_LSION) == RCC_BDCR_LSION)\n\n{\n\n__HAL_RCC_LSI_DISABLE();\n\ntickstart = HAL_GetTick();\n\n/* Wait till LSI is disabled */\n\nwhile (READ_BIT(RCC->BDCR, RCC_BDCR_LSIRDY) != 0U)\n\n{\n\nif ((HAL_GetTick() - tickstart) > LSI_TIMEOUT_VALUE)\n\n{\n\nreturn HAL_TIMEOUT;\n\n}\n\n}\n\n}\n\n```\n\nHow to solve this problem",
+            "images": [],
+            "author": "lll",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"82085\">@lll</user-mention> </p>\n<p><span>The LSI should only be initialized once at power-on reset (POR). Re-initializing or reconfiguring the LSI after each wake-up from standby can cause issues, as the oscillator may already be in use by IWDG, and the LSIRDY flag may not behave as expected.</span></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Does this mean I have to modify HAL_RCC_OscConfig() ?</p><p>I have added this condition in HAL_RCC_OscConfig():</p><p><strong>__HAL_PWR_GET_FLAG(PWR_FLAG_SBF)</strong></p><p>Can it ensure that this startup is from standby wake-up</p><pre class=\"lia-code-sample language-c\"><code>/*------------------------------ LSI Configuration -------------------------*/\n if ((((pRCC_OscInitStruct-&gt;OscillatorType) &amp; RCC_OSCILLATORTYPE_LSI) == RCC_OSCILLATORTYPE_LSI)\n &amp;&amp; __HAL_PWR_GET_FLAG(PWR_FLAG_SBF))</code></pre><p> </p></div>",
+                    "author": "lll",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

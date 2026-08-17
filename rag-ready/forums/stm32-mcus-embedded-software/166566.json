@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "166745",
+            "publicId": "166566",
+            "title": "STM32 ADC multi-channel polling issue",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32-adc-multi-channel-polling-issue-166566",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "ADC"
+            ],
+            "published_at": "2026-06-30T14:45:50+00:00",
+            "views": 111,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> Do I need to lower the resolution or something when the number of channel increases ?*\n\nNo, I think you would need to understand the design around the STM32 ADC peripheral, and ST’s motivation for doing so.\n\nWhile each ADC has multiple channels (usually >10), each ADC has only only one single result register.\n\nThis is not the case with Cortex M devices of other vendors, which often have individual result registers for each individual channel.\n\nThis leaves you two options with STM32 ADCs - either use EOC interrupts to catch individual results (and keep track of channels !), or use DMA.\n\nST’s ADCs were clearly designed for usage with DMA.\n\nThe idea is to configure an arbitrary conversion sequence, assign the appropriate DMA channel with matching settings, and you get the correct sampled data in a memory buffer.\n\nYou can trigger the ADC sequence from a timer, and have the DMA “Transfer Complete” interrupt notify you when a buffer with results is ready. This is the approach I use most of the time.\n\nPolling works for single conversions, although it is wasteful.\n\nBut it is basically impossible to get polling right with conversion sequences in a meaningful context.",
+            "best_answer_author": "Ozone",
+            "best_answer_author_role": "Principal",
+            "content_text": "Hi.\n\nI’m working on a custom board with a C551VET6 and trained on a NUCLEO\\_C562RE with ADC. I attempted the conversion in polling mode in several ways (mode=single + discountinuous=disabled  /  mode=continuous + discountinuous=3ranks) by varying the implementation of the FOR loop (including or excluding the calls to HAL\\_ADC\\_REG\\_StartConv and HAL\\_ADC\\_REG\\_PollForConv according to the selected mode); no matter what I did, as soon as I needed to convert 3 or more channels, only the first two showed distinct values, while all the other channels in the sequencer returned a value identical to that of the second channel.\n\nI found no example using more than 2 channels in a basic regular sequencer. Have you tried it at ST ?\n\nBy the way, I’m working with a CTN temperature sensor and two HDC3120 giving both temperature and humidity, thus 5 channels in my case.\n\nDo I need to lower the resolution or something when the number of channel increases ?\n\nI’m not familiar with ST community mechanisms, shall I open a new topic regarding my issue ? If so I will proceed and delete this comment later.\n\nBest regards",
+            "images": [],
+            "author": "guillaume_r",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107851\">@guillaume_r</user-mention> </p><p>Please refer to the example below that read ADC values from 3 channels:</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeC5/tree/main/examples/hal/adc/multi_channels_dma\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeC5/examples/hal/adc/multi_channels_dma at main · STMicroelectronics/STM32CubeC5</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; Do I need to lower the resolution or something when the number of channel increases ?</em></span></p><p>No, I think you would need to understand the design around the STM32 ADC peripheral, and ST’s motivation for doing so.</p><p>While each ADC has multiple channels (usually &gt;10), each ADC has only only one single result register.<br/>This is not the case with Cortex M devices of other vendors, which often have individual result registers for each individual channel.</p><p>This leaves you two options with STM32 ADCs - either use EOC interrupts to catch individual results (and keep track of channels !), or use DMA.</p><p>ST’s ADCs were clearly designed for usage with DMA.<br/>The idea is to configure an arbitrary conversion sequence, assign the appropriate DMA channel with matching settings, and you get the correct sampled data in a memory buffer.<br/>You can trigger the ADC sequence from a timer, and have the DMA “Transfer Complete” interrupt notify you when a buffer with results is ready. This is the approach I use most of the time.</p><p>Polling works for single conversions, although it is wasteful.<br/>But it is basically impossible to get polling right with conversion sequences in a meaningful context.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the detailed response. Using DMA indeed works fine.</p><p>I had come across information about the single result register during my research, but I hadn't made the connection with the mandatory use of DMA. This is the kind of information I would expect to find in the documentation regarding ADCs: a single sentence mentionning that usage of several channels implies the use of DMA (or EOC interrupts).</p></div>",
+                    "author": "guillaume_r",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>On a related note, most of the “old” SPL examples configured a single ADC channel for continuous conversion and with DMA.<br/>When the main routine read the ADC values, it was always “recent”.</p><p>Not a very practical use case, but it provided a good template for my applications.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

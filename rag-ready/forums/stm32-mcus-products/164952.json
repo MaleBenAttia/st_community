@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "164952",
+            "publicId": "164952",
+            "title": "stm32H755: flash to memory area 0x1ff00000 when BOOT0 = 1",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h755-flash-to-memory-area-0x1ff00000-when-boot0-1-164952",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series",
+                "Flash"
+            ],
+            "published_at": "2026-04-21T09:32:22+00:00",
+            "views": 258,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @Domy\\_ST wrote:\n\n>\n\n> @mƎALLEm\n\n>\n\n> my idea is to put my bootloader outside the 1024K flash capacity so from 0x08000000 to 0x080ffff of the CM7 but still have it start my bootloader when Boot0 = 1 outside the max address of the flash.\n\n>\n\n> ---\n\nSo put your custom bootloader at BANK2. You need to program that in the option bytes.\n\nPlease refer to the section: 2.6 Boot configuration in [RM0399](https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "hello ST Community,\n\nI need your support. So far, I've been able to flash my bootloader software into the unprotected memory area 0x08000000 when Boot0 = 0 for the NUCLEO-H755ZI-Q series, both with the STM32CubeProgrammer and with my bootloader software via UART.\n\nHowever, I'd like to flash the same bootloader software into the memory area 0x1ff00000 when Boot0 = 1. I know it's protected. Is it possible to change the security level or flash it to another memory to run my software when Boot0 = 1?\n\nThank you for your support.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3622f297-dfe3-5d93-28d7-4edbc56199b5.png"
+            ],
+            "author": "Domy_ST",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>No. The system bootloader is hardcoded at <span>the memory area 0x1ff00000. Not possible to write at that memory region.</span></p>\n<p><span>To run your own bootloader when Boot0 = 1, configure the BOOT_ADD1 option byte to point to your custom bootloader.</span></p>\n<p><span>From <a href=\"https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4938</a>:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776771960099.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776771960099.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3622f297-dfe3-5d93-28d7-4edbc56199b5.png\" title=\"mALLEm_0-1776771960099.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> </p><p>ok how can i configure BOOT_ADD1 by setting the address where my custom bootloader should start when Boot0 = 1? maybe from the address <span>0x1ff09800 </span>if it is possible to overwrite. only with STM32CubeProgrammer?</p><p>my idea is to put my bootloader outside the 1024K flash capacity so from 0x08000000 to 0x080ffff of the CM7 but still have it start my bootloader when Boot0 = 1 outside the max address of the flash.</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<blockquote><hr/><user-mention data-id=\"104470\">@Domy_ST</user-mention> wrote:<br/>\n<p><user-mention data-id=\"499\">@mƎALLEm</user-mention> </p>\n<p>my idea is to put my bootloader outside the 1024K flash capacity so from 0x08000000 to 0x080ffff of the CM7 but still have it start my bootloader when Boot0 = 1 outside the max address of the flash.</p>\n<hr/></blockquote>\n<p>So put your custom bootloader at BANK2. You need to program that in the option bytes.</p>\n<p>Please refer to the section: 2.6 Boot configuration in <a href=\"https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">RM0399</a></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok, so the only solution is to use bank 2 of the user main memory. Thanks.</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

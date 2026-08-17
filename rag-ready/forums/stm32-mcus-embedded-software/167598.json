@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "167566",
+            "publicId": "167598",
+            "title": "ADC2 Calibration fails on 10% of chips in Dual Mode STM32H745",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/adc2-calibration-fails-on-10-of-chips-in-dual-mode-stm32h745-167598",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "DMA",
+                "ADC"
+            ],
+            "published_at": "2026-08-10T16:36:48+00:00",
+            "views": 44,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Michael3368\n\nThanks for sharing this case and the solution you found.\n\nTo make this post more visible and easy to find by others who may face the same issue, I mark my reply as the solution.\n\nBut yes, the solution is on your original post!",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have seen a few other posts about ADC2 calibration issues without resolution.  I’m creating this new post to provide a resolution.\n\nUsing ADC1 and ADC2 in Dual mode on STM32H745 from CM4 running at 240 MHz.  10% of boards in production (20/200) were continuously watchdog resetting.  This was traced to the ADC2 calibration getting stuck in a loop for 5 minutes (and hardware watchdog of 4s would trip).  At 240 MHz, this timeout loop should only be 2.4s.  (It would be better to use a timer function, but this is STM ADC HAL code)\n\n```\n\n/* Wait for calibration completion */\n\nwhile (LL_ADC_IsCalibrationOnGoing(hadc->Instance) != 0UL)\n\n{\n\nwait_loop_index++;\n\nif (wait_loop_index >= ADC_CALIBRATION_TIMEOUT)\n\n```\n\nI’m not sure what is going on in the H7 silicon that makes the status register read so slow or why it isn’t changing in the expected 2.4s max, but STM provided a work-around.  Change the order of initialization to remove the Dual Mode config from the .ioc - generated code in main and place it after that ADC calibration.\n\n```\n\nCM4 main.c\n\nMX_ADC1_Init()\n\n{\n\nHAL_ADC_Init()\n\n//HAL_ADCEx_MultiModeConfigChannel() // remove here ->\n\nHAL_ADC_AnalogWDGConfig()\n\nHAL_ADC_ConfigChannel()\n\n}\n\nMX_ADC2_Init()\n\n{\n\nHAL_ADC_Init()\n\nHAL_ADC_ConfigChannel()\n\n}\n\nThen our app code starts\n\nHAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED)\n\nHAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED); <- no longer getting stuck here\n\nHAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) // <- add here\n\nHAL_ADC_Start(&hadc2)\n\nHAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t *)adcResultsDMA1, 256);\n\n```",
+            "images": [],
+            "author": "Michael3368",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"81714\">@Michael3368</user-mention> </p><p>Thanks for sharing this case and the solution you found. </p><p>To make this post more visible and easy to find by others who may face the same issue, I mark my reply as the solution. </p><p>But yes, the solution is on your original post! </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

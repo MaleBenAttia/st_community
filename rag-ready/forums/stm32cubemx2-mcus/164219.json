@@ -1,0 +1,82 @@
+{
+    "forum": [
+        {
+            "id": "164219",
+            "publicId": "164219",
+            "title": "CubeMX2: error when downloading packs",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/cubemx2-error-when-downloading-packs-164219",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeMX2"
+            ],
+            "published_at": "2026-03-26T16:30:38+00:00",
+            "views": 690,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @LCE\n\nThanks for this clarification\n\nIn this case, what you need is to configure a proxy or a certificate to be able to access the servers and download packages.\n\n* Get your certificate from your company IT or company portal.\n\n* Place it under C:\\certificate, for example.\n\n* Add the Windows environment variable **NODE\\_EXTRA\\_CA\\_CERTS** with the path to this certificate file. (Make sure that the path has no quotes.)\n\n![env-variable.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/22e5e98e-f4f5-96c4-2d79-febfba72cf78.png \"env-variable.png\")\n\n* Finally, restart STM32CubeMX2.\n\nYou can also refer to this article for more details on: [How to configure the proxy or certificate](https://community.st.com/t5/stm32-mcus/how-to-configure-the-proxy-or-certificate-for-stm32cubeide-for/ta-p/846476 \"How to configure the proxy or certificate\")",
+            "best_answer_author": "Oussama_TROUDI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Heyho,\n\nwanted to check if C5 might be good for next project and have a first look at MX2.\n\nInstalled it, started project with C562 / Nucleo - and nothing happens, except for a short error message in the bottom right corner of the window: \"error when downloading packs\" ( + some file name).\n\nFurther info:\n\n- Windows 11\n\n- started MX2 first as normal user, then as admin, same behaviour\n\n- all other STM32 tools running fine (MX1, IDE, Prog)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/22e5e98e-f4f5-96c4-2d79-febfba72cf78.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c36ff366-b9a3-2aff-eb24-1153ec484ff2.png"
+            ],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Tried to install now via the \"Pack manager\", now some more error info:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Error_Pack-manager.png\" style=\"width: 400px;\"><img alt=\"Error_Pack-manager.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c36ff366-b9a3-2aff-eb24-1153ec484ff2.png\" title=\"Error_Pack-manager.png\"/></span></p><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p data-unlink=\"true\">Hi <user-mention data-id=\"39813\">@LCE</user-mention>,<br/><br/>it looks like STM32CubeMX2 cannot validate the HTTPS certificate when downloading packs from<br/>https://developer.st.com/st-pack-server/ ....<br/>This is typically related to network / proxy / corporate security settings:<br/><br/>Could you please share a bit more about your setup?<br/>– Are you working on a corporate network and/or connected through a VPN?<br/>– Are you using an HTTP/HTTPS proxy (company proxy or similar)?<br/><br/>* If you temporarily try from another network (e.g. home / mobile hotspot, without VPN),<br/>do the pack downloads work?<br/><br/>* Do you have any corporate inspection tools / antivirus web protection enabled that might intercept HTTPS traffic?<br/>If yes, can you temporarily disable them or add an exception for developer.st.com and try again?<br/><br/>*Can you open this URL in a browser on the same PC?<br/><a href=\"https://developer.st.com/st-pack-server/api/v1/pack/STMicroelectronics.nucleo-c562re_hw-board.2.0.0.pack\" rel=\"nofollow noopener noreferrer\" target=\"_self\" title=\"https://developer.st.com/st-pack-server/api/v1/pack/STMicroelectronics.nucleo-c562re_hw-board.2.0.0.pack\">https://developer.st.com/st-pack-server/api/v1/pack/STMicroelectronics.nucleo-c562re_hw-board.2.0.0.pack</a> <br/>If the browser also reports a certificate issue.<br/><br/><br/></p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span>– Are you working on a <strong>corporate network</strong> and/or <strong>connected through a VPN</strong>?</span></p><p><span>&gt; – Are you using an HTTP/HTTPS proxy (company proxy or similar)?</span></p><p><span>Absolutely! And we have some strong policies.</span></p><p><span>But I usually do not have these problems.</span></p><p> </p><p><span>&gt; * If you temporarily try from another network (e.g. home / mobile hotspot, without VPN),<br/>&gt; do the pack downloads work?</span></p><p><span>Not possible, working from home office.</span></p><p> </p><p><span>&gt; * Do you have any corporate inspection tools / antivirus web protection enabled that might intercept HTTPS<br/></span><span>&gt; traffic?<br/>&gt; If yes, can you temporarily disable them or add an exception for developer.st.com and try again?</span></p><p><span>I'll try - but probably have to contact out IT department - and they don't like these exceptions...</span></p><p> </p><p><span>&gt; Can you open this URL in a browser on the same PC?<br/><a href=\"https://developer.st.com/st-pack-server/api/v1/pack/STMicroelectronics.nucleo-c562re_hw-board.2.0.0.pack\" rel=\"nofollow noopener noreferrer\" target=\"_blank\" title=\"https://developer.st.com/st-pack-server/api/v1/pack/STMicroelectronics.nucleo-c562re_hw-board.2.0.0.pack\">&gt; https://developer.st.com/st-pack-server/api/v1/pack/STMicroelectronics.nucleo-c562re_hw-board.2.0.0.pack</a> <br/>&gt; If the browser also reports a certificate issue.</span></p><p><span><strong>This works </strong>-  no complaining from browser (MS Edge) or VPN / Security stuff.</span></p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"39813\">@LCE</user-mention> <br/>Thanks for this clarification </p><p>In this case, what you need is to configure a proxy or a certificate to be able to access the servers and download packages.</p><ul><li>Get your certificate from your company IT or company portal.</li><li>Place it under C:\\certificate, for example.</li><li>Add the Windows environment variable <strong>NODE_EXTRA_CA_CERTS</strong> with the path to this certificate file. (Make sure that the path has no quotes.)</li></ul><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"env-variable.png\" style=\"width: 411px;\"><img alt=\"env-variable.png\" height=\"104\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/22e5e98e-f4f5-96c4-2d79-febfba72cf78.png\" title=\"env-variable.png\" width=\"411\"/></span></p><ul><li>Finally, restart STM32CubeMX2.</li></ul><p>You can also refer to this article for more details on: <a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-the-proxy-or-certificate-for-stm32cubeide-for/ta-p/846476\" target=\"_blank\" title=\"How to configure the proxy or certificate\">How to configure the proxy or certificate</a> </p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the reply.</p><p> <user-mention data-id=\"69967\">@Oussama_TROUDI</user-mention>  :</p><p>(why) has this been changed compared to the old CubeMX ?</p><p>CubeMX 1 does not have any problem downloading stuff here.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI <user-mention data-id=\"39813\">@LCE</user-mention> <br/><br/>Nothing has really changed compared to STM32CubeMX.<br/>STM32CubeMX was working in the same way and also needed a proxy/certificate to be configured in order to access the servers and download packages.</p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

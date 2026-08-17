@@ -1,0 +1,45 @@
+{
+    "forum": [
+        {
+            "id": "165788",
+            "publicId": "165788",
+            "title": "STM32F407 SDIO: can only read SD card; not write",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/stm32f407-sdio-can-only-read-sd-card-not-write-165788",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-05-18T20:03:32+00:00",
+            "views": 166,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "This behavior usually points to a timing/clock configuration issue rather than a pure signal integrity problem.\n\nEnabling Hardware Flow Control and reducing ClockDiv improves the SDMMC/SPI timing margin, which can make write operations more reliable especially if the card is sensitive to command/data timing skew.\n\nEven if the waveform looks clean, SDIO/SDMMC write operations are much more timing-critical than reads, so small setup/hold violations or internal FIFO timing issues can cause exactly this kind of “read OK, write fails” behavior.\n\nIt’s also interesting that both F407 and H750 show the same dependency that suggests it’s more about the SD card + interface timing combo rather than a single MCU bug.\n\nWorth double-checking:\n\n* SD clock frequency vs spec limit of the card\n\n* CMD/DAT line pull-ups\n\n* SD bus mode (1-bit vs 4-bit)\n\n* FIFO/flow control settings consistency\n\nGood catch on the fact that adjusting ClockDiv fixes it — that’s a strong hint it’s timing margin related rather than hardware damage or wiring issues.",
+            "best_answer_author": "Anonymous",
+            "best_answer_author_role": "",
+            "content_text": "Hello, when I was using the SDIO of F407, I encountered a problem where the SD card could only read but not write. When I enabled \"HardwareFlowControl\" and set \"ClockDiv\" to 2, the function was normal. Why is that? When I operate the SDMMC of the H750, it's the same. It must be set to the above Settings.I checked the waveform of the SD card. In terms of waveform quality, it's okay.The waveform of the clock is shown in the following figure![iShot_2026-05-19_04.02.36.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/776cf0d2-64b0-cae2-1ced-bbc3117a95ad.png \"iShot_2026-05-19_04.02.36.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/776cf0d2-64b0-cae2-1ced-bbc3117a95ad.png"
+            ],
+            "author": "ChenJingtai",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This behavior usually points to a timing/clock configuration issue rather than a pure signal integrity problem.</p><p>Enabling Hardware Flow Control and reducing ClockDiv improves the SDMMC/SPI timing margin, which can make write operations more reliable especially if the card is sensitive to command/data timing skew.</p><p>Even if the waveform looks clean, SDIO/SDMMC write operations are much more timing-critical than reads, so small setup/hold violations or internal FIFO timing issues can cause exactly this kind of “read OK, write fails” behavior.</p><p>It’s also interesting that both F407 and H750 show the same dependency that suggests it’s more about the SD card + interface timing combo rather than a single MCU bug.</p><p>Worth double-checking:</p><ul><li><p>SD clock frequency vs spec limit of the card</p></li><li><p>CMD/DAT line pull-ups</p></li><li><p>SD bus mode (1-bit vs 4-bit)</p></li><li><p>FIFO/flow control settings consistency</p></li></ul><p>Good catch on the fact that adjusting ClockDiv fixes it — that’s a strong hint it’s timing margin related rather than hardware damage or wiring issues.</p></div>",
+                    "author": "Anonymous",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, you're quite right! You mean to ask me to pay attention to the frequency limit of the SD card itself. I checked my card, which belongs to class10 and has High Speed and Default Speed. Theoretically speaking, their clock buses can reach 50MHz and 25MHz. However, after my measurement, I found that after the STM32F407 was divided into two frequencies, the clock line speed of the SD card could reach 12MHz, and after the STM32H750 was divided into two frequencies, the clock line speed of the SD card could reach 50MHz. It is obvious that the STMF407 has not reached the upper limit of the SD card, so I am very puzzled about where the problem lies.</p></div>",
+                    "author": "ChenJingtai",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "165646",
+            "publicId": "165646",
+            "title": "Critical Hardware Failure: STM32H743IIT6 Permanent Damage and Overcurrent Issues",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/critical-hardware-failure-stm32h743iit6-permanent-damage-and-overcurrent-issues-165646",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-13T11:24:52+00:00",
+            "views": 244,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Amir2647m and welcome to the ST community,\n\nDid you check the [AN4938](https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf) \"Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development\"?\n\nDid you monitor VCAP voltage according to the voltage scale you've already selected in your software? :\n\n![mALLEm_0-1778687829472.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f174a536-4330-81d4-9bdb-61a4e43eaee9.png \"mALLEm_0-1778687829472.png\")\n\nKnowing that STM32H743 doesn't feature SMPS. I don't know why are you talking about SMPS here..",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear ST Technical Support Team,\n\nI am writing to request technical assistance regarding a recurring hardware failure with the STM32H743IIT6 MCU on my custom-designed PCB.\n\nProblem Description:\n\nAfter initial assembly, the MCU is correctly recognized by STM32CubeProgrammer and STM32CubeIDE via the ST-LINK (Serial Wire mode). I can successfully flash the firmware and debug the device for a limited number of cycles (typically 2 to 5 times). However, the MCU eventually enters a state where:\n\nIt is no longer recognized by any programming tool (\"No STM32 target found\").\n\nThe chip begins to draw excessive current (overheating rapidly).\n\nThe hardware suffers permanent damage (internal short-circuit).\n\nFirmware Configuration:\n\nDebug Hardware: Serial Wire (SWD).\n\nTimebase Source: SysTick.\n\nClock Configuration: Configured via STM32CubeIDE (no errors reported in the clock tree).\n\nOperating Voltage: 3.3V stable.\n\nTechnical Concerns:\n\nI have verified the schematic, but the repeated physical failure suggests an internal latch-up or power management issue. Specifically, I suspect the transition from the internal LDO to the required VCORE voltage levels might be causing instability during the boot process.\n\nAttached Documents:\n\nDetailed schematic of the MCU section (Power pins, VCAP capacitors, and Reset circuit).\n\nClock configuration screenshot from CubeMX.\n\nQuestions for Support:\n\nCould an incorrect Power Management Unit (PWR) software configuration (e.g., LDO vs. Direct SMPS) in the HAL initialization cause instantaneous physical damage to the H743 series?\n\nAre there specific requirements for the VCAP capacitors (2.2µF low ESR) that, if slightly out of spec, would lead to this overcurrent condition?\n\nDoes the H743IIT6 require a specific power-up sequence for the VDDA/VDD pins to prevent the latch-up I am observing?\n\nI look forward to your expert analysis of this issue.\n\nBest regards,\n\nAmir M",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f174a536-4330-81d4-9bdb-61a4e43eaee9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d4bc8c1c-0865-d5e4-4a74-306c36556fae.png"
+            ],
+            "author": "Amir2647m",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Same problem here: <span><a href=\"https://community.st.com/t5/stm32-mcus-products/stm32h7a3lih6q-swd-permanently-unresponsive-after-20-flash/m-p/898295\" target=\"_blank\"><em>STM32H7A3LIH6Q — SWD permanently unresponsive after ~20 flash cycles, UART bootloader work</em></a> by <user-mention data-id=\"88307\">@mvo</user-mention> ?</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106927\">@Amir2647m</user-mention> and welcome to the ST community,</p>\n<p>Did you check the <a href=\"https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4938</a> \"Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development\"?</p>\n<p>Did you monitor VCAP voltage according to the voltage scale you've already selected in your software? :</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1778687829472.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1778687829472.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f174a536-4330-81d4-9bdb-61a4e43eaee9.png\" title=\"mALLEm_0-1778687829472.png\"/></span></p>\n<p>Knowing that <span>STM32H743 doesn't feature SMPS. I don't know why are you talking about SMPS here..</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>i am not STM...</p><p>but using this H743 cpu , and there are no problems with the cpu.</p><p>So you doing something wrong.</p><p>Now  - what you do wrong ?</p><p>Basically : anti-/static handling , common problem; curious effects coming, nobody knows why....just damaged chip by bad treatment.</p><p>When you connect/disconnect  debug or any line to cpu : is it 100% safe against any voltage spike or missing or bad ground ?</p><p>+</p><p>about SMPS: here on H743 is no smps , so also no setting, that can be wrong ...</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AScha3_0-1778701360103.png\" style=\"width: 400px;\"><img alt=\"AScha3_0-1778701360103.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d4bc8c1c-0865-d5e4-4a74-306c36556fae.png\" title=\"AScha3_0-1778701360103.png\"/></span></p><p>+</p><p>&gt;<span>Are there specific requirements for the VCAP capacitors (2.2µF low ESR) </span></p><p>no. just 2u2 cer caps.</p><p>+</p><p>&gt;<span>Does the H743IIT6 require a specific power-up sequence for the VDDA/VDD pins </span></p><p>no, just have them together, diff &lt; 0.5 V .</p><p>+</p><p>&gt;<span>the repeated physical failure suggests an internal latch-up or power management issue.</span></p><p>Bad handling, static discharge or a problem with your power supply.</p><p>If you apply 5V to the chip, even only as a spike, it will just die. Symptom: high supply current...as you see it.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

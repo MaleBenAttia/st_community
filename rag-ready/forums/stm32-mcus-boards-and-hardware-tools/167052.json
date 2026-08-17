@@ -1,0 +1,91 @@
+{
+    "forum": [
+        {
+            "id": "167033",
+            "publicId": "167052",
+            "title": "STLINK-V3MODS VCP + BRIDGE VCP get half throughput",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stlink-v3mods-vcp-bridge-vcp-get-half-throughput-167052",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link"
+            ],
+            "published_at": "2026-07-17T20:46:42+00:00",
+            "views": 127,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "OK I understood your case, thank you ! More generally, all STLink features are implemented by a single CPU with limited resources (RAM & USB stack), so even if we use DMAs as much as possible, using simultaneously several interfaces will always, at the end, add latency sometimes (at best), or slowness, compared to a single flow. Regarding the bridge features, they have been initially designed mainly to address the STM32 bootloader case. So even if the simultaneous use of SPI and I2C is possible, it is worth testing if the current behavior fits your needs, if you expect to do so.\n\nIf you need to stress an application with multiple interfaces, for sure you require a test fixture more powerful than the target; if I believe the limitation you found with both VCPs, you are probably the first one using the ST-Link this way",
+            "best_answer_author": "S C",
+            "best_answer_author_role": "",
+            "content_text": "I’m having an issue with throughput on the STLINK-V3MODS VCP when used with the second BRIDGE UART.  If I set both the VCP and 2nd VCP for 115200 baud, I am only able to simultaneously send 5.76 KiB/s through each (half throughput).  If I use only the VCP at 115200, I’m able to send 11.52 KiB/s (full throughput).\n\nI saw no mention of any such limitation in the documentation.  Am I doing something wrong?\n\nSTLINK-V3MODS firmware 3.17.11\n\nWindows 11 version 25H2 (OS Build 26200.8875)",
+            "images": [],
+            "author": "jcphillips",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>OK I understood your case, thank you ! More generally, all STLink features are implemented by a single CPU with limited resources (RAM &amp; USB stack), so even if we use DMAs as much as possible, using simultaneously several interfaces will always, at the end, add latency sometimes (at best), or slowness, compared to a single flow. Regarding the bridge features, they have been initially designed mainly to address the STM32 bootloader case. So even if the simultaneous use of SPI and I2C is possible, it is worth testing if the current behavior fits your needs, if you expect to do so.</p><p>If you need to stress an application with multiple interfaces, for sure you require a test fixture more powerful than the target; if I believe the limitation you found with both VCPs, you are probably the first one using the ST-Link this way</p></div>",
+                    "author": "S C",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>The topic of VCP throughput is mentioned in the STLINK-V3SET User manual (UM2448 rev9 chapter 13.2 <a href=\"https://www.st.com/resource/en/user_manual/um2448-stlinkv3set-debuggerprogrammer-for-stm8-and-stm32-stmicroelectronics.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">STLINK-V3SET debugger/programmer for STM8 and STM32 - User manual</a>). The phrasing is perhaps not perfect, but it is said that “the capability of the receiver to process all the data also affects the communication. With a heavily loaded line, data loss might occur at the STLINK-V3SET side above 12 MHz.”. This means than when the UART line is fully loaded, the STLINK-V3SET starts loosing data at 12MHz. Note that with a loaded PC, the limit might also be lower. The whole system, including the PC application, and the USB stack on both PC and STLINK-V3 side must be able to process all data before the ST-Link embedded Rx buffer gets saturated. Here the bottleneck is not at UART level. Knowing that, you understand that 1x11.52 KiB/s is equivalent to 2x5.76 KiB/s and it won’t be possible to get more.</p></div>",
+                    "author": "S C",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If the entire system can’t process at 115200 something is wrong. These are not fast speeds.</p><p>My modem in the 1990s could do 56k baud.</p><p> </p><p>I suspect the underlying issue is something else. Possibly in how the system is processing bytes.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I agree with this.  For an additional data point, I first noticed the issue when I was attempting 921.6k baud on both VCP ports.  If I use a single port, I get about 92k bytes/sec as expected.  If I attempt the same on both VCPs, I get half throughput on each.  Afterwards, I repeated the same behavior with 115200 baud.  I suspect I would also get the same behavior at 9600 baud - full throughput on a single port, but half if I use two.  I’ll try that tonight.</p></div>",
+                    "author": "jcphillips",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Confirmed.  This applies even for 9600 baud.  Using both VCPs cuts throughput to half of what should be possible with the baud rate.</p><p> </p></div>",
+                    "author": "jcphillips",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I agree my first analysis was wrong for your case, I apologize for that. You are not at the limits of the system, all the more at 9600 baud. Then I have another doubt about my understanding: are you speaking about upstream data flow (from target to PC) or downstream ?</p></div>",
+                    "author": "S C",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ve been testing downstream (PC to target) to validate target data reception.  I haven’t tested upstream throughput.</p></div>",
+                    "author": "jcphillips",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK I understand the point. The downstream is not well-structured at ST-Link level to correctly handle data bursts, I would say it is currently rather designed to handle small commands in this direction, and to favorize the upstream channel (printf functionality for instance). Are you developing an application requiring a high throughput downstream on both VCPs or do you discover the limitation during tests more “stressing” than the final use case ? Unfortunately, the fix is in conflict with other bridge features, so requires arbitration and is not straightforward</p></div>",
+                    "author": "S C",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "S C",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "S C",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "S C",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

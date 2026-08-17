@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "166351",
+            "publicId": "166372",
+            "title": "STM32G030 ADC channels and VREFINT read 4095 only when battery is connected on 2 boards out of 10",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g030-adc-channels-and-vrefint-read-4095-only-when-battery-is-connected-on-2-boards-out-of-10-166372",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "DMA",
+                "STM32G0 series",
+                "ADC"
+            ],
+            "published_at": "2026-06-23T11:33:59+00:00",
+            "views": 24,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nNeed first to check your PCB. Probably there are some soldering joints issue.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am using an STM32G030C8T6.\n\nI have 10 boards built from the same PCB design and BOM. All boards use the same firmware.\n\n8 boards work correctly, but 2 boards show abnormal ADC readings.\n\nADC channels used:\n\n* PA1 = ADC\\_IN1\n\n* PA5 = ADC\\_IN5\n\n* PA6 = ADC\\_IN6\n\n* PB0 = ADC\\_IN8\n\n* PB1 = ADC\\_IN9\n\n* PB2 = ADC\\_IN10\n\n* VREFINT\n\nADC configuration:\n\n* 12-bit resolution\n\n* Continuous conversion enabled\n\n* Scan conversion enabled\n\n* DMA circular mode\n\n* Sampling time = 160.5 cycles\n\n* VREFINT included in the scan sequence\n\nProblem:\n\nOn the failing boards, when the battery is connected, some ADC channels become 4095.\n\nExample:\n\nLOAD\\_I\\_ADC = 4095\n\nPV\\_A\\_ADC = 4095\n\nBAT\\_A\\_ADC = 4095\n\nVREFINT\\_ADC = 4095\n\nOther channels still show valid values.\n\nMeasured VDDA:\n\n* Battery disconnected: 3.32V\n\n* Battery connected: 3.33V\n\nTo isolate the issue, I created a separate test project using only the following:\n\n* ADC\\_IN9 (PB1)\n\n* VREFINT\n\nResults with battery disconnected:\n\nadcBuf[0] = 1415\n\nadcBuf[1] = 1518\n\nThese values appear normal.\n\nI then created another test project using only VREFINT with a single ADC conversion to determine whether the issue is related to channel interaction or an external analog circuit.\n\nMy questions:\n\n1. Can ADC sample-and-hold capacitor effects or source impedance issues cause VREFINT to read 4095?\n\n2. Can an external analog input force VREFINT conversions to become saturated?\n\n3. Has anyone seen ADC channels and VREFINT become 4095 only when a battery is connected while VDDA remains stable at 3.33 V?\n\n4. What additional measurements or tests would you recommend?\n\nAny suggestions would be appreciated.",
+            "images": [],
+            "author": "rnd_inglo",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Need first to check your PCB. Probably there are some soldering joints issue.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

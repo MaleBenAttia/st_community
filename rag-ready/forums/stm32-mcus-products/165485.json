@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "165485",
+            "publicId": "165485",
+            "title": "entering system bootloader on STM32U31 on empty check mechanism",
+            "url": "https://community.st.com/stm32-mcus-products-25/entering-system-bootloader-on-stm32u31-on-empty-check-mechanism-165485",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bootloader",
+                "STM32U0 series",
+                "STM32U3 series"
+            ],
+            "published_at": "2026-05-07T14:48:52+00:00",
+            "views": 148,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @TWe ,\n\nAre you using STM32U3 or STM32U031?\n\nI you use STM32U031 please look at the [RM0503 Rev 4](https://www.st.com/resource/en/reference_manual/rm0503-stm32u0-series-advanced-armbased-32bit-mcus-stmicroelectronics.pdf) Table 6. Boot modes and check your configuration.\n\n![KDJEM1_0-1778511009575.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9b7b9844-ce23-5750-eea2-ec8cc67fecd6.png \"KDJEM1_0-1778511009575.png\")\n\nThank you.\n\nKaouthar",
+            "best_answer_author": "KDJEM.1",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi!\n\nI'm building a device using a STM32U31xx, connected to a Network Chip via I²C (PB6/7) and 2 GPIOs for Reset and BOOT0 Pin. The intention is to have new firmware downloaded onto the network chip, and flash new firmware to the STM32U031 via the system bootloader.I power up the system to invoke a power up reset on the ST device, I immediately flash firmware and ask the chip after another reset cycle for the new firmware version to confirm the new firmware was flashed.\n\nThe behavior I observe is the following:\n\n- if the STs Option Byte nBOOTSEL is 0, the process works just fine, very reliably.\n\n- if nBOOTSEL is 1, the process fails even if I mass erased the STs flash memory entirely\n\nThis is contrary to my understanding of AN2606 Table 2, pattern 11, that states that the empty check should start the system bootloader no matter the state of nBOOTSEL bit or BOOT0pin.\n\nI intended to have the ST chip flashed on production without previous intervention into the STs option bytes (nBOOTSEL is 1 on delivery). So far I cannot make this happen.\n\nDid I miss anything?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9b7b9844-ce23-5750-eea2-ec8cc67fecd6.png"
+            ],
+            "author": "TWe",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106763\">@TWe</user-mention> ,</p>\n<p> </p>\n<p>Are you using STM32U3 or STM32U031?</p>\n<p>I you use STM32U031 please look at the <a href=\"https://www.st.com/resource/en/reference_manual/rm0503-stm32u0-series-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">RM0503 Rev 4</a> Table 6. Boot modes and check your configuration.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"KDJEM1_0-1778511009575.png\" style=\"width: 400px;\"><img alt=\"KDJEM1_0-1778511009575.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9b7b9844-ce23-5750-eea2-ec8cc67fecd6.png\" title=\"KDJEM1_0-1778511009575.png\"/></span></p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oh yes, good catch. STM32U031. Sorry for the confusion.</p><p>I got to run it now. Somehow the U031 needed a bit more waiting time after power on for the system bootloader to load.</p><p>Thanks for your help!</p></div>",
+                    "author": "TWe",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

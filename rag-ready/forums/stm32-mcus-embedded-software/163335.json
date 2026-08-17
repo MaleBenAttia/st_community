@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "163335",
+            "publicId": "163335",
+            "title": "STM32 USB CDC Device: transmission stalls after reconnecting the board",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32-usb-cdc-device-transmission-stalls-after-reconnecting-the-board-163335",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bootloader",
+                "USB",
+                "Flash",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-03-02T11:42:36+00:00",
+            "views": 495,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> The problem starts when I unplug the board and plug it again, when I send the command to get data, the board starts to send it and then it completely freezes.*\n\nSounds like a program bug.\n\nDebug your program to find out what is happening. You can connect to a chip without resetting it if you modify the debug configuration to not download or reset the chip.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Greetings!\n\nSo I have a personal project, using a STM32U585 MCU, with a self-designed board, in which I have a bootloader and the main firmware.\n\nSo basically I implemented a protocol for communicating with the board, I have a C program that sends a command and the board sends data (around 20Kb), using [USB.](https://community.st.com/t5/stm32-mcus/how-to-use-stmicroelectronics-classic-usb-device-middleware-with/ta-p/599274)\n\nThe scenario is the following: I flash the firmware with the bootloader, after flashing, the bootloader jumps into the main program and starts running, I send a command (via host) to get data and the board sends me data and everything is running smoothly. The problem starts when I unplug the board and plug it again, when I send the command to get data, the board starts to send it and then it completely freezes.\n\nAnother curiosity, this situation only happens when I plug the board in a USB hub... if I plug the board directly to the laptop, I won't have any problem.\n\nAny clue of what can be the problem? Power related? Is there any issue with the jump to the main program?\n\nBest regards!",
+            "images": [],
+            "author": "j_filipe",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; The problem starts when I unplug the board and plug it again, when I send the command to get data, the board starts to send it and then it completely freezes.</em></p><p>Sounds like a program bug.</p><p>Debug your program to find out what is happening. You can connect to a chip without resetting it if you modify the debug configuration to not download or reset the chip.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"8205\">@TDK</user-mention> <br/>Yes, it was a program bug related to the jump from the bootloader to the main program. I was de-initialising some stuff that I shouldn't. Thank you anyway. <br/><br/>Best regards! </p></div>",
+                    "author": "j_filipe",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"89784\">@j_filipe</user-mention> wrote:<br/><p> I have a C program that sends a command </p><hr/></blockquote><p>Are you sure that your program copes correctly with its COM port disappearing and reappearing?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"35659\">@Andrew Neil</user-mention> I forgot to mention, I also close the program from the host and connect again. The thing is, this only happens when I connect the board to an USB hub...</p></div>",
+                    "author": "j_filipe",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"89784\">@j_filipe</user-mention> wrote:<br/><p> this only happens when I connect the board to an USB hub...</p><hr/></blockquote><p>Instrument your code so that you can see what happens differently between the working &amp; non-working cases.</p><p> </p><p>As <user-mention data-id=\"8205\">@TDK</user-mention> said, you can connect to a running target without having to download or reset - see <a href=\"https://community.st.com/t5/others-stm32-mcus-related/best-practices-for-debugging-intermittent-mcu-freezes-on-stm32/m-p/871359#:~:text=You%20can%20connect%20to%20a%20running%20(or%20%22frozen%22)%20target%20in%20CubeIDE%20without%20doing%20a%20reset%20or%20download%3A\" target=\"_blank\">here</a>.</p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>1. Make sure you are calling the Transmit from an ISR of the same priority as the USB interrupt, NOT from main() or any function called form main().</p><p>2. Make sure you don't attempt to transmit anything until the connection is established - this is not exactly an easy thing with ST USB stack, cause Disconnect callback is called after the device is connected for the second time, not when it's disconnected. Also, you should ensure that CDC connection is established by handling the class requests.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

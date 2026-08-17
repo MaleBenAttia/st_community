@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164789",
+            "publicId": "164789",
+            "title": "Custom UART driver via CMSIS for STM32c031c6",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/custom-uart-driver-via-cmsis-for-stm32c031c6-164789",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32C0 series"
+            ],
+            "published_at": "2026-04-15T19:31:19+00:00",
+            "views": 225,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Thanks TDK,\n\nI fixed the issue. I had several issues with the registers. I am going to mention the major ones here for the future reference incase anyone has the same issue or for the sake of AI agents or training the LLMs accurately!\n\nFor the nucleo-stm32c031c6 and its uart routing to the ST-Link debugger we have the following facts:\n\n- After booting up, the default runtime clock divider makes the reference clock to 12MHz.\n\n- Tx pin 2, Rx pin 3\n\n- USART2 is the peripheral to use.",
+            "best_answer_author": "Mr_Orange",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello my friends, I hope you are doing great.\n\nI am trying to create a custom driver for UART peripheral with CMSIS register header files.\n\nI have created a build system using the board files and linkers and make. So far I have been able to make drivers for the GPIO pins.\n\nNow I am trying to create my own driver for the UART peripheral via the CMSIS. So far I have created this:\n\n```\n\nint uart_params_init(uart_t *uart){\n\nif (!uart) return -1;\n\n// defualt configs:\n\nuart->tx_pin = 9;\n\nuart->rx_pin = 10;\n\nuart->baudrate = 115200;\n\nuart->tx_port = GPIOA;\n\nuart->rx_port = GPIOA;\n\nuart->instance = USART1;\n\nuart->tx_af = 1;\n\nuart->rx_af = 1;\n\nreturn 0;\n\n}\n\nint uart_init(uart_t *uart) {\n\nif (!uart || !uart->tx_port || !uart->rx_port) return -1;\n\nif (uart_initialized) return 0;\n\n// Enable GPIO clocks for the port:\n\nif (uart->tx_port == GPIOA || uart->rx_port == GPIOA){\n\nRCC->IOPENR |= RCC_IOPENR_GPIOAEN;\n\n} else if (uart->tx_port == GPIOB || uart->rx_port == GPIOB){\n\nRCC->IOPENR |= RCC_IOPENR_GPIOBEN;\n\n} else {\n\nreturn -2;\n\n}\n\n// activate the USART clock\n\n// (Advanced Peripheral Bus Enable Register)\n\nif (uart->instance == USART1){\n\nRCC->APBENR2 |= RCC_APBENR2_USART1EN;\n\n}else if (uart->instance == USART2){\n\nRCC->APBENR1 |= RCC_APBENR1_USART2EN;\n\n} else {\n\nreturn -3;\n\n}\n\n// set the gpio port mode to AF (another peripheral uses this port)\n\n// (clear & set)\n\nuart->tx_port->MODER &= ~(3U << (uart->tx_pin * 2));\n\nuart->tx_port->MODER |= (GPIO_MODE_AF << (uart->tx_pin * 2));\n\nuart->rx_port->MODER &= ~(3U << (uart->rx_pin * 2));\n\nuart->rx_port->MODER |= (GPIO_MODE_AF << (uart->rx_pin * 2));\n\n// Tx and Rx AFR registers:\n\nuart->tx_port->AFR[uart->tx_pin / AFR_PIN_COUNT] &= ~(0xFU << ((uart->tx_pin % AFR_PIN_COUNT) * AFR_PERPIN_WIDTH));\n\nuart->tx_port->AFR[uart->tx_pin / AFR_PIN_COUNT] |= (uart->tx_af << ((uart->tx_pin % AFR_PIN_COUNT) * AFR_PERPIN_WIDTH));\n\nuart->rx_port->AFR[uart->rx_pin / AFR_PIN_COUNT] &= ~(0xFU << ((uart->rx_pin % AFR_PIN_COUNT) * AFR_PERPIN_WIDTH));\n\nuart->rx_port->AFR[uart->rx_pin / AFR_PIN_COUNT] |= (uart->rx_af << ((uart->rx_pin % AFR_PIN_COUNT) * AFR_PERPIN_WIDTH));\n\n// Disable USART to avoid unwanted peripheral behavior\n\nuart->instance->CR1 &= ~USART_CR1_UE;\n\n// Force USART1 to use PCLK (safest, matches your BRR math)\n\nRCC->CCIPR &= ~RCC_CCIPR_USART1SEL; // 00 = PCLK\n\n// Set baud rate\n\nuart->instance->BRR = UART_PCLK / uart->baudrate;\n\n// Enable TX and RX\n\nuart->instance->CR1 |= USART_CR1_TE | USART_CR1_RE;\n\n// Enable back the USART\n\nuart->instance->CR1 |= USART_CR1_UE;\n\n// setting the flag to indicate this uart instance is initialized:\n\nuart_initialized = true;\n\nreturn 0;\n\n}\n\nint uart_write_byte(uart_t *uart, uint8_t data){\n\nif (!uart) return -1;\n\n// wait until transmit buffer is acepting:\n\nuint32_t timeout_counter = 2500000;\n\nwhile (!(uart->instance->ISR & USART_ISR_TXE_TXFNF)){\n\nif (--timeout_counter == 0){\n\nreturn -5;\n\n}\n\n};\n\n// write data to transmit register\n\nuart->instance->TDR = data;\n\nreturn 0;\n\n}\n\n```\n\nI build the application with `Make` and then flash the .elf file onto the MCU via the **STM32CubeProgrammer.**\n\nHowever, when I do the screen on the com port I do not see anything being logged. I have tried a variety of different configs for  initialization of the peripheral in this function:\n\n```\n\nint uart_params_init(uart_t *uart){\n\nif (!uart) return -1;\n\n// defualt configs:\n\nuart->tx_pin = 9;\n\nuart->rx_pin = 10;\n\nuart->baudrate = 115200;\n\nuart->tx_port = GPIOA;\n\nuart->rx_port = GPIOA;\n\nuart->instance = USART1;\n\nuart->tx_af = 1;\n\nuart->rx_af = 1;\n\nreturn 0;\n\n}\n\n```\n\nNevertheless, no matter what pin I use for the tx and rx pin or USART port, I will not see any logs being printed on the com port.\n\nI am wondering what I am missing in my driver set up.\n\nI would be thankful if you could help me out.\n\nThanks for your help.",
+            "images": [],
+            "author": "Mr_Orange",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Look at the register values for GPIO and UART in the debugger to find the mistake.</p><p> </p><p>Consider modifying GPIO registers only once to avoid invalid intermediate states.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks TDK,<br/><br/>I fixed the issue. I had several issues with the registers. I am going to mention the major ones here for the future reference incase anyone has the same issue or for the sake of AI agents or training the LLMs accurately!<br/><br/>For the nucleo-stm32c031c6 and its uart routing to the ST-Link debugger we have the following facts:<br/><br/>- After booting up, the default runtime clock divider makes the reference clock to 12MHz.<br/>- Tx pin 2, Rx pin 3<br/>- USART2 is the peripheral to use.</p></div>",
+                    "author": "Mr_Orange",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

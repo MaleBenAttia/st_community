@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164966",
+            "publicId": "164966",
+            "title": "LED Port configuration with STM32H573I-DK (PushPull vs. OpenDrain)",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/led-port-configuration-with-stm32h573i-dk-pushpull-vs-opendrain-164966",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-04-21T13:40:56+00:00",
+            "views": 277,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Well, \"perfectly fine\" is not what I would call it. Because I assume that the 3V3 supply of the LEDs is (slightly) higher than what the STM32H5 drives on the PF4/PF1/PI8/PI9. So, even if LEDs are OFF, you will have a small (useless) current flow.\n\nBut if you don't care about current consumption, then, of course, you are perfectly fine ;)",
+            "best_answer_author": "OliverScheid",
+            "best_answer_author_role": "",
+            "content_text": "When configuring the LEDs for the STM32H573I-DK using the STM32CubeMX it generated code which initializes the LED pins as PushPull (rather than OpenDrain).\n\nLookign at the schematics of the STM32H573I-DK it seems to be not \"the best option\".\n\nWould you agree that OpenDrain (GPIO\\_MODE\\_OUTPUT\\_**OD**) is the better option here, rather than PushPull (GPIO\\_MODE\\_OUTPUT\\_**PP**)?\n\n```\n\n/**\n\n* @brief Configures LED on GPIO.\n\n* @PAram Led LED to be configured.\n\n* This parameter can be one of the following values:\n\n* @arg LED1\n\n* @arg LED2\n\n* @arg LED3\n\n* @arg LED4\n\n* @retval BSP status\n\n*/\n\nint32_t BSP_LED_Init(Led_TypeDef Led)\n\n{\n\nint32_t ret = BSP_ERROR_NONE;\n\nGPIO_InitTypeDef gpio_init_structure;\n\nif ((Led != LED1) && (Led != LED2) && (Led != LED3) && (Led != LED4))\n\n{\n\nret = BSP_ERROR_WRONG_PARAM;\n\n}\n\nelse\n\n{\n\nswitch (Led)\n\n{\n\ncase LED2:\n\n/* Enable the LED2 GPIO clock */\n\nLED2_GPIO_CLK_ENABLE();\n\nbreak;\n\ncase LED3:\n\n/* Enable the LED3 GPIO clock */\n\nLED3_GPIO_CLK_ENABLE();\n\nbreak;\n\ncase LED4:\n\n/* Enable the LED4 GPIO clock */\n\nLED4_GPIO_CLK_ENABLE();\n\nbreak;\n\ncase LED1:\n\ndefault:\n\n/* Enable the LED1 GPIO clock */\n\nLED1_GPIO_CLK_ENABLE();\n\nbreak;\n\n}\n\n/* Configure the GPIO_LED pin */\n\ngpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;\n\ngpio_init_structure.Pull = GPIO_NOPULL;\n\ngpio_init_structure.Speed = GPIO_SPEED_FREQ_HIGH;\n\ngpio_init_structure.Pin = LED_PIN [Led];\n\nHAL_GPIO_Init(LED_PORT[Led], &gpio_init_structure);\n\nHAL_GPIO_WritePin(LED_PORT [Led], (uint16_t)LED_PIN[Led], GPIO_PIN_SET);\n\n}\n\nreturn ret;\n\n}\n\n```\n\n![STM32CubeMX-LEDs.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dccd4ad-e208-a0dc-7ec9-cf5c97699d9e.png \"STM32CubeMX-LEDs.png\")\n\n![STM32H573I-DK-USER_LEDs.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bb7a8940-ca06-d8a6-c9d2-c5c3648a10f5.png \"STM32H573I-DK-USER_LEDs.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bb7a8940-ca06-d8a6-c9d2-c5c3648a10f5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dccd4ad-e208-a0dc-7ec9-cf5c97699d9e.png"
+            ],
+            "author": "OliverScheid",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Well, \"perfectly fine\" is not what I would call it. Because I assume that the 3V3 supply of the LEDs is (slightly) higher than what the STM32H5 drives on the PF4/PF1/PI8/PI9. So, even if LEDs are OFF, you will have a small (useless) current flow.</p><p>But if you don't care about current consumption, then, of course, you are perfectly fine ;)</p></div>",
+                    "author": "OliverScheid",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Both would work.</p><p>OD is all that's needed, but push-pull would not hurt.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For clarification: The tool generates push-pull.</p><p>I am saying it should create open-drain, instead.</p></div>",
+                    "author": "OliverScheid",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Moved to the CubeMX forum then.</p><p> </p><p>But the generated code is perfectly fine - no problem in using push-pull.</p><p> </p><p><strong><u>PS</u>:</strong></p><p>There are cases where not all GPIOs support open-drain - so maybe it's just taking the most general case?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "166203",
+            "publicId": "166221",
+            "title": "STM32H757I-Eval Board demo progromming fails and PWR_CSR1_ACTVOSRDY issues",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32h757i-eval-board-demo-progromming-fails-and-pwr-csr1-actvosrdy-issues-166221",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32H7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-06-17T07:27:19+00:00",
+            "views": 73,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nDid you select the external Flash loader of the external QSPI Flash memory before uploading the demo?\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f87f39c-66d1-403b-a5e7-bef2114df50b.png)",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nWe recently bought a STM32H757I-Eval board and played around with it. This did overwrite the demo program it came with so I downloaded the stm32h757i-eval\\_demo.zip package to restore the demo.\n\nI used STMCubeProgrammer for this, did a full chip erase and pointed it at the hex demo file. The programming failed with\n\nError : failed to download Sector[0]\n\nI tried the other hex demo files in the with the same result and on two different laptops and the latest CubeProgrammer.\n\nThe weird thing is that when I power the board the demo seems to work as when new so I don’t know if only part of it is working. It could even have arrived in this condition.\n\nAnyone else have this problem? and perhaps a fix?\n\nI did try to compile one of the examples from the x-cube-azrtos-h7-v3-5-0.zip package to see if the generated hex would program ok.\n\nAfter a few issues I loaded the program with CubeIDE in debug mode and found the code would enter an infinite loop:\n\nwhile ((PWR->CSR1 & PWR\\_CSR1\\_ACTVOSRDY) == 0U) {}\n\nI did google this and tried the suggested BOOT0 power-on/power-off but it still stuck on this line, the LDO setting seem to be ok so it wasn’t a SMPS vs LDO issue I got google hits on. The PWR\\_CSR1\\_ACTVOSRDY bit in CSR1 would never go high so it loops forever.\n\nThe only way I got round this was to move the while loop to the first line in main() and when I checked it there the PWR\\_CSR1\\_ACTVOSRDY CSR1 bit was high so the code carried on.\n\nThis was a surprise, you would expect the example code to work out of the box.\n\nIs there some race condition in the Eval board software examples that cause this problem? am I missing a step?\n\nRegards,\n\nMH\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1eac27e9-7851-459a-8f68-530bc3668b81.jpg)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1eac27e9-7851-459a-8f68-530bc3668b81.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f87f39c-66d1-403b-a5e7-bef2114df50b.png"
+            ],
+            "author": "btrosUser",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Did you select the external Flash loader of the external QSPI Flash memory before uploading the demo?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f87f39c-66d1-403b-a5e7-bef2114df50b.png\"/></figure><p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for that and the quick reply and no I didn’t use the external loader but now that I have it all works, thanks.</p><p>I overlooked the Howto section in the readme.txt, something to remember for the future.</p></div>",
+                    "author": "btrosUser",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Glad to hear that it worked.</p><p>So if my previous post answered your question please mark it as Best Answer.</p><p>Thank you</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did find a fix for the  PWR_CSR1_ACTVOSRDY problem by accident, after upgrading my CubeIDE to the latest the problem dissappeared.</p></div>",
+                    "author": "btrosUser",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

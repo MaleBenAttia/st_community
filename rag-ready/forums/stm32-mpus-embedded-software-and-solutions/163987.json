@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "163987",
+            "publicId": "163987",
+            "title": "Boot failure at BL2 or OP-TEE. Maybe wrong DDR Tuning or not?",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/boot-failure-at-bl2-or-op-tee-maybe-wrong-ddr-tuning-or-not-163987",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "STM32MP15 lines",
+                "TF-A",
+                "OP-TEE"
+            ],
+            "published_at": "2026-03-19T13:04:20+00:00",
+            "views": 708,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nWe found the problem :)\n\n**TL;DR**\n\nIt was a wrong DTS configuration in optee.dts.\n\nThe RTC was enabled:\n\n```\n\n&rtc{\n\nstatus = \"okay\";\n\n};​\n\n```\n\nBut the clock source was configured incorrectly.\n\nThere **is an LSE crystal on the PCB**, however the oscillator was configured as **external oscillator (bypass mode)**.\n\n**Wrong configuration:**\n\n```\n\nclk_lse: clk-lse {\n\nclock-frequency = <32768>;\n\nst,css;\n\nst,bypass;\n\n}\n\n```\n\nGood config:\n\n```\n\nclk_lse: clk-lse {\n\nclock-frequency = <32768>;\n\nst,drive = < LSEDRV_MEDIUM_HIGH >;\n\n}\n\n```\n\n**Longer explanation**\n\nThe main misleading symptom (which I already mentioned in my first post) was that **sometimes Linux booted successfully, sometimes the boot stopped in OP-TEE**.\n\nThere was a reason for this.\n\nWe had a kernel that was built by the PCB designer. That kernel **always booted**, but we had no sources for it — only an SD card. It was basically a test kernel.\n\nIf the board booted once with this kernel, then **our own kernel usually booted as well afterwards**.\n\nI started probing the LSE with an oscilloscope and noticed the following:\n\n* With the “foreign” kernel, I always measured a sine wave on LSE\n\n* With our kernel, I did not always see it\n\nBecause the STM32MP157 has **no internal flash**, no persistent configuration should survive a power cycle.\n\nHowever, the PCB had a **supercapacitor connected to VBAT**, which could preserve data.\n\nI even desoldered it — but the sine wave was **still present**.\n\nThe stdout (serial0) is connected to **UART4** of the STM32MP157 via a **CH340 USB‑UART** converter.\n\nThe CH340 keeps its RX and TX lines **pulled up to VCC**, because that is the UART idle level.\n\nThis idle voltage internally fed the VBAT domain of the STM32MP1 (most likely through protection diodes), thereby **keeping the LSE oscillator configuration alive**.\n\nSo even if I unplugged the main power supply from the PCB:\n\n* either the supercapacitor\n\n* or the USB cable\n\nwas enough to preserve the *correct* LSE configuration that had been set up by the foreign kernel.\n\nWhen, after a “good” kernel was boot successfully, our **wrongly configured kernel** was started, two situations were possible:\n\n* If the supercapacitor (0.22 F) was not yet discharged **or** the USB cable was plugged in → our **Linux booted**\n\n* If enough time passed, the supercapacitor was discharged **and** the USB cable was unplugged → our **Linux did not boot**\n\nOur wrong kernel config did not overwrite the good \"backuped\" lse clock config.\n\nThat was the magic... 1 month of painful debugging.",
+            "best_answer_author": "Adam_Carpenter",
+            "best_answer_author_role": "",
+            "content_text": "Hi,\n\nWe are building Linux for STM32MP157D using Buildroot, and we are experiencing an issue where the boot process sometimes does **not proceed from BL2 to OP-TEE**, and sometimes **OP-TEE does not proceed to U-Boot**.\n\nOccasionally, the kernel does boot successfully.\n\n**Could this be** caused by **incorrect DDR3 controller settings?** We are using a custom board.\n\nIf so, would compiling the STM32DDRFW-UTIL source code and using it in engineering mode be the right solution?\n\nI have read that for some chips it is possible to perform automatic tuning and receive the optimal configuration as a result.\n\nIs this possible in this case? If not, **what** is the **proper method to determine** the correct DDR controller settings?\n\nIf DDR is not the issue, do you have any other suggestions?\n\nFor testing with DDR-UTIL, I see that there is no development board listed for the 157D series, as the utility supports \"STM32MP157C-EV1\\_DDR\\_UTILITIES\\_A7\".\n\nIf we order the \"STM32MP157D-EV1\", will I be able to run DDR tests on it to compare with our custom board, or do we need to order the \"STM32MP157C-EV1\" because only that one is compatible with DDR-UTIL?\n\nI am attaching 3 log files. One for the BL2 stop, one for the OP-TEE stop, and one for a successful kernel boot.\n\nThanks in advance,\n\nAdam\n\n<https://wiki.st.com/stm32mpu/wiki/STM32DDRFW-UTIL>",
+            "images": [],
+            "author": "Adam_Carpenter",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello,</p><p>We found the problem :)</p><p><strong>TL;DR</strong><br/>It was a wrong DTS configuration in optee.dts.</p><p>The RTC was enabled:</p><div> </div><pre class=\"lia-code-sample language-c\"><code>&amp;rtc{\nstatus = \"okay\";\n};​</code></pre><p> </p><div><p>But the clock source was configured incorrectly.<br/>There <strong>is an LSE crystal on the PCB</strong>, however the oscillator was configured as <strong>external oscillator (bypass mode)</strong>.</p><p><strong>Wrong configuration:</strong></p></div><p> </p><pre class=\"lia-code-sample language-c\"><code>clk_lse: clk-lse {\nclock-frequency = &lt;32768&gt;;\nst,css;\nst,bypass;\n}</code></pre><p>Good config:</p><pre class=\"lia-code-sample language-c\"><code>clk_lse: clk-lse {\nclock-frequency = &lt;32768&gt;;\nst,drive = &lt; LSEDRV_MEDIUM_HIGH &gt;;\n}</code></pre><p><br/><strong>Longer explanation</strong></p><p> </p><div><p>The main misleading symptom (which I already mentioned in my first post) was that <strong>sometimes Linux booted successfully, sometimes the boot stopped in OP-TEE</strong>.</p><p>There was a reason for this.</p><p>We had a kernel that was built by the PCB designer. That kernel <strong>always booted</strong>, but we had no sources for it — only an SD card. It was basically a test kernel.</p><p>If the board booted once with this kernel, then <strong>our own kernel usually booted as well afterwards</strong>.</p><p>I started probing the LSE with an oscilloscope and noticed the following:</p><ul><li>With the “foreign” kernel, I always measured a sine wave on LSE</li><li>With our kernel, I did not always see it</li></ul><p>Because the STM32MP157 has <strong>no internal flash</strong>, no persistent configuration should survive a power cycle.</p><p>However, the PCB had a <strong>supercapacitor connected to VBAT</strong>, which could preserve data.<br/>I even desoldered it — but the sine wave was <strong>still present</strong>.</p><p>The stdout (serial0) is connected to <strong>UART4</strong> of the STM32MP157 via a <strong>CH340 USB‑UART</strong> converter.<br/>The CH340 keeps its RX and TX lines <strong>pulled up to VCC</strong>, because that is the UART idle level.</p><p>This idle voltage internally fed the VBAT domain of the STM32MP1 (most likely through protection diodes), thereby <strong>keeping the LSE oscillator configuration alive</strong>.</p><p>So even if I unplugged the main power supply from the PCB:</p><ul><li>either the supercapacitor</li><li>or the USB cable</li></ul><p>was enough to preserve the <em>correct</em> LSE configuration that had been set up by the foreign kernel.</p><p>When, after a “good” kernel was boot successfully, our <strong>wrongly configured kernel</strong> was started, two situations were possible:</p><ul><li>If the supercapacitor (0.22 F) was not yet discharged <strong>or</strong> the USB cable was plugged in → our <strong>Linux booted</strong></li><li>If enough time passed, the supercapacitor was discharged <strong>and</strong> the USB cable was unplugged → our <strong>Linux did not boot</strong></li></ul><p>Our wrong kernel config did not overwrite the good \"backuped\" lse clock config.</p><p>That was the magic... 1 month of painful debugging.</p></div></div>",
+                    "author": "Adam_Carpenter",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105260\">@Adam_Carpenter</user-mention> , </p>\n<p>running DDRFW-UTIL on your custom board is a mandatory step to confirm all tests are OK. <br/>Not sure having an ST reference board will help to find the potential issue on your board.<br/>You could try to use the STM32MP157C-EV1_DDR_UTILITIES_A7 binary if your HW is very close (A/C/D/F suffix does not hurst as this SW is not using crypto and work at 650MHz), otherwise worth to recompile your own binary aligned with your HW (e.g. UART port, etc..).</p>\n<p><br/>Btw, when Linux succeed to boot, did memtester give some results ?</p>\n<p> </p>\n<p>Strange that you did not have any error messages when crash.</p>\n<p>Usually corrupted DDR data should end up to some early panic or else error messages.</p>\n<p> </p>\n<p>Did you check if supplies are correct, stable and does not fade out ? Did you use STPMIC1 ?</p>\n<p> </p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Patrick,</p><p>I managed to run the DDR-UTIL tests.<br/>I opened the STM32Mp157C-EVAL example project, removed the dev board–specific dependencies from the project, and then ran the interactive mode in engineering mode.</p><p>I executed the \"test all\" command, and since the 1 GByte memory is composed of two DDR3 chips, I ran the tests on a 16 kByte region within the address range of both chips.<br/>One at address 0xC0000000, and one at 0xFF000000.</p><p>They both passed successfully; I am attaching the logs.</p><p>I set the OP-TEE logging level to verbose mode, and I was able to capture logs for both successful and unsuccessful boot cases.</p><p>Differences are only visible during HSI and CSI measurements.</p><p>Interestingly, in one case the boot process just suddenly stops…</p><p>I attach the two verbose logs, and theDDR test.<br/><br/>Thanks,<br/>Adam</p></div>",
+                    "author": "Adam_Carpenter",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Worth to test whole addressable DDR range (1GBytes) to exclude any unwanted hole or shadowing in the addressable space. </p>\n<p>Maybe also check again your schematics (e.g. DQS swapping wrt bytes, any other mistakes, etc...). Maybe share it here (or private message) as I might have a look into.</p>\n<p>On STM32MP1 series, our experience show that DDR3L signal integrity is quite robust and issues often come from visible big mistakes.</p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

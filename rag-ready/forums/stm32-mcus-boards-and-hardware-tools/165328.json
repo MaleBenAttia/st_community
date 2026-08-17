@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "165328",
+            "publicId": "165328",
+            "title": "UART does not work with STM32U575",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/uart-does-not-work-with-stm32u575-165328",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-04T04:51:48+00:00",
+            "views": 288,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi all, I have resolved the problem, 1k impedance resister is too large. It cause unexpected noise on Uart bus. I removed it and it worked, so I will close this thread.",
+            "best_answer_author": "BLS_Karo",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi ST community,\n\nI create a simple application using USART1 baudrate 9600 TX pin - PB6 & Rx pin - PB7. I send uart frame each 1 second. J22 connects to CP210x. I see that the RX led of CP210x toggle each 1 second but when I open terminal screen on the laptop with same baudrate, nothing is shown. HAL\\_transmit return HAL\\_OK. Tx pin and Rx GPIO pin is configured as default, no pull up and pull down. What is problem here?\n\n```\n\nvoid SystemClock_Config(void)\n\n{\n\nRCC_OscInitTypeDef RCC_OscInitStruct = {0};\n\nRCC_ClkInitTypeDef RCC_ClkInitStruct = {0};\n\n/** Configure the main internal regulator output voltage\n\n*/\n\nif (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE3) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Configure LSE Drive Capability\n\n*/\n\nHAL_PWR_EnableBkUpAccess();\n\n__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_MEDIUMHIGH);\n\n/** Initializes the CPU, AHB and APB buses clocks\n\n*/\n\nRCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI\n\n|RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE\n\n|RCC_OSCILLATORTYPE_MSI;\n\nRCC_OscInitStruct.LSEState = RCC_LSE_ON;\n\nRCC_OscInitStruct.HSIState = RCC_HSI_ON;\n\nRCC_OscInitStruct.HSI48State = RCC_HSI48_ON;\n\nRCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;\n\nRCC_OscInitStruct.LSIState = RCC_LSI_ON;\n\nRCC_OscInitStruct.MSIState = RCC_MSI_ON;\n\nRCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;\n\nRCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_0;\n\nRCC_OscInitStruct.LSIDiv = RCC_LSI_DIV1;\n\nRCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;\n\nRCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;\n\nRCC_OscInitStruct.PLL.PLLMBOOST = RCC_PLLMBOOST_DIV4;\n\nRCC_OscInitStruct.PLL.PLLM = 4;\n\nRCC_OscInitStruct.PLL.PLLN = 14;\n\nRCC_OscInitStruct.PLL.PLLP = 2;\n\nRCC_OscInitStruct.PLL.PLLQ = 4;\n\nRCC_OscInitStruct.PLL.PLLR = 4;\n\nRCC_OscInitStruct.PLL.PLLRGE = RCC_PLLVCIRANGE_1;\n\nRCC_OscInitStruct.PLL.PLLFRACN = 0;\n\nif (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Initializes the CPU, AHB and APB buses clocks\n\n*/\n\nRCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK\n\n|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2\n\n|RCC_CLOCKTYPE_PCLK3;\n\nRCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;\n\nRCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;\n\nRCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;\n\nRCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;\n\nRCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV1;\n\nif (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n}\n\nstatic void MX_USART1_UART_Init(void)\n\n{\n\n/* USER CODE BEGIN USART1_Init 0 */\n\n/* USER CODE END USART1_Init 0 */\n\n/* USER CODE BEGIN USART1_Init 1 */\n\n/* USER CODE END USART1_Init 1 */\n\nhuart1.Instance = USART1;\n\nhuart1.Init.BaudRate = 9600;\n\nhuart1.Init.WordLength = UART_WORDLENGTH_8B;\n\nhuart1.Init.StopBits = UART_STOPBITS_1;\n\nhuart1.Init.Parity = UART_PARITY_NONE;\n\nhuart1.Init.Mode = UART_MODE_TX_RX;\n\nhuart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;\n\nhuart1.Init.OverSampling = UART_OVERSAMPLING_16;\n\nhuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;\n\nhuart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;\n\nhuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;\n\nif (HAL_UART_Init(&huart1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN USART1_Init 2 */\n\n/* USER CODE END USART1_Init 2 */\n\n}\n\nin main.c\n\nuint8_t buffer[] = {\"Hello World!\\n\"};\n\n/* Infinite loop */\n\n/* USER CODE BEGIN WHILE */\n\nwhile (1)\n\n{\n\nif (HAL_UART_Transmit(&huart1, buffer, 13, 1000) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nHAL_Delay(1000);\n\n/* USER CODE END WHILE */\n\n/* USER CODE BEGIN 3 */\n\n}\n\n/* USER CODE END 3 */\n\n```\n\n![BLS_Karo_0-1777869807138.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8dee5ef2-23bf-5906-d13b-465c18caddc0.png \"BLS_Karo_0-1777869807138.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8dee5ef2-23bf-5906-d13b-465c18caddc0.png"
+            ],
+            "author": "BLS_Karo",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you do not include more details, there are tons of errors that could be in your code.</p><p>Attach whole project and we can try to help you.</p><p>Error in clocks, setup of otput mux are most common errors that block USARTs; oscilloscope is required to assert that usart is not sending anything ...</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"42266\">@mbarg.1</user-mention> I attach my project below, please help me check it, I also check logic analyzer but the data on bus is weird</p></div>",
+                    "author": "BLS_Karo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"98593\">@BLS_Karo</user-mention> </p>\n<p>Do you reproduce on a reference board? like U575 eval or nucleo? Check mapping in USART1 MSP init.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2057\">@FBL</user-mention> No. I implement on my custom board, the purpose is talking to BLE module. I also check msp init, the gpio mapping is correct</p><p> </p><p> </p></div>",
+                    "author": "BLS_Karo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi all, I have resolved the problem, 1k impedance resister is too large. It cause unexpected noise on Uart bus. I removed it and it worked, so I will close this thread.</p></div>",
+                    "author": "BLS_Karo",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "164144",
+            "publicId": "164144",
+            "title": "STM32H753 QUADSPI – Clarification on Dual Bank, IO Lines, and Multi-Flash Possibilities",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h753-quadspi-clarification-on-dual-bank-io-lines-and-multi-flash-possibilities-164144",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "QSPI",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-25T10:12:12+00:00",
+            "views": 281,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @jyothzz and welcome to the ST community,\n\nI think the answer to you question has been answered in the [AN4760](https://www.st.com/resource/en/application_note/an4760-introduction-to-quadspi-interface-for-stm32-mcus-and-mpus-stmicroelectronics.pdf) \"Introduction to Quad-SPI interface for STM32 MCUs and MPUs\" / Table 9. Dual-Flash hardware configurations:\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/420cdd7e-8227-1162-5f15-bc7010774be0.png \"screenshot.png\")",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi Team,\n\nI am designing a custom PCB using **STM32H753** and planning to use the **QUADSPI peripheral** for external memory. My use case is **data read/write (indirect mode)** — not XIP or memory-mapped execution.\n\nWhile working in STM32CubeMX, I came across some configurations that are confusing, and I’d like to clarify the actual hardware behavior.\n\n---\n\n### 1. Dual Bank vs Chip Select behavior\n\nIn CubeMX, I can configure:\n\n* **QuadSPI Mode:** Dual Bank with Quad Lines\n\n* **Chip Select options:**\n\n+ Enable Chip Select 1 for both banks\n\n+ Enable Chip Select 2 for both banks\n\n+ Enable Chip Select for each bank\n\nMy understanding:\n\n* NCS → Bank1\n\n* NCS2 → Bank2\n\nQuestions:\n\n* If I select “Enable Chip Select 1 for both banks”, does this mean:\n\n+ Only one physical flash is used and banks are logical partitions?\n\n+ Or is there any way two physical memories are still utilized?\n\n* What is the **exact meaning of “bank”** in this context (hardware vs logical)?\n\n---\n\n### 2. BK1\\_IOx and BK2\\_IOx pins confusion\n\nCubeMX exposes:\n\n* QUADSPI\\_BK1\\_IO0–IO3\n\n* QUADSPI\\_BK2\\_IO0–IO3\n\nThis gives the impression of **8 data lines (4 per bank)**.\n\nQuestions:\n\n* Are BK1\\_IOx and BK2\\_IOx:\n\n+ Independent data buses for each bank?\n\n+ Or alternate pin mappings of the same internal IO signals?\n\n* If both sets are enabled simultaneously (as CubeMX allows), are these pins internally shorted?\n\n* What is the correct way to route these signals on PCB when using:\n\n+ Single flash\n\n+ Dual flash (2-chip setup)\n\n---\n\n### 3. Multi-flash usage beyond 2 chips\n\nGiven the hardware has:\n\n* 1 shared IO bus\n\n* 2 chip select lines (NCS, NCS2)\n\nQuestions:\n\n* Is it possible in any supported way to interface **4 QSPI flash chips**\n\n### 4. Manual Chip Select using GPIO\n\nQuestions:\n\n* Can we use **GPIO-controlled chip select** instead of the hardware NCS/NCS2 pins in QUADSPI?\n\n* Or is hardware-controlled CS mandatory for correct operation?\n\n* If GPIO CS is used:\n\n+ Will timing or protocol issues occur?\n\n+ Is it reliable for read/write (non-memory-mapped mode)?\n\n### 5. Dual Bank + 1 CS behavior\n\nQuestions:\n\n* In **dual bank with single CS configuration**, is it possible to:\n\n+ Read/write data to **two different physical chips**?\n\n+ Or does it always operate on **only one physical chip**?\n\n* If it is only one chip, is this configuration purely a **logical memory split**?\n\n---\n\n### 6 Extending dual-bank concept\n\nQuestions:\n\n* If dual bank works with 2 CS lines (2 chips), is there any way to extend this concept to:\n\n+ **4 chips (e.g., 2 banks × 2 chips each)**?\n\n* Can STM32 QUADSPI handle such a setup in any supported or semi-supported way?\n\n---\n\n### 7. Summary of my understanding (please correct if wrong)\n\n* QUADSPI has only **one internal 4-bit data bus**\n\n* BK1\\_IOx and BK2\\_IOx are **not independent buses**\n\n* True multi-chip support is limited to **2 devices via NCS/NCS2**\n\n* “Dual bank with single CS” is **logical partitioning, not physical dual memory**\n\n---\n\nI would really appreciate clarification from someone who has worked with this peripheral at hardware level or designed boards using it.\n\nThanks in advance!\n\nJYOTHISH B CHANDRAN",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/420cdd7e-8227-1162-5f15-bc7010774be0.png"
+            ],
+            "author": "jyothzz",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105478\">@jyothzz</user-mention> and welcome to the ST community,</p>\n<p>I think the answer to you question has been answered in the <a href=\"https://www.st.com/resource/en/application_note/an4760-introduction-to-quadspi-interface-for-stm32-mcus-and-mpus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4760</a> \"Introduction to Quad-SPI interface for STM32 MCUs and MPUs\" / Table 9. Dual-Flash hardware configurations:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 999px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/420cdd7e-8227-1162-5f15-bc7010774be0.png\" title=\"screenshot.png\"/></span></p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

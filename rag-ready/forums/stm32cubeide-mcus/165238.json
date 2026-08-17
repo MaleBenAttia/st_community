@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "165238",
+            "publicId": "165238",
+            "title": "stm32 gnu tools version 13.3.rel1 undefined reference linker error",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/stm32-gnu-tools-version-13-3-rel1-undefined-reference-linker-error-165238",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-04-29T13:34:13+00:00",
+            "views": 318,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi Andrew ,\n\nThank you for light me the way ,\n\nThe code in the USB directory was not compiled, although it was part of the software ,\n\nAll the code must be placed under the core directory , otherwise it will not be recognized, compiled or linked\n\nthank you\n\nUVC100",
+            "best_answer_author": "UVC100",
+            "best_answer_author_role": "",
+            "content_text": "I have installed version  [13.3.rel1, clean the files and re compile the code :](https://community.st.com/t5/stm32cubeide-mcus/system-stm32wb0x-c-dangerous-relocation-unsupported-relocation/m-p/882621/highlight/true#M41119)\n\nI have a linker error \"undefined reference\" to a function although the function referenced in the files and declared in the H file who was included.\n\n\"\n\nC:/ST/STM32CubeIDE\\_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32\\_1.0.100.202509120712/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32u0xx\\_hal\\_msp.o: in function `HAL\\_PCD\\_MspInit':\n\nC:/Users/../Electronics/../Software/USB\\_CDC\\_U0/USB\\_CDC\\_U0/Debug/../Core/Src/stm32u0xx\\_hal\\_msp.c:102:(.text.HAL\\_PCD\\_MspInit+0x4c): undefined reference to `MX\\_USB\\_CDC\\_Init'\n\ncollect2.exe: error: ld returned 1 exit status\n\nmake: \\*\\*\\* [makefile:65: USB\\_CDC\\_U0.elf] Error 1\n\n\"make -j12 all\" terminated with exit code 2. Build might be incomplete.\n\n15:33:51 Build Failed. 2 errors, 0 warnings. (took 13s.995ms)\n\nI have tried the following:\n\n1. I have tried changing the file order in \"path and symbols\" clean and recompile - no success\n\n2. I have tried changing the function name - - no success\n\n3. I have deleted the object files in the debug section clean the code and re-compile - no success.\n\ncurrently I am using version 13.3.rel1 of STM32 GNU and CubeIDE 2.1.1 tools downgraded from version 14.3.rel1 due to other errors encountered while compiling the code - see the link below:\n\n<https://community.st.com/t5/stm32cubeide-mcus/unknown-destination-type-arm-thumb-link-error-in-cubeide-v2-1-1/m-p/895174#M41819>\n\nI have attached the code\n\nPlease help\n\nUVC100",
+            "images": [],
+            "author": "UVC100",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi Andrew ,</p><p>Thank you for light me the way ,</p><p>The code in the USB directory was not compiled, although it was part of the software ,</p><p>All the code must be placed under the core directory , otherwise it will not be recognized, compiled or linked </p><p>thank you </p><p>UVC100</p></div>",
+                    "author": "UVC100",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are you sure that the source file containing the definition (not just the prototype) of <font face=\"courier new,courier\">MX_USB_CDC_Init</font> is actually included in the build?</p><p>Does the CubeIDE 'Go To Definition' find it?</p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Andrew,</p><p>In the last test I done , I change the name of function, thought the name is to long , it has no effect the on the result - same linker error.</p><p>Please see below the text from the updated function name :</p><div><div><p><font color=\"#0000FF\"><span>\"C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.100.202509120712/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32u0xx_hal_msp.o: in function `HAL_PCD_MspInit':</span></font></p><p><font color=\"#0000FF\"><span>C:/Users/../Hardware - General/../../Software/USB_CDC_U0/USB_CDC_U0/4c): undefi</span><span>Debug/../Core/Src/stm32u0xx_hal_msp.c:102:(.text.HAL_PCD_MspInit+0x</span><span>ned reference to `MX_USB_INIT'</span></font></p><p><font color=\"#0000FF\"><span>collect2.exe: error: ld returned 1 exit status</span></font></p><p><font color=\"#0000FF\"><span>make: *** [makefile:65: USB_CDC_U0.elf] Error 1</span></font></p><p><font color=\"#0000FF\"><span>\"make -j12 all\" terminated with exit code 2. Build might be incomplete.\"</span></font></p><p><span><strong>The function current name is</strong> :<font color=\"#339966\">MX_USB_INIT()</font></span></p><p><span>the function located in the <font color=\"#339966\">USB_CDC_IF.c file <font color=\"#000000\">(see attached code)</font></font></span></p><p><span>the function Exported in the in the <font color=\"#339966\">USB_CDC_IF.h</font></span></p><p>call to the function done in the <font color=\"#339966\">STM32U0xx_hal_msp.c</font> within the function <font color=\"#339966\"><span>HAL_PCD_MspInit()</span></font></p><p><font color=\"#339966\"><span>USB_CDC_IF.h <font color=\"#000000\">was included in the</font> STM32U0xx_hal_msp.c <font color=\"#000000\">file</font> </span></font></p><p><font color=\"#000000\"><span>Thank you </span></font></p></div></div></div>",
+                    "author": "UVC100",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106477\">@UVC100</user-mention> wrote:<br/><div><div><p><span>the function located in the <font color=\"#339966\">USB_CDC_IF.c file <font color=\"#000000\">(see attached code)</font></font></span></p></div></div><hr/></blockquote><p>And are you sure that file is actually being built ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

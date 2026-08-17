@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "166070",
+            "publicId": "166083",
+            "title": "Incompatible pointer assignment",
+            "url": "https://community.st.com/others-hardware-and-software-57/incompatible-pointer-assignment-166083",
+            "category": "Others: hardware and software",
+            "tags": [
+                "ADC",
+                "STM8 MCUs"
+            ],
+            "published_at": "2026-06-11T13:42:25+00:00",
+            "views": 126,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "So where, exactly, does that error occur ?\n\nThis can’t be right:\n\n```\n\nval[k] =  read_mains_value;\n\n```\n\nDid you mean:\n\n```\n\nval[k] =  read_mains_value();\n\n```\n\nAlso:\n\n```\n\nuint16_t read_mains_value(void) {\n\nunsigned int value;\n\n```\n\nYou should make up your mind whether you’re using `uint16_t` or `unsinged int`",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi Guys,\n\nI am writing a code to measure a pulsating DC voltage. All that I have decided to take 50 samples and take the highest one.  Multiplying the peak value by a factor will give me the approximate RMS value. Please see my code. When built, an error “ Incompatible pointer assignment” shows.\n\n```\n\n#include \"stm8s.h\"\n\nunsigned int max_v;\n\nunsigned k;\n\nunsigned int val[100];\n\nvoid Clock_Config(void) {\n\nCLK->ICKR |= CLK_ICKR_HSIEN; // Enable HSI\n\nwhile (!(CLK->ICKR & CLK_ICKR_HSIRDY)); // Wait for stabilization\n\nCLK->CKDIVR = 0x00; // HSI 16MHz / 1 = 16MHz\n\nCLK->SWR = 0xE1; // Use HSI as master clock\n\n}\n\nvoid adc_init(void)   {\n\nADC1 -> CR1 =  0x40;\n\nADC1 -> CR2 = 0x08;\n\nADC1 -> TDRH = 0xFF;\n\nADC1 -> TDRL = 0xFF;\n\nADC1 -> CR1 |= ADC1_CR1_ADON;\n\n}\n\nuint16_t read_mains_value(void) {\n\nunsigned int value;\n\nADC1 -> CSR = 0x05;\n\nADC1_StartConversion();\n\nwhile(ADC1_GetFlagStatus(ADC1_FLAG_EOC) == FALSE);\n\nvalue = ADC1_GetConversionValue();\n\nADC1_ClearFlag(ADC1_FLAG_EOC); //\n\nreturn value;\n\n}\n\nvoid delay_us (int us) //Function Definition\n\n{\n\nint i =0 ;\n\nint j=0;\n\nfor (i=0; i<=us; i++)\n\n{\n\nfor (j=0; j<16; j++) // Nop = Fosc/4\n\n_asm(\"nop\"); //Perform no operation //assembly code <span style=\"white-space:pre\"> </span>\n\n}\n\n}\n\nvoid main(void)\n\n{\n\nClock_Config();\n\nGPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_IN_FL_NO_IT);\n\nadc_init();\n\nfor  ( k = 0; k<50; k++ ) {\n\nval[k] =  read_mains_value;\n\ndelay_us(200);\n\n}\n\nmax_v = 0;\n\nfor ( k = 0; k < 50; k++) {\n\nif (val[k] > max_v) {\n\nmax_v = val[k];\n\n}\n\nval[k] = 0;\n\n}\n\n```",
+            "images": [],
+            "author": "ankhola",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So where, exactly, does that error occur ?</p><p> </p><p>This can’t be right:</p><pre><code class=\"language-c\">val[k] =  read_mains_value;</code></pre><p>Did you mean:</p><pre><code class=\"language-c\">val[k] =  read_mains_value();</code></pre><p> </p><p>Also:</p><pre><code class=\"language-c\">uint16_t read_mains_value(void) {<br/>   unsigned int value;</code></pre><p>You should make up your mind whether you’re using <code>uint16_t </code>or <code>unsinged int</code></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks Andrew Neil. I made a gross mistake. In place of  “read_mains_value()” I have written “read_mains_value”. Now the code has been built without error.</p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You’re welcome.</p><p> </p><p>In C, when you give the name of a function without the parentheses, that gives the <em>address of</em> the function 0 ie, a pointer.</p><p>As the error message suggests, a pointer is <em>not compatible</em> with your <code>var[k]</code> for assignment.</p><p> </p><p> </p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What, pray tell, is the shape of this “pulsating DC voltage”?  </p></div>",
+                    "author": "David Littell",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The shape is just positive half cycles of ac main. Actually, I want to measure the ac main voltage by  rectifying  the stepped down voltage. Precision is not so important.</p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

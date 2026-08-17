@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "164883",
+            "publicId": "164883",
+            "title": "HAL2 API for turning timer output on/off",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/hal2-api-for-turning-timer-output-on-off-164883",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "TIM",
+                "HAL2"
+            ],
+            "published_at": "2026-04-18T07:46:04+00:00",
+            "views": 244,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "One line of code, modifying the timer's CCER, is everything you need.\n\nIf you prefer to switch between push-pull and open drain, write the GPIOx->OTYPER register.\n\nIn both cases, register access is faster to execute and easier to type in your source code.  And it works the same in all STM32 series other than STM32F1.",
+            "best_answer_author": "gbm",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nWhat HAL2 API can I use to turn on/off the output of a timer? In HAL (ver 1) this could have been done like this:\n\n```\n\nTIMx->CCER &= ~TIM_CCER_CC1E; // Example for Channel 1: ~TIM_CCER_CC1E\n\n// or\n\n__HAL_TIM_MOE_DISABLE(&htimx);\n\n```\n\nThank you,\n\n-Gil",
+            "images": [],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Either HAL_TIM_OC_StopChannel</p><p><a href=\"https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/hal/stm32c5xx_hal_tim.c#L5509\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32c5xx-drivers/hal/stm32c5xx_hal_tim.c at 79b901285a7efeaf87c4c25db81d24cb5d8c9465 · STMicroelectronics/stm32c5xx-drivers</a></p><p>or LL_TIM_CC_DisableChannel</p><p><a href=\"https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/ll/stm32c5xx_ll_tim.h#L2999C22-L2999C46\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32c5xx-drivers/ll/stm32c5xx_ll_tim.h at 79b901285a7efeaf87c4c25db81d24cb5d8c9465 · STMicroelectronics/stm32c5xx-drivers</a></p><p>or LL_TIM_DisableAllOutputs.</p><p><a href=\"https://github.com/STMicroelectronics/stm32c5xx-drivers/blob/79b901285a7efeaf87c4c25db81d24cb5d8c9465/ll/stm32c5xx_ll_tim.h#L6436\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32c5xx-drivers/ll/stm32c5xx_ll_tim.h at 79b901285a7efeaf87c4c25db81d24cb5d8c9465 · STMicroelectronics/stm32c5xx-drivers</a></p><p> </p><p>Direct register access still works.</p><p> </p><p>Which one you want depends on your code and how it was started.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the reply <user-mention data-id=\"8205\">@TDK</user-mention>,</p><p> </p><p>For what I was doing I ended up using HAL_GPIO_Init, by simply changing the timer output_type from HAL_GPIO_OUTPUT_PUSHPULL to HAL_GPIO_OUTPUT_OPENDRAIN to disable the output and back to HAL_GPIO_OUTPUT_PUSHPULL to reenable it:</p><pre class=\"lia-code-sample language-c\"><code> // Disable the timer output pin\n hal_gpio_config_t gpio_config;\n gpio_config.mode = HAL_GPIO_MODE_ALTERNATE;\n gpio_config.output_type = HAL_GPIO_OUTPUT_OPENDRAIN;\n gpio_config.pull = HAL_GPIO_PULL_NO;\n gpio_config.speed = HAL_GPIO_SPEED_FREQ_LOW;\n gpio_config.alternate = HAL_GPIO_AF_2;\n HAL_GPIO_Init(HAL_GPIOA, HAL_GPIO_PIN_6, &amp;gpio_config);\n \n // Enable the timer output pin\n hal_gpio_config_t gpio_config;\n gpio_config.mode = HAL_GPIO_MODE_ALTERNATE;\n gpio_config.output_type = HAL_GPIO_OUTPUT_PUSHPULL;\n gpio_config.pull = HAL_GPIO_PULL_NO;\n gpio_config.speed = HAL_GPIO_SPEED_FREQ_LOW;\n gpio_config.alternate = HAL_GPIO_AF_2;\n HAL_GPIO_Init(HAL_GPIOA, HAL_GPIO_PIN_6, &amp;gpio_config);</code></pre><div><div><p>This worked because I was using a N-CHANNEL MOSFET at the output of the timer pin which had the drain pulled low with a resistor. By setting the STM32 the output_type to HAL_GPIO_OUTPUT_OPENDRAIN the output is unable to drive the MOSFET high so the output is practically disabled. </p><p> </p><p>I did not try to set the mode to <span>HAL_GPIO_MODE_OUTPUT and drive the pin low. That may work as well for a more general solution.</span></p><p> </p><p>Regards,</p><p>Gil</p></div></div></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>One line of code, modifying the timer's CCER, is everything you need.</p><p>If you prefer to switch between push-pull and open drain, write the GPIOx-&gt;OTYPER register.</p><p>In both cases, register access is faster to execute and easier to type in your source code.  And it works the same in all STM32 series other than STM32F1.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"4148\">@gbm</user-mention> ,</p><p> </p><p>Thank you for your reply! </p><p>My hope was that CCER would work but in my application it didn't. My application uses TIM5 to generate a 38KHz clock that serves as input to TIM1 which counts TIM5 pulses. I wanted to turn off the TIM5 output to the pin when TIM1 has reached a certain count, keep counting with TIM1 while the TIM5 output is turned off and then turn TIM5's output back on when TIM1 reached another count. I used the <span>LL_TIM_CC_DisableChannel and LL_TIM_CC_EnableChannel (which change the CCER register) functions to turn the TIM5 channel on and off. The problem is that writing to CCER also turns on/off the input to TIM1. My conclusion was that CCER doesn't just turn off the output of TIM5 to the pin; it also turns of the output to other timers. This is why I turned to GPIO_Init for help.</span></p><p>Your suggestion to optimize the code by writing to OTYPER works great. I used <span>LL_GPIO_SetPinOutputType instead of GPIO_init and it is far faster and more elegant.</span></p><p> </p><p>Thank you for the help,</p><p>-Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

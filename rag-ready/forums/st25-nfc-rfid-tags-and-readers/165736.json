@@ -1,0 +1,83 @@
+{
+    "forum": [
+        {
+            "id": "165736",
+            "publicId": "165736",
+            "title": "ST25R3918 RFID POLLING APPLICATION (NFC-V)",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r3918-rfid-polling-application-nfc-v-165736",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Readers – ST25R391x series"
+            ],
+            "published_at": "2026-05-15T21:57:41+00:00",
+            "views": 271,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi Brian,\n\nGreat news — I found the problem in my I2C driver. Your feedback helped me identify and resolve the issue.\n\nThank you very much for the help. It is greatly appreciated.\n\nBest Regards,\n\nNaga Amam.",
+            "best_answer_author": "NAmam.2",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nI have derived this code from the ST25NFCLib, and the software works correctly when interfacing with the NUCLEO-L476RG board.\n\nHowever, when I connect the same setup to my proto board, I observe a difference during the following I2C transaction.\n\nDuring the initialization process, the master sends command 0xDF (Measure Power Supply) and then waits for the IRQ signal.\n\nIn the working setup, the IRQ status registers (1Ah–1Dh) return the values:\n\n00, 80, 00, 00\n\nWhereas in the non-working setup, the IRQ status registers return:\n\n00, 00, 00, 00\n\nI am not sure why the IRQ response is different in the proto board setup.\n\nPlease note the following:\n\n* Both the working and non-working setups use the same ST25R3918 daughter board.\n\n* Both setups use the same interface signals: 3.3V, GND, IRQ, SCL, and SDA.\n\n* The I2C communication speed is identical on both setups.\n\nI am attaching the I2C transaction screenshots for reference:\n\n* The upper transaction belongs to the non-working setup.\n\n* The lower transaction belongs to the working setup.\n\nPlease let me know if you notice any missing initialization command or any issue in the sequence below.\n\n//INITIALIZATION COMMANDS LIST\n\nI2C\\_TRANSACTION Init\\_ST25R[MAX\\_ST25R\\_INIT\\_TRNSCTIONS]={\n\n{INST\\_SEND\\_CMD1,0xC1,0x00,0x00,0x00,NULL,0x00},//SET DEFAULT, puts ST25R3918 into powerup mode - command C1\n\n{INST\\_RD\\_REG1,0x3F,0x00,0x00,0x00,NULL,0x00},//READ REG-3F IDENTITY REG(should be 2A for ST25R3918)\n\n{INST\\_RD\\_REG3,0x44,0x01,0x00,0x00,NULL,0x00}, //POWER\\_ON seq read\n\n{INST\\_WR\\_REG3,0x04,0x02,0x10,0x00,NULL,0x00},//POWER\\_ON SEQ Write - FC,04,10\n\n{INST\\_RD\\_REG1,0x02,0x00,0x00,0x00,NULL,0x00},//READ REG-02\n\n{INST\\_RD\\_REG1,0x02,0x00,0x00,0x00,NULL,0x00},//READ REG-02\n\n{INST\\_WR\\_REG1,0x02,0x01,0x80,0x00,NULL,0x00},//WRITE REG-02, 80 - ENABLE OSCILLATOR & REG, THIS CAUSES ISR\n\n{NULL,0x16,0x01,0x80,0x00,&WaitForIrq1,0x00},//WRITE REG-16 with, 0x80 - INTR MASK REG - masking OSC interrupt\n\n{INST\\_WR\\_REG1,0x16,0x01,0x80,0x00,NULL,0x00},//WRITE REG-16 with, 0x80 - INTR MASK REG - masking OSC interrupt\n\n{INST\\_RD\\_REG1,0x31,0x00,0x00,0x00,NULL,0x00},//READ REG-31 AUX disp reg -OSC stble\n\n{INST\\_RD\\_REG1,0x2C,0x00,0x00,0x00,NULL,0x00},//READ REG-2c REGULATOR VOLTAGE CONTROL\n\n{INST\\_SEND\\_CMD1,0xDF,0x00,0x00,0x00,NULL,0x00},//Command to measure POWER SUPPLY - GENERATES IRQ - command DF\n\n{NULL,0x17,0x01,0x80,0x00,&WaitForIrq2,0x00},//WRITE REG-17 with, 0x80 - INTR MASK REG - masking OSC interrupt\n\n{INST\\_WR\\_REG1,0x17,0x01,0x80,0x00,NULL,0x00},//WRITE REG-17 with, 0x80 - INTR MASK REG - masking OSC interrupt",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8590862b-3fce-cf29-6d9d-0769f00677d8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4c77e902-2464-b2f4-fbe6-33b0d67b4999.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2f6e07b5-bea5-0a94-709e-6f64a8100136.png"
+            ],
+            "author": "NAmam.2",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>could you provide information about the ST26R3918 daughter board: how are supplied VDD, VDD_IO and VDD_TX? Could you check the various voltages on the correct setup and on the failing setup?</p>\n<p>Regarding the firmware, do you use the RFAL or your own implementation?</p>\n<p>Could you also provide the logic analyzer trace (.dvdat file)?</p>\n<p>Rgds</p>\n<p>BT</p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\">Hi Brian,</div><div class=\"\">Thank you for the response.</div><div class=\"\">I derived the software from RFAL and recorded all the I2C transactions during the initialization and polling process. Based on that, I developed my own software implementation. The new software is working correctly on the STM32F476RG NUCLEO board.</div><div class=\"\">However, after porting the same code to my actual controller on the protoboard, it does not work.</div><div class=\"\">The failure appears to occur when the device does not provide the correct IRQ Status response following command 0xDF, as I described earlier.</div><div class=\"\">Please note that I am using the same NFC 5 Click board (ST25R3918 demo board from MikroElektronika) in both cases.</div><div class=\"\">You can find the demo board schematic in the file:<span> </span><a class=\"\" href=\"https://download.mikroe.com/documents/add-on-boards/click/nfc_5_click/nfc_5_click_v100_Schematic.PDF\" rel=\"noopener nofollow noreferrer\" target=\"_blank\" title=\"https://download.mikroe.com/documents/add-on-boards/click/nfc_5_click/nfc_5_click_v100_Schematic.PDF\">nfc_5_click_v100_Schematic</a></div><div class=\"\">I am using 3.3V for VDD.</div><div class=\"\">I am also attaching the logic analyzer traces for both the working condition (NUCLEO board) and the non-working condition (my protoboard). You will see the initialization sequence at the very beginning of the traces.</div><div class=\"\">Please note that I am using the TechTools Logic Analyzer (<a href=\"https://tech-tools.com/digiview-downloads.html\" rel=\"noopener nofollow noreferrer\" target=\"_blank\" title=\"https://tech-tools.com/digiview-downloads.html\">DigiView Downloads</a>) software in case you have any trouble opening the log files.</div><div class=\"\">Please let me know if you have any questions.</div><div class=\"\"> </div><div class=\"\">Best,</div><div class=\"\">Naga Amam.</div><div class=\"\"> </div><div class=\"\"> </div></div>",
+                    "author": "NAmam.2",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p><span>NFC 5 Click board is not a board designed by STMicroelectronics. Compared to X-NUCLEO-NFC06A1 (ST25R3916), the pull-up resistors are 4.7 kOhm (vs. 1.6 kOhm on X-NUCLEO-NFC06A1). I recommand to check the signal integrity with a scope and to make sure SCL and SDA signals reach valid logic high levels fast enough. Check also the SDA GPIO settings on your MCU (no internal pull).</span></p>\n<p><span>I also recommand to use the RFAL on your MCU. The RFAL is portable and scalable by design.</span></p>\n<p><span>Rgds</span></p>\n<p><span>BT</span></p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p class=\"\"><span>Hi Brian,</span></p><p class=\"\"><span>I have made sure the I2C port pins do not have any internal pull-up resistors enabled.</span></p><p class=\"\"><span>I have also verified that the I2C logic levels are meeting the required specifications.</span></p><p class=\"\"><span>As you probably noticed in the logic analyzer trace, there is a command to read the CHIP ID (0x7F), followed by the POWER-UP command (0xC1), and I receive the proper response of 0x2A. If there were an I2C logic level issue, I would not expect to receive the correct 0x2A response from the ST25R3918.</span></p><p class=\"\"><span>Also, for the command:</span></p><p class=\"\"><span>REG 02 OPERATION CONTROL = 0x80 (Enable Oscillator)</span></p><p class=\"\"><span>the device generates the IRQ response:</span></p><p class=\"\"><span>80, 00, 00, 00</span></p><p class=\"\"><span>This behavior is occurring the same way in both the GOOD case (NUCLEO-F476RG) and the BADBOARD case (my proto board).</span></p><p class=\"\"><span>Based on these observations, I do not think the issue is related to the I2C logic levels.</span></p><p class=\"\"><span>Please let me know your comments on this.</span></p><p><span>Best regards,</span><br/><span>Naga Amam</span></p></div>",
+                    "author": "NAmam.2",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Naga,</p>\n<p>what I see on the NUCLEO-L476RG trace:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"BrianTIDAL_2-1779091354174.png\" style=\"width: 820px;\"><img alt=\"BrianTIDAL_2-1779091354174.png\" height=\"84\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2f6e07b5-bea5-0a94-709e-6f64a8100136.png\" title=\"BrianTIDAL_2-1779091354174.png\" width=\"820\"/></span></p>\n<p>For sure, the I2C signals are not clean. I see also spikes on the IRQ line.</p>\n<p>What I see on the proto board:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"BrianTIDAL_4-1779091953331.png\" style=\"width: 833px;\"><img alt=\"BrianTIDAL_4-1779091953331.png\" height=\"102\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4c77e902-2464-b2f4-fbe6-33b0d67b4999.png\" title=\"BrianTIDAL_4-1779091953331.png\" width=\"833\"/></span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"BrianTIDAL_5-1779093077922.png\" style=\"width: 827px;\"><img alt=\"BrianTIDAL_5-1779093077922.png\" height=\"106\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8590862b-3fce-cf29-6d9d-0769f00677d8.png\" title=\"BrianTIDAL_5-1779093077922.png\" width=\"827\"/></span></p>\n<p>After the first byte sent by the ST25R3918, the MCU seems to keep SDA to 0 (ACK). This is clearly an issue on I2C.</p>\n<p>Could you check you I2C driver regarding the ACK management after the first byte being received?</p>\n<p>Rgds</p>\n<p>BT</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Brian,</p><p class=\"\"><span>Great news — I found the problem in my I2C driver. Your feedback helped me identify and resolve the issue.</span></p><p><span>Thank you very much for the help. It is greatly appreciated.</span></p><p>Best Regards,</p><p>Naga Amam.</p></div>",
+                    "author": "NAmam.2",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

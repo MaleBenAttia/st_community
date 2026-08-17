@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164858",
+            "publicId": "164858",
+            "title": "I²C communication issue between MPU6050 and STM32 (works with ESP32)",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/i-c-communication-issue-between-mpu6050-and-stm32-works-with-esp32-164858",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "Others",
+                "Hardware components"
+            ],
+            "published_at": "2026-04-17T08:00:45+00:00",
+            "views": 267,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nHard to tell what the problem is ..\n\n* External pull-ups: tested with and without 4.7 kΩ resistors on SCL and SDA\n\n-> you should definitely have 4.7k on SCL/SDA lines\n\nYou need to check what is going-on on the I2C lines with an oscilloscope or a logic analyzer otherwise you cannot go further ..",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am experiencing an I²C communication issue between my MPU6050 sensor and an STM32F429I-DISC1 board. The sensor is properly powered at 3.3 V, and I have already verified its operation with an ESP32 board (communication is successful). However, with the STM32, no communication is established.\n\nActions performed:\n\n* Configured I²C1 on the STM32 (tested in fast mode at 400 kHz and standard mode at 100 kHz)\n\n* Verified the MPU6050 address (default 0x68, AD0 pin connected to GND)\n\n* External pull-ups: tested with and without 4.7 kΩ resistors on SCL and SDA\n\n* Checked physical connections (SCL to PB6, SDA to PB7 for I²C1 on the board)\n\n* Configured the LCD screen\n\nObserved behavior:\n\n* The I²C scan does not detect any address\n\nBlocking point: The same sensor, using the same basic I²C code, works perfectly on the ESP32. Therefore, the sensor is not the cause. The issue appears to be related to the I²C configuration on the STM32 or a hardware detail.\n\nQuestion: Has anyone encountered this behavior with an MPU6050 on STM32? Are there specific parameters to configure in the I²C interface (timing, clock stretching, or others)? Could there be an initialization sequence issue?\n\nThank you in advance for your assistance.\n\n-----------------------------------------------------------------------------------------------------------------\n\nBonjour à tous,\n\nJe rencontre un problème de communication I2C entre mon capteur MPU6050 et une carte STM32F429I-DISC1. Le capteur est correctement alimenté (3,3V), et j’ai déjà vérifié son bon fonctionnement avec une carte ESP32 (communication OK). Cependant, avec la STM32, aucune communication n’est établie.\n\n**Ce que j’ai fait :**\n\n* Configuration de l’I2C1 sur la STM32 (essai en mode **Fast Mode (400 kHz)** et aussi en **Standard Mode (100 kHz)**)\n\n* Adresse du MPU6050 vérifiée (0x68 par défaut, broche AD0 à GND)\n\n* Pull-ups externes ? (j’ai essayé avec et sans résistances de 4,7 kΩ sur SCL et SDA)\n\n* Vérification des connexions physiques (SCL → PB6, SDA → PB7 pour I2C1 sur ma carte)\n\n* Il y a aussi la configuration de l'écran LCD\n\n**Ce que j’observe :**\n\n* Le scan I2C ne trouve aucune adresse\n\n**Ce qui me bloque :**\n\nLe même capteur, avec le même code I2C de base, fonctionne parfaitement sur ESP32. Donc le capteur n’est pas en cause. Le problème semble venir de la configuration I2C de la STM32 ou d’un détail matériel .\n\n**Question :**\n\nAvez-vous déjà rencontré ce genre de comportement avec un MPU6050 sur STM32 ? Y a-t-il des paramètres spécifiques à configurer dans l’I2C (timing, clock stretching, ou autre) ? Peut-être un problème de séquence d’initialisation ?\n\nMerci d’avance pour votre aide !\n\n------\n\nPost Edited by ST moderator to apply source code formatting and translate from Frensh to English to comply with the [community rule.](https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228)\n\nBest regards,\n\nGyessine",
+            "images": [],
+            "author": "MOns1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Hard to tell what the problem is .. </p>\n<ul>\n<li>External pull-ups: tested with and without 4.7 kΩ resistors on SCL and SDA</li>\n</ul>\n<p>-&gt; you should definitely have 4.7k on SCL/SDA lines</p>\n<p>You need to check what is going-on on the I2C lines with an oscilloscope or a logic analyzer otherwise you cannot go further ..</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span>Le scan I2C ne trouve aucune adresse</span></p><p><span>Probably because the STM32 driver and ESP have different format of I2C address. For STM32 the address should be shifted left: the MSB of the address is bit #7, and bit #0 is read/write flag.</span></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

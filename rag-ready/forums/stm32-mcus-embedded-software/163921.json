@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163921",
+            "publicId": "163921",
+            "title": "STM32F4 As USB HID Device",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f4-as-usb-hid-device-163921",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-18T07:51:34+00:00",
+            "views": 239,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @QuocAn\n\nTo ensure minimal delay and improve throughput, use the USB status from the following enumeration\n\n```\n\ntypedef enum\n\n{\n\nUSBD_OK = 0U,\n\nUSBD_BUSY,\n\nUSBD_EMEM,\n\nUSBD_FAIL,\n\n} USBD_StatusTypeDef;\n\n```\n\nas a checkpoint between\n\n```\n\nUSBD_HID_SendReport\n\n```\n\nUse USBD\\_StatusTypeDef as a checkpoint between calls to USBD\\_HID\\_SendReport.This ensure that the next buffer is sent only when just the USB controller completes the previous transmission and returns USBD\\_OK.\n\nhere is a general view of the algorythm that you can use .\n\n```\n\ndo\n\n{\n\nstatus = USBD_HID_SendReport(&hUsbDeviceFS, next_report, len);\n\n/* loop until the USB stack accepts the request (USBD_OK) */\n\n}\n\nwhile (status != USBD_OK);\n\n```\n\nBR\n\nGyessine",
+            "best_answer_author": "Gyessine",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi\n\nI'm create a project that sending data from RFID reader (RS232) to PC (via USB HID) as a keyboard.\n\nI using RS232 to TTL for STM32 can read data and using USB HID to send it to PC.\n\nMy code is working but a character sending is slow, but when i remove delay, character is missing.\n\nEx: data from RFID: 4F002F144E\n\nWhen I have 15ms delay, my PC receive all character\n\nBut when remove 15ms, some character is miss.\n\nSo I want to ask have anyway to speedup ?\n\nThis is my loop:\n\n```\n\nwhile (RingBuffer_Availabel(&ring)) {\n\nuint8_t data;\n\nRingBuffer_Pop(&ring, &data);\n\nif(data == '\\r'){\n\nsend_enter();\n\nbreak;\n\n}\n\nkeyboardhid.MODIFIER = (data >= 'A' && data <= 'Z') ? 0x02 : 0x00;\n\nkeyboardhid.KEYCODE1 = ascii_to_hid((char) data);\n\nUSBD_HID_SendReport(&hUsbDeviceFS, (uint8_t*) &keyboardhid,sizeof(keyboardhid));\n\nHAL_Delay(15);\n\nusb_ready = 0;\n\nkeyboardhid.MODIFIER = 0x00;\n\nkeyboardhid.KEYCODE1 = 0x00;\n\nUSBD_HID_SendReport(&hUsbDeviceFS, (uint8_t*) &keyboardhid,sizeof(keyboardhid));\n\nHAL_Delay(15);\n\n}\n\n```",
+            "images": [],
+            "author": "QuocAn",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You must check if the previous operation was completed before starting the next one. I don't use HAL-based USB stack but there surely must be some callback on operation complete and/or HID class structure member for signaling the ready state.</p><p>Also, SendReport should be called from an ISR of the same priority as USB interrupt, otherwise it will hang the USB stack at some point.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104394\">@QuocAn</user-mention> <br/><span>To ensure minimal delay and improve throughput, use the USB status from the following enumeration </span></p>\n<pre class=\"lia-code-sample language-c\"><code>typedef enum\n{\n USBD_OK = 0U,\n USBD_BUSY,\n USBD_EMEM,\n USBD_FAIL,\n} USBD_StatusTypeDef;\n</code></pre>\n<p><span>as a checkpoint between</span></p>\n<pre class=\"lia-code-sample language-c\"><code>USBD_HID_SendReport</code></pre>\n<p><span>Use USBD_StatusTypeDef as a checkpoint between calls to USBD_HID_SendReport.This ensure that the next buffer is sent only when just the USB controller completes the previous transmission and returns USBD_OK.<br/>here is a general view of the algorythm that you can use .<br/></span></p>\n<pre class=\"lia-code-sample language-c\"><code>do\n {\n status = USBD_HID_SendReport(&amp;hUsbDeviceFS, next_report, len);\n /* loop until the USB stack accepts the request (USBD_OK) */\n } \n while (status != USBD_OK);</code></pre>\n<p><span><br/>BR<br/>Gyessine</span></p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

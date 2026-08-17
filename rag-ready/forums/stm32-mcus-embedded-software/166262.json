@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "166241",
+            "publicId": "166262",
+            "title": "N6 NPU no results when FSBL flashed",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/n6-npu-no-results-when-fsbl-flashed-166262",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeAI",
+                "STM32N6 series",
+                "Neural-ART Accelerator",
+                "External loader"
+            ],
+            "published_at": "2026-06-18T10:57:17+00:00",
+            "views": 69,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Alright, I managed to scrap together something that works.\n\nI **didn’t** configure anything in RIF → External Memories.\n\nThis is what I did to make it work:\n\n1. Make all main ROM/RAM use regions from FLEXRAM, AXISRAM1, AXISRAM2\n\n2. Moved the Model data (`\\_mem\\_pool\\_xSPI2\\_network`) into an own `\\_\\_attribute\\_\\_((section(...)))`\n\n3. Made that section a `(NOLOAD)` in the linker script\n\n4. Program the `.bin` of that model at the section defined above, separated from the application code (...I want to kinda have the code+model together in one binary, but this works for now...)\n\n5. Enable mapped mode in XSPI (in FSBL disable the mapped mode before jumping to the application)\n\n6. And also for the sake of it, don’t allocate in/output buffers of the model, I want to decide where they go",
+            "best_answer_author": "rphii",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi everyone,\n\nI have successfully set up a camera and the NPU working together on a Nucleo N6 to get proper outputs from the latter, which is great. I also have a way to see the image and can verify the outputs live.\n\nHowever, that only works when I launch the firmware by adding the Application to the startup, loading its symbols, flashing the trusted application and starting to debug the FSBL… After that starts, I can detach the debugger to let it run the application. (BOOT0 off, BOOT1 on)\n\nWhen I now flash both trusted binaries and launch without the debugger (BOOT0 and BOOT1 off) it starts normally and I see the live image. But there are no inference results (which takes the same amount of time as when it worked)…\n\nWhat could I be missing?\n\nBest regards, rphii",
+            "images": [],
+            "author": "rphii",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107305\">@rphii</user-mention> </p><p>Please refer to the article below:</p><p><a href=\"https://community.st.com/stm32-mcus-60/how-to-create-an-stm32n6-fsbl-load-and-run-146359?tid=146359&amp;fid=60\" rel=\"noopener noreferrer\" target=\"_self\">How to create an STM32N6 FSBL load and run | Community</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hello ​<user-mention data-id=\"107305\">@rphii</user-mention> </p><p>The most likely cause is a <strong>cache or shared-memory issue</strong> between the camera, CPU, and NPU.</p><p>When running under the debugger, the timing and memory state can differ, so the inference may appear to work. In standalone boot, you should check that:</p><ul><li>the <strong>camera/NPU buffers</strong> are placed in a compatible memory region,</li> <li>the <strong>cache is cleaned before</strong> starting inference,</li> <li>the <strong>cache is invalidated after</strong> inference before reading the results,</li></ul><p>Best regards,</p><p>Hamdi</p><p> </p></div>",
+                    "author": "T_Hamdi",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks, I will try that out. I understand what you mean with the cache, as I may or may not have that code enabled. Great to know that I do need both of those, so I will double check that.</p><p> </p><p>I suspect that it’s highly likely a memory region issue (your first point). I tried a simpler app (disabling npu and displaying the raw RGB bytes of the image, it appeared as blue! :D) - is the RIF / rimc_master responsible for that? I know that all my used peripherals (RISUP) have to be privileged, but I did nothing with the external memories (RISAF)… so I should definitely also configure that, is that correct?</p></div>",
+                    "author": "rphii",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Alright, I managed to scrap together something that works.</p><p>I <strong>didn’t </strong>configure anything in RIF → External Memories.</p><p> </p><p>This is what I did to make it work: </p><ol><li>Make all main ROM/RAM use regions from FLEXRAM, AXISRAM1, AXISRAM2</li> <li>Moved the Model data (`_mem_pool_xSPI2_network`) into an own `__attribute__((section(...)))`</li> <li>Made that section a `(NOLOAD)` in the linker script</li> <li>Program the `.bin` of that model at the section defined above, separated from the application code (...I want to kinda have the code+model together in one binary, but this works for now...)</li> <li>Enable mapped mode in XSPI (in FSBL disable the mapped mode before jumping to the application)</li> <li>And also for the sake of it, don’t allocate in/output buffers of the model, I want to decide where they go</li></ol></div>",
+                    "author": "rphii",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "T_Hamdi",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

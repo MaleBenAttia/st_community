@@ -1,0 +1,135 @@
+{
+    "forum": [
+        {
+            "id": "164605",
+            "publicId": "164605",
+            "title": "LwIP not entering callback when ethernet cable (dis)connected",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/lwip-not-entering-callback-when-ethernet-cable-dis-connected-164605",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series",
+                "Ethernet",
+                "LwIP"
+            ],
+            "published_at": "2026-04-09T12:29:35+00:00",
+            "views": 590,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Have you configured the Ethernet DMA descriptors, LwIP, and the MPU correctly? If you attach your project, I can analyze it and look for misconfigurations. I also suggest that you review this knowledge base article; it will guide you through the necessary configurations. You could skip FreeRTOS and using a dedicated timer as a time base, because from the snippet you attached above, your goal is to run LwIP in **polling** mode.\n\n* [Implementing a LwIP and FreeRTOS™ v1 UDP echo server on the STM32F7 series](https://community.st.com/t5/stm32-mcus/implementing-a-lwip-and-freertos-v1-udp-echo-server-on-the/ta-p/780261)",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "NUCLEO-F767ZI\n\nI'm trying to use the LwIP middleware which I have enabled in MX.\n\nFirst I'm trying to check if an ethernet cable is attached or not. I have setup UART3 to use printf (which works as expected)\n\nI've set the callback in lwip.c to print when the cable is removed or plugged in or so I thought but I get no message when I connect or disconnect the cable. The LEDs on the socket light up when the cable is connected, so the board at some level does see the cable. What am I missing here?\n\nEDIT:: LWIP\\_NETIF\\_LINK\\_CALLBACK was enabled in MX\n\n```\n\n// In main.c\n\nMX_LWIP_Init();\n\n/* USER CODE BEGIN WHILE */\n\nwhile (1)\n\n{\n\nMX_LWIP_Process();\n\n/* USER CODE END WHILE */\n\n/* USER CODE BEGIN 3 */\n\n}\n\n/* USER CODE END 3 */\n\n// In lwip.c the callback function that is registered in MX_LWIP_Init()\n\nstatic void ethernet_link_status_updated(struct netif *netif)\n\n{\n\nif (netif_is_up(netif))\n\n{\n\n/* USER CODE BEGIN 5 */\n\nprintf(\"Cable connected\\r\\n\");\n\n/* USER CODE END 5 */\n\n}\n\nelse /* netif is down */\n\n{\n\n/* USER CODE BEGIN 6 */\n\nprintf(\"Cable NOT connected\\r\\n\");\n\n/* USER CODE END 6 */\n\n}\n\n}\n\n```",
+            "images": [],
+            "author": "NicRoberts",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You do not have a connection manager - demo does not (most cases) it - there are many other cases, choices, features requiring sw management that are not handled in demo.</p><p>I usually suggest to draw a set of requirements you want in your system and compare with actual demo code to get double sure that minimum system is hat your customers can accept.</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My only requirement at the moment is to check if the cable is connected.</p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"84519\">@NicRoberts</user-mention>,</p>\n<p>Have you tried setting a breakpoint on the<span> `</span>if` condition to check whether it is triggered?</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Going through the debug it doesn't get anywhere near, doesn't get past the memory initialisation, </p><p> </p><p>MX_LWIP_Init()</p><p>____lwip_init()</p><p>________mem_init()</p><p>__________mem-&gt;prev = 0;</p><p>HardFault_Handler()</p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"84519\">@NicRoberts</user-mention> wrote:<br/><p>doesn't get past the memory initialisation, </p><hr/></blockquote><p>So the code is not completing initialisation <em>at all</em> ?</p><p>Hardly surprising, then, that none of the features work!</p><p> </p><p><em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/tac-p/708193/highlight/true#M51\" target=\"_blank\">Debugging Cortex-M Hard Faults</a></em></p><p> </p><p><em><a href=\"https://community.st.com/t5/stm32-mcus-products/lwip-ethernet-in-stm32h7-working-in-stm32cubeide-but-not-in-iar/m-p/748501/highlight/true#M267524\" target=\"_blank\">LwIP Debug / Diagnostics</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Have you configured the Ethernet DMA descriptors, LwIP, and the MPU correctly? If you attach your project, I can analyze it and look for misconfigurations. I also suggest that you review this knowledge base article; it will guide you through the necessary configurations. You could skip FreeRTOS and using a dedicated timer as a time base, because from the snippet you attached above, your goal is to run LwIP in </span><strong>polling</strong><span> mode.</span></p>\n<ul>\n<li><span><a href=\"https://community.st.com/t5/stm32-mcus/implementing-a-lwip-and-freertos-v1-udp-echo-server-on-the/ta-p/780261\" target=\"_blank\">Implementing a LwIP and FreeRTOS™ v1 UDP echo server on the STM32F7 series</a> </span></li>\n</ul></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Once we ensure that </span>LwIP<span> is working flawlessly, we can move on and debug why the </span>LWIP_NETIF_LINK_CALLBACK<span> function is not being triggered and does not print any message.</span></p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'll go through the link you posted. Thanks for taking a look, find attached. </p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As suspected, you are missing crucial<span> </span><strong>memory</strong><span> </span>and<span> </span><strong>cache</strong><span> </span>configurations that will allow your application to work. I suggest that, after reading the article, you apply the configurations illustrated in sections<span> </span><strong>2.2, 2.4, 2.5, and 3.1</strong>. I’m pretty sure they will resolve the issue you are currently facing.</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Besides that stuff, what mbarg said: connection management.</p><p>The PHY must be read periodically (EthPhyLinkStatus() reads the PHY registers), otherwise how should LWIP know about any connection?</p><p>Something like this (not HAL, but you'll get the idea) is called in the loop / LwipProcess():</p><p> </p><pre class=\"lia-code-sample language-c\"><code>/**\n * @brief This function sets the netif link status.\n * @note This function should be included in the main loop to poll\n * for the link status update\n * <user-mention data-id=\"43225\">@PAram</user-mention> pNetIf: pointer to the network interface\n * @retval None\n */\nvoid Ethernet_Link_Periodic_Handle(struct netif *pNetIf)\n{\n\tstatic uint32_t u32EthLinkTimer = 0;\n\n\t/* check PHY ethernet link every 200 ms */\n\tif( (HAL_GetTick() - u32EthLinkTimer) &gt;= ETH_TIMEOUT_NETIF_LINK_PRD_HNDL_MS )\n\t{\n\t\tuint8_t u8LinkUp = 0;\n\n\t\tu32EthLinkTimer = HAL_GetTick();\n\n\t\tif( EthPhyLinkStatus(u8PhyPortActive, ETH_LINK_CHECK_QUICK) == HAL_OK ) u8LinkUp = 1;\n\n\t\t/* check if the netif link down and the PHY link is up */\n\t\tif( !netif_is_link_up(pNetIf) &amp;&amp; (1 == u8LinkUp) )\n\t\t{\n\t\t\t/* network cable is connected */\n\t\t\tnetif_set_link_up(pNetIf);\n\t\t}\n\t\telse if( netif_is_link_up(pNetIf) &amp;&amp; (0 == u8LinkUp) )\n\t\t{\n\t\t\t/* network cable is disconnected */\n\t\t\tnetif_set_link_down(pNetIf);\n\t\t}\n\t}\n}</code></pre><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"84519\">@NicRoberts</user-mention>, <span>have you managed to fix the Ethernet issue?</span></p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes thankyou for your help, been busy week only just got a chance to test it. I followed the instructions in the link you posted &amp; its all working now.</p></div>",
+                    "author": "NicRoberts",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You are most welcome!</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

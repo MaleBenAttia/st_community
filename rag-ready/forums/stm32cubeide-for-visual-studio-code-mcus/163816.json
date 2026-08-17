@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "163816",
+            "publicId": "163816",
+            "title": "HardFault with PICOLIBC and TouchGFX",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/hardfault-with-picolibc-and-touchgfx-163816",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32",
+                "ST Arm Clang"
+            ],
+            "published_at": "2026-03-16T00:44:22+00:00",
+            "views": 445,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @ANeam.1\n\nmaybe you're experiencing the effects of the bug I described here:\n\n[Object initialization silently skipped with picoli... - STMicroelectronics Community](https://community.st.com/t5/stm32cubeide-for-visual-studio/object-initialization-silently-skipped-with-picolibc-due-to/td-p/885897)\n\nIf you have the time and are willing, could you try modifying the linker description file and let us know how it goes?\n\n```\n\n.preinit_array (READONLY) : /* The \"READONLY\" keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */\n\n{\n\n. = ALIGN(4);\n\nPROVIDE_HIDDEN (__preinit_array_start = .);\n\nKEEP (*(.preinit_array*))\n\nPROVIDE_HIDDEN (__preinit_array_end = .);\n\n. = ALIGN(4);\n\n} >FLASH\n\n.init_array (READONLY) : /* The \"READONLY\" keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */\n\n{\n\n. = ALIGN(4);\n\nPROVIDE_HIDDEN (__init_array_start = .);\n\nKEEP (*(SORT(.init_array.*)))\n\nKEEP (*(.init_array*))\n\nPROVIDE_HIDDEN (__init_array_end = .);\n\n. = ALIGN(4);\n\n} >FLASH\n\n>>>>>>>>>>>>>>>>>> new\n\n/* picolibc uses __bothinit_array_start/end instead of separate preinit/init\n\nsymbols. STM32CubeMX does not define these, causing __libc_init_array to\n\nsilently skip all C++ constructors when building with picolibc. */\n\n/* PROVIDE(__bothinit_array_start = __preinit_array_start);\n\nPROVIDE(__bothinit_array_end = __init_array_end); */\n\n<<<<<<<<<<<<<<<<<<\n\n.fini_array (READONLY) : /* The \"READONLY\" keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */\n\n{\n\n. = ALIGN(4);\n\nPROVIDE_HIDDEN (__fini_array_start = .);\n\nKEEP (*(SORT(.fini_array.*)))\n\nKEEP (*(.fini_array*))\n\nPROVIDE_HIDDEN (__fini_array_end = .);\n\n. = ALIGN(4);\n\n} >FLASH\n\n/* used by the startup to initialize data */\n\n_sidata = LOADADDR(.data);\n\n```\n\nBest regards Timo",
+            "best_answer_author": "FluxPower42",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi, I consistently hit HardFault when using PICOLIBC. I am using a STM32H735G-DK board.\n\nSetup:\n\n1. Start from a black CubeMX project, selecting the board and default pins. The FreeRTOS must be enabled, and the TouchGFX (with the MPU configured). We will target CMake and SR Arm Clang. Generate code.\n\n2. Open TouchGFX and load the project with the file ApplicationTemplate.touchgfx.part. No need to add anything, just generate code.\n\n3. Open the entire project with VSCode. The project by default uses the PICOLIBC in the file starm-clang.cmake. The project as is compiles successfully. flash onto the board and click Continue. The code will instantly go in HardFault\\_Handler().\n\nHere is a printscreen:\n\n![Screenshot 2026-03-15 203157.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ceeb5c8c-8176-e50e-60ca-505d4f407a0c.png \"Screenshot 2026-03-15 203157.png\")\n\nCan anyone try to reproduce this, just to make sure it is not something only on my side? Thank you!\n\nIf I change for STARM\\_NEWLIB in starm-clang.cmake instead of STARM\\_PICOLIBC, everything works as expected, no hardfault, and the screen initializes successfully.\n\nI have added a demo project.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da229c87-e634-181c-b607-402c04354938.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ceeb5c8c-8176-e50e-60ca-505d4f407a0c.png"
+            ],
+            "author": "ANeam.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"54134\">@ANeam.1</user-mention> <br/><br/>maybe you're experiencing the effects of the bug I described here:<br/><a href=\"https://community.st.com/t5/stm32cubeide-for-visual-studio/object-initialization-silently-skipped-with-picolibc-due-to/td-p/885897\" target=\"_blank\">Object initialization silently skipped with picoli... - STMicroelectronics Community</a><br/><br/>If you have the time and are willing, could you try modifying the linker description file and let us know how it goes?<br/><br/></p><pre class=\"lia-code-sample language-c\"><code> .preinit_array (READONLY) : /* The \"READONLY\" keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */\n {\n . = ALIGN(4);\n PROVIDE_HIDDEN (__preinit_array_start = .);\n KEEP (*(.preinit_array*))\n PROVIDE_HIDDEN (__preinit_array_end = .);\n . = ALIGN(4);\n } &gt;FLASH\n\n .init_array (READONLY) : /* The \"READONLY\" keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */\n {\n . = ALIGN(4);\n PROVIDE_HIDDEN (__init_array_start = .);\n KEEP (*(SORT(.init_array.*)))\n KEEP (*(.init_array*))\n PROVIDE_HIDDEN (__init_array_end = .);\n . = ALIGN(4);\n } &gt;FLASH\n\n&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; new\n\n /* picolibc uses __bothinit_array_start/end instead of separate preinit/init\n symbols. STM32CubeMX does not define these, causing __libc_init_array to\n silently skip all C++ constructors when building with picolibc. */\n /* PROVIDE(__bothinit_array_start = __preinit_array_start);\n PROVIDE(__bothinit_array_end = __init_array_end); */\n\n&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;\n\n .fini_array (READONLY) : /* The \"READONLY\" keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */\n {\n . = ALIGN(4);\n PROVIDE_HIDDEN (__fini_array_start = .);\n KEEP (*(SORT(.fini_array.*)))\n KEEP (*(.fini_array*))\n PROVIDE_HIDDEN (__fini_array_end = .);\n . = ALIGN(4);\n } &gt;FLASH\n\n /* used by the startup to initialize data */\n _sidata = LOADADDR(.data);</code></pre><p> </p><p>Best regards Timo<br/><br/></p></div>",
+                    "author": "FluxPower42",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"89333\">@FluxPower42</user-mention> ,</p><p>Yes, this is it! Sorry did not check your post before making mine. Defining __bothinit_array_start and __bothinit_array_end solves the issue.</p><p>Thank you!</p></div>",
+                    "author": "ANeam.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"54134\">@ANeam.1</user-mention> <br/><br/>nice! And thanks for the test.<br/>This just shows how important a quick fix is.<br/><br/>Regards Timo</p></div>",
+                    "author": "FluxPower42",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"54134\">@ANeam.1</user-mention> <br/><span>Please be aware STM32Cube bundle st-arm-clang@21.1.1+st.7 delivered today is fixing issue.</span><br/><span>Please have a try updating and locking proper version to your project:</span><br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 999px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da229c87-e634-181c-b607-402c04354938.png\" title=\"image.png\"/></span></p></div>",
+                    "author": "vincent_grenet",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Additional information about the fix is detailed <a href=\"https://community.st.com/t5/stm32cubeide-for-visual-studio/object-initialization-silently-skipped-with-picolibc-due-to/m-p/889584/highlight/true#M2229\" target=\"_blank\">here</a> in <user-mention data-id=\"89333\">@FluxPower42</user-mention> 's thread.</p></div>",
+                    "author": "ThomasBzt",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "vincent_grenet",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "ThomasBzt",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164401",
+            "publicId": "164401",
+            "title": "Unable to Connect ST67W611 (T01) to AWS IoT via MQTT",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/unable-to-connect-st67w611-t01-to-aws-iot-via-mqtt-164401",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "Other software",
+                "ST67W series"
+            ],
+            "published_at": "2026-04-01T20:14:55+00:00",
+            "views": 252,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @MSalm.2 ,\n\nThank you for your post. Indeed there was an issue in the detection of the certificates when using MQTT in v1.2.0 of X-CUBE-ST67W61 delivery.\n\nThe new v1.3.0 solve the override of the certificates when they did not change. You can download the latest delivery from [Github.](https://github.com/STMicroelectronics/x-cube-st67w61)\n\nFor the connection issue you face using AWS, did you ensure to give the same certificates when using the Paho MQTT library and ST67 solution ?\n\nDid you correctly store the CA certificate used to generate the client certificate ?\n\nPlease let us know.\n\nRegards\n\nLouis",
+            "best_answer_author": "Louis AUDOLY",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I am working on a project that uses the **ST67W611** for cloud connectivity, but I am experiencing some issues when trying to connect to **AWS IoT Core**.\n\n**Note:** The NCP is already flashed with the **T01** binary.\n\nThe **AWS endpoint** is correct — for the sake of this question, let’s assume it is:\n\nxxxxxx-something.amazonaws.com.\n\n### What Works\n\n**Broker:** test.mosquitto.org\n\nI am able to publish data to the broker and receive data from it when using test.mosquitto.org.\n\nHowever, I am now trying to get it working so that our custom device can connect to **AWS IoT Core**.\n\n### MQTT Configuration\n\n(This is my current MQTT configuration.)\n\n```\n\n#define MQTT_BROKER \t\"xxxxxxxxxxxxxxxxxxus-west-1.amazonaws.com\"\n\n#define MQTT_PORT \t8883\n\n#define MQTT_CLIENT_ID \t\"Thing01\"\n\n#define MQTT_USE_TLS \t4\n\n#define MQTT_KEEPALIVE_S 60\n\nstatic const char s_aws_ca_cert[] =\n\n\"-----BEGIN CERTIFICATE-----\\r\\n\"\n\n\"Conten........\\r\\n\"\n\n\"Conten........\\r\\n\"\n\n.....\n\n\"-----END CERTIFICATE-----\\r\\n\"\n\nstatic const char s_aws_client_cert[] =\n\n\"-----BEGIN CERTIFICATE-----\\r\\n\"\n\n\"Conten........\\r\\n\"\n\n\"Conten........\\r\\n\"\n\n.....\n\n\"-----END CERTIFICATE-----\\r\\n\"\n\nstatic const char s_aws_private_key[] =\n\n\"-----BEGIN RSA PRIVATE KEY-----\\r\\n\"\n\n\"Conten........\\r\\n\"\n\n\"Conten........\\r\\n\"\n\n\"-----END RSA PRIVATE KEY-----\\r\\n\"\n\nstatic W6X_MQTT_Connect_t s_mqtt_cfg = {\n\n.HostName = MQTT_BROKER,\n\n.HostPort = MQTT_PORT,\n\n.MQClientId = MQTT_CLIENT_ID,\n\n.KeepAlive = MQTT_KEEPALIVE_S,\n\n.Scheme = MQTT_USE_TLS,\n\n.SNI_enabled = 1,\n\n.CACertificateContent = (char *)s_aws_ca_cert,\n\n.CertificateContent = (char *)s_aws_client_cert,\n\n.PrivateKeyContent = (char *)s_aws_private_key,\n\n.CACertificateName = \"aws_ca.pem\",\n\n.CertificateName = \"aws_client.crt\",\n\n.PrivateKeyName = \"aws_client.key\",\n\n};\n\nW6X_MQTT_Init(&s_recv_data);\n\nW6X_MQTT_Configure(&s_mqtt_cfg);\n\n```\n\nDevice Logs:\n\n--------------- ST67W6X info ------------\n\nST67W6X MW Version: 1.2.0\n\nAT Version: 1.0.0\n\nSDK Version: 2.0.97\n\nWi-Fi MAC Version: 1.6.44\n\nBT Controller Version: 1.6.121\n\nBT Stack Version: 1.10.70\n\nBuild Date: Nov 19 2025 11:32:00\n\nModule ID: C6AFDBD111400004 (-B)\n\nBOM ID: 2\n\nManufacturing Year: 2025\n\nManufacturing Week: 16\n\nBattery Voltage: 3.308 V\n\nTrim Wi-Fi hp: 6,6,6,6,6,6,6,6,7,7,7,8,8,8\n\nTrim Wi-Fi lp: 5,6,6,7,7,8,8,8,9,9,9,10,10,10\n\nTrim BLE: 5,5,5,6,7\n\nTrim XTAL: 37\n\nMAC Address: 40:82:7b:03:77:84\n\nAnti-rollback Bootloader: 0\n\nAnti-rollback App: 0\n\n-----------------------------------------\n\nWiFi: Connecting to \"F1-FLOOR\"...\n\nWiFi: Associated\n\nFile content is different: Delete operation requested\n\nFile copied to NCP\n\nFile content is different: Delete operation requested\n\nFile copied to NCP\n\nFile content is different: Delete operation requested\n\nFile copied to NCP\n\nWiFi: IP ready — 192.168.100.xxx\n\nMQTT: Connecting to xxxxxxxxxxxxxxxxxx.ats.iot.us-west-1.amazonaws.com:8883...\n\nMQTT: Connected and subscribed to \"test/cmd\"\n\nMQTT: Ready to publish on \"test/data\"\n\nMQTT:Data Published.\n\n### Issues\n\n1. Every time the device boots up, it performs the following operation repeatedly:\n\nFile content is different: Delete operation requested\n\nFile copied to NCP\n\nFile content is different: Delete operation requested\n\nFile copied to NCP\n\nFile content is different: Delete operation requested\n\nFile copied to NCP\n\nEven though I am not changing anything, this process happens on every boot.\n\n1. There is no data appearing on the AWS side.\n\n**Note:** I have already tested AWS connectivity using a test script written in Python with the **Paho MQTT** library, and it works correctly. Therefore, there does not appear to be an issue on the AWS side.",
+            "images": [],
+            "author": "MSalm.2",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"26875\">@MSalm.2</user-mention> ,</p><p>Thank you for your post. Indeed there was an issue in the detection of the certificates when using MQTT in v1.2.0 of X-CUBE-ST67W61 delivery.<br/>The new v1.3.0 solve the override of the certificates when they did not change. You can download the latest delivery from <a href=\"https://github.com/STMicroelectronics/x-cube-st67w61\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Github.</a></p><p>For the connection issue you face using AWS, did you ensure to give the same certificates when using the Paho MQTT library and ST67 solution ?<br/>Did you correctly store the CA certificate used to generate the client certificate ?</p><p>Please let us know.<br/>Regards</p><p>Louis</p></div>",
+                    "author": "Louis AUDOLY",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Louis AUDOLY",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

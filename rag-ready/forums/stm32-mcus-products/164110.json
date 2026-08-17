@@ -1,0 +1,90 @@
+{
+    "forum": [
+        {
+            "id": "164110",
+            "publicId": "164110",
+            "title": "STM32G431 USB dfu , CAN bus , PB8 and nSWBOOT0",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g431-usb-dfu-can-bus-pb8-and-nswboot0-164110",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G4 series",
+                "Bootloader",
+                "CAN",
+                "Flash"
+            ],
+            "published_at": "2026-03-24T13:16:22+00:00",
+            "views": 702,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "I finally found the right code here : <https://github.com/T-K-233/Notes/blob/main/stm32/misc/changing-stm32-default-boot-option.md>\n\nI have modified it , in order to allow to clear or to set the nSWBOOT0 bit .\n\nIt is Arduino code , I hope it isn't an issue ; 2 things one need to watch out for :\n\n- avoid unwanted call to the function (that modifies the nSWBOOT0 bit , or anything in the flash domain)\n\n- avoid to catch the function in an infinite loop , this may destroy the device\n\n```\n\n#define LED PC6\n\nString ze_string;\n\nvoid setup() {\n\nSerial.begin(115200); // USB CDC\n\npinMode(LED, OUTPUT);\n\nwhile (!Serial) { // wait for USB CDC → ok\n\ndelay(50);\n\n}\n\n// if not cleard , clear the nSWBOOT0 in the setup , in order to allow normal CAN operation\n\nSerial.print(\"FLASH->OPTR before setup: \");\n\nSerial.println(FLASH->OPTR, HEX);\n\nif (FLASH->OPTR |= FLASH_OPTR_nSWBOOT0) { // is nSWBOOT0 set ?\n\nset_clear_nSWBOOT0(false); // then clear it\n\ndigitalWrite(LED, HIGH);\n\n}\n\nSerial.print(\"FLASH->OPTR after setup , must be FBEFF8AA : \");\n\nSerial.println(FLASH->OPTR, HEX);\n\n}\n\nvoid loop() {\n\nwhile (Serial.available()) {\n\nze_string = Serial.readString(); // read the incoming data as string\n\nSerial.print(\" Serial: \");\n\nSerial.println(ze_string);\n\nif (ze_string.equals(\"Please dear STM32 , would you be so kind and allow BOOT0 pin to be in use , thank you !\")) {\n\nif ((FLASH->OPTR & FLASH_OPTR_nSWBOOT0) == 0) { // isn't nSWBOOT0 set ?\n\nset_clear_nSWBOOT0(true); // then set it\n\nSerial.println(FLASH->OPTR, HEX);\n\nSerial.println(\" : FFEFF8AA → BOOT0 pin in use , please cycle STM32 before uploading in DFU mode\");\n\ndigitalWrite(LED, LOW);\n\n}\n\n}\n\n}\n\nSerial.print(\"i\"); /// debug\n\nSerial.println(FLASH->OPTR, HEX); /// debug\n\ndelay(500); /// debug\n\n}\n\n// https://github.com/T-K-233/Notes/blob/main/stm32/misc/changing-stm32-default-boot-option.md\n\nvoid set_clear_nSWBOOT0(bool set_nSWBOOT0) {\n\n// 1. Unlock the FLASH_CR with the LOCK clearing sequence\n\n// Check that no Flash memory operation is on going by checking the BSY bit in the Flash status register (FLASH_SR).\n\nwhile (__HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)) {}\n\nHAL_FLASH_Unlock();\n\n// 2. Unlock the FLASH Option Byte with the LOCK clearing sequence\n\n// Check that no Flash memory operation is on going by checking the BSY bit in the Flash status register (FLASH_SR).\n\nwhile (__HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)) {}\n\nHAL_FLASH_OB_Unlock();\n\n// 3. program OPTR\n\nif (set_nSWBOOT0) { // → set nSWBOOT0 bit\n\nif (FLASH->OPTR | FLASH_OPTR_nSWBOOT0) // is nSWBOOT0 set ?\n\nFLASH->OPTR |= FLASH_OPTR_nSWBOOT0; // default to boot according BOOT0 pin\n\n} else { // → clear nSWBOOT0 bit\n\nif (FLASH->OPTR | FLASH_OPTR_nSWBOOT0 == 0) // isn't nSWBOOT0 set ?\n\nFLASH->OPTR &= ~FLASH_OPTR_nSWBOOT0; // default to boot from flash\n\n}\n\n// 4. Set the Options Start bit OPTSTRT in the Flash control register (FLASH_CR).\n\nSET_BIT(FLASH->CR, FLASH_CR_OPTSTRT);\n\n// 4.1 clear status register\n\nSET_BIT(FLASH->SR, FLASH_SR_OPTVERR | FLASH_SR_RDERR);\n\n// 5. Wait for the BSY bit to be cleared.\n\nwhile (__HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)) {}\n\n// 6. Lock Flash\n\n// If LOCK is set by software, OPTLOCK is automatically set too\n\nHAL_FLASH_Lock();\n\n// 7. reload the new settings\n\n// seems this line will cause error when put before FLASH_Lock(), which will then corrupt all Flash settings\n\n// so putting it here\n\n// can also comment out this line and just power cycle to update the flash settings\n\nHAL_FLASH_OB_Launch();\n\n}\n\n```",
+            "best_answer_author": "mwalt.3",
+            "best_answer_author_role": "Associate III",
+            "content_text": "The problem is that the transceiver will set the RX pin high at boot , this will put the G431 in boot mode and never start . The question is how to set and reset the nSWBOOT0 bit in the program . I mean , if I am right ::\n\n2) at setup (yes , Arduino) , the nSWBOOT0 bit is set in order to disable BOOT0 pin , thus allow normal (CAN bus) operation after boot  on PB8 .\n\n1) but this will reset the STM32 , so before doing 2) , one need to read the level of nSWBOOT0 , and only set it if it is 0 . (one time action)\n\n3) but this will brick the DFU uploading . To reset this , for exemple by a customer In order to update the firmware , one have to reset the nSWBOOT0 by the program . This could be done by a button , or by a code received trough USB .\n\nHope this is clear enough (and correct of course) . But doing this is not that simple for me , so I wonder if there is a working code available for this (sure , some people have done the trick successfully ) ?\n\nThank you !\n\nEdit : correct name = nSWBOOT0 bit",
+            "images": [],
+            "author": "mwalt.3",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"40372\">@mwalt.3</user-mention> </p>\n<p>You can disable the hardware BOOT0 pin. When nSWBOOT0 = 1, the MCU no longer samples the BOOT0 pin at reset and PB8 is free to be used as CAN RX without affecting the boot mode.</p>\n<p><span>Disabling the BOOT0 </span>pindoes not remove the bootloader, it <span>only removes the BOOT0 pin high at reset entry. You can still implement jump to system memory bootloader from your firmware as documented in AN2606.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you FBL ,</p><p>yes , it is what I meant , but my question is more : how can I do  nSWBoot0(bit) = 1 or nSWBoot0(bit) = 0 ?</p><p>It is not that obvious , because this bit is in flash , witch has special access . <span>AN2606 doesn't give any indication for how to set or reset this bit ...</span></p></div>",
+                    "author": "mwalt.3",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"40372\">@mwalt.3</user-mention> </p>\n<p>To set nSWBOOT0 bit to 1 or 0, you need to modify the option bytes. This is typically done using STM32CubeProgrammer. Attached screenshot from STM32CubeProgrammer. </p>\n<p>I hope this helps.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>yes , but I want to set <span>nSWBoot0 bit , or reset it , through the firmware , and still looking for a beginning of a piece of code for this</span></p></div>",
+                    "author": "mwalt.3",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The placement of the CAN_RX pin on the BOOT0 pin was a very bad design decision by ST on this MCU.</p><p>Se how others have worked around the problem:</p><p><a href=\"https://github.com/makerbase-mks/CANable-MKS/blob/main/Hardware/MKS%20CANable%20V2.0/MKS%20CANable%20V2.0_001%20schematic.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/makerbase-mks/CANable-MKS/blob/main/Hardware/MKS%20CANable%20V2.0/MKS%20CANable%20V2.0_001%20schematic.pdf</a></p><p>This results in:</p><p>Running application when powered on, but run bootloader when switched off-on fast. (C7 remains charged)</p></div>",
+                    "author": "MHoll.2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\">Hi <user-mention data-id=\"23095\">@MHoll.2</user-mention> , I don't understand the role of C7 , did you mean C3 ?</div><div class=\"\"> </div></div>",
+                    "author": "mwalt.3",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes C3, sorry</p></div>",
+                    "author": "MHoll.2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I finally found the right code here : <span><a href=\"https://github.com/T-K-233/Notes/blob/main/stm32/misc/changing-stm32-default-boot-option.md\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/T-K-233/Notes/blob/main/stm32/misc/changing-stm32-default-boot-option.md</a></span></p><p>I have modified it , in order to allow to clear or to set the <span>n</span><span>SWBOOT0 bit .</span></p><p>It is Arduino code , I hope it isn't an issue ; 2 things one need to watch out for :</p><p>- avoid unwanted call to the function (that modifies the <span>nSWBOOT0 bit , or anything in the flash domain)</span></p><p><span>- avoid to catch the function in an infinite loop , this may destroy the device</span></p><pre class=\"lia-code-sample language-cpp\"><code>#define LED PC6\n\nString ze_string;\n\nvoid setup() {\n Serial.begin(115200); // USB CDC\n pinMode(LED, OUTPUT);\n while (!Serial) { // wait for USB CDC → ok\n delay(50);\n }\n\n // if not cleard , clear the nSWBOOT0 in the setup , in order to allow normal CAN operation\n Serial.print(\"FLASH-&gt;OPTR before setup: \");\n Serial.println(FLASH-&gt;OPTR, HEX);\n if (FLASH-&gt;OPTR |= FLASH_OPTR_nSWBOOT0) { // is nSWBOOT0 set ?\n set_clear_nSWBOOT0(false); // then clear it\n digitalWrite(LED, HIGH);\n }\n Serial.print(\"FLASH-&gt;OPTR after setup , must be FBEFF8AA : \");\n Serial.println(FLASH-&gt;OPTR, HEX);\n}\n\nvoid loop() {\n while (Serial.available()) {\n ze_string = Serial.readString(); // read the incoming data as string\n Serial.print(\" Serial: \");\n Serial.println(ze_string);\n\n if (ze_string.equals(\"Please dear STM32 , would you be so kind and allow BOOT0 pin to be in use , thank you !\")) {\n if ((FLASH-&gt;OPTR &amp; FLASH_OPTR_nSWBOOT0) == 0) { // isn't nSWBOOT0 set ?\n set_clear_nSWBOOT0(true); // then set it\n Serial.println(FLASH-&gt;OPTR, HEX);\n Serial.println(\" : FFEFF8AA → BOOT0 pin in use , please cycle STM32 before uploading in DFU mode\");\n digitalWrite(LED, LOW);\n }\n }\n }\n Serial.print(\"i\"); /// debug\n Serial.println(FLASH-&gt;OPTR, HEX); /// debug\n delay(500); /// debug\n}\n\n// https://github.com/T-K-233/Notes/blob/main/stm32/misc/changing-stm32-default-boot-option.md\nvoid set_clear_nSWBOOT0(bool set_nSWBOOT0) {\n // 1. Unlock the FLASH_CR with the LOCK clearing sequence\n // Check that no Flash memory operation is on going by checking the BSY bit in the Flash status register (FLASH_SR).\n while (__HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)) {}\n HAL_FLASH_Unlock();\n\n // 2. Unlock the FLASH Option Byte with the LOCK clearing sequence\n // Check that no Flash memory operation is on going by checking the BSY bit in the Flash status register (FLASH_SR).\n while (__HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)) {}\n HAL_FLASH_OB_Unlock();\n\n // 3. program OPTR\n if (set_nSWBOOT0) { // → set nSWBOOT0 bit\n if (FLASH-&gt;OPTR | FLASH_OPTR_nSWBOOT0) // is nSWBOOT0 set ?\n FLASH-&gt;OPTR |= FLASH_OPTR_nSWBOOT0; // default to boot according BOOT0 pin\n } else { // → clear nSWBOOT0 bit\n if (FLASH-&gt;OPTR | FLASH_OPTR_nSWBOOT0 == 0) // isn't nSWBOOT0 set ?\n FLASH-&gt;OPTR &amp;= ~FLASH_OPTR_nSWBOOT0; // default to boot from flash\n }\n\n // 4. Set the Options Start bit OPTSTRT in the Flash control register (FLASH_CR).\n SET_BIT(FLASH-&gt;CR, FLASH_CR_OPTSTRT);\n\n // 4.1 clear status register\n SET_BIT(FLASH-&gt;SR, FLASH_SR_OPTVERR | FLASH_SR_RDERR);\n\n // 5. Wait for the BSY bit to be cleared.\n while (__HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)) {}\n\n // 6. Lock Flash\n // If LOCK is set by software, OPTLOCK is automatically set too\n HAL_FLASH_Lock();\n\n // 7. reload the new settings\n // seems this line will cause error when put before FLASH_Lock(), which will then corrupt all Flash settings\n // so putting it here\n // can also comment out this line and just power cycle to update the flash settings\n HAL_FLASH_OB_Launch();\n}</code></pre></div>",
+                    "author": "mwalt.3",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

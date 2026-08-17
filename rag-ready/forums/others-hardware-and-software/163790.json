@@ -1,0 +1,97 @@
+{
+    "forum": [
+        {
+            "id": "163790",
+            "publicId": "163790",
+            "title": "STM8: Problem displaying ADC value",
+            "url": "https://community.st.com/others-hardware-and-software-57/stm8-problem-displaying-adc-value-163790",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STM8 MCUs"
+            ],
+            "published_at": "2026-03-14T04:58:34+00:00",
+            "views": 577,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "For testing, the suggestion of @AA1 is very good, but it has one disadvantage: functions like printf, snprintf, etc., occupy quite a lot of flash memory, which is usually quite limited in an STM8S105, which only provides 16KB or 32KB. In this respect, the original version by @ankhola is more resource-efficient, it just needs to be adapted to work.\n\nFirst of all, @AA1 correctly pointed out that the data alignment is left by default. However, it can be very easily changed via CR2:\n\n```\n\nADC1->CR2 = 0x08; // RIGHT alignment (ALIGN = 1)\n\n```\n\nFurthermore, you should include a limit for test\\_var in your code, e.g. 9999:\n\n```\n\nwhile (1)\n\n{\n\nuint16_t test_var = read_adc_value();\n\nif (test_var > 9999) { test_var = 9999; } // protection optional\n\nchar d4 = (test_var % 10) + '0';\n\nchar d3 = (test_var / 10 % 10) + '0';\n\nchar d2 = (test_var / 100 % 10) + '0';\n\nchar d1 = (test_var / 1000) + '0';\n\nLcd_Set_Cursor(2, 6);\n\nLcd_Print_Char(d1);\n\nLcd_Print_Char(d2);\n\nLcd_Print_Char(d3);\n\nLcd_Print_Char(d4);\n\ndelay_ms(1000);\n\n}\n\n```\n\nWith this, your example should already work. However, it still shows leading zeros, which can be removed with an additional function:\n\n```\n\nvoid Lcd_Print_Uint(uint16_t value)\n\n{\n\nchar buf[6]; // max 5 digits + '\\0'\n\nint i = 0;\n\nif (value == 0)\n\n{ buf[i++] = '0'; } // special case 0\n\nelse\n\n{\n\nwhile (value > 0 && i < 5) // store digits from back to front\n\n{\n\nbuf[i++] = (value % 10) + '0';\n\nvalue /= 10;\n\n}\n\n}\n\nbuf[i] = '\\0';\n\nfor (int j=0; j<i/2; j++) // reverse string because we started from the back\n\n{\n\nchar tmp = buf[j];\n\nbuf[j] = buf[i-j-1];\n\nbuf[i-j-1] = tmp;\n\n}\n\nLcd_Print_String(buf);\n\n}\n\n```\n\nYou could then use this function with:\n\n```\n\nwhile (1)\n\n{\n\nuint16_t test_var = read_adc_value();\n\nif (test_var > 9999) { test_var = 9999; } // protection optional\n\nLcd_Set_Cursor(2, 6);\n\nLcd_Print_Uint(test_var);\n\ndelay_ms(1000);\n\n}\n\n```\n\nHope that helps?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi Guys,\n\nBased on some tutorials, I am trying to execute ADC module of STM8S105 and display the ADC result in 16x2 LCD display. The problem is : thousandth digit place is showing alphabetic character right from \"A\"  when I increase voltage on ADC channel from 0. Please see my code as well as adc.h file. I am eagerly awaiting someone to suggest where I have made the mistake.\n\n```\n\n#define LCD_RS GPIOD, GPIO_PIN_2\n\n#define LCD_EN GPIOD, GPIO_PIN_3\n\n#define LCD_DB4 GPIOD, GPIO_PIN_4\n\n#define LCD_DB5 GPIOD, GPIO_PIN_5\n\n#define LCD_DB6 GPIOD, GPIO_PIN_6\n\n#define LCD_DB7 GPIOD, GPIO_PIN_7\n\n#include \"STM8S.h\"\n\n#include \"lcd.h\"\n\n#include \"adc1.h\"\n\nmain()\n\n{\n\n//Variable declarations\n\nunsigned int test_var ;\n\nchar d4,d3,d2,d1;\n\ngpio_adc_init();\n\nadc_init();\n\nLcd_Begin();\n\nLcd_Clear();\n\nLcd_Set_Cursor(1,1);\n\nLcd_Print_String(\"STM8S103F3P3 LCD\");\n\ndelay_ms(5000);\n\nLcd_Clear();\n\nLcd_Set_Cursor(1,1);\n\nLcd_Print_String(\"Circuit Digest\");\n\nLcd_Set_Cursor(2,1);\n\nLcd_Print_String(\"Test: \");\n\nwhile (1)\n\n{\n\ntest_var = read_adc_value();\n\nd4 = test_var%10 + '0';\n\nd3 = (test_var/10)%10 + '0';\n\nd2 = (test_var/100)%10 + '0';\n\nd1 = (test_var/1000) + '0';\n\nLcd_Set_Cursor(2,6);\n\nLcd_Print_Char(d1);\n\nLcd_Print_Char(d2);\n\nLcd_Print_Char(d3);\n\nLcd_Print_Char(d4);\n\ndelay_ms(1000);\n\n//test_var++;\n\n}\n\n}\n\n#ifdef USE_FULL_ASSERT\n\nvoid assert_failed(uint8_t* file, uint32_t line)\n\n{\n\nwhile (1)\n\n{\n\n}\n\n}\n\n#endif\n\n```\n\nadc.h\n\n```\n\nuint16_t value;\n\nvoid gpio_adc_init(void) {\n\nCLK_PeripheralClockConfig(CLK_PERIPHERAL_ADC, ENABLE);\n\nGPIO_Init(GPIOB, GPIO_PIN_4, GPIO_MODE_IN_FL_NO_IT);\n\n}\n\nvoid adc_init(void) {\n\nADC1 -> CSR = 0x04;\n\nADC1 -> CR1 = 0x40;\n\nADC1 -> CR2 = 0x00;\n\nADC1 -> TDRH = 0xFF;\n\nADC1 -> TDRL = 0xFF;\n\nADC1 -> CR1 |= ADC1_CR1_ADON;\n\n}\n\nuint16_t read_adc_value(void) {\n\n// Start the conversion process\n\nADC1_StartConversion();\n\n// Wait until the end of conversion (EOC) flag is set\n\nwhile(ADC1_GetFlagStatus(ADC1_FLAG_EOC) == FALSE);\n\n// Read the 10-bit value (clears the EOC flag automatically when the data registers are accessed correctly)\n\nvalue = ADC1_GetConversionValue();\n\nADC1_ClearFlag(ADC1_FLAG_EOC); // Explicitly clear the flag if needed, depending on read method and mode\n\nreturn value;\n\n}\n\n```",
+            "images": [],
+            "author": "ankhola",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Try this:</p><pre class=\"lia-code-sample language-c\"><code>char str[8];\nsprintf(str, \"%04u\", test_var);\nLcd_Print_String(str);</code></pre><p>If the problem continues, the problem should be Data alignment. By default Data alignment is left. Change it to right.</p><p> </p></div>",
+                    "author": "AA1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have inserted the snippet of code just below the \"read_adc_value()\" function in while loop and deleted the rest. Code did not build. Errors are attached.</p><p> </p><pre class=\"lia-code-sample language-c\"><code>#error cpstm8 main.c:35(0+4) misplaced local declaration\n#error cpstm8 main.c:36(7) missing prototype\n#error cpstm8 main.c:37(17+3) incompatible argument type\n#error cpstm8 main.c:36(8+3) str undefined</code></pre><p> </p><pre class=\"lia-code-sample language-c\"><code>while (1)\n\n\n{ \ntest_var = read_adc_value();\nchar str[8];\nsprintf(str, \"%04u\", test_var);\nLcd_Print_String(str);</code></pre></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Variables definition must be before any other code. Try this:</p><pre class=\"lia-code-sample language-c\"><code>while (1)\n{ \nchar str[8];\ntest_var = read_adc_value();\nsprintf(str, \"%04u\", test_var);\nLcd_Print_String(str);</code></pre><p> </p></div>",
+                    "author": "AA1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For testing, the suggestion of <user-mention data-id=\"26650\">@AA1</user-mention> is very good, but it has one disadvantage: functions like printf, snprintf, etc., occupy quite a lot of flash memory, which is usually quite limited in an STM8S105, which only provides 16KB or 32KB. In this respect, the original version by <user-mention data-id=\"101056\">@ankhola</user-mention> is more resource-efficient, it just needs to be adapted to work.</p>\n<p>First of all, <user-mention data-id=\"26650\">@AA1</user-mention> correctly pointed out that the data alignment is left by default. However, it can be very easily changed via CR2:</p>\n<pre class=\"lia-code-sample language-c\"><code>ADC1-&gt;CR2 = 0x08; // RIGHT alignment (ALIGN = 1)</code></pre>\n<p>Furthermore, you should include a limit for test_var in your code, e.g. 9999:</p>\n<pre class=\"lia-code-sample language-c\"><code>while (1)\n{\n uint16_t test_var = read_adc_value();\n\n if (test_var &gt; 9999) { test_var = 9999; } // protection optional\n\n char d4 = (test_var % 10) + '0';\n char d3 = (test_var / 10 % 10) + '0';\n char d2 = (test_var / 100 % 10) + '0';\n char d1 = (test_var / 1000) + '0';\n\n Lcd_Set_Cursor(2, 6);\n Lcd_Print_Char(d1);\n Lcd_Print_Char(d2);\n Lcd_Print_Char(d3);\n Lcd_Print_Char(d4);\n\n delay_ms(1000);\n}</code></pre>\n<p>With this, your example should already work. However, it still shows leading zeros, which can be removed with an additional function:</p>\n<pre class=\"lia-code-sample language-c\"><code>void Lcd_Print_Uint(uint16_t value)\n{\n char buf[6]; // max 5 digits + '\\0'\n int i = 0;\n\n if (value == 0)\n { buf[i++] = '0'; } // special case 0\n else\n {\n while (value &gt; 0 &amp;&amp; i &lt; 5) // store digits from back to front\n {\n buf[i++] = (value % 10) + '0';\n value /= 10;\n }\n }\n buf[i] = '\\0';\n\n for (int j=0; j&lt;i/2; j++) // reverse string because we started from the back\n {\n char tmp = buf[j];\n buf[j] = buf[i-j-1];\n buf[i-j-1] = tmp;\n }\n\n Lcd_Print_String(buf);\n}</code></pre>\n<p>You could then use this function with:</p>\n<pre class=\"lia-code-sample language-c\"><code>while (1)\n{\n uint16_t test_var = read_adc_value();\n\n if (test_var &gt; 9999) { test_var = 9999; } // protection optional\n\n Lcd_Set_Cursor(2, 6);\n Lcd_Print_Uint(test_var);\n delay_ms(1000);\n}</code></pre>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p>\n<p> </p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks both of you. Right aligning the ADC result, the problem is over. As stated by <span>Peter, \"However, it still shows leading zeros\", it is mentioned that the leading character, i.e. thousandth digit was showing alphabets starting from \"A\" to special characters. I could not understand this weird behavior.</span></p><p> </p><p><span>Regards. </span></p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your last comment with the strange characters refers to the previous case with left-aligned results, right?</p>\n<p>Well, just imagine that you’re getting results in the upper range. Then you work out the corresponding value, e.g. 0x3ff = 1023, look at section 24.8. data alignment in RM0016 and work out what d1 gives in your calculation. And finally, you check the character table for the 16x2 LCD to see what is displayed with that hex value.</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks Peter. I got the point. actually I thought that whatever alignment settings is configured in code, it will be handled by peripheral library function which shows as follows. However, I shall take the liberty to ask another query to you. While printing the value (d1 to d4), Cursor is set once. But the column is advancing as usual. How it is advancing?</p><p> </p><p>Regards.</p><p> </p><p>Library Function:</p><pre class=\"lia-code-sample language-c\"><code>uint16_t ADC1_GetConversionValue(void)\n{\n uint16_t temph = 0;\n uint8_t templ = 0;\n \n if ((ADC1-&gt;CR2 &amp; ADC1_CR2_ALIGN) != 0) /* Right alignment */\n {\n /* Read LSB first */\n templ = ADC1-&gt;DRL;\n /* Then read MSB */\n temph = ADC1-&gt;DRH;\n \n temph = (uint16_t)(templ | (uint16_t)(temph &lt;&lt; (uint8_t)8));\n }\n else /* Left alignment */\n {\n /* Read MSB first*/\n temph = ADC1-&gt;DRH;\n /* Then read LSB */\n templ = ADC1-&gt;DRL;\n \n temph = (uint16_t)((uint16_t)((uint16_t)templ &lt;&lt; 6) | (uint16_t)((uint16_t)temph &lt;&lt; 8));\n }\n \n return ((uint16_t)temph);\n}</code></pre><p> </p><p>My Query:</p><pre class=\"lia-code-sample language-c\"><code> Lcd_Set_Cursor(2, 6);\n Lcd_Print_Char(d1);\n Lcd_Print_Char(d2);\n Lcd_Print_Char(d3);\n Lcd_Print_Char(d4);</code></pre><p> </p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The column advances because the HD44780‑compatible LCD controller automatically moves the cursor after each character write, not because Lcd_Set_Cursor() is called multiple times. Therefore, d1, d2, d3 and d4 appear in consecutive columns (6, 7, 8, 9) even though the cursor is explicitly set only once in the code.</p>\n<p>The ADC function is unrelated; it merely provides the data that you later display.</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks Peter.</p></div>",
+                    "author": "ankhola",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

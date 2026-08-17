@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "164118",
+            "publicId": "164118",
+            "title": "STM32CubeMX 6.17 FreeRTOS CMSIS-V2: some params missing from IOC/model, generated as (valueNotSetted)",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-6-17-freertos-cmsis-v2-some-params-missing-from-ioc-model-generated-as-valuenotsetted-164118",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-24T17:25:30+00:00",
+            "views": 339,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @ruddy17\n\nYour detailed explanation is much appreciated.\n\nIssue has been escalated to dev team under internal ticket ID **#0060998**\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI found a CubeMX database issue affecting STM32H747 dual-core projects using FreeRTOS with CMSIS-RTOS V2.\n\n**Environment**\n\nMCU: STM32H747\n\nCube/HAL: STM32CubeH7 1.13.x\n\nCubeMX: 6.17\n\nFreeRTOS: 10.6.2\n\n**Problem**\n\nTwo FreeRTOS configuration parameters are not present in the MicroXplorer Configuration settings and are not retained in the internal IOC model:\n\n```\n\nconfigUSE_SB_COMPLETED_CALLBACK\n\nconfigUSE_MINI_LIST_ITEM\n\n```\n\nBecause of that, code generation can produce invalid output in FreeRTOSConfig.h such as:\n\n```\n\n#define configUSE_MINI_LIST_ITEM ( valueNotSetted )\n\n#define configUSE_SB_COMPLETED_CALLBACK ( valueNotSetted )\n\n```\n\nThis breaks the build and/or downstream FreeRTOS code.\n\nEditing the .ioc manually does not solve it permanently, because CubeMX overwrites the .ioc on regeneration.\n\nAdding manual defines in USER CODE blocks is only a local workaround and does not fix the root cause.\n\n**Root cause found**\n\nThe issue appears to be in the CubeMX FreeRTOS mode database, not in the generated project itself.\n\nFor STM32H747, CubeMX uses a FreeRTOS mode definition named FREERTOS-v8.0.0\\_Cube\\_Modes.xml for the UI/model layer, even though the generated FreeRTOS content/template is 10.6.2.\n\nInside that mode file, the two missing parameters were defined with a condition using: S\\_CMSIS\\_RTOS\\_V2\n\nBut for H747 dual-core per-context FreeRTOS instances, they need to be context-aware like the neighboring parameters, for example: S\\_CMSIS\\_RTOS\\_V2$context.\n\nWithout $context, those parameters are not properly exposed or persisted for the per-core FreeRTOS instances.\n\n**Local fix that works**\n\nIn the CubeMX database file db/mcu/IP/FREERTOS-v8.0.0\\_Cube\\_Modes.xml, change the condition for configUSE\\_SB\\_COMPLETED\\_CALLBACK from S\\_CMSIS\\_RTOS\\_V2 to S\\_CMSIS\\_RTOS\\_V2$context.\n\nDo the same for configUSE\\_MINI\\_LIST\\_ITEM, again changing S\\_CMSIS\\_RTOS\\_V2 to S\\_CMSIS\\_RTOS\\_V2$context.\n\nAfter this change, the issue is fixed on my side.\n\nAdditional defensive fix\n\nTo prevent broken generation even if the parameters are still missing in some cases, I also added fallback defaults in the FreeRTOS H7 template file db/templates/freertos\\_conf\\_v10\\_6\\_2\\_cmsis\\_v2.ftl.\n\nThe defaults I added were:\n\n* valueUSE\\_SB\\_COMPLETED\\_CALLBACK = 0\n\n* valueUSE\\_MINI\\_LIST\\_ITEM = 1\n\nThis avoids generation of valueNotSetted in FreeRTOSConfig.h.\n\nWhy this is confusing\n\nCubeMX shows or generates FreeRTOS 10.6.2, but the bug is in the v8.0.0\\_Cube mode XML.\n\nFrom debugging this, it looks like:\n\n* the v8.0.0\\_Cube file is the CubeMX metadata and UI layer\n\n* the 10.6.2 files are the actual generation and template layer\n\nSo the wrong behavior comes from the UI/model database, while the generated template already expects the two parameters correctly.\n\n**Expected behavior**\n\nFor STM32H747 FreeRTOS CMSIS-V2 projects, CubeMX should:\n\n* expose configUSE\\_SB\\_COMPLETED\\_CALLBACK\n\n* expose configUSE\\_MINI\\_LIST\\_ITEM\n\n* persist them in the internal model and IOC\n\n* generate valid values in FreeRTOSConfig.h\n\n**Observed behavior**\n\nCubeMX omits those settings from the model/UI for H747 and can generate invalid FreeRTOSConfig.h output where configUSE\\_MINI\\_LIST\\_ITEM and configUSE\\_SB\\_COMPLETED\\_CALLBACK are set to valueNotSetted.\n\n**Request**\n\nPlease fix the FreeRTOS mode database for H747 dual-core/per-context handling so these two parameters use the correct context-aware condition and are always generated with valid values.",
+            "images": [],
+            "author": "ruddy17",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I can confirm this is a real CubeMX code generation bug.</p><p>With newer FreeRTOS, CubeMX generated the following invalid setting in FreeRTOSConfig.h:<br/>#define configUSE_MINI_LIST_ITEM ( valueNotSetted )</p><p><br/>Because this is used in preprocessor #if expressions, it effectively behaves as 0. In newer FreeRTOS versions this changes the internal layout of List_t / MiniListItem_t.</p><p>As a result, FreeRTOS thread-aware debugging breaks. In my case:</p><ul><li>J-Link + Cortex-Debug + FreeRTOS awareness stopped working correctly<br/>breakpoints were unreliable<br/>stepping often crashed GDB<br/>debugger logs showed failures reading FreeRTOS task stack frames</li></ul></div>",
+                    "author": "Lproger",
+                    "role": "Explorer"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"81544\">@ruddy17</user-mention> </p>\n<p>Your detailed explanation is much appreciated.</p>\n<p>Issue has been escalated to dev team under internal ticket ID <strong>#0060998 </strong></p>\n<p>I will keep you posted with updates.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

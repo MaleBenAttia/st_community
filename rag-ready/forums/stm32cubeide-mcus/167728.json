@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "167696",
+            "publicId": "167728",
+            "title": "Problem with compiling the project STM32H7R7",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/problem-with-compiling-the-project-stm32h7r7-167728",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "TouchGFX"
+            ],
+            "published_at": "2026-08-16T12:01:39+00:00",
+            "views": 55,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "This actually adds a “linked” source file to Eclipse project.\n\nIn the GUI: select New… File\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/32815f24-70e9-4674-acad-ef4a99146323.png)\n\nThen : Advanced -> Link to file in the file system, and enter the actual .c file path.\n\nIt can differ from the “link” filename, just as usual with symlinks.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8195bc5c-1ff1-4b11-95d7-f0ca396ae8dc.png)\n\nThere are few ways to add source files to a project.\n\nCubeIDE is based on Eclipse CDT IDE. The latter is widespread, but not very easy for beginners. Take your time, get to know it. Read the User guide.",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "Hello everyone.\n\nI'm creating a TouchGFX project for a custom PCB with an STM32H7R7I8T6. After initial compilation issues, I unchecked the \"Generate Under Root\" option in the project manager and managed to compile the empty project and upload it to the MCU. Now I want to add a driver for the GT911 touch panel. I add one file, gt911.h, to the \"Appli/Core/Inc\" location, and it's visible, but the gt911.c file in the \"Appli/Core/Src\" location isn't visible to the project. This is my first time using this project organization and I can't figure it out.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c81af6c5-c371-4d66-8a43-70d94a5c212c.jpg)\n\nPlease help.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8195bc5c-1ff1-4b11-95d7-f0ca396ae8dc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c81af6c5-c371-4d66-8a43-70d94a5c212c.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/32815f24-70e9-4674-acad-ef4a99146323.png"
+            ],
+            "author": "Procek",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt; I add one file, gt911.h,</p><p>How you “add” ?</p><p>To let the IDE know, you want something add to a project, you have to import it.</p><p>right click on the folder, you want it to be, maybe : project...core….Src </p><p>- &gt; import - &gt; general &gt; file system - &gt; choose directory with file(s) to import.</p><p>Do it for inc and .c , to get them to the directory in project you like.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I copied the file into the folder from the IDE as I always do, and I never had a problem...</p><p>I used your method, but the result is the same.</p><p>Previously, whenever I needed to add a custom driver, I added a \"Source Folder,\" created two additional folders, \"Src\" and \"Inc,\" and then right-clicked the \"Src\" folder and selected \"Add/remove include path...\". I've never had a problem with this. This is the first time I've created a project that actually consists of three projects: Appli, Boot, and ExtiMemLoader.</p><p>With the \"Generate under root\" option selected in the Stm32CubeMx \"Project Manager,\" there are too many problems, especially with TouchGfx, and they recommend against selecting this option. Without it, the project looks and behaves completely differently...</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I managed to solve the problem somewhat through the backdoor.</p><p>I edited the \".project\" file and manually added the following entry:</p><p>&lt;/link&gt;<br/>    &lt;name&gt;Application/User/Core/gt911.c&lt;/name&gt;<br/>    &lt;type&gt;1&lt;/type&gt;<br/>    &lt;locationURI&gt;PARENT-2 PROJECT_LOC/Appli/Core/Src/gt911.c&lt;/locationURI&gt;<br/>&lt;/link&gt;</p><p> </p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This actually adds a “linked” source file to Eclipse project. </p><p>In the GUI: select New… File</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/32815f24-70e9-4674-acad-ef4a99146323.png\"/></figure><p> </p><p> </p><p>Then : Advanced -&gt; Link to file in the file system, and enter the actual .c file path.</p><p>It can differ from the “link” filename, just as usual with symlinks.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8195bc5c-1ff1-4b11-95d7-f0ca396ae8dc.png\"/></figure><p>There are few ways to add source files to a project.</p><p>CubeIDE is based on Eclipse CDT IDE. The latter is widespread, but not very easy for beginners. Take your time, get to know it. Read the User guide.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I tested your method and it works. Thanks. This is the first time I've used this file system (with the \"Generate Under Roots\" option unchecked). Previously, I simply dragged the file to the appropriate folder...then the program asked how to import the file, and that was enough. I've never had any compilation problems. Most ST tutorials used this method...</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

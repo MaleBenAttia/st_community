@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "165476",
+            "publicId": "165476",
+            "title": "STMC Board Designer 1.2.2 Over current STSPIN32G4 internal op-amp graphical representation is erroneous",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/stmc-board-designer-1-2-2-over-current-stspin32g4-internal-op-amp-graphical-representation-is-erroneous-165476",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "Bug-report",
+                "STM32 motor control",
+                "FOC",
+                "MC workbench"
+            ],
+            "published_at": "2026-05-07T12:07:50+00:00",
+            "views": 239,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The Motor Control Workbench User's Manual is correct with the proper graphical representation.\n\nSTM32 Motor Control SDK: Current sensing and protection using embedded OpAmps and Comparators\n\n![bfa001_0-1778657300020.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/114dacd1-e3a6-f40c-5fd9-d21fc53a5a30.png \"bfa001_0-1778657300020.png\")\n\n![bfa001_1-1778657331977.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/90e4c926-1b41-cd1e-417a-c589a693725c.png \"bfa001_1-1778657331977.png\")\n\nImportantly, the op-amp output cannot be used for over-current sensing because during power up and reset they are not operational. As a result, if using an op-amp output and there is a short happening during power-up or reset, the over-current protection will be disabled during those transient times.\n\nbfa001",
+            "best_answer_author": "bfa001",
+            "best_answer_author_role": "Associate II",
+            "content_text": "The graphical representation shows an internal op-amp amplifying the signal entering the comparator's positive input.\n\nHowever, the STSPIN32G4 positive input comparator cannot be an op-amp output unfortunately and is limited to op-amp positive inputs - see Ref. Manual RM0440 ver 9 (Figure 168).\n\nThis is misleading, because only non-amplified signals gets to the positive input of the comparator.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/90e4c926-1b41-cd1e-417a-c589a693725c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/114dacd1-e3a6-f40c-5fd9-d21fc53a5a30.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/73c10514-90d0-9b2c-2cb5-973cbcca5081.png"
+            ],
+            "author": "bfa001",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"99304\">@bfa001</user-mention>,</p>\n<p><span>In Board Designer overcurrent protection internal comparator OCP mode, the MCU is limited to the area indicated by the red square. In the description, OPAMP refers to the external gain value and does not indicate the use of an internal OpAmp Ip.</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 400px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/73c10514-90d0-9b2c-2cb5-973cbcca5081.png\" title=\"image.png\"/></span></p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ,</p><p>The graphical representation is misleading - the selection of the internal op-amp must follow the correct representation with the positive input connected to the outside pin selected.</p><p>To say that only a part of this graphical representation is valid is ludicrous - when the output of an op-amp is connected graphically.</p><p>This is so confusing for the person who start a custom board design and may lead to incorrect choices.</p><p>Kind regards,</p><p>bfa001</p><p> </p><p> </p><p> </p></div>",
+                    "author": "bfa001",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The Motor Control Workbench User's Manual is correct with the proper graphical representation.</p><p><a>STM32 Motor Control SDK: Current sensing and protection using embedded OpAmps and Comparators</a></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"bfa001_0-1778657300020.png\" style=\"width: 400px;\"><img alt=\"bfa001_0-1778657300020.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/114dacd1-e3a6-f40c-5fd9-d21fc53a5a30.png\" title=\"bfa001_0-1778657300020.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"bfa001_1-1778657331977.png\" style=\"width: 400px;\"><img alt=\"bfa001_1-1778657331977.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/90e4c926-1b41-cd1e-417a-c589a693725c.png\" title=\"bfa001_1-1778657331977.png\"/></span></p><p>Importantly, the op-amp output cannot be used for over-current sensing because during power up and reset they are not operational. As a result, if using an op-amp output and there is a short happening during power-up or reset, the over-current protection will be disabled during those transient times.</p><p>bfa001</p><p> </p><p> </p></div>",
+                    "author": "bfa001",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

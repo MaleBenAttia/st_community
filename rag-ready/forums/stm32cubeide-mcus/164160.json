@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164160",
+            "publicId": "164160",
+            "title": "stm32cubeide V 2.1.1 crtn.o executable stack bug back again despite having -z noexecstack set",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/stm32cubeide-v-2-1-1-crtn-o-executable-stack-bug-back-again-despite-having-z-noexecstack-set-164160",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "Bug-report"
+            ],
+            "published_at": "2026-03-25T14:14:21+00:00",
+            "views": 320,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @rjenkinsgb\n\nLet me thank you for your feedback.\n\nThis is a known limitation marked on [STM32CubeIDE:STM32CubeIDE errata 2.1.x - stm32mcu.](https://wiki.st.com/stm32mcu/wiki/STM32CubeIDE:STM32CubeIDE_errata_2.1.x)\n\nAs work around, I recommend that you add this flag **-z noexecstack** under (Project > Properties > C/C++ Build > Settings > MCU/MPU GCC Linker > Miscellaneous > Other Flags) and the build will be finished with 0 errors.\n\n[See Attachment]\n\nThanks\n\nMahmoud",
+            "best_answer_author": "Mahmoud Ben Romdhane",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI encountered this bug with a previous update and after searching I added the -z noexecstack parameter as given in a 2025 post.\n\nThat cleared the problem at the time.\n\nThe IDE has updated itself to V2.1.1 and the bug has re-appeared, despite the noexecstack parameter still being present?\n\nFull error:\n\n```\n\nC:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/bin/ld.exe: warning: C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/thumb/v7e-m+dp/hard/crtn.o: missing .note.GNU-stack section implies executable stack\n\nC:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/bin/ld.exe: NOTE: This behaviour is deprecated and will be removed in a future version of the linker\n\n```\n\n(The IDE has been updated each time it prompted since the 1.19.0 install).\n\nA second compile with no changes after clearing the error message completes OK, but this rather tedious when working on and debugging a big project.\n\nAny work-around appreciated.",
+            "images": [],
+            "author": "rjenkinsgb",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105487\">@rjenkinsgb</user-mention> </p>\n<p>Let me thank you for your feedback.</p>\n<p>This is a known limitation marked on <a href=\"https://wiki.st.com/stm32mcu/wiki/STM32CubeIDE:STM32CubeIDE_errata_2.1.x\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeIDE:STM32CubeIDE errata 2.1.x - stm32mcu.</a></p>\n<p>As work around, I recommend that you add this flag <strong>-z noexecstack</strong> under (Project &gt; Properties &gt; C/C++ Build &gt; Settings &gt; MCU/MPU GCC Linker &gt; Miscellaneous &gt; Other Flags) and the build will be finished with 0 errors.</p>\n<p>[See Attachment]</p>\n<p>Thanks</p>\n<p>Mahmoud</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Mahmoud,</p><p>thanks for the reply.</p><p>I had previously added that flag, which is why I was confused that the error was still occurring.</p><p> </p><p>What I did not notice until re-checking just now is that the <em>flag settings are separate between debug and release</em> builds, and I had only added it in one rather than both. so it re-appeared when I changed the build I was using.</p><p> </p><p>I now have it set in both which will hopefully fix the problem for good!</p><p> </p><p>Thanks again, Robert.</p></div>",
+                    "author": "rjenkinsgb",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

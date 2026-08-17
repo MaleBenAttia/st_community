@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "165654",
+            "publicId": "165654",
+            "title": "X-Cube-NFC10: CubeMX generates incorrect nfc_conf.h unless Board Extension NFC selected",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/x-cube-nfc10-cubemx-generates-incorrect-nfc-conf-h-unless-board-extension-nfc-selected-165654",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID readers - ST25Rx00 series"
+            ],
+            "published_at": "2026-05-13T14:19:30+00:00",
+            "views": 138,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi Cecil,\n\nIndeed the code generation process through STM32CubeMx is sometimes not straightforward.\n\nThe SW modules here rely on BSPs (Board Support Packages), hence to use the **NFC10**Boardlface it expects the board's BSP(X-NUCLEO-**NFC10**A1) , which likely does not fit in your final product/system.\n\nPerhaps other user/colleague may be able to better advise you on best procedure through STM32CubeMx.\n\nIn case you want to add NFC / RFAL Library on your project there are other possibilities.\n\n* **RFAL Library**\n\nThe RFAL is available as a standalone package that can be used on any existing FW project\n\n+ [STSW-ST25RFAL004](https://www.st.com/en/embedded-software/stsw-st25rfal004.html) - ST25R200 RFAL\n\n+ [UM2890](https://www.st.com/resource/en/user_manual/um2890-rfnfc-abstraction-layer-rfal-stmicroelectronics.pdf) - RFAL User Manual\n\n* **Example Projects**\n\nExamples projects are available\n\n+ [X-CUBE-NFC10](https://www.st.com/en/embedded-software/x-cube-nfc10.html)\n\nThe standard demo for X-NUCLEO-NFC10A1 board, which contains the Software Pack Component that you are trying to add/config via CubeMx.\n\n+ [STSW-ST25RLIB004](https://www.st.com/en/embedded-software/stsw-st25r-lib.html)\n\nContains several example projects that run on ST25R200 / X-NUCLEO-NFC10A1 board.\n\nHope it helps\n\nKind Regards\n\nGP",
+            "best_answer_author": "Grégoire Poulain",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello There,\n\nI am currently trying to use the ST25R200 with the X-CUBE-NFC10 Software package.\n\nFirst thing am not sure about: In the \"Software Packs Component Selector\" I have to configure the \"Board Extension NFC/NFC10A1\" even when i don't plan to use this board. Otherwise i get a warning that \"NFC10Boardlface\" requires \"NFC/NFC10A1\". If I don't select the board part, I get a simmilar warning from the RFAL component.\n\n![CecilW_0-1778680636437.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/424134c0-385f-a24d-504a-01d81cc5de3e.png \"CecilW_0-1778680636437.png\")\n\nIf i either don't add NFC/NFC10A1 in the component selector or don't select \"Board Part NFC10Boardlface\" in the Mode selection for the X-CUBE-NFC10 package, CubeMX seems to have problems generating the header \"nfc\\_conf.h\", which i have attached to this post.\n\nThis is how the configuration looks, which generated nfc\\_conf.h:\n\n![CecilW_1-1778681833556.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cb87cf6a-ab18-9495-a79e-497355843322.png \"CecilW_1-1778681833556.png\")\n\nAm I using this library not correctly? Or rather which components of this library am i supposed to configure if i want to use the library with a custom board based on the ST25R200?\n\nBest Regards, Cecil",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/424134c0-385f-a24d-504a-01d81cc5de3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cb87cf6a-ab18-9495-a79e-497355843322.png"
+            ],
+            "author": "CecilW",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Cecil,<br/><br/>Indeed the code generation process through STM32CubeMx is sometimes not straightforward.<br/>The SW modules here rely on BSPs (Board Support Packages), hence to use the <span><strong>NFC10</strong>Boardlface it expects the board's </span>BSP<span>(X-NUCLEO-</span><strong>NFC10</strong><span>A1) , which likely does not fit in your final product/system.</span></p><p><span>Perhaps other user/colleague may be able to better advise you on best procedure through STM32CubeMx.<br/><br/>In case you want to add NFC / RFAL Library on your project there are other possibilities.</span></p><ul><li><span><strong>RFAL Library</strong><br/>The RFAL is available as a standalone package that can be used on any existing FW project</span><ul><li><span><a href=\"https://www.st.com/en/embedded-software/stsw-st25rfal004.html\" rel=\"noopener noreferrer\" target=\"_self\">STSW-ST25RFAL004</a> - ST25R200 RFAL </span></li><li><a href=\"https://www.st.com/resource/en/user_manual/um2890-rfnfc-abstraction-layer-rfal-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">UM2890</a> - RFAL User Manual<br/><br/></li></ul></li><li><span><strong>Example Projects</strong><br/>Examples projects are available<br/></span><ul><li><span><a href=\"https://www.st.com/en/embedded-software/x-cube-nfc10.html\" rel=\"noopener noreferrer\" target=\"_self\">X-CUBE-NFC10</a><br/>The standard demo for X-NUCLEO-NFC10A1 board, which contains the Software Pack Component that you are trying to add/config via CubeMx.<br/><br/></span></li><li><span><a href=\"https://www.st.com/en/embedded-software/stsw-st25r-lib.html\" rel=\"noopener noreferrer\" target=\"_self\">STSW-ST25RLIB004</a><br/>Contains several example projects that run on ST25R200 / X-NUCLEO-NFC10A1 board.<br/><br/></span></li></ul></li></ul><p><span>Hope it helps<br/><br/>Kind Regards<br/>GP</span></p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Grégoire,<br/><br/>Thank you for the fast responce. This clarifies a lot of missunderstandings on my side.<br/>It seems like STSW-ST25RFAL004 is just what i was looking for.</p><p>In my opinion the description at the top of the website for the <span><a href=\"https://www.st.com/en/embedded-software/x-cube-nfc10.html\" rel=\"noopener noreferrer\" target=\"_blank\">X-CUBE-NFC10</a></span> package is a bit missleading. \"<em>The X-CUBE-NFC10 software expansion for STM32Cube provides a complete middleware for STM32 to build applications using NFC/HF RFID reader IC (ST25R200 device).</em>\" sound like a independant middleware package, and not like its only for the X-NUCLEO-NFC10A1 board.<br/>Also the configuration options in CubeMX give the impression that this package is also usable without the X-NUCLEO-NFC10A1 board. Because why would there be options, if it only works if you enable every option.<br/><br/>Best Regards<br/>Cecil</p></div>",
+                    "author": "CecilW",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

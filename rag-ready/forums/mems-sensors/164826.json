@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "164826",
+            "publicId": "164826",
+            "title": "Using MEMS Studio to generate custom machine learning decision tree",
+            "url": "https://community.st.com/mems-sensors-48/using-mems-studio-to-generate-custom-machine-learning-decision-tree-164826",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Accelerometers",
+                "MEMS Studio"
+            ],
+            "published_at": "2026-04-16T12:29:33+00:00",
+            "views": 236,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @LPetr.1\n\nThe issue you reported is related to the handling of the special character \\_ in the label column of the CSV file.\n\nIn the current version, labels containing \\_ may not be processed correctly by MEMS Studio, which can cause the Time option to appear inconsistently in the Data Patterns table and block the ARFF generation step.\n\nThis will be fixed in the next version, where the \\_ character will be handled properly.\n\nWorkaround: please update the labels in your CSV files to avoid the \\_ character. For example, instead of:\n\n* flip\\_down\n\n* flip\\_up\n\nuse:\n\n* flipDown\n\n* flipUp\n\nAfter updating the labels, the issue should no longer occur and you should be able to proceed with MLC and ARFF generation normally.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hey. I have recently received STEVAL-MKI109D + STEVAL-MKI238A for evaluating LIS2DUX12 accelerometer.\n\nI have opened MEMS Studio, chose my evaluation board and performed FW upgrade as prompted by the MEMS Studio.\n\n![LPetr1_1-1776401611251.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1622cada-03e6-3750-2f60-fcf845457afd.png \"LPetr1_1-1776401611251.png\")\n\nI have then proceeded to **Sensor Evaluation -> Save to File** to capture my own data for further processing. Each sample was taken using 5 seconds timeout. So I just click \"**Start**\" and proceed with moving the board for 5 seconds. I did the following:\n\n1. Capture 3 \"**flip\\_down**\" samples of me flipping down the evaluation board.\n\n2. Capture 4 \"**flip\\_up**\" samples of me flipping up the evaluation board.\n\n3. Capture 4 \"**shaking**\" samples of me shaking the evaluation board.\n\n4. Capture 3 \"**stationary**\" samples where the device was just sitting on the table.\n\nAfter collecting all samples in .csv format, I have then proceeded to **Advanced Features -> MLC** and uploaded all collected .CSV data using different class names. See the below:\n\n![LPetr1_0-1776401808282.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/98cfa4a7-c98b-f8e0-fa46-aba45c935cda.png \"LPetr1_0-1776401808282.png\")\n\nI noticed that **STATIONARY** and **SHAKING** samples have the Time option, but the **FLIP\\_DOWN** and **FLIP\\_UP** samples do not, even though all samples were collected one right after the other using the same accelerometer configuration and same setup.\n\nAs a result of that, I cannot proceed to the ARFF generation:\n\n![LPetr1_3-1776342317481.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/012b2be8-fd1b-c5e2-b6c8-c6c0d6a97f4d.png \"LPetr1_3-1776342317481.png\")\n\nI tried to look at MEMS Studio tutorials and tried to look up information about this, but cannot find anything.\n\n1. What does this \"**Time**\" option mean in Data patterns table? I have read datasheet for the Mems Studio but could not find any relevant information regarding this. <https://www.st.com/resource/en/user_manual/um3233-getting-started-with-memsstudio-stmicroelectronics.pdf>\n\n2. What could have caused my \"**flip\\_down**\" and \"**flip\\_up**\" samples that I have collected be somehow different than \"**stationary**\" and \"**shaking**\"? How am I supposed to proceed with MLC if I cannot do that?\n\nI am attaching the samples.zip file where I have all collected .csv's attached.\n\nHoping to get some clarifications, thanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/012b2be8-fd1b-c5e2-b6c8-c6c0d6a97f4d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1622cada-03e6-3750-2f60-fcf845457afd.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/98cfa4a7-c98b-f8e0-fa46-aba45c935cda.png"
+            ],
+            "author": "LPetr.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"20660\">@LPetr.1</user-mention> </p>\n<p>The issue you reported is related to the handling of the special character _ in the label column of the CSV file.</p>\n<p>In the current version, labels containing _ may not be processed correctly by MEMS Studio, which can cause the Time option to appear inconsistently in the Data Patterns table and block the ARFF generation step.</p>\n<p>This will be fixed in the next version, where the _ character will be handled properly.</p>\n<p>Workaround: please update the labels in your CSV files to avoid the _ character. For example, instead of:</p>\n<ul>\n<li>flip_down</li>\n<li>flip_up</li>\n</ul>\n<p>use:</p>\n<ul>\n<li>flipDown</li>\n<li>flipUp</li>\n</ul>\n<p><span>After updating the labels, the issue should no longer occur and you should be able to proceed with MLC and ARFF generation normally.</span></p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for clarifying!</p></div>",
+                    "author": "LPetr.1",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "164198",
+            "publicId": "164198",
+            "title": "STM32H7S78-DK: Template LRUN does not work",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h7s78-dk-template-lrun-does-not-work-164198",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series"
+            ],
+            "published_at": "2026-03-26T09:03:22+00:00",
+            "views": 250,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "@Saket\\_Om  The problem is fixed by change the power supply to via a USB-HUB which has dedicated power adapter. Summary:\n\n* The PSRAM can't work with middleware STM32\\_ExtMem\\_Manager if the STM32H7S78-DK is directly connected from CN7 (STLK) to my PC's USB port.\n\n* The PSRAM works if the STM32H7S78-DK is connected to PC's USB port via a USB-HUB with dedicated power adapter.\n\n**What's the root cause?**\n\nSince the MCU and external nor flash are working, there is no reason to distrust the power working for PSRAM or not.\n\nPlease add warning to readmes so that we do not fall the issue again.\n\nLeo Ruan",
+            "best_answer_author": "Leo2Ruan",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello,\n\nThe STM32Cube project Template\\_LRUN is failed on STM32H7S78-DK:\n\n* STM32H7S78-DK, MB1736-H7S7L8-D01\n\n* SW is from the latest master of [https://github.com/STMicroelectronics/STM32CubeH7RS/tree/main/Projects/STM32H7S78-DK/Templates/Template\\_LRUN](https://github.com/STMicroelectronics/STM32CubeH7RS/tree/main/Projects/STM32H7S78-DK/Templates/Template_LRUN,)\n\n* I also double check with the stm32cubeh7rs-v1-3-0.\n\nFollow the instructions from readme:\n\n* Build Template LRUN projects with CubeIDE v2.0.0\n\n* Use CubeIDE to load Template\\_LRUN\\_Boot.elf to internal flash\n\n* Use CubeProgrammer to program Template\\_LRUN\\_Appli.bin to external Nor-Flash and success.\n\nPowerup the DK board and no LED is light-on.\n\nBy tracing the boot program, the MCU is hangup when copy the program from Nor-Flash to PSRAM. Crash happen on exact the copy to the first address in PSRAM. It seems PSRAM is not ready.\n\nThe error occurs at: <https://github.com/STMicroelectronics/stm32-mw-extmem-mgr/blob/5c92d55af712b20030853a8ac7ddf87ab9eb1adf/psram/stm32_psram_driver.c#L138>\n\n```\n\n/* Execute the command sequence */\n\nfor (uint8_t command_index = 0u; command_index < PsramObject->psram_public.NumberOfConfig; command_index++)\n\n{\n\nretr = PSRAM_ExecuteCommand(PsramObject, command_index);\n\nif (retr != EXTMEM_DRIVER_PSRAM_OK)\n\n{\n\ngoto error;\n\n}\n\n}\n\n```\n\nCould you help?\n\nThanks!\n\nLeo Ruan",
+            "images": [],
+            "author": "Leo2Ruan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97335\">@Leo2Ruan</user-mention> </p>\n<p>I checked the project from my side and everything i working correctly. </p>\n<p>Did you load the <span>Template_LRUN_Appli.bin to external Nor-Flash at the right address?</span></p>\n<p> </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"1684\">@Saket_Om</user-mention>  I used CubeProgrammer with prebuilt `MX66UW1G45G_STM32H7S78-DK.stldr` to program Template_LRUN_Appli.bin to external Nor-Flash at address 0x70000000.</p><p>Actually, I ran several projects with middleware STM32_ExtMem_Manager for PSRAM. All are failed at exact same error! Only Projects\\STM32H7S78-DK\\Examples\\XSPI\\XSPI_PSRAM_MemoryMapped based on the HAL api works on my STM32H7S78-DK, MB1736-H7S7L8-D01.</p><p>I think the problem happens before jump to appli binary. Any access on PSRAM is failed.</p><p>More info:</p><ul><li>I did not change a single line in LRUN source code.</li><li>JP6 pin2-3 is ON to use dedicated RMII_MDC(PC1) for Ethernet</li><li>DK is powered by CN7 from STLK.</li><li>SW1 is in default state '0'.</li></ul><p>Leo</p><p> </p><p> </p><p> </p><p> </p><p> </p><p> </p></div>",
+                    "author": "Leo2Ruan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"1684\">@Saket_Om</user-mention>  The problem is fixed by change the power supply to via a USB-HUB which has dedicated power adapter. Summary:</p><ul><li>The PSRAM can't work with middleware STM32_ExtMem_Manager if the STM32H7S78-DK is directly connected from CN7 (STLK) to my PC's USB port.</li><li>The PSRAM works if the STM32H7S78-DK is connected to PC's USB port via a USB-HUB with dedicated power adapter.</li></ul><p><strong>What's the root cause?</strong></p><p>Since the MCU and external nor flash are working, there is no reason to distrust the power working for PSRAM or not.</p><p>Please add warning to readmes so that we do not fall the issue again.</p><p>Leo Ruan</p><p> </p></div>",
+                    "author": "Leo2Ruan",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

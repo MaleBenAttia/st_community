@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164130",
+            "publicId": "164130",
+            "title": "STM32N6570-DK LTDC and JTAG Pin Conflict (JTDI/NRST) – Is Dual Usage Possible?",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32n6570-dk-ltdc-and-jtag-pin-conflict-jtdi-nrst-is-dual-usage-possible-164130",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "LCD-LTDC",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-25T04:28:07+00:00",
+            "views": 240,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nThat's not possible to use the full JTAG pins in parallel with LTDC as LCD\\_R5 (PB15) and LCD\\_R3 (PB4) have no alternatives in other pins. Moreover, the RGB565 (the minimum required) needs the usage of LCD\\_R3 and LCD\\_R5 pins.\n\nSo you need to use  the serial wire debug (SWD) instead.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am working with the STM32N6 series MCU on the STM32N6570-DK board and have encountered a pin multiplexing conflict.\n\nAs per the schematics and datasheet:\n\n* PA15 (JTDI) and PB4 (JNRST) are multiplexed with LTDC signals\n\n* These pins do not appear to have alternate mappings\n\nMy use case requires:\n\n* LTDC for driving the display\n\n* JTAG for debugging (full JTAG, not just SWD)\n\nHowever, enabling LTDC conflicts with the JTAG interface, specifically JTDI.\n\nI have a few questions:\n\n1. Is there any supported way to use both LTDC and full JTAG simultaneously on STM32N6?\n\n2. Are there any alternate pin mappings or remap options available that are not obvious from CubeMX?\n\n3. Is dynamic switching (e.g., using JTAG during debug and reconfiguring pins for LTDC at runtime) a viable or recommended approach?\n\n4. Are there any hardware workarounds or recommended debug strategies for this scenario?\n\nI understand that switching to SWD avoids this issue, but I would like to confirm if full JTAG usage is fundamentally incompatible with LTDC on this device.\n\nThanks in advance for your guidance.",
+            "images": [],
+            "author": "ArunJohn",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>That's not possible to use the full JTAG pins in parallel with LTDC as LCD_R5 (PB15) and LCD_R3 (PB4) have no alternatives in other pins. Moreover, the RGB565 (the minimum required) needs the usage of LCD_R3 and LCD_R5 pins.</p>\n<p>So you need to use  the serial wire debug (<span>SWD</span>) instead.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

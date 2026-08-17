@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "166520",
+            "publicId": "166541",
+            "title": "STM32N657 DK - LTDC layer framebuffer corruption when using AXI SRAM (background OK)",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32n657-dk-ltdc-layer-framebuffer-corruption-when-using-axi-sram-background-ok-166541",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "LCD-LTDC"
+            ],
+            "published_at": "2026-06-30T10:14:33+00:00",
+            "views": 72,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Dear all,\n\nI found both the root cause and the solution.\n\nMy graphics application runs inside an **RTOS**.\n\nWhen there are no runnable tasks, the OS executes the **WFI** instruction and waits for the next interrupt.\n\nDuring **WFI**, the clocks of many peripherals and memory blocks are gated to reduce power consumption.\n\nThe **RCC** provides **LP (Low-Power)** enable bits to keep selected peripherals clocked while the CPU is in WFI.\n\nI correctly enabled the LP bits for all the peripherals required by the **LTDC**, including the LTDC itself, but I completely overlooked the internal **AXISRAM** that stores the framebuffer.\n\nAs a result, when the CPU entered WFI, the LTDC DMA was still running but was reading from memory whose clock had been gated, which produced the corrupted image.\n\nThe solution was simply **to enable the LP RCC bits for the AXISRAM banks** containing the framebuffer.\n\nI hope this helps anyone facing a similar issue.\n\nKind regards,\n\nEdo\n\n<http://www.ukos.ch>",
+            "best_answer_author": "Franzi.Edo",
+            "best_answer_author_role": "Senior",
+            "content_text": "Hi,\n\nI am writing my own RTOS and **I do not use CubeMX nor the HAL**. I directly program the STM32N657 LTDC registers.\n\nThe target is the **STM32N6570-DK** board with the original **800x480 RGB LCD**.\n\n## Problem description\n\nThe LTDC background color is displayed perfectly.\n\nHowever, as soon as I enable **Layer 1** with a framebuffer located in the internal AXI SRAM, the displayed image becomes corrupted.\n\nThe corruption is unusual:\n\n* the top of the image is correct,\n\n* below approximately **320 lines**, the image progressively becomes shifted,\n\n* the bottom of the image looks like repeated square blocks shifted horizontally,\n\n* no FIFO underrun is reported.\n\nThe framebuffer contents themselves are correct when read back by the CPU.\n\n## LTDC configuration\n\nFramebuffer:\n\n```\n\nAddress : 0x34200000\n\nFormat  : ARGB8888\n\nSize    : 800 x 480\n\nPitch   : 3200 bytes\n\n```\n\nLayer registers:\n\n```\n\nL1CFBAR  = 0x34200000\n\nL1CFBLR  = 0x0C800C83\n\nL1CFBLNR = 480\n\nL1PFCR   = 0x00000000 (ARGB8888)\n\nL1CACR   = 0x000000FF\n\nL1BFCR   = 0x00000607\n\nL1CR      = 0x00000001\n\n```\n\nGlobal registers:\n\n```\n\nGCR  = 0x00012221\n\nSSCR = 0x00030003\n\nBPCR = 0x000B000B\n\nAWCR = 0x032B01EB\n\nTWCR = 0x033301F3\n\n```\n\nInterrupt status:\n\n```\n\nISR  = 0\n\nISR2 = 0\n\n```\n\nNo FIFO underrun is ever reported.\n\n## Memory\n\nThe framebuffer is located entirely inside AXI SRAM3-6.\n\nThe linker reserves:\n\n```\n\n0x34200000 - 0x343BFFFF\n\n```\n\nThe framebuffer occupies:\n\n```\n\n0x34200000 - 0x34376FFF\n\n```\n\nNo other object is allocated inside this area.\n\nThe MPU marks this region as\n\n* Normal memory\n\n* Non-cacheable\n\n* Non-shareable\n\n* Read/Write\n\n* Execute Never\n\nThe CPU writes the framebuffer correctly.\n\nThe DCache is explicitly cleaned after every framebuffer update.\n\n## Interesting observation\n\nIf I reduce the framebuffer height:\n\n```\n\n100 lines -> OK\n\n200 lines -> OK\n\n300 lines -> OK\n\n320 lines -> still OK\n\n330 lines -> corruption starts\n\n480 lines -> strong corruption\n\n```\n\nThe corruption therefore depends on the framebuffer height.\n\nHowever, moving the framebuffer to\n\n```\n\n0x34300000\n\n```\n\nand displaying only 100 lines also works correctly.\n\nTherefore the problem does **not** appear to be tied to a specific SRAM bank.\n\n##\n\n## Things already tested\n\nI have already tested all of the following without any improvement:\n\n* RGB565 instead of ARGB8888\n\n* Different framebuffer pitches\n\n* Different burst length (L1BLCR)\n\n* Different PLL configuration\n\n* Different LTDC clock frequencies\n\n* Different layer window sizes\n\n* Different framebuffer addresses\n\n* MPU cacheable / non-cacheable\n\n* Shareable / non-shareable\n\n* RISAF configuration\n\n* RIF configuration\n\n* Cache clean / barriers\n\n* Different blending modes\n\n* Background only (always perfect)\n\n## Question\n\nHas anybody already experienced this behaviour on STM32N657?\n\nIs there any additional LTDC register that must be configured on STM32N6 (compared to STM32H7)?\n\nCould this be related to an undocumented limitation of the LTDC fetch engine or AXI SRAM access?\n\nAny suggestion would be greatly appreciated.\n\nKind regards,\n\nEdo\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/387b18a3-8278-4b37-aa13-7ec9419ee19c.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/387b18a3-8278-4b37-aa13-7ec9419ee19c.png"
+            ],
+            "author": "Franzi.Edo",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear all,<br/>I found both the root cause and the solution.</p><p><br/>My graphics application runs inside an <strong>RTOS</strong>.</p><p>When there are no runnable tasks, the OS executes the <strong>WFI</strong> instruction and waits for the next interrupt.<br/>During <strong>WFI</strong>, the clocks of many peripherals and memory blocks are gated to reduce power consumption.<br/>The <strong>RCC</strong> provides <strong>LP (Low-Power) </strong>enable bits to keep selected peripherals clocked while the CPU is in WFI.</p><p>I correctly enabled the LP bits for all the peripherals required by the <strong>LTDC</strong>, including the LTDC itself, but I completely overlooked the internal <strong>AXISRAM</strong> that stores the framebuffer.</p><p>As a result, when the CPU entered WFI, the LTDC DMA was still running but was reading from memory whose clock had been gated, which produced the corrupted image.</p><p>The solution was simply <strong><span style=\"color:#e74c3c;\">to enable the LP RCC bits for the AXISRAM banks</span></strong> containing the framebuffer.</p><p>I hope this helps anyone facing a similar issue.<br/>Kind regards,</p><p>Edo</p><p><a href=\"http://www.ukos.ch\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">http://www.ukos.ch</a></p><p> </p></div>",
+                    "author": "Franzi.Edo",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

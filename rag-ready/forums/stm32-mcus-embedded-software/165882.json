@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "165882",
+            "publicId": "165882",
+            "title": "Can the NUCLEO-144 STM32F413ZH be configured for 16-Bit CRC",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/can-the-nucleo-144-stm32f413zh-be-configured-for-16-bit-crc-165882",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F4 series"
+            ],
+            "published_at": "2026-05-21T21:06:56+00:00",
+            "views": 119,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @mike\\_m\n\nYes, the **STM32F413 can talk to the ADE9430 over SPI**, but **the STM32 SPI hardware CRC feature is probably not a direct match** for the ADE9430 protocol. On this STM32, **`DFF=0` means 8-bit data frames and only an 8-bit SPI CRC**, while **`DFF=1` means 16-bit data frames and a 16-bit SPI CRC**; since the ADE9430 uses **8-bit data bytes followed by a 16-bit CRC over the whole transaction**, the safest approach is usually to **leave SPI in 8-bit mode and calculate the ADE9430 CRC-16-CCITT in software** over the received data bytes.\n\n![Saket_Om_0-1779456520894.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f3426f9-a518-d83b-09a9-7d9f51cefe29.png \"Saket_Om_0-1779456520894.png\")",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am using the Analog Devices EVAL-ADE9430 Evaluation board for testing one of their devices. The Evaluation board uses the NUCLEO-144 STM32F413ZH processor. I am using the Keil uVision development setup to run and debug code.  I am specifically concentrating on the SPI Bus Driver and the timing. I have no previous experience with STM Devices and how the SPI transfers happen in the processor. so I apologize a head of time.\n\nThe Analog Devices ADE9430 uses a a 16-bit CRC (CRC-16-CCITT) and from what I originally read  the STM32F413ZH processor supports 32-Bit CRC (CRC-32-CCITT).  Diving deeper into the NUCLEO-144 STM32F413ZH processor manual section \"**29.4.2 CRC calculation\"** indicates \"*The SPI offers **CRC8** or****CRC16** calculation depending on the data format selected through the DFF bit****.*\"** When the DFF bit (SPI\\_CR1 bit 11) is 0 it uses CRC8, when the DFF bit is '1' it uses CRC16.\n\n* <https://www.st.com/resource/en/reference_manual/rm0430-stm32f413423-advanced-armbased-32bit-mcus-stmicroelectronics.pdf>\n\nThe software (afe\\_config.c) is currently initializing the Data size to 8 bits (DFF = 0). I am trying to determine if the STM32F413ZH processor can actually be configured to match the 16-bit CRC (CRC-16-CCITT) and handshaking used by the Analog devices ADE9430 device. The AD9430 has both 16-bit and 32 bit registers that can be access via the SPI bus. They look as follows\n\n**16-Bit SPI Read operation**\n\nMOSI ----  [16-bit command]  --- [xxxxxxxx] --- [xxxxxxxx]  --- [xxxxxxxxxxx]  From STM Processor\n\nMISO ----  [xxxxxxxxxxxxxx]  --- [8 bit data] --- [8 bit data]  --- [16-bit CRC]   From ADE9430\n\n|--- The ADE9430 calculates the final CRC\n\nacross both 8 bit data transfer then sends\n\naccumulated result.\n\n**32-Bit SPI Read operation**\n\nMOSI ----  [16-bit command]  --- [xxxxxxxx] --- [xxxxxxxx]  --- [xxxxxxxx] --- [xxxxxxxx] -- [xxxxxxxxxxx]  STM Proc\n\nMISO ----  [xxxxxxxxxxxxxx]  --- [8 bit data] --- [8 bit data]  --- [8 bit data] --- [8 bit data] -- [16-bit CRC]   ADE9430\n\nThe ADE9430 calculates the final CRC\n\nacross all four 8 bit data transfer then sends\n\naccumulated result to the STM proc.\n\nSo the final 16 bit CRC will have to be calculated on both 16 bit and 32 bit data on the SPI Bus. The AD9430 calculates the CRC over the entire Read operation transmission\n\nI was thinking of setting the DFF = 1 (16-Bit transfers) so when I read a  32 bit register the SPI Bus uses two 16-bit transfers to retrieve the register contents. But I was concerned how the STM processor generates it CRC. Does it generate the CRC accumulative across all the data and CRC 16-Bit data transfers? Or does it generate it based on each 16-bit data received including the final CRC sent by the ADE9430?\n\nAfter the data and CRC are transmitted by the ADE9430 the **HAL\\_SPI\\_TransmitReceive()** function appears to check for a CRC error using a SPI\\_FLAG\\_CRCERR (see below). I am wondering how the SPI\\_FLAG\\_CRCERR  is actually detected. it seems like it needs to accumulate the data across the entire SPI transmission and it should end up exclusive OR-ing it self to all zeros if the CRC is good... Otherwise its a CRC failure.\n\nSorry if I was all over the place I am thinking this through as I was writing it.  I basically want to know if its even possible to get the STM processor to work with the ADE9430? I know there is a polynomial register that would also need ti determine how to select that value to load into the SPI polynomial register to match the ADE9430....\n\nThanks - mike\n\n```\n\n/* Check if CRC error occurred */\n\nif (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_CRCERR))\n\n{\n\nSET_BIT(hspi->ErrorCode, HAL_SPI_ERROR_CRC);\n\n/* Clear CRC Flag */\n\n__HAL_SPI_CLEAR_CRCERRFLAG(hspi);\n\nerrorcode = HAL_ERROR;\n\n}\n\n#endif /* USE_SPI_CRC */\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f3426f9-a518-d83b-09a9-7d9f51cefe29.png"
+            ],
+            "author": "mike_m",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"107138\">@mike_m</user-mention> </p>\n<p>Yes, the<span> </span><strong>STM32F413 can talk to the ADE9430 over SPI</strong>, but<span> </span><strong>the STM32 SPI hardware CRC feature is probably not a direct match</strong><span> </span>for the ADE9430 protocol. On this STM32,<span> </span><strong><code>DFF=0</code><span> </span>means 8-bit data frames and only an 8-bit SPI CRC</strong>, while<span> </span><strong><code>DFF=1</code><span> </span>means 16-bit data frames and a 16-bit SPI CRC</strong>; since the ADE9430 uses<span> </span><strong>8-bit data bytes followed by a 16-bit CRC over the whole transaction</strong>, the safest approach is usually to<span> </span><strong>leave SPI in 8-bit mode and calculate the ADE9430 CRC-16-CCITT in software</strong><span> </span>over the received data bytes.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Saket_Om_0-1779456520894.png\" style=\"width: 400px;\"><img alt=\"Saket_Om_0-1779456520894.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f3426f9-a518-d83b-09a9-7d9f51cefe29.png\" title=\"Saket_Om_0-1779456520894.png\"/></span></p>\n<p> </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"\"><span class=\"\">Hi Saket,</span></span></p><p><span class=\"\"><span class=\"\">Thanks for the response. I agree, 100%! </span></span></p><p><span class=\"\"><span class=\"\">Happy memorial Day weekend! </span></span></p><p><span class=\"\"><span class=\"\">Best Regards,</span></span></p><p><span class=\"\"><span class=\"\">- mike</span></span></p><p><span> </span></p></div>",
+                    "author": "mike_m",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

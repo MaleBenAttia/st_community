@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "164863",
+            "publicId": "164863",
+            "title": "[STM32MP255F] SERC exception occurs during boot",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/stm32mp255f-serc-exception-occurs-during-boot-164863",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "Yocto",
+                "U-Boot",
+                "TF-A",
+                "OP-TEE",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-04-17T10:40:46+00:00",
+            "views": 302,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Erwan SZYMANSKI\n\n```\n\nDRAM: ERROR: Failed to allocate 0x2a00000 bytes below 0x0\n\n```\n\nThis was resolved by deleting the linuxkernel1 node in the u-boot DT's resmem.\n\nIt now boots up to Linux.\n\nGoing back a bit...\n\nRegarding the SERC exception, I resolved it by modifying the optee-os source code, but is there a way to handle this using DeviceTree or STM32CubeMX without modifying the source code?\n\nBest regards,\n\n--\n\nOKN",
+            "best_answer_author": "OKN",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I have been working on porting a custom board using the STM32MP255F-AK.\n\nI performed the following tasks:\n\n- Used STMCubeMX to configure pins and other settings\n\n- Manually added the custom board-specific sections to the DeviceTree\n\n- Added the DeviceTree to the Distribution Package's meta-st/meta-stm32mp-addons/mx directory\n\n- Created a custom board configuration file and performed the build\n\n- Wrote the resulting TF-A and FIP images to an SD card and booted the system\n\n- Before performing this work, I verified the operation of STOpenLinux, which was created by modifying the STM32MP257F-DK Device Tree\n\nThe TF-A boots, but just before U-Boot starts, a register dump occurs repeatedly and the system stops progressing\n\nJudging by the error details, it appears to be a security-related error.\n\nBased on the address where the error occurred and the error ID,\n\nI tried making various changes to the .ioc and DT files, but the issue persisted.\n\nI suspect it’s a simple configuration mistake...\n\nWhat specific areas should I check carefully?\n\n```\n\nNOTICE: CPU: STM32MP255FAK Rev.Y\n\nNOTICE: Model: STMicroelectronics custom STM32CubeMX board - openstlinux-6.6-yocto-scarthgap-mpu-v24.11.06\n\nNOTICE: Reset reason (0x2035):\n\nINFO: Power-on Reset (rst_por)\n\nINFO: PMIC2 version = 0x11\n\nINFO: PMIC2 product ID = 0x21\n\nINFO: FCONF: Reading TB_FW firmware configuration file from: 0xe011000\n\nINFO: FCONF: Reading firmware configuration information for: stm32mp_fuse\n\nINFO: FCONF: Reading firmware configuration information for: stm32mp_io\n\nINFO: Using SDMMC\n\nINFO: Instance 1\n\nINFO: Boot used partition fsbl1\n\nNOTICE: BL2: v2.10-stm32mp2-r1.0(debug):devtool-patched(2ba93b6f)\n\nNOTICE: BL2: Built : 04:18:10, Apr 13 2026\n\nINFO: BL2: Loading image id 26\n\nINFO: Loading image id=26 at address 0xe041000\n\nINFO: Image id=26 loaded: 0xe041000 - 0xe049650\n\nINFO: BL2: Doing platform setup\n\nINFO: RAM: LPDDR4 32bits 1200000kHz\n\nINFO: Memory size = 0x80000000 (2048 MB)\n\nINFO: BL2: Loading image id 1\n\nINFO: Loading image id=1 at address 0xe000000\n\nINFO: Image id=1 loaded: 0xe000000 - 0xe000326\n\nINFO: FCONF: Reading FW_CONFIG firmware configuration file from: 0xe000000\n\nINFO: FCONF: Reading firmware configuration information for: risaf_config\n\nINFO: RISAF2: No configuration in DT, use default\n\nINFO: FCONF: Reading firmware configuration information for: dyn_cfg\n\nINFO: BL31 max size = 0x17000 (94208B)\n\nINFO: BL2: Loading image id 3\n\nINFO: Loading image id=3 at address 0xe000000\n\nINFO: Image id=3 loaded: 0xe000000 - 0xe0167c0\n\nINFO: BL2: Loading image id 19\n\nINFO: Loading image id=19 at address 0x81fc0000\n\nINFO: Image id=19 loaded: 0x81fc0000 - 0x81fc39e6\n\nINFO: BL2: Loading image id 4\n\nINFO: Loading image id=4 at address 0x82000000\n\nINFO: Image id=4 loaded: 0x82000000 - 0x8200001c\n\nINFO: OPTEE ep=0x82000000\n\nINFO: OPTEE header info:\n\nINFO: magic=0x4554504f\n\nINFO: version=0x2\n\nINFO: arch=0x1\n\nINFO: flags=0x0\n\nINFO: nb_images=0x1\n\nINFO: BL2: Loading image id 8\n\nINFO: Loading image id=8 at address 0x82000000\n\nINFO: Image id=8 loaded: 0x82000000 - 0x820fc628\n\nINFO: BL2: Loading image id 2\n\nINFO: Loading image id=2 at address 0x84400000\n\nINFO: Image id=2 loaded: 0x84400000 - 0x844188d0\n\nINFO: BL2: Loading image id 5\n\nINFO: Loading image id=5 at address 0x84000000\n\nINFO: Image id=5 loaded: 0x84000000 - 0x841c49b8\n\nNOTICE: BL2: Booting BL31\n\nINFO: Entry point address = 0xe000000\n\nINFO: SPSR = 0x3cd\n\nINFO: ARM GICv2 driver initialized\n\nNOTICE: BL31: v2.10-stm32mp2-r1.0(debug):devtool-patched(2ba93b6f)\n\nNOTICE: BL31: Built : 04:18:10, Apr 13 2026\n\nINFO: BL31: Initializing runtime services\n\nINFO: BL31: Initializing BL32\n\nI/TC: Early console on UART#2\n\nI/TC:\n\nI/TC: Embedded DTB found\n\nI/TC: OP-TEE version: devtool-patched (gcc version 13.3.0 (GCC)) #5 Mon Apr 13 02:56:36 UTC 2026 aarch64\n\nI/TC: WARNING: This OP-TEE configuration might be insecure!\n\nI/TC: WARNING: Please check https://optee.readthedocs.io/en/latest/architecture/porting_guidelines.html\n\nI/TC: Primary CPU initializing\n\nI/TC: WARNING: All debug access are allowed\n\nI/TC: Override the OTP 124: 0 to 0x18db6\n\nI/TC: WARNING: Embeds insecure stm32mp_provisioning driver\n\nE/TC:0 0\n\nE/TC:0 0 Core data-abort at address 0x794e0ff0\n\nE/TC:0 0 esr 0x96000210 ttbr0 0x82163000 ttbr1 0x00000000 cidr 0x0\n\nE/TC:0 0 cpu #0 cpsr 0x800003c4\n\nE/TC:0 0 x0 0000000082133fe0 x1 0000000000000000\n\nE/TC:0 0 x2 00000000000076d0 x3 0000008000000000\n\nE/TC:0 0 x4 0000000000000020 x5 0000000082133ff0\n\nE/TC:0 0 x6 ffffffffffffffe0 x7 0000000000026e70\n\nE/TC:0 0 x8 0000000000026e70 x9 000000008213cf30\n\nE/TC:0 0 x10 000000008210d160 x11 0000000082164e3c\n\nE/TC:0 0 x12 0000000000000001 x13 000000000000b4a8\n\nE/TC:0 0 x14 0000000082164ea4 x15 00000000820a7900\n\nE/TC:0 0 x16 0000000082031f20 x17 0000000000000000\n\nE/TC:0 0 x18 0000000000000000 x19 0000000082134000\n\nE/TC:0 0 x20 00000000820a7900 x21 000000000000b730\n\nE/TC:0 0 x22 0000000000000000 x23 00000000794e0000\n\nE/TC:0 0 x24 0000000000000001 x25 00000000820b3110\n\nE/TC:0 0 x26 0000000000000001 x27 0000000080000000\n\nE/TC:0 0 x28 0000000000000000 x29 0000000082164ef0\n\nE/TC:0 0 x30 000000008202f46c elr 000000008202f474\n\nE/TC:0 0 sp_el0 0000000082164e70\n\nE/TC:0 0 stm32_serc_handle_ilac:133 SERC exceptions [159:128]: 0x400\n\nE/TC:0 0 stm32_serc_handle_ilac:139 SERC exception ID: 138\n\nE/TC:0 0\n\nE/TC:0 0 Core data-abort at address 0x794e0ff0\n\nE/TC:0 0 esr 0x96000210 ttbr0 0x82163000 ttbr1 0x00000000 cidr 0x0\n\nE/TC:0 0 cpu #0 cpsr 0x800003c4\n\nE/TC:0 0 x0 0000000082133fe0 x1 0000000000000000\n\nE/TC:0 0 x2 00000000000076d0 x3 0000008000000000\n\nE/TC:0 0 x4 0000000000000020 x5 0000000082133ff0\n\nE/TC:0 0 x6 ffffffffffffffe0 x7 0000000000026e70\n\nE/TC:0 0 x8 0000000000026e70 x9 000000008213cf30\n\nE/TC:0 0 x10 000000008210d160 x11 0000000082164e3c\n\nE/TC:0 0 x12 0000000000000001 x13 000000000000b4a8\n\nE/TC:0 0 x14 0000000082164ea4 x15 00000000820a7900\n\nE/TC:0 0 x16 0000000082031f20 x17 0000000000000000\n\nE/TC:0 0 x18 0000000000000000 x19 0000000082134000\n\nE/TC:0 0 x20 00000000820a7900 x21 000000000000b730\n\nE/TC:0 0 x22 0000000000000000 x23 00000000794e0000\n\nE/TC:0 0 x24 0000000000000001 x25 00000000820b3110\n\nE/TC:0 0 x26 0000000000000001 x27 0000000080000000\n\nE/TC:0 0 x28 0000000000000000 x29 0000000082164ef0\n\nE/TC:0 0 x30 000000008202f46c elr 000000008202f474\n\nE/TC:0 0 sp_el0 0000000082164e70\n\nE/TC:0 0 stm32_serc_handle_ilac:133 SERC exceptions [159:128]: 0x400\n\nE/TC:0 0 stm32_serc_handle_ilac:139 SERC exception ID: 138\n\nE/TC:0 0\n\nE/TC:0 0 Core data-abort at address 0x794e0ff0\n\nE/TC:0 0 esr 0x96000210 ttbr0 0x82163000 ttbr1 0x00000000 cidr 0x0\n\nE/TC:0 0 cpu #0 cpsr 0x800003c4\n\nE/TC:0 0 x0 0000000082133fe0 x1 0000000000000000\n\nE/TC:0 0 x2 00000000000076d0 x3 0000008000000000\n\nE/TC:0 0 x4 0000000000000020 x5 0000000082133ff0\n\nE/TC:0 0 x6 ffffffffffffffe0 x7 0000000000026e70\n\nE/TC:0 0 x8 0000000000026e70 x9 000000008213cf30\n\nE/TC:0 0 x10 000000008210d160 x11 0000000082164e3c\n\nE/TC:0 0 x12 0000000000000001 x13 000000000000b4a8\n\nE/TC:0 0 x14 0000000082164ea4 x15 00000000820a7900\n\nE/TC:0 0 x16 0000000082031f20 x17 0000000000000000\n\nE/TC:0 0 x18 0000000000000000 x19 0000000082134000\n\nE/TC:0 0 x20 00000000820a7900 x21 000000000000b730\n\nE/TC:0 0 x22 0000000000000000 x23 00000000794e0000\n\nE/TC:0 0 x24 0000000000000001 x25 00000000820b3110\n\nE/TC:0 0 x26 0000000000000001 x27 0000000080000000\n\nE/TC:0 0 x28 0000000000000000 x29 0000000082164ef0\n\nE/TC:0 0 x30 000000008202f46c elr 000000008202f474\n\nE/TC:0 0 sp_el0 0000000082164e70\n\nE/TC:0 0 stm32_serc_handle_ilac:133 SERC exceptions [159:128]: 0x400\n\nE/TC:0 0 stm32_serc_handle_ilac:139 SERC exception ID: 138\n\nE/TC:0 0\n\n**The same register dump and error message keep appearing...**\n\n```",
+            "images": [],
+            "author": "OKN",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1510\">@Erwan SZYMANSKI</user-mention> </p><pre class=\"lia-code-sample language-c\"><code>DRAM: ERROR: Failed to allocate 0x2a00000 bytes below 0x0</code></pre><p>This was resolved by deleting the linuxkernel1 node in the u-boot DT's resmem.</p><p>It now boots up to Linux.</p><p>Going back a bit...</p><p>Regarding the SERC exception, I resolved it by modifying the optee-os source code, but is there a way to handle this using DeviceTree or STM32CubeMX without modifying the source code?</p><p>Best regards,<br/>--<br/>OKN</p><p> </p></div>",
+                    "author": "OKN",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93002\">@OKN</user-mention> ,<br/>A SERC error is commonly an issue caused by using an IP when it is not well clocked. (see this article: <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_analyze_IAC_%26_SERC_errors#SERC_debug\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_analyze_IAC_%26_SERC_errors#SERC_debug</a>)</p>\n<p>According to the table present in the Reference manual, ID 138 corresponds to RISAF5.</p>\n<p>We need now to understand what happens in your case.</p>\n<p>According to your logs, U-Boot has not started yet. We are still in OP-TEE boot sequence (TF-A BL31 first starts OP-TEE, then jump to U-Boot).</p>\n<p>Could you please share your OP-TEE device tree used in your system ?</p>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1510\">@Erwan SZYMANSKI</user-mention> </p><p>Thank you for your reply.</p><p>I have attached the OP-TEE DeviceTree.</p><p>I reviewed the RIF settings and other configurations in STMCubeMX, but the issue remains unresolved...</p><p>Best regards,<br/>---<br/>OKN</p></div>",
+                    "author": "OKN",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93002\">@OKN</user-mention> ,<br/>For test purpose, and to check if this is not an IAC that has a SERC side effect, could you please in OP-TEE, in <strong>clk-stm32mp25.c </strong>file, add the flex34 as a <em>clock_critical </em>(there is a table with a list of clock inside).</p>\n<p>Then tell me if your error log changed.</p>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

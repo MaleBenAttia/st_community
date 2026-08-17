@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "165532",
+            "publicId": "165532",
+            "title": "Debugging QSPI XiP with VS Code on STM32H750B-DK",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/debugging-qspi-xip-with-vs-code-on-stm32h750b-dk-165532",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-05-09T17:50:09+00:00",
+            "views": 255,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nIf you execute code (XiP) in ext flash, set the \"Initialize\" to true in serverExtLoader attribute.\n\nYour code in boot will map the ext flash but the debugger will try to set breakpoint in ext flash before that code is executed.\n\nIf it is only data for graphic in ext flash, you don't need to set the \"Initialize\".",
+            "best_answer_author": "LaurentL",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "My situation:\n\nTrying to step through/debug a project that will run from the QSPI on the STM32H750B-DK in VS Code (on linux, if that matters). In order to test out the toolchain, I've started with two (separate) workspaces: on has the ExtMem\\_Boot project, the other the LTDC\\_Paint demo.\n\nWhat works:\n\nA/ Building both projects\n\nB/ Flashing (via tasks.json and STM32CubeProgrammer) the ExtMem\\_Boot project\n\nC/ Debugging the ExtMem\\_Boot project via the VS Code debug view\n\nD/ Flashing (via tasks.json, STM32CubeProgrammer and the ExtLoader MT25TL01G\\_STM32H750B-DISCO.stldr) the LTDC\\_Paint demo.\n\nE/ Launching the debug flow of LTDC\\_Paint (after modifying launch.json to include the serverExtLoader)\n\nWhat fails:\n\nThe debugging automatically halts at the Reset\\_Handler of the startup file, the instruction for loading the stack pointer. But at this point I can't seem to step through it. Even just pressing the run arrow seems to result in a crash, rather than the actual execution.\n\nWhat I find suspicious:\n\nThe debug console shows the following when the auto breakpoint in the reset handler is reached:\n\n```\n\nProgram received signal SIGTRAP, Trace/breakpoint trap.\n\n0x08000e28 in ?? ()\n\n```\n\nWhich is not what I would expect, that seems to be an address referring to the isr\\_table of the bootloader, rather than our new location.\n\nIf I subsequently press the pause button of the debugger, we end up with:\n\n```\n\nProgram received signal SIGINT, Interrupt.\n\n0x08000e2c in ?? ()\n\n```\n\nWhich again hints at being inside the bootloader.\n\nAny thoughts on what to change to be able to debug my user application (in this case the LTDC demo)?",
+            "images": [],
+            "author": "jeetee",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106814\">@jeetee</user-mention>,</p><p>I see that you are using JSON tasks to flash.<br/>However, it is possible to do everything from the debug configuration. Could you share your debug configuration?<br/>Because if you are using JSON tasks to flash, then you need to do a “hot attach” to connect to the board (which mean no reset and no programming).</p><p>Kind Regards,<br/>/Flo</p></div>",
+                    "author": "Florent V",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey,<br/><br/>I resorted to flashing via tasks.json because I at first couldn't get the built-in debug to \"just work\". It's also handy to not have to enter debug mode for when just flashing is required.<br/><br/>Look at point E though as well, where I finally got the normal debug configuration (launch.json) to at least have it start building/flashing and launching the debugger, only to then halt at the wrong place.<br/>Here's the current configuration:</p><pre class=\"lia-code-sample language-javascript\"><code>{\n // Use IntelliSense to learn about possible attributes.\n // Hover to view descriptions of existing attributes.\n // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387\n \"version\": \"0.2.0\",\n \"configurations\": [\n \n {\n \"type\": \"stlinkgdbtarget\",\n \"request\": \"launch\",\n \"name\": \"STM32Cube: Launch ST-Link GDB Server\",\n \"origin\": \"snippet\",\n \"cwd\": \"${workspaceFolder}\",\n \"preBuild\": \"${command:st-stm32-ide-debug-launch.build}\",\n \"runEntry\": \"main\",\n \"serverExtLoader\": [\n {\n \"loader\": \"/home/jeetee/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/ExternalLoader/MT25TL01G_STM32H750B-DISCO.stldr\",\n \"initialize\": false\n }\n ],\n \"imagesAndSymbols\": [\n {\n \"imageFileName\": \"${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}\"\n }\n ],\n \"svdPath\": \"home/jeetee/STMicroelectronics/STM32Cube/STM32CubeProgrammer/SVD/STM32H750.svd\"\n }\n ]\n}</code></pre><p> </p></div>",
+                    "author": "jeetee",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oh.<br/><br/>I just discovered that after the Debug View loads and halts in internal flash, rather than the code inside the QSPI, pressing the \"reset target\" button of the debugger toolbar once seems to make it work out.<br/><br/>Would be nice to not have to manually do that each time a debug session starts though..</p></div>",
+                    "author": "jeetee",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>If you execute code (XiP) in ext flash, set the \"Initialize\" to true in serverExtLoader attribute.</p><p>Your code in boot will map the ext flash but the debugger will try to set breakpoint in ext flash before that code is executed.</p><p>If it is only data for graphic in ext flash, you don't need to set the \"Initialize\".</p><p> </p></div>",
+                    "author": "LaurentL",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That did it.<br/><br/>I had it at false due to the wording at <a href=\"https://community.st.com/t5/stm32-mcus/stm32cubeide-for-vs-code-debug-configuration-launch-json/ta-p/866870#toc-hId-349296579\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/stm32cubeide-for-vs-code-debug-configuration-launch-json/ta-p/866870#toc-hId-349296579</a> (5.3. How to debug with external loader, point 3).<br/>But that then refers not to XiP, but to data storage, I now understand.<br/><br/>Thanks!</p></div>",
+                    "author": "jeetee",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Florent V",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "LaurentL",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

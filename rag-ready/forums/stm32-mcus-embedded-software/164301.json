@@ -1,0 +1,108 @@
+{
+    "forum": [
+        {
+            "id": "164301",
+            "publicId": "164301",
+            "title": "How to open files on Host PC with fopen on STM32L5",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-open-files-on-host-pc-with-fopen-on-stm32l5-164301",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32L5 series"
+            ],
+            "published_at": "2026-03-30T13:15:30+00:00",
+            "views": 959,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "You never said that's what you're trying to achieve in *this* thread!\n\nIn that case, you will need to have something on the PC which sends the data to the Target.\n\nThe PC *pushes* to the Target - the Target doesn't *pull* from the PC.\n\nCubeProgrammer can do this, and is ideal for use with the STM32 System Bootloader:\n\n[**AN2606**](https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf): *Introduction to system memory boot mode on STM32 MCUs*\n\n**[AN3155](https://www.st.com/resource/en/application_note/an3155-how-to-use-usart-protocol-in-bootloader-on-stm32-mcus-stmicroelectronics.pdf):***How to use USART protocol in bootloader on STM32 MCUs*\n\nIf you're making a custom bootloader, then you'll have to define your own protocol; eg,\n\n[**AN4657**](https://www.st.com/resource/en/application_note/an4657-stm32-inapplication-programming-iap-using-the-usart-stmicroelectronics.pdf): *STM32 in-application programming (IAP) using the USART* - uses the YMODEM protocol, which is widely supported by terminal emulators & serial comms libraries/frameworks.\n\nThere's also [ST Open Bootloader](http://ST%20Open Bootloader) - also works with CubeProgrammer",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "*Title edited to clarify that this is about accessing a file located on a Host PC*\n\n---\n\nhello ST Community,\n\nI'm trying to open a binary file with the fopen function for a STM32L5 microcontroller, but it always gives me a null value. The code is like this:\n\n```\n\nchar filepath[256];\n\nsprintf(filepath,\"%s\",\"C:\\\\fileBIN.bin\");\n\nFILE *file;\n\nfile = fopen(filepath,\"rb\");\n\nif(file == NULL)\n\n{\n\nprintf(\"Error occurred opening file. \\r\\n\");\n\n}\n\nelse\n\n{\n\nprintf(\"File opened successfully. \\r\\n\");\n\n}\n\n```\n\nIt always gives me a null value but the path exists and is correct. What's wrong?\n\nThanks for supports",
+            "images": [],
+            "author": "Domy_ST",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>You never said that's what you're trying to achieve in <em>this</em> thread!</p><p> </p><p>In that case, you will need to have something on the PC which sends the data to the Target.</p><p>The PC <em>pushes</em> to the Target - the Target doesn't <em>pull</em> from the PC.</p><p> </p><p>CubeProgrammer can do this, and is ideal for use with the STM32 System Bootloader:</p><p><a href=\"https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>AN2606</strong></a>: <em>Introduction to system memory boot mode on STM32 MCUs</em></p><p><strong><a href=\"https://www.st.com/resource/en/application_note/an3155-how-to-use-usart-protocol-in-bootloader-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN3155</a>: </strong><em>How to use USART protocol in bootloader on STM32 MCUs</em></p><p> </p><p>If you're making a custom bootloader, then you'll have to define your own protocol; eg,</p><p><a href=\"https://www.st.com/resource/en/application_note/an4657-stm32-inapplication-programming-iap-using-the-usart-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>AN4657</strong></a>: <em>STM32 in-application programming (IAP) using the USART</em> - uses the YMODEM protocol, which is widely supported by terminal emulators &amp; serial comms libraries/frameworks.</p><p> </p><p>There's also <a href=\"http://ST%20Open Bootloader\" rel=\"noopener nofollow noreferrer\" target=\"_blank\"><span>ST Open Bootloader</span></a> - also works with CubeProgrammer</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>no info: what you use + did...</p><p>use ? FATFS ?</p><p>what drive ?  C ??</p><p>interface ? SD-card ?</p><p>did you mount the volume ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"34409\">@AScha.3</user-mention> wrote:<br/><p>no info: what you use + did...</p><hr/></blockquote><p>Indeed!</p><p> </p><blockquote><hr/><user-mention data-id=\"34409\">@AScha.3</user-mention> wrote:<br/><p>use ? FATFS ?</p><hr/></blockquote><p>I don't think it's FatFs:  that has <a href=\"https://elm-chan.org/fsw/ff/doc/open.html\" rel=\"noopener nofollow noreferrer\" target=\"_blank\"><font face=\"courier new,courier\">f_open</font></a> rather than <font face=\"courier new,courier\">fopen</font>, and (AFAIK) uses drive numbers - not letters ?</p><p><a href=\"https://elm-chan.org/fsw/ff/doc/filename.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Path Names on the FatFs API</a></p><p> </p><p><user-mention data-id=\"104470\">@Domy_ST</user-mention> please see: <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" target=\"_blank\" title=\"How to write your question to maximize your chances to find a solution\">How to write your question to maximize your chances to find a solution</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/><blockquote><hr/></blockquote><blockquote><hr/></blockquote><p>I don't think it's FatFs: </p><hr/></blockquote><p>Also doesn't look like FileX: that appears to have <a href=\"https://github.com/eclipse-threadx/rtos-docs/blob/main/rtos-docs/filex/chapter4.md#fx_file_open\" rel=\"noopener nofollow noreferrer\" target=\"_blank\"><font face=\"courier new,courier\">fx_file_open</font></a></p><p> </p><p><user-mention data-id=\"104470\">@Domy_ST</user-mention> - You're not trying to open a file that's on your Host PC, are you?</p><p>For that, you'd need <a href=\"https://developer.arm.com/documentation/dui0203/j/semihosting/about-semihosting/what-is-semihosting-\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">Semihosting</a></p><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-use-semihosting-with-stm32cubeide-and-stm32/ta-p/49742\" target=\"_blank\"><em>How to use semihosting with STM32CubeIDE and STM32</em></a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"104470\">@Domy_ST</user-mention> wrote:<br/><p>the fopen function ... always gives me a null value.</p><hr/></blockquote><p>In that case, <font face=\"courier new,courier\">errno</font> (or something similar) should be set to <a href=\"https://en.cppreference.com/w/cpp/io/c/fopen.html#:~:text=On%20error%2C%20returns%20a%20null%20pointer.%20POSIX%20requires%20that%20errno%20is%20set%20in%20this%20case\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">an error code showing what went wrong</a>...</p><p> </p><p>As previously noted, you need to give a lot more details about your setup.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104470\">@Domy_ST</user-mention> </p>\n<p>If you want to read file system from SD card, you need ti use FATFS library.</p>\n<p>Please refer to the examples below:</p>\n<p><a href=\"https://github.com/STMicroelectronics/STM32CubeL5/tree/master/Projects/STM32L552E-EV/Applications/FatFs\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">STM32CubeL5/Projects/STM32L552E-EV/Applications/FatFs at master · STMicroelectronics/STM32CubeL5 · GitHub</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"1684\">@Saket_Om</user-mention> wrote:<br/><p>you need to use FATFS library.</p><hr/></blockquote><p><em>* other embedded file system libraries are available</em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Opening a file on the host or doing other host-related system calls is called semi-hosting and need special steps:<br/><a href=\"https://community.st.com/t5/stm32-mcus/how-to-use-semihosting-with-stm32cubeide-and-stm32/ta-p/49742\" target=\"_blank\">How to use semihosting with STM32CubeIDE and STM32 - STMicroelectronics Community</a></p><p><a href=\"https://kb.segger.com/Semihosting\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">Semihosting - SEGGER Knowledge Base</a></p><p>Haven't used it myself for a long time however.</p><p>The downside is, that this requires a driver on the host and is said to be slow. </p><p>hth</p><p>KnarfB</p></div>",
+                    "author": "KnarfB",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"28417\">@KnarfB</user-mention> wrote:<br/><p>downside is, that this requires a driver on the host and is said to be slow. </p><hr/></blockquote><p>Indeed.</p><p><user-mention data-id=\"104470\">@Domy_ST</user-mention> it also relies upon the debug interface - so you might just as well use that directly to do the programming!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"104470\">@Domy_ST</user-mention>  I think your question about getting the bin file into a bootloader is now solved, so please <a href=\"http://How%20to open files on Host PC with fopen on STM32L5\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">mark the solution</a> on whichever post you feel provided the best answer.</p><p> </p><p>New question about issues with Semihosting split to a separate thread: <span><a href='http://Semihosting%20error: \"Protocol error with Rcmd\"' rel=\"noopener nofollow noreferrer\" target=\"_blank\"><em>Semihosting error: \"Protocol error with Rcmd\"</em></a>.</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hi <user-mention data-id=\"35659\">@Andrew Neil</user-mention> </p><p>I haven't solved it yet. Before proceeding with YMODEM, I was about to try the semi-hosting solution, but there's a problem with rcmd. As soon as I fix it, I'll mark it as solved.</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The original question of \"How to open a file on a PC from an STM32\" has been answered (and turned out to be the wrong question anyhow).</p><p>\"How to do YMODEM\" and \"How to do Semihosting\", etc,  are separate follow-on questions.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

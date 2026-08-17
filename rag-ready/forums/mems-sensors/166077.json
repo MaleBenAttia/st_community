@@ -1,0 +1,111 @@
+{
+    "forum": [
+        {
+            "id": "166064",
+            "publicId": "166077",
+            "title": "Configuration of pedometer for Regression Tool",
+            "url": "https://community.st.com/mems-sensors-48/configuration-of-pedometer-for-regression-tool-166077",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Accelerometers",
+                "MEMS sensors",
+                "MEMS Studio"
+            ],
+            "published_at": "2026-06-11T12:02:35+00:00",
+            "views": 126,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@GoncaloS ,\n\nwe reviewed your configuration.\n\nRegression tool provides only set of parameters to optimize pedometer steps detection and the output configuration will not enable pedometer and power accelerometer on. This is why the debug tool is triggering the error you shared. Therefore you will need to add instructions to enable pedometer and power on sensor at the end of your configuration file (see last 4 instructions).\n\nWhile reviewing the output file shared, we identified an issue with this specific sensor related to  missing embedded function enable request and related mandatory delay of 5 ms and  following value written for register 0x02 should be \"0x01\" instead of \"0x11\".\n\nWe are currently working on integrating these fixes into next version of MEMS Studio.\n\nPerforming the debug of this fixed configuration on \"fast\\_steps20.txt\" you will get 18 steps according to the regression\\_tool.config file.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/af6e4d67-14d5-4847-9c62-6cff65d06c41.png)",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI’m having some problems with regression tool configuration for pedometer.\n\nI'm having some issues with the regression tool configuration for the pedometer. I’m using the STEVAL-MKI109D and STEVAL-MKI238A with MEMs Studio tool (FW: 2.10.2).\n\nFirst, I set up the sensor using 'Easy Configuration' and changed the Full Scale to ±4g, the Output Data Rate (ODR) to 25 Hz, enabled High-Performance mode, and set the bandwidth to ODR/2.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb87d958-26f3-464a-8d70-c728a9bb5497.png)\n\nQuick setup configuration\n\nFirst, I recorded and saved different walking types (slow, normal, and fast, with 20 steps each) using the 'Save to file' tab. This only saves the Accelerometer data.\n\nNext, I opened the Pedometer tab and ran the regression tool using these three files (`fast_steps20.txt`, `normal_steps20.txt`, and `slow_steps20.txt`). I selected the LIS2DUX12 sensor and tested it with the default settings for error type (Mean) and complexity level (50%). The generated results are in the attached zip file.\n\nAfter that, I went to the debug page to test the results. I loaded the `pedometer.json` configuration and selected the `normal_steps20.txt` log file. However, the following warning appeared: *'Accelerometer power mode detected is power down!'*.\n\nI tried modifying the JSON configuration file to enable high-power mode. Although the warning disappeared, the debug results were still incorrect.\n\nHow can I fix this?\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5c7a836f-9e1d-4b00-b1e7-ec4c88cf3a3e.png)\n\nThanks,\n\nGoncaloS",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/af6e4d67-14d5-4847-9c62-6cff65d06c41.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5c7a836f-9e1d-4b00-b1e7-ec4c88cf3a3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb87d958-26f3-464a-8d70-c728a9bb5497.png"
+            ],
+            "author": "GoncaloS",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107367\">@GoncaloS</user-mention> ,</p><p>You are right tag 0x1B is intended for MLC filter FIFO output on LSM6DSV16X. Please consider that enabling only MLC_FILTER_FEATURE_FIFO_EN is not sufficient for filter outputs. In addition to the global FIFO enable bits, each individual filter must also be enabled at configuration-generation level by adding:</p><p>-MLC_enable_filters_in_FIFO</p><p>in the custom options under “Config generation” using the “...” button into MLC page.<br/>Also note that MLC result entries are written to FIFO only when the class changes.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @Federica Bossi,</p><p>Thanks for your reply. So, do I have to use the MLC feature instead of the Pedometer function to train my model to identify steps? I didn't understand very well what you meant.<br/><br/>Regards,<br/>GoncaloS</p></div>",
+                    "author": "GoncaloS",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention>, <br/><br/>Following up on my previous response, since I can only identify states with the MLC and cannot count steps directly, my plan is to use the configuration from the regression tool for the 3 walking profiles (slow, normal, and fast) to dynamically adjust the pedometer parameters. This way, I can accurately count steps at different speeds.<br/><br/>Regards, <br/>GoncaloS</p></div>",
+                    "author": "GoncaloS",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107367\">@GoncaloS</user-mention> ,</p><p>I apologize for the confusion; due to an error, my previous response was intended for another post. We are currently working on your request, and I will get back to you shortly with an update.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107367\">@GoncaloS</user-mention> ,</p><p>we reviewed your configuration.</p><p>Regression tool provides only set of parameters to optimize pedometer steps detection and the output configuration will not enable pedometer and power accelerometer on. This is why the debug tool is triggering the error you shared. Therefore you will need to add instructions to enable pedometer and power on sensor at the end of your configuration file (see last 4 instructions).</p><p> </p><p>  While reviewing the output file shared, we identified an issue with this specific sensor related to  missing embedded function enable request and related mandatory delay of 5 ms and  following value written for register 0x02 should be \"0x01\" instead of \"0x11\". </p><p> </p><p>We are currently working on integrating these fixes into next version of MEMS Studio.</p><p>Performing the debug of this fixed configuration on \"fast_steps20.txt\" you will get 18 steps according to the regression_tool.config file.<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/af6e4d67-14d5-4847-9c62-6cff65d06c41.png\"/></figure><p> </p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Here is the json</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention>,<br/> </p><p>Thanks, now it’s working! I have one more question: Can I include different walking patterns in the same regression?</p><p>In my case, I want to use different patterns (slow, normal, and fast walk) to generate a single algorithm capable of counting steps across different scenarios. How can I achieve this? Is it possible? I have already tested combining multiple and different datasets, but the steps are only being counted well for some of the log files.<br/><br/>Regards,<br/>GoncaloS</p></div>",
+                    "author": "GoncaloS",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107367\">@GoncaloS</user-mention> ,</p><p>The goal of the regression tool is to find the configuration that best detects the step count based on provided log files and device configuration. The important point is not to change the full-scale range or sensor ODR. Please be sure that estimated steps count provided in log files names are matching expected steps count.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention> ,<br/><br/>In my case, I created an algorithm based on slow, normal and fast walking, and it only worked well for normal and fast walking. Even when I only used datasets for slow walking, and then tested it in debug mode with a slow-walking file, it didn’t work properly.<br/><br/>Regards,<br/>GoncaloS</p></div>",
+                    "author": "GoncaloS",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "164310",
+            "publicId": "164310",
+            "title": "VD56G3 camera H front and backporch",
+            "url": "https://community.st.com/imaging-sensors-49/vd56g3-camera-h-front-and-backporch-164310",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "CMOS Image Sensors"
+            ],
+            "published_at": "2026-03-30T15:42:54+00:00",
+            "views": 224,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @Brenden\\_PLUS ,\n\nYou can add some horizontal blanking by increasing the line length.\n\nYou can use the register 0x0300, this is a static register, so you need to modify it before you start streaming.\n\nBest regards,\n\nJean",
+            "best_answer_author": "Jean_Poire",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Is there a way to change the Horizontal front and backporch?\n\nThis is a addon to this question\n\n\\* <https://community.st.com/t5/imaging-sensors/vd56g3-camera-change-the-frame-start-and-frame-end/m-p/888134#M6406>\n\n@Jean\\_Poire",
+            "images": [],
+            "author": "Brenden_PLUS",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"99747\">@Brenden_PLUS</user-mention> ,</p><p>You can add some horizontal blanking by increasing the line length.</p><p>You can use the register 0x0300, this is a static register, so you need to modify it before you start streaming.</p><p> </p><p>Best regards,</p><p>Jean </p></div>",
+                    "author": "Jean_Poire",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the info!</p><p> </p><p>So i managed to get the camera to work.  It was all my fault why it didn't work.  I'm using zephyr and i didn't set the clock frequency right.  </p><p> </p><p>To set it in zephyr 4.3 you do this.</p><p>```c</p><div><div><span>video_init_ctrl</span><span>(</span></div><div><span>&amp;</span><span>ctrls</span><span>-&gt;</span><span>pixel_rate</span><span>, </span><span>dev</span><span>, VIDEO_CID_PIXEL_RATE,</span></div><div><span>(</span><span>struct</span><span> video_ctrl_range){</span></div><div><span>.min64 </span><span>=</span> <span>VD56G3_PIXEL_RATE</span><span>,</span></div><div><span>.max64 </span><span>=</span> <span>VD56G3_PIXEL_RATE</span><span>,</span></div><div><span>.step64 </span><span>=</span> <span>1</span><span>,</span></div><div><span>.def64 </span><span>=</span> <span>VD56G3_PIXEL_RATE</span><span>});</span></div></div><p>```</p><p> </p><p>Also my width and height were off by one.  So if you want something that's 640 by 480.</p><p> </p><p>You set the roi_x_start = 0 and roi_y_end = 639.  Then when you read back the width size it's 640.  Then you do the same with the y.</p><p> </p><p>One thing i did see with the dev board is the x_start and x_end is always 0 to 1123.   while the y actually sets its y region to start at the actual place you want to start to read.  Just thought that was interesting</p><p> </p></div>",
+                    "author": "Brenden_PLUS",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Jean_Poire",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

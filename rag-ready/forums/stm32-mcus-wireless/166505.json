@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "166482",
+            "publicId": "166505",
+            "title": "STM32WL55JC1 RTC Alarm at calendar date and time",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wl55jc1-rtc-alarm-at-calendar-date-and-time-166505",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "RTC",
+                "STM32WL series"
+            ],
+            "published_at": "2026-06-29T09:49:25+00:00",
+            "views": 69,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "If you need a correct RTC clock, the only alternatives are (in my view, in order of increasing implementation effort):\n\n1. LSE\n\n2. external RTC\n\n3. external reference clock\n\nThe STM32 RTC alarm is not a general full-date comparator. It only checks the fields that are enabled by the mask. So you can match on hour/minute/second and, depending on the mode, either day-of-month or day-of-week -  but not a complete arbitrary yyyy-mm-dd hh:mm:ss alarm in one hardware shot.\n\nFor a far-future exact wake-up, the usual approach is:\n\n* Keep the RTC running\n\n* Set an intermediate alarm\n\n* Wake up periodically\n\n* Compare the current date/time with the target in software\n\n* Re-arm the next alarm until the target is reached\n\nIn summary: the practical workaround is “wake occasionally, check whether the year/month/day is correct, then go back to sleep”.\n\nHope that answers your question?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI’m looking into the WL55JC1 for a project which would require the system to remain dormant (ideally standby) for weeks, maybe months and then resume operation on a set date at a set time. I would like to use LSI as power and space will be very limited.\n\nSo far I’ve discovered, that of course there is an RTC and it has alarms that can be used to wake from standby mode. However all examples and documentation I can find only ever use times or maybe day-of-week or day-of-month as the set wake up time. Never a full date and time. Looking at the code, stm32wlxx\\_hal\\_rtc.h defines a struct RTC\\_AlarmTypeDef with fields for seconds, minutes, hours and either a day-of-month, or day-of-week.\n\nIs it really not possible to give the system a full a date and time yyyy-mm-dd and hh-mm to wake up at? Will I need to build workaround waking up at least once a month to recalculate the next wake-up until the actual target time is within the same calendar month?\n\nOr am I overlooking something?\n\nI’d appreciate any help I can get, thank you!",
+            "images": [],
+            "author": "plecso",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome ​<user-mention data-id=\"107821\">@plecso</user-mention>, to the community!</p><p>Even though space is limited - if your system is supposed to wake up after months on a specific date, LSI is very poorly suited as a clock source for the RTC. Why? In the <a href=\"https://www.st.com/resource/en/datasheet/stm32wl55jc.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">datasheet</a>, for fLSI and the full temperature range, you will find a frequency variation of 29.5...34kHz. If you start from the arithmetic mean value (31.75 kHz), a simple calculation gives a daily inaccuracy of 29.5/31.75-1 = -70866 ppm (the same absolute value in the positive direction), which corresponds to a possible daily deviation of up to 6922.8 seconds. Assuming 30.25 days per month and a total of e.g. 6 months, this can add up to more than 1 million seconds = 12.8 days. In such a case, you cannot even be sure of hitting the correct week.</p><p>Even if the RTC is operated with LSE, careful design is extremely important in order not to accumulate too much drift over such periods, since the crystal’s temperature profile, load capacitor parameters, and even the layout all have a non-negligible effect. I strongly recommend carrying out a worst-case analysis for such accuracy requirements, taking all relevant parameters into account.</p><p>Coming back to your question about the date: the RTC has at least one small limitation - the year can only be evaluated using the last two digits, because the millennium and century are not managed in the RTC hardware. So if you want to be woken at a specific time on a specific date, you can certainly do that; however, for the reasons of accuracy mentioned above, this is relatively rare and would need to be implemented, for example, with a custom typedef or something similar.</p><p>Hope that helps?</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>thank you for your insights!<br/>Indeed I did not consider that LSI might not be accurate enough, I’m going to have to look into alternatives.</p><p>As for the RTC alarm I still don’t understand how I would be able to get an alarm at a specific date. I followed the alarm setting path in the HAL down to the point where (as far as I can tell) it writes a uint32 with BCD encoded alarm time into a register within the RTC module. This alarm time is always hours, minutes, seconds, AM/PM, WeekDay/MonthDaySelector, Day (in week or month) and a mask selecting which of these are relevant.</p><p>Even if I were to change the composition of this uint32, how would the RTC alarm know how to interpret it? Is it programmable as well?</p><p>As you can likely tell, I'm somewhat in over my head, so I would really appreciate any help or pointers!</p><p>Regards,<br/>Philipp</p></div>",
+                    "author": "plecso",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you need a correct RTC clock, the only alternatives are (in my view, in order of increasing implementation effort):</p><ol><li>LSE</li> <li>external RTC</li> <li>external reference clock</li></ol><p>The STM32 RTC alarm is not a general full-date comparator. It only checks the fields that are enabled by the mask. So you can match on hour/minute/second and, depending on the mode, either day-of-month or day-of-week -  but not a complete arbitrary yyyy-mm-dd hh:mm:ss alarm in one hardware shot.</p><p>For a far-future exact wake-up, the usual approach is:</p><ul><li>Keep the RTC running</li> <li>Set an intermediate alarm</li> <li>Wake up periodically</li> <li>Compare the current date/time with the target in software</li> <li>Re-arm the next alarm until the target is reached</li></ul><p>In summary: the practical workaround is “wake occasionally, check whether the year/month/day is correct, then go back to sleep”.</p><p>Hope that answers your question?</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "163961",
+            "publicId": "163961",
+            "title": "Changing the ThreadX SYSTEM_CLOCK symbol (via threadX itself)",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/changing-the-threadx-system-clock-symbol-via-threadx-itself-163961",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32U5 series",
+                "ThreadX"
+            ],
+            "published_at": "2026-03-18T19:34:25+00:00",
+            "views": 169,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Well, it seems like the cleanest way forwards is to update the SysTick LOAD register from one of the threads after ThreadX has started.    I wanted a 1msec tick.\n\nI think it would be cleaner if you were able to do with via the tx\\_user.h system, but the '.S' is not configured to allow symbols to be overriden.\n\n**Don't use '****SysTick\\_Config()'** as this plays with the NVIC settings and is not compatible with how ThreadX is configured.\n\nHowever, either of\n\nHAL\\_SYSTICK\\_Config(SystemCoreClock / 1000);        or\n\nSysTick->LOAD  = (uint32\\_t)(SystemCoreClock / 1000 - 1);\n\nis acceptable. (You don't need the minus one for HAL\\_SYSTICK\\_Config()).\n\nNick.",
+            "best_answer_author": "Nicholas Parker",
+            "best_answer_author_role": "Associate III",
+            "content_text": "What is recommended way to change or override the 'SYSTEM\\_CLOCK' symbol defined in **'tx\\_initialize\\_low\\_level.S**' , that feeds into the threadX systick period calculation?\n\nI could change the SysTick after threadX is started -- that is probably the easist fix.\n\nI dont want to modify the threadX submodule in my project, as its pulled from the internet at some pinned version.\n\nI've currently made a local copy of '**tx\\_initialize\\_low\\_level.S**', and then I use CMake to select that particular S file - so that solves the problem, but I dont like having a personal copy of a file from the submodule.\n\nAfter experimenting for some time, and then scouring the web, I cant find any suggestions on this issue, there are some changes that can be imported via having your own '**tx\\_user.h**' -- but I cant see anything that can override the SYSTEM\\_CLOCK.\n\nCheers, Nick",
+            "images": [],
+            "author": "Nicholas Parker",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div><span><span>Well, it seems like the cleanest way forwards is to update the SysTick LOAD register from one of the threads after ThreadX has started.    I wanted a 1msec tick.</span></span></div><div> </div><div><span><span>I think it would be cleaner if you were able to do with via the tx_user.h system, but the '.S' is not configured to allow symbols to be overriden.</span></span></div><div> </div><div><strong>Don't use '</strong><span><strong>SysTick_Config()'</strong> as this plays with the NVIC settings and is not compatible with how ThreadX is configured.</span><span><br/><br/></span></div><div><span>However, either of </span></div><div> </div><div><span>HAL_SYSTICK_Config</span><span>(</span><span>SystemCoreClock</span> <span>/</span> <span>1000</span><span>);        </span><span>or</span></div><div><span>SysTick</span><span>-&gt;</span><span>LOAD</span><span>  </span><span>=</span><span> (</span><span>uint32_t</span><span>)(</span><span>SystemCoreClock</span> <span>/</span> <span>1000 - 1</span><span>);<br/></span></div><div> </div><div><span>is acceptable. (You don't need the minus one for HAL_SYSTICK_Config()).</span></div><div> </div><div><span>Nick.</span></div></div>",
+                    "author": "Nicholas Parker",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

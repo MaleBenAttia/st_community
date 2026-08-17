@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "163666",
+            "publicId": "163666",
+            "title": "STM32N6 Can't program due to BOOT1 pin tied to ground",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32n6-can-t-program-due-to-boot1-pin-tied-to-ground-163666",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-10T22:03:57+00:00",
+            "views": 455,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nAccording to this article, you need to have access to BOOT pins to connect to the STM32N6 using STLINK and serial interface: [How to connect the STM32N6 using STLINK and serial interface](https://community.st.com/t5/stm32-mcus/how-to-connect-the-stm32n6-using-stlink-and-serial-interface/ta-p/851568)",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi, I have a custom STM32N6 board where the BOOT0 and BOOT1 pins are tied directly to ground under the BGA with no test points or jumpers. Is there anyway to connect a debugger in this scenario or is my board bricked?\n\nBelow is what I get when attempting to connect via an ST-Link V3:\n\n```\n\n>STM32_Programmer_CLI.exe -c port=SWD mode=UR -rst\n\n-------------------------------------------------------------------\n\nSTM32CubeProgrammer v2.21.0\n\n-------------------------------------------------------------------\n\nST-LINK SN : 003700163431511731343632\n\nST-LINK FW : V3J17M10\n\nBoard : STLINK-V3MINIE\n\nVoltage : 3.26V\n\nSWD freq : 8000 KHz\n\nConnect mode: Under Reset\n\nReset mode : Hardware reset\n\nDevice ID : 0x486\n\nRevision ID : Rev Z\n\nDevice name : STM32N6xx\n\nDevice type : MCU\n\nDevice CPU : Cortex-M55\n\nBL Version : --\n\nMCU Reset\n\nError: Unable to run MCU!\n\nError: Error code: 32\n\n```\n\nAnd this is what I get from the STM32CubeProgrammer GUI:\n\n```\n\n23:21:41:351 : UR connection mode is defined with the HWrst reset mode\n\n23:21:41:372 : ST-LINK SN : 003700163431511731343632\n\n23:21:41:372 : ST-LINK FW : V3J17M10\n\n23:21:41:372 : Board : STLINK-V3MINIE\n\n23:21:41:372 : Voltage : 3.29V\n\n23:21:41:376 : SWD freq : 8000 KHz\n\n23:21:41:376 : Connect mode: Normal\n\n23:21:41:376 : Reset mode : Hardware reset\n\n23:21:41:378 : Device ID : 0x486\n\n23:21:41:378 : r ap 0 @0x18001004 0x00000004 bytes Data 0x00000000\n\n23:21:41:387 : reset ap 1\n\n23:21:41:387 : r ap 1 @0x18001004 0x00000004 bytes Data 0x00000018\n\n23:21:41:388 : fail @0xFEEEFEEE\n\n23:21:41:388 : Revision ID : Rev Z\n\n23:21:41:402 : Reading data...\n\n23:21:41:403 : r ap 1 @0x00000000 0x00000004 bytes Data 0x00000018\n\n23:21:41:503 : r ap 1 @0x00000000 0x00000004 bytes Data 0x00000018\n\n23:21:41:503 : Database: Config 0 is active.\n\n23:21:41:504 : r ap 1 @0x46009024 0x00000004 bytes Data 0x00000018\n\n23:21:41:504 : fail @0xFEEEFEEE\n\n23:21:41:584 : r ap 1 @0x46009024 0x00000004 bytes Data 0x00000018\n\n23:21:41:584 : fail @0xFEEEFEEE\n\n23:21:41:592 : UPLOADING ...\n\n23:21:41:592 : Size : 1024 Bytes\n\n23:21:41:592 : Address : 0x34064000\n\n23:21:41:592 : Read progress:\n\n23:21:41:592 : Reading data...\n\n23:21:41:592 : r ap 1 @0x34064000 0x00000400 bytes Data 0x00000018\n\n23:21:41:683 : r ap 1 @0x34064000 0x00000400 bytes Data 0x00000011\n\n23:21:41:683 : Error: Data read failed\n\n23:21:41:735 : r ap 1 @0x46009024 0x00000004 bytes Data 0x00000011\n\n23:21:41:736 : fail @0xFEEEFEEE\n\n23:21:41:736 : r ap 1 @0x08000000 0x00000004 bytes Data 0x00000018\n\n23:21:41:736 : fail @0xFEEEFEEE\n\n23:21:41:736 : Warning: Connection to device 0x486 is lost\n\n23:21:41:921 : r ap 1 @0x46009024 0x00000004 bytes Data 0x00000018\n\n23:21:41:922 : fail @0xFEEEFEEE\n\n23:21:41:923 : r ap 1 @0x08000000 0x00000004 bytes Data 0x00000018\n\n23:21:41:923 : fail @0xFEEEFEEE\n\n23:21:41:923 : Warning: Connection to device 0x486 is lost\n\n23:21:42:131 : Disconnected\n\n23:21:42:131 : Disconnected from device.\n\n23:21:42:137 : Disconnected from device.\n\n```\n\nI've replicated the issue on the N6 Nucleo board and the only way to fix it there seems to be to move the BOOT1 jumper so it goes into development boot.\n\nThe flash memory is unintialised so there is no FSBL, the debug port keeps disconnecting me, I don't have access to USB/USART1/USART2/UART4, is there any other way to program an STM32N6?\n\nPlease tell me my best option isn't to insert a wires under the BGA to access USART2 then use that to change the BOOT1 pin to a more accessible pin via OTP.",
+            "images": [],
+            "author": "ben5050",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>According to this article, you need to have access to BOOT pins to <span>connect to the STM32N6 using STLINK and serial interface: </span><a href=\"https://community.st.com/t5/stm32-mcus/how-to-connect-the-stm32n6-using-stlink-and-serial-interface/ta-p/851568\" target=\"_blank\"><span>How to connect the STM32N6 using STLINK and serial interface</span></a></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The board is bricked then sadly.</p><p>It would be good to add a mention of this to AN5967 since I followed that to design the hardware, and no other STM32 locks you out of the debug port just by putting it into flash boot.</p></div>",
+                    "author": "ben5050",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sympathies for your situation. I saw your post a while ago and was trying to think of what could be done. I've never worked with BGAs (but want to one day), so this suggestion might be impractical - can you remove the BGA, re-ball it and stick onto another board that has access to the boot pins? (I googled BGA rework before I wrote this, and there are a few Youtubes talking about this that I might watch later...)</p><p>I'm surprised that the application note you mentioned doesn't recommend connecting the Boot pins to ground via a resistor - that would be one of my golden rules designing any STM32 board, that way you will always have an escape path if things go wrong. Hopefully they will add something similar to the application note - in bold.</p></div>",
+                    "author": "gregstm",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

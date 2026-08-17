@@ -1,0 +1,124 @@
+{
+    "forum": [
+        {
+            "id": "165277",
+            "publicId": "165277",
+            "title": "STM32U575VGT CRC checksum through DMA",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u575vgt-crc-checksum-through-dma-165277",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-04-30T19:32:01+00:00",
+            "views": 214,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "@Khaled\\_DHIF Thank you for this insight, I was not aware of the change in DMA transfer length calculation. Your solution worked for checking flash memory from 0x08000000 to 0x0800FFFB, where 0x0800FFFB is end of word addressing in terms of bytes in 16 bits. I looked at the reference manual for why this was the limit but did not find anything in the memory map. Stepping through the code with the debugger, I realized that although HAL functions passed the transfer length as a 32bit value, it was in fact limited by the size of BNDT in the GPDMA CxBR1 register. To transfer something larger, I would need to use a linked list. I configured in STM32CubeMX a linked list for transferring blocks of 0xFFFC as follows:\n\n```\n\n/**\n\n* @brief DMA Linked-list FlashMemory configuration\n\n* @param None\n\n* @retval None\n\n*/\n\nHAL_StatusTypeDef MX_FlashMemory_Config(void)\n\n{\n\nHAL_StatusTypeDef ret = HAL_OK;\n\n/* DMA node configuration declaration */\n\nDMA_NodeConfTypeDef pNodeConfig;\n\n/* Set node configuration ################################################*/\n\npNodeConfig.NodeType = DMA_GPDMA_LINEAR_NODE;\n\npNodeConfig.Init.Request = DMA_REQUEST_SW;\n\npNodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;\n\npNodeConfig.Init.Direction = DMA_MEMORY_TO_MEMORY;\n\npNodeConfig.Init.SrcInc = DMA_SINC_INCREMENTED;\n\npNodeConfig.Init.DestInc = DMA_DINC_FIXED;\n\npNodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;\n\npNodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;\n\npNodeConfig.Init.SrcBurstLength = 1;\n\npNodeConfig.Init.DestBurstLength = 1;\n\npNodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;\n\npNodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;\n\npNodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;\n\npNodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;\n\npNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;\n\npNodeConfig.SrcAddress = 0x08000000;\n\npNodeConfig.DstAddress = CRC_BASE;\n\npNodeConfig.DataSize = 0xFFFC;\n\n/* Build Block1 Node */\n\nret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Block1);\n\n/* Insert Block1 to Queue */\n\nret |= HAL_DMAEx_List_InsertNode_Tail(&FlashMemory, &Block1);\n\n/* Set node configuration ################################################*/\n\npNodeConfig.SrcAddress = 0x0800FFFC;\n\n/* Build Block2 Node */\n\nret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Block2);\n\n/* Insert Block2 to Queue */\n\nret |= HAL_DMAEx_List_InsertNode_Tail(&FlashMemory, &Block2);\n\nreturn ret;\n\n}\n\n```\n\nAnd in the code I started the transfer as follows:\n\n```\n\nMX_FlashMemory_Config();\n\nHAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel12, &FlashMemory);\n\n__HAL_CRC_DR_RESET(&hcrc);\n\nHAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel12);\n\n```\n\nThis works if the IAR project calculates a checksum from 0x08000000 to 0x0801FFF7. I hope this helps anyone trying to run a checksum on the STM32U5 line.",
+            "best_answer_author": "Roth.Ian",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I am working on converting projects from STM32F745VET to STM32U575VGT. Part of the startup routine of the projects is checking for flash errors using the CRC peripheral. The STM32F7 projects initialize a DMA channel in the following way:\n\n```\n\nvoid MX_DMA_Init(void)\n\n{\n\n/* DMA controller clock enable */\n\n__HAL_RCC_DMA1_CLK_ENABLE();\n\n__HAL_RCC_DMA2_CLK_ENABLE();\n\n/* Configure DMA request hdma_memtomem_dma2_stream1 on DMA2_Stream1 */\n\nhdma_memtomem_dma2_stream1.Instance = DMA2_Stream1;\n\nhdma_memtomem_dma2_stream1.Init.Channel = DMA_CHANNEL_0;\n\nhdma_memtomem_dma2_stream1.Init.Direction = DMA_MEMORY_TO_MEMORY;\n\nhdma_memtomem_dma2_stream1.Init.PeriphInc = DMA_PINC_ENABLE;\n\nhdma_memtomem_dma2_stream1.Init.MemInc = DMA_MINC_DISABLE;\n\nhdma_memtomem_dma2_stream1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;\n\nhdma_memtomem_dma2_stream1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;\n\nhdma_memtomem_dma2_stream1.Init.Mode = DMA_NORMAL;\n\nhdma_memtomem_dma2_stream1.Init.Priority = DMA_PRIORITY_LOW;\n\nhdma_memtomem_dma2_stream1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;\n\nhdma_memtomem_dma2_stream1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;\n\nhdma_memtomem_dma2_stream1.Init.MemBurst = DMA_MBURST_SINGLE;\n\nhdma_memtomem_dma2_stream1.Init.PeriphBurst = DMA_PBURST_SINGLE;\n\nif (HAL_DMA_Init(&hdma_memtomem_dma2_stream1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n}\n\n```\n\nAnd then in the code:\n\n```\n\n__HAL_CRC_DR_RESET(&hcrc);\n\nHAL_DMA_Start_IT(&handle_GPDMA1_Channel12, checkstart, CRC_BASE, checkrange);\n\n```\n\nwhere checkstart is defined as 0x08000000 and checkrange is 0x0000FFFC\n\nI tried to use a GPDMA channel on the STM32U5 in the same way, but the calculated checksum does not match. Using the HAL\\_CRC\\_Calculate function does result in a checksum match, but this uses the CPU instead of offloading it to DMA.\n\nIs there a way to feed the flash into the CRC peripheral through a DMA channel on the STM32U5?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b5fe7a06-ed35-7db3-3fe3-d60b5d76242e.png"
+            ],
+            "author": "Roth.Ian",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>And does DMA and \"manual\" checksum match, if you use e.g. checkrange=1?</p><p>If not, what are the content of CRC registers for the two cases?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I set the end address to 0x08000003 in the IAR EWARM linker dialog. If I set checkrange to 1, the HAL_CRC_Calculate method comes up with a match. The DMA version does not match.</p><p>Expected value calculated by EWARM: 0x29C17239</p><p>Calculated value from CRC with DMA input: 0x6800520C</p></div>",
+                    "author": "Roth.Ian",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I meant, comparing all CRC registers' content, and perhaps looking at DMA's registers, too.</p><p>What value is at 0x0800'0000?</p><p>JW</p><p> </p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The DR register is reset to 0xFFFFFFFF before the DMA transfer or HAL_CRC_Calculate command. Changing between the two does not change the value at 0x0800000, which in the memory map of EWARM is listed as 08 53 01 20.</p></div>",
+                    "author": "Roth.Ian",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"7269\">@Roth.Ian</user-mention> </p>\n<p>Could you please provide your DMA configuration?</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI <user-mention data-id=\"1684\">@Saket_Om</user-mention> </p><p>Please see the STM32F7 code from above. Here is the STM32U5 configuration where I try to replicate it:</p><pre class=\"lia-code-sample language-c\"><code>/* GPDMA1 init function */\nvoid MX_GPDMA1_Init(void)\n{\n\n /* USER CODE BEGIN GPDMA1_Init 0 */\n\n /* USER CODE END GPDMA1_Init 0 */\n\n /* Peripheral clock enable */\n __HAL_RCC_GPDMA1_CLK_ENABLE();\n\n /* GPDMA1 interrupt Init */\n HAL_NVIC_SetPriority(GPDMA1_Channel1_IRQn, 8, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel1_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel2_IRQn, 7, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel2_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel3_IRQn, 7, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel3_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel4_IRQn, 7, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel4_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel5_IRQn, 7, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel5_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel7_IRQn, 7, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel7_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel8_IRQn, 8, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel8_IRQn);\n HAL_NVIC_SetPriority(GPDMA1_Channel12_IRQn, 5, 0);\n HAL_NVIC_EnableIRQ(GPDMA1_Channel12_IRQn);\n\n /* USER CODE BEGIN GPDMA1_Init 1 */\n\n /* USER CODE END GPDMA1_Init 1 */\n handle_GPDMA1_Channel12.Instance = GPDMA1_Channel12;\n handle_GPDMA1_Channel12.Init.Request = DMA_REQUEST_SW;\n handle_GPDMA1_Channel12.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;\n handle_GPDMA1_Channel12.Init.Direction = DMA_MEMORY_TO_MEMORY;\n handle_GPDMA1_Channel12.Init.SrcInc = DMA_SINC_INCREMENTED;\n handle_GPDMA1_Channel12.Init.DestInc = DMA_DINC_FIXED;\n handle_GPDMA1_Channel12.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;\n handle_GPDMA1_Channel12.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;\n handle_GPDMA1_Channel12.Init.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;\n handle_GPDMA1_Channel12.Init.SrcBurstLength = 1;\n handle_GPDMA1_Channel12.Init.DestBurstLength = 1;\n handle_GPDMA1_Channel12.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;\n handle_GPDMA1_Channel12.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;\n handle_GPDMA1_Channel12.Init.Mode = DMA_NORMAL;\n if (HAL_DMA_Init(&amp;handle_GPDMA1_Channel12) != HAL_OK)\n {\n Error_Handler();\n }\n if (HAL_DMA_ConfigChannelAttributes(&amp;handle_GPDMA1_Channel12, DMA_CHANNEL_NPRIV) != HAL_OK)\n {\n Error_Handler();\n }\n handle_GPDMA1_Channel7.Instance = GPDMA1_Channel7;\n handle_GPDMA1_Channel7.Init.Request = DMA_REQUEST_SW;\n handle_GPDMA1_Channel7.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;\n handle_GPDMA1_Channel7.Init.Direction = DMA_MEMORY_TO_MEMORY;\n handle_GPDMA1_Channel7.Init.SrcInc = DMA_SINC_INCREMENTED;\n handle_GPDMA1_Channel7.Init.DestInc = DMA_DINC_FIXED;\n handle_GPDMA1_Channel7.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;\n handle_GPDMA1_Channel7.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;\n handle_GPDMA1_Channel7.Init.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;\n handle_GPDMA1_Channel7.Init.SrcBurstLength = 1;\n handle_GPDMA1_Channel7.Init.DestBurstLength = 1;\n handle_GPDMA1_Channel7.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;\n handle_GPDMA1_Channel7.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;\n handle_GPDMA1_Channel7.Init.Mode = DMA_NORMAL;\n if (HAL_DMA_Init(&amp;handle_GPDMA1_Channel7) != HAL_OK)\n {\n Error_Handler();\n }\n if (HAL_DMA_ConfigChannelAttributes(&amp;handle_GPDMA1_Channel7, DMA_CHANNEL_NPRIV) != HAL_OK)\n {\n Error_Handler();\n }\n /* USER CODE BEGIN GPDMA1_Init 2 */\n\n /* USER CODE END GPDMA1_Init 2 */\n\n}</code></pre><p>I have tried both Channel 7 and 12 to see if there was a difference with a larger FIFO. I have changed the ports around based on my understand of Figure 2 in AN5593. Circular mode for the source did not seem to lead to good results.</p><p> </p></div>",
+                    "author": "Roth.Ian",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"7269\">@Roth.Ian</user-mention> </p>\n<p>Are the DMA HTC and TC interrupt flags triggered correctly?</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Also, what happens if you define an array in memory and in the DMA command change the destination address to that array? Is the first word from FLASH stored there?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1684\">@Saket_Om</user-mention> ,</p><p>They are triggered correctly.</p></div>",
+                    "author": "Roth.Ian",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello all, </p><p>On STM32U5, CRC has no dedicated GPDMA request, so the working approach is a software-triggered GPDMA transfer that writes directly to CRC-&gt;DR.</p><p>The main point to check is the transfer length unit:<br/>HAL_CRC_Calculate() uses a word count when the input format is words, while HAL_DMA_Start_IT() on U5 expects the transfer size in bytes.</p><p>So, if your DMA call is:</p><p> </p><pre class=\"lia-code-sample language-c\"><code>HAL_DMA_Start_IT(&amp;handle_GPDMA1_Channel12, checkstart, (uint32_t)&amp;CRC-&gt;DR, checkrange);</code></pre><p>and checkrange is a word count, the DMA length is wrong. In that case, try:</p><pre class=\"lia-code-sample language-c\"><code>__HAL_CRC_DR_RESET(&amp;hcrc);\nHAL_DMA_Start_IT(&amp;handle_GPDMA1_Channel12, checkstart,(uint32_t)&amp;CRC-&gt;DR, checkrange * 4U);</code></pre><p> </p><p>And the recommended GPDMA settings are:<br/>- Request = DMA_REQUEST_SW<br/>- Direction = DMA_MEMORY_TO_MEMORY<br/>- SrcInc = DMA_SINC_INCREMENTED<br/>- DestInc = DMA_DINC_FIXED<br/>- SrcDataWidth = WORD<br/>- DestDataWidth = WORD</p><p> </p><p>If the byte/word length mismatch was the issue, both results should then match.</p><p>Kind regards, </p><p>DHIF Khaled</p><p> </p></div>",
+                    "author": "Khaled_DHIF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"91214\">@Khaled_DHIF</user-mention> Thank you for this insight, I was not aware of the change in DMA transfer length calculation. Your solution worked for checking flash memory from 0x08000000 to 0x0800FFFB, where 0x0800FFFB is end of word addressing in terms of bytes in 16 bits. I looked at the reference manual for why this was the limit but did not find anything in the memory map. Stepping through the code with the debugger, I realized that although HAL functions passed the transfer length as a 32bit value, it was in fact limited by the size of BNDT in the GPDMA CxBR1 register. To transfer something larger, I would need to use a linked list. I configured in STM32CubeMX a linked list for transferring blocks of 0xFFFC as follows:</p><pre class=\"lia-code-sample language-c\"><code>/**\n * @brief DMA Linked-list FlashMemory configuration\n * @param None\n * @retval None\n */\nHAL_StatusTypeDef MX_FlashMemory_Config(void)\n{\n HAL_StatusTypeDef ret = HAL_OK;\n /* DMA node configuration declaration */\n DMA_NodeConfTypeDef pNodeConfig;\n\n /* Set node configuration ################################################*/\n pNodeConfig.NodeType = DMA_GPDMA_LINEAR_NODE;\n pNodeConfig.Init.Request = DMA_REQUEST_SW;\n pNodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;\n pNodeConfig.Init.Direction = DMA_MEMORY_TO_MEMORY;\n pNodeConfig.Init.SrcInc = DMA_SINC_INCREMENTED;\n pNodeConfig.Init.DestInc = DMA_DINC_FIXED;\n pNodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;\n pNodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;\n pNodeConfig.Init.SrcBurstLength = 1;\n pNodeConfig.Init.DestBurstLength = 1;\n pNodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;\n pNodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;\n pNodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;\n pNodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;\n pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;\n pNodeConfig.SrcAddress = 0x08000000;\n pNodeConfig.DstAddress = CRC_BASE;\n pNodeConfig.DataSize = 0xFFFC;\n\n /* Build Block1 Node */\n ret |= HAL_DMAEx_List_BuildNode(&amp;pNodeConfig, &amp;Block1);\n\n /* Insert Block1 to Queue */\n ret |= HAL_DMAEx_List_InsertNode_Tail(&amp;FlashMemory, &amp;Block1);\n\n /* Set node configuration ################################################*/\n pNodeConfig.SrcAddress = 0x0800FFFC;\n\n /* Build Block2 Node */\n ret |= HAL_DMAEx_List_BuildNode(&amp;pNodeConfig, &amp;Block2);\n\n /* Insert Block2 to Queue */\n ret |= HAL_DMAEx_List_InsertNode_Tail(&amp;FlashMemory, &amp;Block2);\n\n return ret;\n}</code></pre><p>And in the code I started the transfer as follows:</p><pre class=\"lia-code-sample language-c\"><code>MX_FlashMemory_Config();\nHAL_DMAEx_List_LinkQ(&amp;handle_GPDMA1_Channel12, &amp;FlashMemory); \n__HAL_CRC_DR_RESET(&amp;hcrc);\nHAL_DMAEx_List_Start_IT(&amp;handle_GPDMA1_Channel12);</code></pre><p>This works if the IAR project calculates a checksum from 0x08000000 to 0x0801FFF7. I hope this helps anyone trying to run a checksum on the STM32U5 line.</p></div>",
+                    "author": "Roth.Ian",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for coming back with the detailed solution.</p><p>This may be helpful not just in 'U5, but also all newer families, which as DMA have the GPDMA (and presumably also LPDMA?) modules.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oh, indeed - if a CRC calculator is fed by one byte only (0x80), the result is 0x6800520C as reported.</p><p>A nasty gotcha, changing the Cube/HAL's API between families! I see that this matches GPDMA's BNDT behaviour but still - Cube/HAL is supposed to be there to facilitate porting, which it fails here obviously.</p><p>Nonetheless, in this case, the DMA has been set to transfer words at both ports, wasn't it. And the RM says this:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_0-1778849682852.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_0-1778849682852.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b5fe7a06-ed35-7db3-3fe3-d60b5d76242e.png\" title=\"waclawekjan_0-1778849682852.png\"/></span></p><p>so GPDMA shouldn't have transferred even that one single byte, but should've thrown the user setting error, which doesn't appear to have happened.</p><p><user-mention data-id=\"91214\">@Khaled_DHIF</user-mention>, can you please comment?</p><p>Thanks,</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Khaled_DHIF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

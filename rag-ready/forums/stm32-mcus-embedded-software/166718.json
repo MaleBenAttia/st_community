@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "166693",
+            "publicId": "166718",
+            "title": "QSPI_EnableQuad() routine",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/qspi-enablequad-routine-166718",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "QSPI",
+                "STM32WB series"
+            ],
+            "published_at": "2026-07-06T16:22:53+00:00",
+            "views": 80,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@DavePfz ;\n\nYes, I referred to HAL QSPI drivers.\n\nFor more information about HAL drivers, I recommend you to look at [UM2442](https://www.st.com/resource/en/user_manual/um2442-description-of-stm32wb-hal-and-lowlayer-drivers-stmicroelectronics.pdf).\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/88464c80-fb34-4481-a908-b9b175d9b1b8.png)\n\nThank you.\n\nKaouthar",
+            "best_answer_author": "KDJEM.1",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I’ve been trying to adapt the code from the STM32WB5MM-DK QSPI\\_ReadWrite\\_IT example to a Renesas part. However, I have not been able to get it into Quad mode. For this part I need to write 0x02 into register 0x31 as I understand the data sheet.\n\nFrom monitoring the status register I can see that the write enable bit gets set and cleared, but the QE (quad enable) bit doesn’t get set.\n\nAlso, in reviewing the code for the DK, I don’t see code to set the quad enable bit as per the Infineon S25FL128S data sheet.\n\nIn searching the support forums, I see references to a routine called QSPI\\_QuadEnable, but I have not been able to find corresponding code.\n\nI’m obviously missing something. Can someone point me in the right direction - either specific to this board or a more generic solution?\n\nThanks",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/88464c80-fb34-4481-a908-b9b175d9b1b8.png"
+            ],
+            "author": "DavePfz",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"44692\">@DavePfz</user-mention> ;</p><p> </p><p>You can use __HAL_QSPI_ENABLE to enable the QSPI peripheral.</p><pre><code class=\"language-c\">/** @brief  Enable the QSPI peripheral.<br/>  * @param  __HANDLE__ specifies the QSPI Handle.<br/>  * @retval None<br/>  */<br/>#define __HAL_QSPI_ENABLE(__HANDLE__)                       SET_BIT((__HANDLE__)-&gt;Instance-&gt;CR, QUADSPI_CR_EN)<br/></code></pre><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’m a little confused. I believe that you are referring to the SSTM32 QSPI peripheral itself.</p><p>My interest is in setting the QUAD_EN bit in the NOR Flash memory. Usually bit 1 of one of the control registers. In the case of the Renesas chip it is called Status Register 2. (Infineon calls it Control Register 1, or CR1.)</p><p>I have been able to write that register and get the bit set, but I have not been able to read data from the Flash. I find I am not clear on the delineation between when HAL_QSPI_Command() does or doesn’t result in an SPI transaction. Maybe someone can clear this up for me. It looks like:</p><p>If the sCommand type specifies no address and no data, only the value specified in Instruction field is sent out.</p><p>However, if either the address or data fields are specified, then the Instruction (along with the address/data) are sent out when a subsequent HAL_QSPI_Transmit() or HAL_QSPI_Receive() procedure is called.</p><p>Am I interpreting this right?</p></div>",
+                    "author": "DavePfz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"44692\">@DavePfz</user-mention> ;</p><p> </p><p>Yes, I referred to HAL QSPI drivers.</p><p>For more information about HAL drivers, I recommend you to look at <a href=\"https://www.st.com/resource/en/user_manual/um2442-description-of-stm32wb-hal-and-lowlayer-drivers-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">UM2442</a>.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/88464c80-fb34-4481-a908-b9b175d9b1b8.png\"/></figure><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

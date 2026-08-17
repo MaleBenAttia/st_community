@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "165998",
+            "publicId": "166010",
+            "title": "Issue with I2C communication with VL53L4CD",
+            "url": "https://community.st.com/imaging-sensors-49/issue-with-i2c-communication-with-vl53l4cd-166010",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Time of flight"
+            ],
+            "published_at": "2026-06-10T08:36:04+00:00",
+            "views": 107,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "[SOLVED]\n\nIf anyone sees this in the future, my Issue was the Voltage divider I’ve put on the I2C Bus, which meant when sending a logical 0 it was barely below 1V which the sensor didn’t register as logical 0.\n\nSolution was to replace the 330 Ohms serial resistor with a 0 Ohm one.",
+            "best_answer_author": "Sennji",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello everyone.\n\nI am trying to communicate with a VL53L4CD on my PCB, on the same I2C Bus I have a LP LED Matrix Controller and an EEPROM that work just as I hoped they would.\n\nBut none of the VL53L4CD seem to be able to communicate over the Bus. I have by now tried to look at everything possibly wrong with it.\n\nSoftware: The Software gives out the exact I2C Signal I would be expecting (Address 0x52 (derived from 0x29 of course)) but I always get NACK’s,\n\nHardware: All Sensors are on the same bus, where I Chip Select via the XSHUT Pins, those forms also look correct and only the one is high where I want to talk to the sensor, so there’s not 2 sensors that could respond to the same address having XSHUT on the same niveau.\n\nI have tested the connection to the pads, and those are all correct, so is the Power SUpply and GND to the Chip all of those seem correct according to the Datasheet.\n\nMy I2C Bus runs on 100kHz which as far as I can tell should work with the Sensor.\n\nFurthermore I have hooked up a little testboard we had lying around with the same sensor where I hoped maybe all of the mounted ones are fried but not even that one is reacting with an ACK.\n\nAlso I’ve tested a complete Scan of what’s on the I2C Bus and all that gave me was the LP and the EEPROM Addresses that responded. I am by now completely vexxed with what else I can try to get this working.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dd436bb9-e5bf-4cf9-8775-83d3c27c43d8.png)\n\nBus Scan\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8c369a02-cfc1-4633-817a-4ce6e5e74465.png)\n\nSensor Schematic\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee6ffa37-1438-44c3-b0a1-226decef7be3.png)\n\nMicrocontroller Schematic",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8c369a02-cfc1-4633-817a-4ce6e5e74465.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dd436bb9-e5bf-4cf9-8775-83d3c27c43d8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee6ffa37-1438-44c3-b0a1-226decef7be3.png"
+            ],
+            "author": "Sennji",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>I had a very similar symptom with a VL53L4Cx device: the I2C bus itself was fine, other slaves answered correctly, but the ToF sensor always NACKed.</p><p>In my case the root cause was not the I2C controller or the address. It was the IO/power/reset side of the ToF sensor.</p><p>Things I would check in this order:</p><p>1. Use the correct address format<br/>   - Linux / normal 7-bit I2C scan: 0x29<br/>   - ST documentation/API often writes it as 0x52, which is the 8-bit write address.<br/>   - So seeing 0x52 in the waveform is OK if your software API expects 8-bit addresses, but an i2cdetect-style scan should show 0x29.</p><p>2. Check XSHUT with a scope<br/>   - If XSHUT is low, the VL53L4CD will not answer at all.<br/>   - Make sure only one sensor is released if several sensors share the default address.<br/>   - After driving XSHUT high, wait long enough before the first I2C access.</p><p>3. Check both sensor supply and IO supply/domain<br/>   - Verify the sensor power rails directly at the package pins.<br/>   - Also verify the I2C pull-up voltage matches the sensor IO voltage.<br/>   - On my platform, the missing part was the VDDIO / IO domain for the I2C pins. Other I2C devices worked, but the VL53 still never ACKed until the IO domain was enabled correctly.</p><p>4. If using Linux or an ST kernel driver, verify reset GPIO handling<br/>   - Some ST drivers use legacy DT properties such as `xsdn-gpio` / `intr-gpio`.<br/>   - More recent Linux-style bindings use `reset-gpios` / `interrupts`.<br/>   - If the driver does not parse the reset GPIO it expects, XSHUT may never be released, and the device will look dead on I2C.</p><p>5. Scope the ACK bit<br/>   - Confirm SDA/SCL levels and rise times.<br/>   - Confirm XSHUT is high before the address phase.<br/>   - Confirm the device still NACKs at 0x29 after power and reset are valid.</p><p>So I would not focus first on 100 kHz I2C; that should be fine. If the scan does not show 0x29, the most likely causes are XSHUT, power/IO voltage domain, pull-ups, or the wrong GPIO/reset handling.</p></div>",
+                    "author": "Yassine_behilil",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey Yassine, thanks for the quick reply.</p><p> </p><ol type=\"1\"><li>Yes for the scan I do expect to see 0x29 if it can communicate. For redundancys sake I’ve tested with both addresses (just so I am not missing something) </li> <li>XSHUT is at 3.3V’s when I expect it to be, all other XSHUT’s are on 0 so that doesn’t seem to be the issue here. I do wait for 10ms after turning XSHUT high (which should be 8 times as long as needed) </li> <li>I can’t get to the PAckage pins as they’re below the only thing I can certainly tell is that the VDD and AVDDCSEL does receive 3.3V on the board pins (soldered a sensor of for this) what I can’t say 100% is that all sensors are cleanly soldered in the first place. but we have such a reflow machine that I deem it highly unlikely that all 13 would be crashing out. (And also the extra one I’ve added after) but from what I can tell all power is there that’s needed. <br/>\tThe Pull-Up Voltage I’ve confirmed. that also sits at the 3.3V rail.</li> <li>In regards to driver, I am on barebone MPLAB Harmony, and am setting the GPIO definitions there.<br/>\tI could imagine that I’ve made an error there, but due to the fact that I2C communciation with the other slaves work, I presume it’d be somewhere else where the error is.</li> <li>I have confirmed both SDA and SCL get to the 3.3V level and the rise times seem clean.<br/>\tI have confirmed XSHUT is high before I try addressing it<br/>\tAs far as I can tell, yes all seems valid but still getting only NACK’s at 0x29</li></ol></div>",
+                    "author": "Sennji",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>[SOLVED]</p><p> </p><p>If anyone sees this in the future, my Issue was the Voltage divider I’ve put on the I2C Bus, which meant when sending a logical 0 it was barely below 1V which the sensor didn’t register as logical 0.</p><p> </p><p>Solution was to replace the 330 Ohms serial resistor with a 0 Ohm one. </p></div>",
+                    "author": "Sennji",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

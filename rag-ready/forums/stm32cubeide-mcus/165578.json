@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "165578",
+            "publicId": "165578",
+            "title": "No support for large atomics",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/no-support-for-large-atomics-165578",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "Bug-report",
+                "Feature request"
+            ],
+            "published_at": "2026-05-11T14:00:07+00:00",
+            "views": 215,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Thanks all,\n\nI've worked round the issue by changing my design so that I only need 32 bit atomics.",
+            "best_answer_author": "CTapp.1",
+            "best_answer_author_role": "Senior III",
+            "content_text": "I'm trying to use \\_Atomic with 64 bit objects, but I get a link failure:\n\n```\n\nundefined reference to `__atomic_load_8'\n\n```\n\nThe internet says I need to add an option to the link command:\n\n```\n\n-latomic\n\n```\n\nHowever, it looks as if that library is not included with the ST tool chain:\n\n```\n\ncannot find -latomic: No such file or directory\n\n```\n\nHas anyone managed to get this working?\n\nThere are a number of workarounds that could be used here, but it would be much easier to use the native C feature that's been available since C11.\n\nI'm using STM32CubeIDE V 1.18.1 with GNU Tools 13.3",
+            "images": [],
+            "author": "CTapp.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>C or C++?</p><p> </p><p>Maybe this helps a bit: <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/how-atomic-are-the-strd-ldrd-instructions-on-cortex-m4/td-p/884526\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-embedded-software/how-atomic-are-the-strd-ldrd-instructions-on-cortex-m4/td-p/884526</a></p><p> </p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In addition to the previous reply: the GNU C++ toolchain (likely, also in Clang) defines C-compatible <strong>_Atomic</strong>(x) so it can be used seamlessly in both C and C++ code:</p><p>See  ... arm-none-eabi/include/c++/version/stdatomic.h</p><pre class=\"lia-code-sample language-c\"><code>#if __cplusplus &gt; 202002L\n#include &lt;atomic&gt;\n#define __cpp_lib_stdatomic_h 202011L\n\n#define _Atomic(_Tp) std::atomic&lt;_Tp&gt;\n\n#ifdef _GLIBCXX_USE_C99_STDINT_TR1\nusing std::atomic_int8_t;\nusing std::atomic_uint8_t;\n//..... etc ....\n</code></pre></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks all,</p><p>I've worked round the issue by changing my design so that I only need 32 bit atomics.</p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I suppose the 64b atomic would work with GCC on a 64 bit cpu, with 64b bus.</p><p>Because on a 32b machine you cannot access 64 bit memory in one access/cycle,</p><p>so just 8...32 bit is possible on a 32 bit cpu.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

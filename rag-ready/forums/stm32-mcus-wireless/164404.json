@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164404",
+            "publicId": "164404",
+            "title": "STM32WB5MMG - cannot change device name/model",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wb5mmg-cannot-change-device-name-model-164404",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Zigbee",
+                "STM32WB series"
+            ],
+            "published_at": "2026-04-01T22:31:27+00:00",
+            "views": 178,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Adrian Chmiel,\n\nThanks for contacting us on the ST Community.\n\nPlease find the answer below:\n\nTo configure the default **ZCL Basic Server** attributes, you need to meet the **ZCL data format** used by `ZbZclBasicServerDefaults` — in particular, string attributes are encoded as **length-prefixed strings** rather than standard null-terminated C strings.\n\nAs an example, you can refer to the following project available on the official Git:\n\n[STM32CubeWBA/Projects/NUCLEO-WBA55CG/Applications/Zigbee/Zigbee\\_OnOff\\_Client\\_SED/STM32\\_WPAN/App/app\\_zigbee.c at main · STMicroelectronics/STM32CubeWBA · GitHub](https://github.com/STMicroelectronics/STM32CubeWBA/blob/main/Projects/NUCLEO-WBA55CG/Applications/Zigbee/Zigbee_OnOff_Client_SED/STM32_WPAN/App/app_zigbee.c#L146)\n\nRegards,\n\nOuadi",
+            "best_answer_author": "Ouadi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI'm working on a project with your STM32WB5MM module, I managed to enable ZigBee and connect to the network, but I'm having trouble changing the device name, it keeps identifying itself as default value (STM32WB).\n\nZigBee Stack: 1.24.0\n\nFW Type : FFD Zigbee stack\n\nIn function APP\\_ZIGBEE\\_StackLayersInit() I add:\n\n```\n\nstruct ZbZclBasicServerDefaults basic_defaults = {\n\n.app_version = 1,\n\n.stack_version = 2,\n\n.hw_version = 1,\n\n.mfr_name = \"0TestName\",\n\n.model_name = \"0LOCKZ1A\",\n\n.date_code = \"02026-03-31\",\n\n.power_source = ZCL_BASIC_POWER_DC,\n\n.sw_build_id = \"0v1.0\"\n\n};\n\nstatic void APP_ZIGBEE_StackLayersInit(void)\n\n{\n\nAPP_DBG(\"APP_ZIGBEE_StackLayersInit\");\n\nzigbee_app_info.zb = ZbInit(0U, NULL, NULL);\n\nassert(zigbee_app_info.zb != NULL);\n\n// uint8_t device_name[] = {\"0TestDevice\"};\n\n// device_name[0] = 10;\n\n// ZbZclBasicWriteDirect(zigbee_app_info.zb, ZB_ENDPOINT_BCAST, ZCL_BASIC_ATTR_MFR_NAME, device_name, device_name[0]);\n\nbasic_defaults.mfr_name[0] = strlen((char*)basic_defaults.mfr_name)-1;\n\nbasic_defaults.model_name[0] = strlen((char*)basic_defaults.model_name)-1;\n\nbasic_defaults.date_code[0] = strlen((char*)basic_defaults.date_code)-1;\n\nbasic_defaults.sw_build_id[0] = strlen((char*)basic_defaults.sw_build_id)-1;\n\nZbZclBasicServerConfigDefaults(zigbee_app_info.zb, &basic_defaults);\n\n/* Create the endpoint and cluster(s) */\n\nAPP_ZIGBEE_ConfigEndpoints();\n\n/* USER CODE BEGIN APP_ZIGBEE_StackLayersInit */\n\n/* USER CODE END APP_ZIGBEE_StackLayersInit */\n\n/* Configure the joining parameters */\n\nzigbee_app_info.join_status = (enum ZbStatusCodeT) 0x01; /* init to error status */\n\nzigbee_app_info.join_delay = HAL_GetTick(); /* now */\n\nzigbee_app_info.startupControl = ZbStartTypeJoin;\n\n/* Initialization Complete */\n\nzigbee_app_info.has_init = true;\n\n/* run the task */\n\nUTIL_SEQ_SetTask(1U << CFG_TASK_ZIGBEE_NETWORK_FORM, CFG_SCH_PRIO_0);\n\n}\n\n```\n\nBut it's still identifying itself with default values. What could I be doing wrong?\n\nIs there a way to read the parameters I'm saving to check their validity?\n\nI also tried direct recording using ZbZclBasicWriteDirect() but also no reaction.\n\nBest regards,\n\nAdrian Chmiel",
+            "images": [],
+            "author": "Adrian Chmiel",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"64555\">@Adrian Chmiel</user-mention>,</p>\n<p>Thanks for contacting us on the ST Community.</p>\n<p>Please find the answer below:</p>\n<p>To configure the default<span> </span><strong>ZCL Basic Server</strong><span> </span>attributes, you need to meet the<span> </span><strong>ZCL data format</strong><span> </span>used by<span> </span><code>ZbZclBasicServerDefaults</code><span> </span>— in particular, string attributes are encoded as<span> </span><strong>length-prefixed strings</strong><span> </span>rather than standard null-terminated C strings.</p>\n<p>As an example, you can refer to the following project available on the official Git: </p>\n<p><a href=\"https://github.com/STMicroelectronics/STM32CubeWBA/blob/main/Projects/NUCLEO-WBA55CG/Applications/Zigbee/Zigbee_OnOff_Client_SED/STM32_WPAN/App/app_zigbee.c#L146\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">STM32CubeWBA/Projects/NUCLEO-WBA55CG/Applications/Zigbee/Zigbee_OnOff_Client_SED/STM32_WPAN/App/app_zigbee.c at main · STMicroelectronics/STM32CubeWBA · GitHub</a></p>\n<p>Regards,</p>\n<p>Ouadi</p></div>",
+                    "author": "Ouadi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ouadi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "163690",
+            "publicId": "163690",
+            "title": "Upgrading STM32Cube FW_H7 firmware breaks build for Riverdi RVT70 project",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/upgrading-stm32cube-fw-h7-firmware-breaks-build-for-riverdi-rvt70-project-163690",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report"
+            ],
+            "published_at": "2026-03-11T10:22:32+00:00",
+            "views": 730,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "In the .ioc file, find the following line and change to false. Sorry I don't remember how to do this in the GUI.\n\n```\n\nProjectManager.AskForMigrate=true\n\n```",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "I have used the 70STM32H7 template in TouchGFX Designer 4.26.1 to create a project for a Riverdi RVT70 board.\n\nI've created a basic start screen, generated code and built it using CubeIDE 2.1.0.\n\nThe code loads onto the target and runs as expected.\n\nIf I open the project's .ioc file, I am told that the project uses V1.12.1 of the STM32Cube FW\\_H7 and V.13.0 is available. Upgrading to this version, saving and regenerating the code results in the project failing to build:\n\n```\n\nIn file included from ../../../CM7/USB_HOST/Target/usbh_conf.h:98,\n\nfrom ../../../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:27,\n\nfrom ../../../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h:28,\n\nfrom C:/TouchGFXProjects/GFX/Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_bot.c:27:\n\n../../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:32:10: fatal error: cmsis_os2.h: No such file or directory\n\n32 | #include \"cmsis_os2.h\"\n\n```\n\nThis can be fixed by adding a new include path (C and C++):\n\n```\n\n../../../Drivers/CMSIS/RTOS2/Include\n\n```\n\nThat gets the build to run a bit further, but there is then an error in freertos.c:\n\n```\n\nC:/TouchGFXProjects/GFX/CM7/Core/Src/freertos.c:109:6: error: conflicting types for 'vApplicationStackOverflowHook'; have 'void(struct tskTaskControlBlock *, signed char *)'\n\n109 | void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)\n\n| ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nC:/TouchGFXProjects/GFX/CM7/Core/Src/freertos.c:91:6: note: previous declaration of 'vApplicationStackOverflowHook' with type 'void(struct tskTaskControlBlock *, char *)'\n\n91 | void vApplicationStackOverflowHook(xTaskHandle xTask, char *pcTaskName);\n\n| ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n```\n\nThat can be fixed by removing 'signed' from the function's definition.\n\nIs this down to issues with the V1.13.0 firmware, or are \"glitches\" to be expected when accepting the offer to \"migrate\"?",
+            "images": [],
+            "author": "CTapp.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Knowing that a new version of the library is available does not mean that the user must immediately update. Every bit of change is a potential bomb that can destroy existing code.  If you don't feel like porting the code to  the new STM32Cube FW_H7 library version, resist the knee reflex and stay with the current ( = old) version. Previous versions of the STM32Cube FW_H7 can be found on the ST web site (as zip files) or on github (slightly more complicated to install). Several library versions can be installed side by side.</p><p>Note that for STM32H7, FreeRTOS is part of the CubeH7 library so updates with it. For other/newer STM32 families FreeRTOS is a separate package.</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"37189\">@Pavel A.</user-mention> wrote:<br/><p>Knowing that a new version of the library is available does not mean that the user must immediately update. Every bit of change is a potential bomb that can destroy existing code.</p></blockquote><p>True, but I would expect an updated HAL to compile cleanly if there are no API changes.</p><p>The problem with not upgrading is I get asked to upgrade every time I open the .ioc. Seems like there's no way to say \"I want to stick with this version\"?</p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In the .ioc file, find the following line and change to false. Sorry I don't remember how to do this in the GUI.</p><pre class=\"lia-code-sample language-c\"><code>ProjectManager.AskForMigrate=true</code></pre><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"40209\">@CTapp.1</user-mention> ,<br/><br/>You're right about the migration, the thing is Riverdi doesn't update their projects everytime a new version of the firmware, or STM32CubeMX or TouchGFX also updates. But as <user-mention data-id=\"37189\">@Pavel A.</user-mention> suggested you're free not to accept the migration and keep using the old firmware. I invite you to select his answer as solution if that helped you :)</p></div>",
+                    "author": "Osman SOYKURT",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Done.</p><p>I've been in contact with them directly and now have an updated template.</p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have the same issue when upgrading the H7 firmware to 1.13.1. This firmware seems to integrate a newer version of FreeRTOS which was not done right.</p><p>I wonder how ST could release a firmware that does not even build anymore.</p></div>",
+                    "author": "designate4905",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The correct firmware version in my test was 1.13.0 and not 1.13.1!</p></div>",
+                    "author": "designate4905",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Osman SOYKURT",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

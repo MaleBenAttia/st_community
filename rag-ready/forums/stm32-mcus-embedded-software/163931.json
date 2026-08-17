@@ -1,0 +1,133 @@
+{
+    "forum": [
+        {
+            "id": "163931",
+            "publicId": "163931",
+            "title": "UART is no more working after changing the clock source",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/uart-is-no-more-working-after-changing-the-clock-source-163931",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-03-18T08:59:54+00:00",
+            "views": 1276,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nThat doesn't make sense to me as both configuration have the same clock frequency value 32MHz for USART.\n\nAs you have the same Clock configuration in both projects and as USART is working with HSI, I'm suspicious about the clock configuration you set for the STLINK. In CubeMx HSE= 5MHz, but is it really fed by 5MHz in OSC\\_IN pin from STLINK?\n\nCould you please double check whether you set the correct MCO output clock (5MHz) for STLINK using CubeProgrammer? (refer to [How to use STLINK-V3 MCO output on Nucleo boards as a precise clock source for STM32](https://community.st.com/t5/stm32-mcus/how-to-use-stlink-v3-mco-output-on-nucleo-boards-as-a-precise/ta-p/723361))\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6544d2ab-e538-4da3-8517-a23e4f06e5d8.png \"screenshot.png\")\n\n**PS**: for CAN, increase the Kernel clock to 40MHz as shown below\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69fa07b1-b940-8e07-8849-77393c75b990.png \"screenshot.png\")",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Split from this [post](https://community.st.com/t5/stm32-mcus-products/can-bus-on-nucleo-h743zi2-clock-configuration-issue/td-p/886250).*\n\nHello,\n\nSorry to bother you again, but it seems that since yesterday (when I enabled the CAN bus), the UART on my Nucleo has stopped working, even though I haven’t touched anything since then.\n\nTo be precise, I’m monitoring my UART signal and I’m only getting ‘framing errors’, obviously, I’ve checked and the baud rates are the same on both sides.\n\nCould activating the HSE clock have disrupted the operation of my UART ?\n\nThank you in advance for your help,",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69fa07b1-b940-8e07-8849-77393c75b990.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6544d2ab-e538-4da3-8517-a23e4f06e5d8.png"
+            ],
+            "author": "AmGo",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/> wrote:<br/>\n<p>Could activating the HSE clock have disrupted the operation of my UART ? </p>\n<hr/></blockquote>\n<p>No. Better to use HSE for communication including UART.</p>\n<p>Better to share your ioc files (with UART working and not working). What baudrate are you targeting?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm targeting 2 MBauds. </p><p> </p><p>The first one is the .ioc file when my UART isn't working.</p><p>The second onse is when it is. </p><p> </p><p>Thank you for your time and your help.</p></div>",
+                    "author": "AmGo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>That doesn't make sense to me as both configuration have the same clock frequency value 32MHz for USART.</p>\n<p>As you have the same Clock configuration in both projects and as USART is working with HSI, I'm suspicious about the clock configuration you set for the STLINK. In CubeMx HSE= 5MHz, but is it really fed by 5MHz in OSC_IN pin from STLINK?</p>\n<p>Could you please double check whether you set the correct MCO output clock (5MHz) for STLINK using CubeProgrammer? (refer to <a href=\"https://community.st.com/t5/stm32-mcus/how-to-use-stlink-v3-mco-output-on-nucleo-boards-as-a-precise/ta-p/723361\" target=\"_blank\"><span>How to use STLINK-V3 MCO output on Nucleo boards as a precise clock source for STM32</span></a>)</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 718px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6544d2ab-e538-4da3-8517-a23e4f06e5d8.png\" title=\"screenshot.png\"/></span></p>\n<p><strong>PS</strong>: for CAN, increase the Kernel clock to 40MHz as shown below</p>\n<p> </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 410px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69fa07b1-b940-8e07-8849-77393c75b990.png\" title=\"screenshot.png\"/></span></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Right, I've applied your changes to my FD CAN clock running at 40 MHz (though I'm a bit confused: I set my PLL Source MUX to HSE, but then I select PPLL1Q as the input to my FDCAN ? Sorry if I'm missing something, but I'd appreciate some clarification if possible).</p><p>Also, when I open SM32Cube Programmer and click on ‘Firmware Upgrade’, I get this and nothing else; I don’t think that’s normal, but perhaps I’ve simply forgotten to configure something...</p><p> </p><p>Thank you very much for your help,</p><p> </p><p> </p></div>",
+                    "author": "AmGo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105156\">@AmGo</user-mention> wrote:<br/><p>I’m monitoring my UART signal and I’m only getting ‘framing errors’, </p><hr/></blockquote><p>How, exactly, are you \"monitoring\" it?</p><p>Framing errors could indicate wrong baud rate.</p><p>Have you checked the baud rate using an oscilloscope?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am using a Saleae probe to monitor my frames. <br/><br/>And unfortunately I don't have a \"real\" oscilloscope to check it </p></div>",
+                    "author": "AmGo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Did you check the ST-LINK MCO output settings using CubeProgrammer as I suggested previously?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Read out and check/compare UART and relevant RCC registers content between \"working\" and \"non working\".</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm trying but as shown in my previous post, I don't get the same thing as you in STM32 Cube Programmer </p></div>",
+                    "author": "AmGo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, I was just answering to Andrew. <br/><br/>I've retried the configuration and now I can see MCO Ouput. You were right, I've changed it to HSE/2 to HSE/5. </p></div>",
+                    "author": "AmGo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105156\">@AmGo</user-mention> wrote:<br/>\n<p>I've retried the configuration and now I can see MCO Ouput. You were right, I've changed it to HSE/2 to HSE/5. </p>\n<hr/></blockquote>\n<p>Does it work after this change?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, it looks like. <br/><br/>Thank you very much. </p><p> </p><p>Can you just explain to me why you chose PLL1Q and not HSE for the FDCAN Clock Mux please ? </p></div>",
+                    "author": "AmGo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105156\">@AmGo</user-mention> wrote:<br/>\n<p>Yes, it looks like. <br/><br/>Thank you very much. </p>\n<hr/></blockquote>\n<p>Good.</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"105156\">@AmGo</user-mention> wrote:<br/>\n<p>Can you just explain to me why you chose PLL1Q and not HSE for the FDCAN Clock Mux please ? </p>\n<hr/></blockquote>\n<p>Better to use high frequencies for kernel clock to get better resolution for the CAN bit time so you can fine tune TSEG1/TSEG2 bit segments.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

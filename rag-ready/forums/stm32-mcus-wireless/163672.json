@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "163672",
+            "publicId": "163672",
+            "title": "STM32WLE5: LPTIM2 ARROK flag never sets after Sleep wake-up unless LSESYSEN is written again",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wle5-lptim2-arrok-flag-never-sets-after-sleep-wake-up-unless-lsesysen-is-written-again-163672",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "RCC",
+                "LPTIM",
+                "STM32WL series"
+            ],
+            "published_at": "2026-03-11T02:38:25+00:00",
+            "views": 271,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello members,\n\nIt seems I've figured out the cause.\n\nThe LL library resets RCC->BDCR and leaves it as is, but HAL doesn't.\n\nThis problem occurred because I switched from HAL to the LL library to reduce code size.\n\nLL:\n\n```\n\nif(LL_RCC_GetRTCClockSource() != LL_RCC_RTC_CLKSOURCE_LSE)\n\n{\n\n/* Update LSE configuration in Backup Domain control register */\n\n/* Requires to enable write access to Backup Domain if necessary */\n\nif (LL_PWR_IsEnabledBkUpAccess () != 1U)\n\n{\n\n/* Enable write access to Backup domain */\n\nLL_PWR_EnableBkUpAccess();\n\nwhile (LL_PWR_IsEnabledBkUpAccess () == 0U)\n\n{\n\n}\n\n}\n\nLL_RCC_ForceBackupDomainReset();\n\nLL_RCC_ReleaseBackupDomainReset();\n\nLL_RCC_LSE_SetDriveCapability(LL_RCC_LSEDRIVE_MEDIUMLOW);\n\nLL_RCC_LSE_Enable();\n\n/* Wait till LSE is ready */\n\nwhile(LL_RCC_LSE_IsReady() != 1)\n\n{\n\n}\n\nLL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);\n\n}\n\n```\n\nHAL: HAL\\_RCCEx\\_PeriphCLKConfig is called by HAL\\_RTC\\_MspInit\n\n```\n\n/* Reset the Backup domain only if the RTC Clock source selection is modified */\n\nif (LL_RCC_GetRTCClockSource() != PeriphClkInit->RTCClockSelection)\n\n{\n\n/* Store the content of BDCR register before the reset of Backup Domain */\n\ntmpregister = READ_BIT(RCC->BDCR, ~(RCC_BDCR_RTCSEL));\n\n/* RTC Clock selection can be changed only if the Backup Domain is reset */\n\n__HAL_RCC_BACKUPRESET_FORCE();\n\n__HAL_RCC_BACKUPRESET_RELEASE();\n\n/* Restore the Content of BDCR register */\n\nRCC->BDCR = tmpregister;\n\n}\n\n```\n\nI hope this example is helpful to someone.\n\nThanks!",
+            "best_answer_author": "DinD",
+            "best_answer_author_role": "Associate",
+            "content_text": "## Device\n\nSTM32WLE5\n\n---\n\n## Clock configuration\n\nSYSCLK : MSI 16 MHz (MSIPLL mode Enabled)\n\nLSE : 32.768 kHz crystal\n\nLPTIM2 kernel clock : LSE\n\nLow power mode : Sleep\n\n---\n\n## Observed behavior\n\nWhen configuring **LPTIM2 with LSE clock**, the following code sometimes blocks because the **ARROK flag never sets**.\n\n```\n\n__HAL_LPTIM_AUTORELOAD_SET(&hlptim2, Period);\n\nwhile (!__HAL_LPTIM_GET_FLAG(&hlptim2, LPTIM_FLAG_ARROK));\n\n```\n\nThis occurs **after waking up from Sleep mode**.\n\n---\n\n## Workaround\n\nExecuting the following code before **or** after wake-up resolves the issue.\n\n```\n\nRCC->BDCR |= RCC_BDCR_LSESYSEN;\n\n```\n\nAfter writing LSESYSEN, the ARROK flag sets normally.\n\n---\n\n## Initialization code\n\nSystemClock\\_Config() already enables LSESYSEN. It is CubeMX provided.\n\n```\n\nLL_PWR_EnableBkUpAccess();\n\nLL_RCC_LSE_SetDriveCapability(LL_RCC_LSEDRIVE_MEDIUMLOW);\n\nLL_RCC_LSE_EnablePropagation();\n\nLL_RCC_LSE_Enable();\n\nwhile (LL_RCC_LSE_IsReady() != 1)\n\n{\n\n}\n\n```\n\nLL\\_RCC\\_LSE\\_EnablePropagation() is defined as:\n\n```\n\n__STATIC_INLINE void LL_RCC_LSE_EnablePropagation(void)\n\n{\n\nSET_BIT(RCC->BDCR, RCC_BDCR_LSESYSEN);\n\n}\n\n```\n\nTherefore LSESYSEN is set during system initialization.\n\n---\n\n## RM0461 description\n\nRM0461 states:\n\n“To be able to use the clock by other peripherals (LPTIMx, TIMx, USARTx, LPUARTx...), the LSE system clock must be enabled with the LSESYSEN bit.”\n\nAlso:\n\n“This bit is set and cleared by software.”\n\nAnd:\n\n“RCC\\_BDCR is reset only by backup domain reset.”\n\nFrom this description:\n\n* LSESYSEN should remain set unless cleared by software\n\n* Sleep mode should not reset RCC\\_BDCR\n\n---\n\n## Questions\n\n1. Why does **LPTIM2 stop receiving the LSE system clock after waking from Sleep mode**, even though LSESYSEN was already set during initialization?\n\n2. Does **LSESYSEN require re-writing after low-power mode exit** for LPTIM to receive the LSE clock?\n\n3. Are there **documented limitations or errata** regarding:\n\n* LSE system clock distribution\n\n* LSESYSEN behavior after low-power mode\n\n* LPTIM using LSE on STM32WL devices\n\nIn my case, LSEON & LSERDY bits are set before/after MCU enters sleep mode.\n\nThanks in advance!",
+            "images": [],
+            "author": "DinD",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello community members,</p><p>I have identified two additional points regarding the LSESYSEN bit behavior:</p><p>Debug Mode: LSESYSEN is set correctly when the MCU is in debug mode.</p><p>Power-on Reset (POR): The bit is set correctly immediately after programming (flashing the app). However, if I perform a manual power cycle (Vdd OFF → ON), LSESYSEN fails to set.</p></div>",
+                    "author": "DinD",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello members,</p><p>It seems I've figured out the cause.<br/>The LL library resets RCC-&gt;BDCR and leaves it as is, but HAL doesn't.<br/>This problem occurred because I switched from HAL to the LL library to reduce code size.</p><p>LL:</p><pre class=\"lia-code-sample language-c\"><code> if(LL_RCC_GetRTCClockSource() != LL_RCC_RTC_CLKSOURCE_LSE)\n {\n /* Update LSE configuration in Backup Domain control register */\n /* Requires to enable write access to Backup Domain if necessary */\n if (LL_PWR_IsEnabledBkUpAccess () != 1U)\n {\n /* Enable write access to Backup domain */\n LL_PWR_EnableBkUpAccess();\n while (LL_PWR_IsEnabledBkUpAccess () == 0U)\n {\n }\n }\n LL_RCC_ForceBackupDomainReset();\n LL_RCC_ReleaseBackupDomainReset();\n LL_RCC_LSE_SetDriveCapability(LL_RCC_LSEDRIVE_MEDIUMLOW);\n LL_RCC_LSE_Enable();\n\n /* Wait till LSE is ready */\n while(LL_RCC_LSE_IsReady() != 1)\n {\n }\n LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);\n }</code></pre><p> </p><p>HAL: <span>HAL_RCCEx_PeriphCLKConfig is called by HAL_RTC_MspInit</span></p><pre class=\"lia-code-sample language-c\"><code> /* Reset the Backup domain only if the RTC Clock source selection is modified */\n if (LL_RCC_GetRTCClockSource() != PeriphClkInit-&gt;RTCClockSelection)\n {\n /* Store the content of BDCR register before the reset of Backup Domain */\n tmpregister = READ_BIT(RCC-&gt;BDCR, ~(RCC_BDCR_RTCSEL));\n\n /* RTC Clock selection can be changed only if the Backup Domain is reset */\n __HAL_RCC_BACKUPRESET_FORCE();\n __HAL_RCC_BACKUPRESET_RELEASE();\n\n /* Restore the Content of BDCR register */\n RCC-&gt;BDCR = tmpregister;\n }</code></pre><p> </p><p> I hope this example is helpful to someone.</p><p>Thanks!</p></div>",
+                    "author": "DinD",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

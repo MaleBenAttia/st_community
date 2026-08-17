@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "164562",
+            "publicId": "164562",
+            "title": "Ethernet Lose Connection in the Latest HAL version update",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/ethernet-lose-connection-in-the-latest-hal-version-update-164562",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bug-report",
+                "AzureRTOS",
+                "Ethernet",
+                "STM32H7 series",
+                "NetXDuo"
+            ],
+            "published_at": "2026-04-08T10:55:02+00:00",
+            "views": 378,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "**Update on Ethernet connectivity issue observed after updating HAL drivers from v1.11.0 to v1.16.0 (STM32H7 + NetX Duo + external PHY LAN89354)**\n\nAfter debugging, the problem appears to be related to the MAC filter configuration, specifically the **Broadcast Filter** setting.\n\nWhen the BroadcastFilter is enabled in:\n\n* HAL\\_ETH\\_SetMACFilterConfig() in `stm32h7xx\\_hal\\_eth.c` file\n\n* \\_nx\\_driver\\_hardware\\_initialize() in `nx\\_stm32\\_eth\\_driver.c` file\n\n```\n\nFilterConfig.BroadcastFilter = ENABLE;\n\n```\n\nthe device is unable to establish proper network communication.\n\nObserved behavior:\n\n* arp -n shows incomplete entries (no MAC resolution)\n\n* Ping/connectivity is unreliable or fails\n\nWhen the BroadcastFilter is disabled:\n\n```\n\nFilterConfig.BroadcastFilter = DISABLE;\n\n```\n\nthe issue is resolved:\n\n* ARP resolution works as expected\n\n* Stable communication is established\n\nA similar issue has also been reported here as i have mDNS and DHCP client enabled as well:\n\n<https://community.st.com/t5/stm32-mcus-embedded-software/netxduo-mdns-and-dhcp-conflict-because-of-st-ethernet-driver/td-p/826677>\n\nIt appears that enabling the BroadcastFilter blocks essential broadcast traffic (e.g., ARP), which prevents normal network operation.\n\nRequesting clarification:\n\n* Is this the intended behavior when BroadcastFilter is enabled? From the observed behavior, it appears that enabling this filter blocks essential broadcast traffic.\n\n* Is disabling the BroadcastFilter a valid and recommended fix, or could this lead to any unintended side effects in other scenarios?\n\n* If disabling the BroadcastFilter is only a workaround, is there a recommended configuration that allows required broadcast protocols while still keeping the filter enabled?\n\nFYI: @STackPointer64  @sssooo",
+            "best_answer_author": "Zainulabedeen",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I am using the **STM32H733** controller along with the **NetXDuo** networking stack. The issue started after updating the HAL drivers in my project from version **v1.11.0 to v1.16.0** (released on February 24, 2026).\n\nAfter this update, I observed that when the device boots up and no network activity occurs for a certain period (for example, no ping requests are sent to the device or device sending any UDP packet), the Ethernet connection is eventually lost permanently. Once this happens, the device becomes unreachable over Ethernet, and neither a soft reset nor a hard reset restores the connection.\n\nHowever, if the device receives a ping immediately after booting, or if it sends a UDP packet shortly after startup from the device, the Ethernet connection remains stable. In this case, normal operation continues without any issues until the device is reset again and no network activity is observed for a certain period as well.\n\nThis problem only appeared after updating the HAL drivers to version **v1.16.0** and does not occur when using version **v1.11.0**.\n\nAdditionally, we are using the **LAN89354** PHY layer instead of the **LAN8742**.\n\nI would appreciate your guidance on how to resolve this issue so I can proceed with my project.\n\nMany thanks.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf81ea7d-c461-14f7-6ac8-2cf29ee28ebf.png"
+            ],
+            "author": "Zainulabedeen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"94741\">@Zainulabedeen</user-mention>,</p>\n<p>That is indeed an unusual issue. Could you please attach your project so I can review it? If your project is private, feel free to send me a private message, and I can provide a secure way for you to upload it.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span><strong>Update on Ethernet connectivity issue observed after updating HAL drivers from v1.11.0 to v1.16.0 (STM32H7 + NetX Duo + external PHY LAN89354)</strong></span></p><p class=\"\"><span>After debugging, the problem appears to be related to the MAC filter configuration, specifically the </span><strong><span>Broadcast Filter</span></strong><span> setting.</span></p><p class=\"\"><span>When the BroadcastFilter is enabled in:</span></p><ul><li><span>HAL_ETH_SetMACFilterConfig() in `stm32h7xx_hal_eth.c` file</span></li><li><span>_nx_driver_hardware_initialize() in `nx_stm32_eth_driver.c` file</span></li></ul><pre><span>FilterConfig.BroadcastFilter = ENABLE;</span></pre><p class=\"\"><span>the device is unable to establish proper network communication.</span></p><p class=\"\"><span>Observed behavior:</span></p><ul><li><span>arp -n</span><span> shows incomplete entries (no MAC resolution)</span></li><li><span>Ping/connectivity is unreliable or fails</span></li></ul><p class=\"\"><span>When the BroadcastFilter is disabled:</span></p><pre><span>FilterConfig.BroadcastFilter = DISABLE;</span></pre><p class=\"\"><span>the issue is resolved:</span></p><ul><li><span>ARP resolution works as expected</span></li><li><span>Stable communication is established</span></li></ul><p class=\"\"><span>A similar issue has also been reported here as i have mDNS and DHCP client enabled as well:</span><br/><a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/netxduo-mdns-and-dhcp-conflict-because-of-st-ethernet-driver/td-p/826677\" target=\"_blank\"><span>https://community.st.com/t5/stm32-mcus-embedded-software/netxduo-mdns-and-dhcp-conflict-because-of-st-ethernet-driver/td-p/826677</span></a></p><p><span>It appears that enabling the BroadcastFilter blocks essential broadcast traffic (e.g., ARP), which prevents normal network operation.</span></p><p class=\"\"><span>Requesting clarification:</span></p><ul><li><span>Is this the intended behavior when BroadcastFilter is enabled? From the observed behavior, it appears that enabling this filter blocks essential broadcast traffic.</span></li><li>Is disabling the BroadcastFilter a valid and recommended fix, or could this lead to any unintended side effects in other scenarios?</li><li>If disabling the BroadcastFilter is only a workaround, is there a recommended configuration that allows required broadcast protocols while still keeping the filter enabled?</li></ul><p>FYI: <user-mention data-id=\"93235\">@STackPointer64</user-mention>  <user-mention data-id=\"92443\">@sssooo</user-mention> </p></div>",
+                    "author": "Zainulabedeen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Hello <user-mention data-id=\"94741\">@Zainulabedeen</user-mention>,</p>\n<p>I have escalated the issue to the relevant team for resolution, as it is unusual behavior and should not happen. It is being tracked internally under ticket number CDM0061604.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"94741\">@Zainulabedeen</user-mention>,</p>\n<p>I just received confirmation from the development team. There was an API change in HAL_ETH_SetMACFilterConfig() in the ETH_MACFilterConfigTypeDef structure for the BroadcastFilter field.</p>\n<p>With the new version, the BroadcastFilter field must be set to DISABLE to allow reception of broadcast packets. This is a valid fix, not a workaround.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"STackPointer64_0-1776185643082.png\" style=\"width: 999px;\"><img alt=\"STackPointer64_0-1776185643082.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf81ea7d-c461-14f7-6ac8-2cf29ee28ebf.png\" title=\"STackPointer64_0-1776185643082.png\"/></span></p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

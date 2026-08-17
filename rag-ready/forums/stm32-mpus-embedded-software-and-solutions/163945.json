@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163945",
+            "publicId": "163945",
+            "title": "Unable to build flashlayout for eMMC for stm32mp25-disco target in Yocto",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/unable-to-build-flashlayout-for-emmc-for-stm32mp25-disco-target-in-yocto-163945",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "OpenSTLinux",
+                "Documentation",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-18T13:08:38+00:00",
+            "views": 249,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @kcghost ,\n\nCan you try with the **stm32mp2.conf**machine first ?\n\nThe **stm32mp25-disco.conf**is given as example to help you creating your own machine, and does not bring all the features possible (such as eMMC storage). You can get inspired by the generic conf and adapt the machine directly (maybe modifying in local.conf cannot work in this context).\n\nIn summary, if you just want to make some quick tests on MP2-DK board, keep the generic **stm32mp2** machine. If you want to fine tune a specific machine, I suggest you to create your own one.\n\nKind regards,\n\nErwan.",
+            "best_answer_author": "Erwan SZYMANSKI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am running into issues building for the eMMC storage target for the `stm32mp25-disco` MACHINE type.\n\nI thought that adding \"emmc\" to `BOOTDEVICE\\_LABELS` should be enough to trigger building emmc flashlayout files. Is that not the case? I haven't found clear documentation on the subject.\n\nI tried making modifications to both `local.conf` and the machine conf directly. I was able to confirm the change takes affect with `bitbake -e`. Each time I build an image it only builds the flashlayout files for `sdcard`. What am I missing?\n\n```\n\nmkdir yocto\n\ncd yocto\n\nrepo init -u https://github.com/STMicroelectronics/oe-manifest -b refs/tags/openstlinux-6.6-yocto-scarthgap-mpu-v25.08.27\n\nrepo sync\n\nDISTRO=openstlinux-weston MACHINE=stm32mp25-disco source layers/meta-st/scripts/envsetup.sh\n\nprintf \"%s\\n\" 'BOOTDEVICE_LABELS = \"emmc\"' >>conf/local.conf\n\nbitbake core-image-minimal\n\nls -l tmp-glibc/deploy/images/stm32mp25-disco/flashlayout_core-image-minimal/optee/\n\nFlashLayout_sdcard_stm32mp257f-dk-ca35tdcid-ostl-m33-examples-optee.tsv FlashLayout_sdcard_stm32mp257f-dk-ca35tdcid-ostl-optee.tsv FlashLayout_sdcard_stm32mp257f-dk-optee.tsv\n\nbitbake -e core-image-minimal | grep \"^BOOT\"\n\nBOOTDEVICE_LABELS=\"emmc sdcard\"\n\nBOOTSCHEME_LABELS=\"optee\"\n\nBOOTSCHEME_REPLACE=\"optee\"\n\n```",
+            "images": [],
+            "author": "kcghost",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105252\">@kcghost</user-mention> ,<br/>Can you try with the <strong>stm32mp2.conf </strong>machine first ? </p>\n<p>The <strong>stm32mp25-disco.conf </strong>is given as example to help you creating your own machine, and does not bring all the features possible (such as eMMC storage). You can get inspired by the generic conf and adapt the machine directly (maybe modifying in local.conf cannot work in this context).</p>\n<p>In summary, if you just want to make some quick tests on MP2-DK board, keep the generic <strong>stm32mp2</strong> machine. If you want to fine tune a specific machine, I suggest you to create your own one.</p>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks! The generic `stm32mp2` machine generates all the expected flashlayout files. Since the machine conf is loaded after `local.conf` I did need to make a custom machine type to override some settings, but it appears to work now with the generic type as a base.</p></div>",
+                    "author": "kcghost",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

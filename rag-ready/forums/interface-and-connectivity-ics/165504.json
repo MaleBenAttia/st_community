@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "165504",
+            "publicId": "165504",
+            "title": "ST87MXX max IP frame size discrepancy?",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/st87mxx-max-ip-frame-size-discrepancy-165504",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "ST87 series"
+            ],
+            "published_at": "2026-05-08T08:09:17+00:00",
+            "views": 160,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello Thierry Didi,\n\nWell done, it is better to open a new topic if the question is different and especially if an answer has already been accepted.\n\nThere is no mistake in the documents, the max length for receiving or transmitting are not the same.\n\nFor sending data, in order to be compliant with all the networks, we have aligned the max length to a single standard IP frame (1400 bytes). Then, you have to subtract the header size (28 bytes in IPv4 and 48 bytes in IPv6).\n\nBased on that, we have decided to limit the AT#IPSENDUDP length to 1340 bytes.\n\nFor receiving data, the limitation is more linked to ST87M01 internal architecture. The design has been made to support 1600 bytes at once, but as mentioned in the previous thread, you will get an URC message if there are more data to receive.\n\nNote that the effective size of the packet is often limited by the network MTU.",
+            "best_answer_author": "Didier HERROUIN",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Split from  [ST87M01 : MAX length of the data returned by AT#IPREAD](https://community.st.com/t5/interface-and-connectivity-ics/st87m01-max-length-of-the-data-returned-by-at-ipread/td-p/896503 \"ST87M01 : MAX length of the data returned by AT#IPREAD\") - which is solved.*\n\n*This is, indeed, a new question*.\n\n---\n\nHello Didier,\n\nI have an additional question on this topic (I don't know if I should create a new post, but this question is very much linked to the previous one...) :\n\n- From the ST87MXX AT Command User Manual §9.8 AT#IPSENDUDP, the max IP frame size is 1400 bytes\n\n- But from ST87MXX TCP/UDP-IP Application Note §3.2 IP default parameters command, the max IP frame size is 1600 bytes,\n\nIs there a mistake in one of these documents, or is there something that I didn't understand ?\n\nBest regards\n\nThierry",
+            "images": [],
+            "author": "Thierry Didi",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Thierry Didi,</p>\n<p>Well done, it is better to open a new topic if the question is different and especially if an answer has already been accepted.</p>\n<p>There is no mistake in the documents, the max length for receiving or transmitting are not the same.</p>\n<p><span>For sending data, in order to be compliant with all the networks, we have aligned the max length to a single standard IP frame (1400 bytes). Then, you have to subtract the header size (28 bytes in IPv4 and 48 bytes in IPv6).<br/>Based on that, we have decided to limit the AT#IPSENDUDP length to 1340 bytes. </span></p>\n<p><span>For receiving data, the limitation is more linked to ST87M01 internal architecture. The design has been made to support 1600 bytes at once, but as mentioned in the previous thread, you will get an URC message if there are more data to receive. </span></p>\n<p><span>Note that the effective size of the packet is often limited by the network MTU.</span></p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks Didier, It is clear,</p><p>Best Regards</p><p>Thierry</p></div>",
+                    "author": "Thierry Didi",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

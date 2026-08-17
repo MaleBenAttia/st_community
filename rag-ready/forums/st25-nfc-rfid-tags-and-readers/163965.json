@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "163965",
+            "publicId": "163965",
+            "title": "ST25DV04KC GPO no interrupt output",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25dv04kc-gpo-no-interrupt-output-163965",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 Dynamic NFC Tags – ST25DV series"
+            ],
+            "published_at": "2026-03-19T01:17:51+00:00",
+            "views": 316,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nWould it be possible to measure the voltage on the pull-up resistor of the GPO pin, just to be sure you have a correct voltage present to allow the interrupt to be seen ?\n\nBest regards.",
+            "best_answer_author": "JL. Lebon",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I am implementing NFC wake-up functionality using the main controller chip STM32L433 and the ST25DV04KC. I2C writes and reads are functioning normally.\n\nHowever, when the NFC field is present, the GPO pin does not output a pulse (reading the GPO register returns a value of 0x11). Using a multimeter to measure the GPO level change when the NFC field appears shows a minimal change in voltage level.\n\nThe same program works correctly on an STM32F1 development board with an ST25DV04KC NFC module (both 8-pin and 12-pin versions were tested, with the same phenomenon).\n\nDoes anyone know why this is happening？Could you provide some troubleshooting directions？This would be very helpful to me.Thank you！",
+            "images": [],
+            "author": "Jay_Liu",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Can you please explain what version of the ST25DV04KC you are using? Is it the 8 pin or the 12 pin version ?<br/>The 12 pin version requires a power supply on the VDCG pin and the interrupt is avctive high.<br/>The 8 pin version requires an external pull-up resistor powered connected to a power supply and the interrupt is active low.</p><p>So you may missing either the VDGC power supply or the external pull-up resistor.</p><p>Another possibility is that the GPO output is disabled by the dynamic register GPO_CTRL_dyn. Please check that bit 0 is set to 1.</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your reply.</p><p>I'm using the 8-pin version, and I can confirm there is a pull-up resistor on the GPO.<span>The value I read from the GPO_CTRL_dyn register is 0x11, and bit 0 is already set to 1. All operations were performed according to the manual, so I'm quite puzzled as to why this phenomenon is occurring. Could it be caused by the circuit on my self-designed PCB board?</span></p><p><span><span>Best regards.</span></span></p></div>",
+                    "author": "Jay_Liu",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Would it be possible to measure the voltage on the pull-up resistor of the GPO pin, just to be sure you have a correct voltage present to allow the interrupt to be seen ?</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164094",
+            "publicId": "164094",
+            "title": "Can STEVAL-25R200A read the data from an NFC tag?",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/can-steval-25r200a-read-the-data-from-an-nfc-tag-164094",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID readers - ST25Rx00 series"
+            ],
+            "published_at": "2026-03-24T00:35:28+00:00",
+            "views": 439,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi JonnyChan,\n\nlooking around I find a variety of protocols for NFC tags on filaments. Ranging from writing raw parameters directly on blocks, some using NFC Forum Tags with NDEF and others simply putting an URI with the filament information to be read from a website.\n\nTo name a few: OpenPrintTag, QIDI, Creality, Anycubic, OpenSpool, OpenTag, SimplyPrint (found with additional explanations and links in an article named \"All about NFC / RFID for filament spools\")\n\nMost of these tags are directly supported by the ST25R200 module. A caveat here are Mifare Classic tags used by some of these \"data standards\". Mifare Classic would require additional host side cryptography.\n\nIf you want to implement some of the above mentioned standards you will need to study the standards and also a bit on the tags they are based on.\n\nFor the ST25TN you will find the commands for reading blocks in its DataSheet. NDEF is also available but not part of the STEVAL-25R200 demonstration. It could be retrieved from STSW-ST25RLIB004 - either then done on host side or done inside adapted firmware.\n\nThe STEVAL-25R200 is not a ready-made NFC reader but a kit which allows a user to evaluate the ST25R200 features and functionality. ST provides a basic software but not a full application.\n\nBR, Ulysses",
+            "best_answer_author": "Ulysses HERNIOSUS",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nOur company bought a steval-25r200a for me and I need to develop a application that we can get the information from a nfc card or tag.\n\nFor an example.\n\nThere is a nfc tag which installed in a 3d printer filament.\n\nWe need to get the the size and the color of the filament.\n\nDoes sT25R200 can get the data from nfc tag?\n\nIf that information stored at block 1 , where should I start my Application?\n\nIs there any document about the uART command from the example.\n\nI don't know what should i do if i need to get the block count from a nfc tag and i don't how to read a data from the nfc.\n\nI have got the uid of the nfc card by sending these commands\n\nAA 00 02 20 00\n\nAA 00 a9 20 02 xx xx...\n\nAA 00 02 20 04\n\nAA 00 02 20 06\n\nBut I don't how to get anything from block of tag.\n\nCloud you please show me a details sequence of getting data from blocks and getting the count of block.\n\nI have no idea where should i start.\n\nPlease give me an example and a direction for developing",
+            "images": [],
+            "author": "JonnyChan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi JonnyChan,</p>\n<p>the module is not a full reader with all higher level protocols. Typically you would rfalNfcSelect() one of the found tags and then perform rfalNfcDataExchange..(). </p>\n<p>What type of commands to send is up to the user application, it will also depend on which kind of tag you are addressing and how the data is organized on the tag.</p>\n<p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <span>Ulysses,</span></p><p><span>Q: wh</span><span>at type of commands to send is up to the user application,</span></p><p><span>A: user application:</span></p><p>Our application is that it can read data from a nfc card's block.</p><p><span>Such as we need to read the data from block 0.</span></p><p>Q: which kind of tag you are addressing</p><p>I have a nfc tag named ST25TN01K. </p><p>A: NFC type</p><p>Q: how the data is organized on the tag</p><p>A: I have no idea about that, can you tell me where can I find the data structure of that tag?</p><p> </p><p>Does ST25R200 support my Application?</p><p>If it supports my Application, how can I start with the command from the Demo from that develop board.</p><p>If it doesn't support that application, which module should I buy?</p><p>And which one <span>is a full reader with all higher level protocols?</span></p><p> </p></div>",
+                    "author": "JonnyChan",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <span>JonnyChan,</span></p>\n<p>looking around I find a variety of protocols for NFC tags on filaments. Ranging from writing raw parameters directly on blocks, some using NFC Forum Tags with NDEF and others simply putting an URI with the filament information to be read from a website.</p>\n<p>To name a few: OpenPrintTag, QIDI, Creality, Anycubic, OpenSpool, OpenTag, SimplyPrint (found with additional explanations and links in an article named \"All about NFC / RFID for filament spools\")</p>\n<p>Most of these tags are directly supported by the ST25R200 module. A caveat here are Mifare Classic tags used by some of these \"data standards\". Mifare Classic would require additional host side cryptography. </p>\n<p>If you want to implement some of the above mentioned standards you will need to study the standards and also a bit on the tags they are based on.</p>\n<p>For the ST25TN you will find the commands for reading blocks in its DataSheet. NDEF is also available but not part of the STEVAL-25R200 demonstration. It could be retrieved from <span>STSW-ST25RLIB004 - either then done on host side or done inside adapted firmware.</span></p>\n<p>The STEVAL-25R200 is not a ready-made NFC reader but a kit which allows a user to evaluate the ST25R200 features and functionality. ST provides a basic software but not a full application.</p>\n<p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "164100",
+            "publicId": "164100",
+            "title": "STM32U375 - System Lockup instead of Reset when IWDG_STDBY_FREEZE is enabled",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u375-system-lockup-instead-of-reset-when-iwdg-stdby-freeze-is-enabled-164100",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Power",
+                "STM32U3 series"
+            ],
+            "published_at": "2026-03-24T08:00:01+00:00",
+            "views": 314,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "**Root Cause discovered:** On my custom PCB, the **PH3-BOOT0** pin is shared with an ePaper display reset line, which has an internal pull-up. With the default factory Option Bytes (**nSWBOOT0=1**), the MCU was sampling the PH3 pin high during the IWDG reset, causing the system to jump into the **System Bootloader (0x0BF8 F000)** instead of restarting the application.\n\n**Resolution:** I modified the Option Bytes to:\n\n* **nSWBOOT0 = 0** (Ignore physical BOOT0 pin)\n\n* **nBOOT0 = 1** (Force Boot from Flash)\n\nWith this configuration, the IWDG reset works perfectly regardless of the state of the PH3 pin.\n\nYou can close the case. Best regards.\n\nGianni Z.",
+            "best_answer_author": "alex95",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi everyone, I am encountering a critical issue with the **IWDG** on an **STM32U375** using **STM32CubeMX v6.17.0** and a **Segger J-Link Base**.\n\n**The scenario:** I am testing the Watchdog behavior across Standby cycles. I have configured the Option Bytes via software to freeze the watchdog during low power modes:\n\n* **IWDG\\_SW**: 1 (Software mode)\n\n* **IWDG\\_STOP\\_FREEZE**: 0 (Counter stops in Stop mode)\n\n* **IWDG\\_STDBY\\_FREEZE**: 0 (Counter stops in Standby mode)\n\n**The Issue:** When the system is in IWDG\\_STDBY\\_FREEZE mode, the following happens:\n\n1. The MCU wakes up from Standby correctly.\n\n2. I enter a test while(1) loop without refreshing the IWDG.\n\n3. **At the exact moment the IWDG timeout should occur (10s), the MCU enters an unrecoverable state.**\n\n* No System Reset occurs.\n\n* No HardFault\\_Handler is triggered.\n\n* The CPU seems to be completely locked (Bus Lockup?).\n\n4. I tried to enable the **IWDG Early Wakeup Interrupt (EWI)** via NVIC, but HAL\\_IWDG\\_EarlyWakeupCallback() is **never called** before the crash.\n\n**Contrast with RUN mode:** If I change the configuration to IWDG\\_STDBY\\_RUN (Watchdog active during Standby), the system works perfectly: the IWDG expires and triggers a clean **System Reset** as expected.\n\n**Environment & Debugging:**\n\n* **IDE/Tool**: STM32CubeMX 6.17.0 / Segger J-Link Base.\n\n* **Clock**: LSI is stable and verified.\n\n* **Observations**: When the \"Freeze\" mode is active, the transition from \"Frozen\" (in Standby) to \"Active\" (after Wakeup) seems to lead to a hardware deadlock upon counter expiration. It feels like the IWDG reset signal is being masked or is causing a bus hang instead of a global reset.\n\n**Questions:**\n\n1. Is there a known errata or specific synchronization requirement for the IWDG on the U3 series when resuming from a \"Frozen\" state in Standby?\n\n2. Why would the IWDG NVIC interrupt fail to trigger even when configured, only in this specific Freeze scenario?\n\n3. Could the J-Link's handling of the DBGMCU freeze bits interfere with the Option Bytes configuration in a way that causes a bus lockup?\n\nAny insights or suggestions on how to further debug this \"unrecoverable state\" would be greatly appreciated.\n\n**Thank you in advance for your support and insights.**\n\n**Best regards,**\n\n**Gianni**",
+            "images": [],
+            "author": "ZacchetG",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104458\">@ZacchetG</user-mention> <br/><span>&gt;The MCU wakes up from standby correctly.</span><br/><span>Can you explain how you wake up the system from standby? For example, do you use the RTC, a wakeup pin, or another method?</span><br/><span>&gt;I enter a test while (1) loop without refreshing the independent watchdog (IWDG).</span><br/><span>Can you share a piece of your code? Waking up from standby creates a system reset, so how do you enter a while loop without the system resetting and starting over?</span><br/><span>&gt;The MCU enters an unrecoverable state.</span><br/><span>Can you share more details about this unrecoverable state? Are you using debug mode, or does this occur even when you just flash the project?<br/></span>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong><span class=\"\">Root Cause discovered:</span></strong><span class=\"\"><span> </span>On my custom PCB, the<span> </span></span><strong><span class=\"\">PH3-BOOT0</span></strong><span class=\"\"><span> </span>pin is shared with an ePaper display reset line, which has an internal pull-up. With the default factory Option Bytes (</span><strong><span class=\"\">nSWBOOT0=1</span></strong><span class=\"\">), the MCU was sampling the PH3 pin high during the IWDG reset, causing the system to jump into the<span> </span></span><strong><span class=\"\">System Bootloader (0x0BF8 F000)</span></strong><span class=\"\"><span> </span>instead of restarting the application.</span></p><p><strong><span class=\"\">Resolution:</span></strong><span class=\"\"><span> </span>I modified the Option Bytes to:</span></p><ul><li><strong><span class=\"\">nSWBOOT0 = 0</span></strong><span class=\"\"><span> </span>(Ignore physical BOOT0 pin)</span></li><li><strong><span class=\"\">nBOOT0 = 1</span></strong><span class=\"\"><span> </span>(Force Boot from Flash)</span></li></ul><p><span class=\"\">With this configuration, the IWDG reset works perfectly regardless of the state of the PH3 pin.</span></p><p><span class=\"\">You can close the case. Best regards.</span></p><p><span class=\"\">Gianni Z.</span></p></div>",
+                    "author": "alex95",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"50958\">@alex95</user-mention> <user-mention data-id=\"104458\">@ZacchetG</user-mention> </p>\n<p>Thank you for returning and sharing the root cause with the community.<br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

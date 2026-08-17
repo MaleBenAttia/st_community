@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "163637",
+            "publicId": "163637",
+            "title": "EVAL-SCS001V1 USB Data lines",
+            "url": "https://community.st.com/power-management-53/eval-scs001v1-usb-data-lines-163637",
+            "category": "Power management",
+            "tags": [
+                "Power supply management"
+            ],
+            "published_at": "2026-03-10T09:51:51+00:00",
+            "views": 158,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "On the [EVAL‑SCS001V1](https://www.st.com/en/evaluation-tools/eval-scs001v1.html) the USB‑C connector is intended only for power‑delivery, not as a USB data port, which is why D+/D- are not brought out. In principle you *can* solder to one side’s D+/D- pads and accept that the plug will only work in one orientation; the CC pins handled by the STM32G0 on the board will still negotiate the PD contract, and leaving the other D+/D- pair unconnected does not affect PD itself.\n\nHowever:\n\n* You would need very short, well‑routed wires to have any chance of reliable USB signalling\n\n* The board was not designed or EMC‑qualified for this use, so ST cannot guarantee signal integrity or compliance\n\n* For a supported USB connection, [STEVAL‑ISC005V1](https://www.st.com/en/evaluation-tools/steval-isc005v1.html) (or a separate USB connector on your STM32F767ZI board) is indeed the recommended tool\n\nSo: your workaround may function for lab experiments, but it is a hack and not recommended for a final design.\n\nHope that helps?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi\n\nIn this\n\n# EVAL-SCS001V1 Board\n\nI want to connect this board to my STM32F767ZI, BUT Data lines D+/D- on Its USB-C Connector are not connected to any test point. Is there any workaround this? I can solder wires to for example A side of this connector(D+/D-) but then B side will be left unconnected. I can live with the fact that USB CABLE will work in only 1 orientation when inserted in USB-C Receptable but i am unsure of any other consequences that it will cause? Power delivery contracts/CC1/2, etc..\n\nI know ST offers another Development board STEVAL-ISC005V1 where these signals are available but don't need so many Voltage Outputs and EVAL-SCS001V1 fits perfectly.",
+            "images": [],
+            "author": "Circuit",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>On the <a href=\"https://www.st.com/en/evaluation-tools/eval-scs001v1.html\" rel=\"noopener noreferrer\" target=\"_self\">EVAL‑SCS001V1</a> the USB‑C connector is intended only for power‑delivery, not as a USB data port, which is why D+/D- are not brought out. In principle you<span> </span><em>can</em><span> </span>solder to one side’s D+/D- pads and accept that the plug will only work in one orientation; the CC pins handled by the STM32G0 on the board will still negotiate the PD contract, and leaving the other D+/D- pair unconnected does not affect PD itself.</p>\n<p>However:</p>\n<ul>\n<li>You would need very short, well‑routed wires to have any chance of reliable USB signalling</li>\n<li>The board was not designed or EMC‑qualified for this use, so ST cannot guarantee signal integrity or compliance</li>\n<li>For a supported USB connection, <a href=\"https://www.st.com/en/evaluation-tools/steval-isc005v1.html\" rel=\"noopener noreferrer\" target=\"_self\">STEVAL‑ISC005V1</a> (or a separate USB connector on your STM32F767ZI board) is indeed the recommended tool</li>\n</ul>\n<p>So: your workaround may function for lab experiments, but it is a hack and not recommended for a final design.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,101 @@
+{
+    "forum": [
+        {
+            "id": "164795",
+            "publicId": "164795",
+            "title": "Can't load a MIPI kernel driver on STM32MP257F-DK",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/can-t-load-a-mipi-kernel-driver-on-stm32mp257f-dk-164795",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "ST boards"
+            ],
+            "published_at": "2026-04-16T00:06:35+00:00",
+            "views": 583,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @rdmikkelsen,\n\nHave you modified the kernel DTS according to your new configuration?\n\nIt's seems the imx335 (camera sensor that ST provide with the B-CAMS-IMX) is trying to probe.\n\nPlease have a look at i2c2 node, specially the  of stm32mp257f-dk.dts. Base configuration is:\n\n```\n\nimx335: camera@1a {\n\ncompatible = \"sony,imx335\";\n\nreg = <0x1a>;\n\nclocks = <&clk_ext_camera>;\n\navdd-supply = <&scmi_v3v3>;\n\novdd-supply = <&scmi_v3v3>;\n\ndvdd-supply = <&scmi_v3v3>;\n\nreset-gpios = <&gpiob 1 (GPIO_ACTIVE_LOW | GPIO_PUSH_PULL)>;\n\npowerdown-gpios = <&gpiob 11 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL)>;\n\nstatus = \"okay\";\n\nport {\n\nimx335_ep: endpoint {\n\nremote-endpoint = <&csi_sink>;\n\nclock-lanes = <0>;\n\ndata-lanes = <1 2>;\n\nlink-frequencies = /bits/ 64 <594000000>;\n\n};\n\n};\n\n};\n\n```\n\nRegards,",
+            "best_answer_author": "Pwxn",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am trying to load a kernel driver (.ko file) for a MIPI camera I would like to use with the STM32MP257F-DK. It's for the imx664, and no driver is present already.\n\nI have the source for the driver, and was able to compile it into a .ko file, cross-compiled with the exact same OS as is present on the board and with the SDK set up as required. The vermagic line matches exactly: **vermagic: 6.6.78 SMP preempt mod\\_unload aarch64**\n\nHowever, every time I try and load the driver with insmod, with or without -f, I get the error: **insmod: ERROR: could not insert module imx664.ko: Invalid module format**\n\nI am struggling to find where the incompatibility could be, since I have re-tried it a few times and been careful to set it up as ST's documentation says and also to match what is expected by the board. Is there something I am missing with this?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/281cafd5-d188-0406-a9f4-607f00a10eb2.png"
+            ],
+            "author": "rdmikkelsen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"97514\">@rdmikkelsen</user-mention> </p>\n<p>I'm not SW expert, but did you follow what is inside this page : <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_cross-compile_with_the_Developer_Package#Modifying-2Fadding_an_external_Linux_kernel_module\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_cross-compile_with_the_Developer_Package#Modifying-2Fadding_an_external_Linux_kernel_module</a> </p>\n<p> </p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the quick response. I had seen those steps and also these for cross-compilation: <a href=\"https://wiki.st.com/stm32mpu/wiki/Cross-compile_with_OpenSTLinux_SDK\" rel=\"noopener noreferrer\" target=\"_self\">https://wiki.st.com/stm32mpu/wiki/Cross-compile_with_OpenSTLinux_SDK</a> and I had tried following each without much success. </p></div>",
+                    "author": "rdmikkelsen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97514\">@rdmikkelsen</user-mention> ,<br/>I would advice you to add your imx664 driver directly in your kernel sources, next to <em>imx335.c</em> for example (drivers/media/i2c). </p>\n<p>Update also the Makefile to compile it automatically as module (or add your own CONFIG in the Kconfig file), you can get inspired by what is already done in the kernel.</p>\n<p>Then recompile your Linux kernel image and your modules, and install them following the process explained in the wiki.</p>\n<p>------------</p>\n<p>If you want to cross compile your module out of tree (without putting it in Linux sources), you have to indirectly link it to the Linux running on your machine. Corresponding steps are explained here: <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_cross-compile_with_the_Developer_Package#Adding_an_external_out-of-tree_Linux_kernel_module\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_cross-compile_with_the_Developer_Package#Adding_an_external_out-of-tree_Linux_kernel_module</a></p>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"97514\">@rdmikkelsen</user-mention>,</p><p> </p><p>Have you modified the kernel DTS according to your new configuration? </p><p>It's seems the imx335 (camera sensor that ST provide with the <span class=\"\">B-CAMS-IMX) is trying to probe. </span></p><p> </p><p><span class=\"\">Please have a look at i2c2 node, specially the  of stm32mp257f-dk.dts. Base configuration is:</span></p><pre class=\"lia-code-sample language-c\"><code>imx335: camera@1a {\n\t\tcompatible = \"sony,imx335\";\n\t\treg = &lt;0x1a&gt;;\n\t\tclocks = &lt;&amp;clk_ext_camera&gt;;\n\t\tavdd-supply = &lt;&amp;scmi_v3v3&gt;;\n\t\tovdd-supply = &lt;&amp;scmi_v3v3&gt;;\n\t\tdvdd-supply = &lt;&amp;scmi_v3v3&gt;;\n\t\treset-gpios = &lt;&amp;gpiob 1 (GPIO_ACTIVE_LOW | GPIO_PUSH_PULL)&gt;;\n\t\tpowerdown-gpios = &lt;&amp;gpiob 11 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL)&gt;;\n\t\tstatus = \"okay\";\n\n\t\tport {\n\t\t\timx335_ep: endpoint {\n\t\t\t\tremote-endpoint = &lt;&amp;csi_sink&gt;;\n\t\t\t\tclock-lanes = &lt;0&gt;;\n\t\t\t\tdata-lanes = &lt;1 2&gt;;\n\t\t\t\tlink-frequencies = /bits/ 64 &lt;594000000&gt;;\n\t\t\t};\n\t\t};\n\t};</code></pre><p>Regards,</p></div>",
+                    "author": "Pwxn",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the response, I have updated both the stm32mp257f-dk.dts and stm32mp257f-ev.dts files by adding nodes right after the imx335 node you mentioned, but changed all references to imx664. This resulted in me being able to see something at address 0x10 with i2cget. Then I updated the address in the imx664 node from 0x1a to 0x10, but that resulted in me not being able to see any device again, so I changed it back. I had also changed the &amp;csi section to refer to the imx664 endpoint: </p><pre>&amp;csi {<br/> vdd-supply = &lt;&amp;scmi_vddcore&gt;;<br/> vdda18-supply = &lt;&amp;scmi_v1v8&gt;;<br/> status = \"okay\";<br/> ports {<br/> #address-cells = &lt;1&gt;;<br/> #size-cells = &lt;0&gt;;<br/> port@0 {<br/> reg = &lt;0&gt;;<br/> csi_sink: endpoint {<br/> remote-endpoint = &lt;&amp;imx664_ep&gt;;<br/> data-lanes = &lt;1 2&gt;;<br/> bus-type = &lt;4&gt;;<br/> };<br/> };<br/> port@1 {<br/> reg = &lt;1&gt;;<br/> csi_source: endpoint {<br/> remote-endpoint = &lt;&amp;dcmipp_0&gt;;<br/> };<br/> };<br/> };<br/>};</pre><p>Is there anything else I would need to change to be able to see the camera? It feels like it's very close, after everyone's help here. </p><p> </p><p>Editing to add that I see this with dmesg regarding probing CSI using address 0x1a in the device tree, but I don't see anything with \"imx\" in the dmesg output:</p><pre>[ 10.159841] stm32-csi 48020000.csi: Probed CSI with 2 lanes<br/>[ 10.166436] stm32-dwmac 482c0000.eth1: IRQ eth_lpi not found<br/>[ 10.176906] stm32-dwmac 482c0000.eth1: User ID: 0x1a, Synopsys ID: 0x53<br/>[ 10.177962] stm32-dwmac 482c0000.eth1: DWMAC4/5<br/>[ 10.184329] stm32-dwmac 482c0000.eth1: DMA HW capability register supported<br/>[ 10.191508] stm32-dwmac 482c0000.eth1: RX Checksum Offload Engine supported<br/>[ 10.243782] stm32-dwmac 482c0000.eth1: TX Checksum insertion supported<br/>[ 10.244729] stm32-dwmac 482c0000.eth1: Wake-Up On Lan supported<br/>[ 10.252424] stm32-dwmac 482c0000.eth1: TSO supported<br/>[ 10.256774] stm32-dwmac 482c0000.eth1: Enable RX Mitigation via HW Watchdog Timer<br/>[ 10.264446] stm32-dwmac 482c0000.eth1: Enabled L3L4 Flow TC (entries=2)<br/>[ 10.274235] stm32-dwmac 482c0000.eth1: Enabled RFS Flow TC (entries=10)<br/>[ 10.282807] stm32-dwmac 482c0000.eth1: TSO feature enabled<br/>[ 10.282856] stm32-dwmac 482c0000.eth1: Using 32/32 bits DMA host/device width<br/>[ 10.304087] dcmipp 48030000.dcmipp: Probe done</pre><p> </p></div>",
+                    "author": "rdmikkelsen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"97514\">@rdmikkelsen</user-mention> </p><p> </p><p>The logs you share are not really related to the camera sensor itself.. </p><p>You might need to have a look to the driver probe function, add some debugging line.. You should be able to see a probe or an error when you modprobe imx664.</p><p> </p><p>You should also have a look at the wave of NRST _CAM / EN_MODULE and the I2C_SCL / I2C_SDA you could have a timing error here and need to adjust </p><pre class=\"lia-code-sample language-c\"><code>reset-gpios = &lt;&amp;gpiob 1 (GPIO_ACTIVE_LOW | GPIO_PUSH_PULL)&gt;;\npowerdown-gpios = &lt;&amp;gpiob 11 (GPIO_ACTIVE_HIGH | GPIO_PUSH_PULL)&gt;;</code></pre><p>Some module require GPIO_ACTIVE_HIGH or GPIO_ACTIVE_LOW.</p><p> </p><p>Regards</p></div>",
+                    "author": "Pwxn",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"86555\">@Pwxn</user-mention> Thanks for the pointers for this. After some looking for a timing problem like you mentioned, I found that the clock frequency needed to be a little different from the default value, so I updated the clk_ext_camera clock frequency in the device tree. </p><p> </p><p>I noticed that, after changing the clock frequency, it looks like it recognizes the IMX664 camera specifically now, at 0x10 as expected:</p><pre>root@stm32mp2-e3-cb-7b:~# i2cdetect -y 0<br/>0 1 2 3 4 5 6 7 8 9 a b c d e f<br/>00: -- -- -- -- -- -- -- -- <br/>10: UU -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- <br/>20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- <br/>30: -- -- -- -- -- -- -- 37 UU -- -- -- UU UU -- UU <br/>40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- <br/>50: -- -- -- -- -- -- -- 57 -- -- -- -- -- -- -- -- <br/>60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- <br/>70: -- -- -- -- -- -- -- -- </pre><p> </p><pre>root@stm32mp2-e3-cb-7b:~# dmesg | grep imx<br/>[ 10.257475] imx664 0-0010: enter SONY IMX664 camera driver probe<br/>[ 10.275761] imx664 0-0010: supply dovdd not found, using dummy regulator<br/>[ 10.589309] imx664 0-0010: read register 0x3071 : 0x00<br/>[ 10.589684] imx664 0-0010: read register 0x3070 : 0x00<br/>[ 10.713704] imx664 0-0010: IMX664 power off<br/>[ 11.064707] imx664 0-0010: SONY IMX664 camera driver probed</pre><p> </p><p>The registers 0x3071 and 0x3070 are defined in the driver as IMX664_REG_GAIN_HI and IMX664_REG_GAIN_LO, respectively, and I am seeing a new device with <strong>v4l2-ctl --list-devices</strong>, /dev/media2. I would have expected it to be a /dev/videoX device, but other than this, does the behavior seem correct?</p></div>",
+                    "author": "rdmikkelsen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97514\">@rdmikkelsen</user-mention> </p><p>Good work on bring up the probe. The behavior you observe is mostly correct now.</p><p>I have limited experience on image sensor driver, it is hard for us to guide you more on this, specially on the register or mode you want to implement.</p><p> </p><p>However, now that you probed your sensor you should see it as a /dev/v4l-subdevX. What you need to do now is to tune the V4L framework to create your pipeline.</p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/STM32MP2_V4L2_camera_overview\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/STM32MP2_V4L2_camera_overview</a></p><p> </p><p>You camera sensor should not be a /dev/videoX as it the output of our DCMIPP pipeline: see the chapter on topology</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Pwxn_0-1777366409412.png\" style=\"width: 471px;\"><img alt=\"Pwxn_0-1777366409412.png\" height=\"438\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/281cafd5-d188-0406-a9f4-607f00a10eb2.png\" title=\"Pwxn_0-1777366409412.png\" width=\"471\"/></span></p><p> </p><p>Try to configure the DCMIPP pipeline with V4L, if you encounter some issue we will try to help you. </p><p>Also, I recommend comparing the other camera sensor driver in linux/driver/media/i2c. The imx335.c will give you some hint on using v4l on driver side.</p><p><br/>Regards</p><p> </p></div>",
+                    "author": "Pwxn",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Pwxn",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Pwxn",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Pwxn",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

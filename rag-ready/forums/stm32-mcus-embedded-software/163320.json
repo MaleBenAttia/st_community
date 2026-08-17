@@ -1,0 +1,45 @@
+{
+    "forum": [
+        {
+            "id": "163320",
+            "publicId": "163320",
+            "title": "FLASH_OB_DisableWRP bug",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/flash-ob-disablewrp-bug-163320",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bug-report",
+                "STM32F1 series",
+                "Flash",
+                "HAL"
+            ],
+            "published_at": "2026-03-01T21:55:53+00:00",
+            "views": 179,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "*> OB->WRP0 |= WRP0\\_Data;*\n\n*> OB->WRP1 |= WRP1\\_Data;*\n\n*> OB->WRP2 |= WRP2\\_Data;*\n\n*> OB->WRP3 |= WRP3\\_Data;*\n\nThese lines don't appear in the latest stm32f1xx\\_hal\\_flash\\_ex.c file:\n\n<https://github.com/STMicroelectronics/stm32f1xx-hal-driver/blob/fee494a92b5ad331f92ad21f76c66a5cb83773ee/Src/stm32f1xx_hal_flash_ex.c#L762>\n\nYou're probably on an older version which has since been fixed.\n\nIt looks like this was fixed 4 months ago:\n\n[[HAL][FLASH] Fix incorrect write protection in OB->WRPx due to OR (|)… · STMicroelectronics/stm32f1xx-hal-driver@c9c90c2](https://github.com/STMicroelectronics/stm32f1xx-hal-driver/commit/c9c90c2e69578405729cfc8f26cdcb9ff49b3522)\n\nIt'll get pushed to STM32CubeMX files whenever they make a new release.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "There is a bug in the above mentioned function in stm32f1xx\\_hal\\_flash\\_ex.c file. The function has a *uint32\\_t* type parameter *WriteProtectPage* which determines the flash page chunks to disable the write protection of. On my F103 MCU it means every bit corresponds to 4 pages (each page is 1 Kbyte, total of 128 Kbyte flash memory).\n\nThis line then combines the currently write protected pages with *WriteProtectPage* (0 means protected, 1 means unprotected):\n\n```\n\nWriteProtectPage = (FLASH_OB_GetWRP() | WriteProtectPage);\n\n```\n\nThe function then slices *WriteProtectPage*up into 4 pieces (4 WRP option bytes):\n\n```\n\nWRP0_Data = (uint16_t)(WriteProtectPage & OB_WRP_PAGES0TO31MASK);\n\nWRP1_Data = (uint16_t)((WriteProtectPage & OB_WRP_PAGES32TO63MASK) >> 8U);\n\nWRP2_Data = (uint16_t)((WriteProtectPage & OB_WRP_PAGES64TO95MASK) >> 16U);\n\nWRP3_Data = (uint16_t)((WriteProtectPage & OB_WRP_PAGES96TO127MASK) >> 24U);\n\n```\n\nIt then erases the option byte area (returns it to reset state ?):\n\n```\n\nstatus = HAL_FLASHEx_OBErase();\n\n```\n\nAnd here comes the bug. It writes the previously created variables into the real WRP option bytes, but since they have been returned to their reset state (0xFF e.g. write protection disabled) their individual bits can never become 0s because of the |= operator:\n\n```\n\nOB->WRP0 |= WRP0_Data;\n\nOB->WRP1 |= WRP1_Data;\n\nOB->WRP2 |= WRP2_Data;\n\nOB->WRP3 |= WRP3_Data;\n\n```\n\nThe operators used should be &= as it's done in FLASH\\_OB\\_EnableWRP function.",
+            "images": [],
+            "author": "Baksi675",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; OB-&gt;WRP0 |= WRP0_Data; </em><br/><em>&gt; OB-&gt;WRP1 |= WRP1_Data; </em><br/><em>&gt; OB-&gt;WRP2 |= WRP2_Data; </em><br/><em>&gt; OB-&gt;WRP3 |= WRP3_Data;</em></p><p>These lines don't appear in the latest stm32f1xx_hal_flash_ex.c file:</p><p><a href=\"https://github.com/STMicroelectronics/stm32f1xx-hal-driver/blob/fee494a92b5ad331f92ad21f76c66a5cb83773ee/Src/stm32f1xx_hal_flash_ex.c#L762\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32f1xx-hal-driver/blob/fee494a92b5ad331f92ad21f76c66a5cb83773ee/Src/stm32f1xx_hal_flash_ex.c#L762</a></p><p>You're probably on an older version which has since been fixed.</p><p> </p><p>It looks like this was fixed 4 months ago:</p><p><a href=\"https://github.com/STMicroelectronics/stm32f1xx-hal-driver/commit/c9c90c2e69578405729cfc8f26cdcb9ff49b3522\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">[HAL][FLASH] Fix incorrect write protection in OB-&gt;WRPx due to OR (|)… · STMicroelectronics/stm32f1xx-hal-driver@c9c90c2</a></p><p>It'll get pushed to STM32CubeMX files whenever they make a new release.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You're right, I was in fact using an older version. Thanks.</p></div>",
+                    "author": "Baksi675",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

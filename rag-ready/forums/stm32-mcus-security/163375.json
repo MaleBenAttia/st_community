@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "163375",
+            "publicId": "163375",
+            "title": "SBSFU on STM32H753-Eval board unable to transfer application firmware",
+            "url": "https://community.st.com/stm32-mcus-security-36/sbsfu-on-stm32h753-eval-board-unable-to-transfer-application-firmware-163375",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "Cryptography",
+                "STM32 Security",
+                "SBSFU"
+            ],
+            "published_at": "2026-03-03T09:43:40+00:00",
+            "views": 236,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @Vinay\\_Shirol\n\nSorry for the late response.\n\nI found the root cause of the issue, and it was **not related to the YMODEM timeout**.\n\nIn my case, the 2-Images\\_SBSFU project had originally been based on a setup running on **NUCLEO-H753**, and I ported it to the **STM32H753I-EVAL2** board. The issue came from a **BSP incompatibility**, especially in the **user button handling**.\n\nI made the following changes for the project to work:\n\n* enabled:\n\n```\n\n#define SECBOOT_DISABLE_SECURITY_IPS​\n\n```\n\n* updated the **clock configuration**\n\n* changed the **UART** from **USART3** to **USART1**, including the UART pins connected to the **STLINK**\n\n* removed the original **NUCLEO BSP**\n\n* implemented my own **LED** and **button** functions for the target board\n\nThe issue originates in the SBSFU FSM\n\n```\n\n// SBSFU Project, SBSFU/APP/SFU_boot.c\n\nstatic void SFU_BOOT_SM_CheckNewFwToDownload(void)\n\n{\n\nSFU_ErrorStatus e_ret_status = SFU_ERROR;\n\n// ...\n\nif (initialDeviceStatusCheck == 1U)\n\n{\n\nTRACE(\"\\r\\n= [SBOOT] STATE: CHECK NEW FIRMWARE TO DOWNLOAD\");\n\nif (0U != BUTTON_PUSHED() // <-- This is the issue\n\n{\n\n/* Download requested */\n\ne_ret_status = SFU_SUCCESS;\n\n}\n\nelse\n\n{\n\ne_ret_status = SFU_ERROR;\n\n}\n\n}\n\nelse\n\n{\n\ne_ret_status = SFU_SUCCESS;\n\n}\n\nSFU_SET_SM_IF_CURR_STATE(e_ret_status, SFU_STATE_DOWNLOAD_NEW_USER_FW, SFU_STATE_VERIFY_USER_FW_STATUS);\n\n}\n\n```\n\nThe issue was that\n\n```\n\nBUTTON_PUSHED()\n\n```\n\nwas relying on the original BSP button API from the NUCLEO board.\n\nSince this BSP does not match the **STM32H753I-EVAL2** hardware, the button state was interpreted incorrectly during boot.\n\nAs a result, SBSFU always considered the button as pressed and entered:\n\n```\n\nSFU_STATE_DOWNLOAD_NEW_USER_FW\n\n```\n\ninstead of continuing the normal boot flow and jumping to the installed user application.\n\nTo solve the problem, I removed the old BSP dependency:\n\n```\n\n#include \"stm32h7xx_nucleo_144.h\"\n\n```\n\nand created my own board-specific implementation for:\n\n* LED initialization and control\n\n* button initialization\n\n* button state reading\n\ni have added the board-specific implementation under 2\\_Images\\_SBSFU\\SBSFU\\Target\\sfu\\_low\\_level.c and  2\\_Images\\_SBSFU\\SBSFU\\Target\\sfu\\_low\\_level.h .\n\nIn my case, I used the **Wakeup button** as the user button (PA0) .\n\n![Onizuka09_0-1777038108766.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a774861-6023-53a7-cbe2-ad79e8041336.png \"Onizuka09_0-1777038108766.png\")\n\nYou can find the full project attached below.",
+            "best_answer_author": "Moktar SELLAMI",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello.\n\nI'm having trouble transfer the UserApp to SBSFU. Here's the description of the issue.\n\nI am working on SBSFU on STM32H753-Eval, So i altered the given sample for my UART to map to ST-LINK VCP. I am able to see logs post this changes. Later I Dissabled all security stuffs with below macro and fully erase the board (by setting RDP level 1->0 ).\n\nI'm using the 2-Image example code, All security feature were disabled by\n\n```\n\n#define SECBOOT_DISABLE_SECURITY_IPS\n\n```\n\nin app\\_sfu.h. I loaded SBSFU.elf onto the board and transferred the UserApp.sfb via YMODEM. However the **program went into a infinite reset loop. It is rebooting every time i send UserApp.sfb.**\n\nI tried Increasing the Download Timeout from 3000 to 10000 from this macro, same issue\n\n```\n\n/* Teraterm YMODEM */\n\n/* #define SFU_COM_YMODEM_DOWNLOAD_TIMEOUT ((uint32_t)3000U) */\n\n#define SFU_COM_YMODEM_DOWNLOAD_TIMEOUT ((uint32_t)10000U) /*\n\n```\n\nI![File_Transfer.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/be227cfb-944c-52b9-ea1a-1e076a41e035.png \"File_Transfer.png\")![LOOP.Ping.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40314592-87e0-0151-a88e-18598f03fcb0.png \"LOOP.Ping.png\")\n\nIs there any specific step i need to follow ?... kindly guide me here.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40314592-87e0-0151-a88e-18598f03fcb0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/be227cfb-944c-52b9-ea1a-1e076a41e035.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a774861-6023-53a7-cbe2-ad79e8041336.png"
+            ],
+            "author": "Vinay_Shirol",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"103898\">@Vinay_Shirol</user-mention>  </p><p>Sorry for the late response. </p><p>I found the root cause of the issue, and it was<strong> not related to the YMODEM timeout</strong>.</p><p><span>In my case, the 2-Images_SBSFU project had originally been based on a setup running on </span><strong>NUCLEO-H753</strong><span>, and I ported it to the </span><strong>STM32H753I-EVAL2</strong><span> board. The issue came from a </span><strong>BSP incompatibility</strong><span>, especially in the </span><strong>user button handling</strong><span>.</span></p><p>I made the following changes for the project to work:</p><ul><li>enabled:</li></ul><pre class=\"lia-code-sample language-c\"><code>#define SECBOOT_DISABLE_SECURITY_IPS​</code></pre><ul><li>updated the<span> </span><strong>clock configuration</strong></li><li>changed the<span> </span><strong>UART</strong><span> </span>from<span> </span><strong>USART3</strong><span> </span>to<span> </span><strong>USART1</strong>, including the UART pins connected to the <strong>STLINK</strong></li><li>removed the original<span> </span><strong>NUCLEO BSP</strong></li><li>implemented my own<span> </span><strong>LED</strong><span> </span>and<span> </span><strong>button</strong><span> </span>functions for the target board</li></ul><p>The issue originates in the SBSFU FSM </p><pre class=\"lia-code-sample language-c\"><code>// SBSFU Project, SBSFU/APP/SFU_boot.c\nstatic void SFU_BOOT_SM_CheckNewFwToDownload(void)\n{\n SFU_ErrorStatus e_ret_status = SFU_ERROR;\n // ... \n if (initialDeviceStatusCheck == 1U)\n {\n TRACE(\"\\r\\n= [SBOOT] STATE: CHECK NEW FIRMWARE TO DOWNLOAD\");\n if (0U != BUTTON_PUSHED() // &lt;-- This is the issue\n {\n /* Download requested */\n e_ret_status = SFU_SUCCESS;\n }\n else\n {\n e_ret_status = SFU_ERROR;\n }\n }\n else\n {\n e_ret_status = SFU_SUCCESS;\n }\n SFU_SET_SM_IF_CURR_STATE(e_ret_status, SFU_STATE_DOWNLOAD_NEW_USER_FW, SFU_STATE_VERIFY_USER_FW_STATUS);\n}</code></pre><p><span>The issue was that  </span></p><pre class=\"lia-code-sample language-c\"><code>BUTTON_PUSHED()</code></pre><p>was relying on<span> the original BSP button API from the NUCLEO board. </span></p><p>Since this BSP does not match the<span> </span><strong>STM32H753I-EVAL2</strong><span> </span>hardware, the button state was interpreted incorrectly during boot.</p><p>As a result, SBSFU always considered the button as pressed and entered: </p><pre class=\"lia-code-sample language-c\"><code>SFU_STATE_DOWNLOAD_NEW_USER_FW</code></pre><p>instead of continuing the normal boot flow and jumping to the installed user application.</p><p><br/>To solve the problem, I removed the old BSP dependency:</p><pre class=\"lia-code-sample language-c\"><code>#include \"stm32h7xx_nucleo_144.h\"</code></pre><p>and created my own board-specific implementation for:</p><ul><li>LED initialization and control</li><li>button initialization</li><li>button state reading</li></ul><p>i have added the board-specific implementation under 2_Images_SBSFU\\SBSFU\\Target\\sfu_low_level.c and  2_Images_SBSFU\\SBSFU\\Target\\sfu_low_level.h . <br/><br/><br/>In my case, I used the<span> </span><strong>Wakeup button</strong><span> </span>as the user button (PA0) .</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"Onizuka09_0-1777038108766.png\" style=\"width: 486px;\"><img alt=\"Onizuka09_0-1777038108766.png\" height=\"235\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a774861-6023-53a7-cbe2-ad79e8041336.png\" title=\"Onizuka09_0-1777038108766.png\" width=\"486\"/></span></p><p> </p><p>You can find the full project attached below. <br/><br/></p></div>",
+                    "author": "Moktar SELLAMI",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104263\">@Onizuka09</user-mention> ,</p><p>                               Thanks for reply. I had already figured it out that this issue is related to Button handling only. And i did the same changes and it is working. </p></div>",
+                    "author": "Vinay_Shirol",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>Hello <user-mention data-id=\"103898\">@Vinay_Shirol</user-mention> <br/>I’m glad you figured it out.<br/>Could you please mark the question as solved?<br/>Thank you.</p></div>",
+                    "author": "Moktar SELLAMI",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Moktar SELLAMI",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Moktar SELLAMI",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

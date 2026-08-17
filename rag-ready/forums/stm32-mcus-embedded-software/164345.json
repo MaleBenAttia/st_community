@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164345",
+            "publicId": "164345",
+            "title": "STM32F767ZI Ethernet not working without MX_USB_OTG_FS_PCD_Init()",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f767zi-ethernet-not-working-without-mx-usb-otg-fs-pcd-init-164345",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series",
+                "Ethernet",
+                "USB",
+                "LwIP"
+            ],
+            "published_at": "2026-03-31T10:55:33+00:00",
+            "views": 332,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @BTurc.2,\n\nAfter analysis, it appears the issue is related to LwIP misconfiguration, particularly the LwIP RAM heap pointer address. I made several adjustments:\n\n* Changed LWIP\\_RAM\\_HEAP\\_POINTER in lwipopts.h to 0x20074000.\n\n* Increased memory size to 16 KB to support your application; you can modify it if needed:\n\n```\n\n#define MEM_SIZE 16*1024\n\n```\n\nRegarding the function being commented out or uncommented, the issue might be related to memory alignment or a similar cause. I have been pinging the app nonstop, and everything seems to work well.\n\nAdditionally, please refer to this article for further details and as a reference for future work:\n\n* [Implementing a LwIP and FreeRTOS™ v1 UDP echo server on the STM32F7 series](https://community.st.com/t5/stm32-mcus/implementing-a-lwip-and-freertos-v1-udp-echo-server-on-the/ta-p/780261)\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I am using an STM32 Nucleo-F767ZI with RMII Ethernet + LAN8742A PHY and an example project based on lwIP/TCP-IP.\n\nI noticed a strange behavior: if I comment out MX\\_USB\\_OTG\\_FS\\_PCD\\_Init(), Ethernet communication stops working. If I keep it enabled, Ethernet works correctly.\n\nThe peripheral initialization order is:\n\n```\n\nMX_GPIO_Init();\n\nMX_USART3_UART_Init();\n\nMX_LWIP_Init();\n\nMX_TIM3_Init();\n\nMX_SPI4_Init();\n\nMX_CAN1_Init();\n\nMX_UART5_Init();\n\nMX_USB_OTG_FS_PCD_Init();\n\n```\n\nAdditional observations:\n\n* SystemClock\\_Config() does not change\n\n* Replacing MX\\_USB\\_OTG\\_FS\\_PCD\\_Init() with HAL\\_Delay() does not fix it\n\n* So it does not look like a timing issue\n\n* It seems that HAL\\_PCD\\_Init() / HAL\\_PCD\\_MspInit() for USB is enabling or configuring something indirectly that Ethernet depends on\n\nMy question is:\n\nWhat could USB FS initialization be configuring that would make Ethernet work, even though they should be unrelated?\n\nI am thinking about possibilities such as:\n\n* GPIO clocks being enabled indirectly\n\n* MSP/NVIC configuration side effects\n\n* Some indirect dependency affecting HAL\\_ETH\\_MspInit() or lwIP\n\nHas anyone seen something similar with STM32F767 + LAN8742A + lwIP?",
+            "images": [],
+            "author": "BTurc.2",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"57123\">@BTurc.2</user-mention>, </p>\n<p>This is unusual. I cannot say for sure without analyzing the application in depth. Could you please attach your project so I can review it? If the project is private, feel free to send me a private message, and I can provide a secure line for you to upload the project.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93235\">@STackPointer64</user-mention>,</p>\n<p>My project is derived from the following repository:<br/><a class=\"\" href=\"https://github.com/ahmetkcavusoglu/nucleo-f767zi_lwip\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/ahmetkcavusoglu/nucleo-f767zi_lwip</a></p>\n<p>With the original repository, TCP/IP communication with the Nucleo works correctly even when MX_USB_OTG_FS_PCD_Init(); is fully commented out.</p>\n<p>Since my project is private, I will send it to you by private message.</p>\n<p>In my project, I observed the following behavior inside MX_USB_OTG_FS_PCD_Init():<br/>I can comment out all the initialization code and TCP/IP communication still works, as long as this line remains present:</p>\n<p>hpcd_USB_OTG_FS.Instance = USB_OTG_FS;</p>\n<p>If that line is also removed, the board is no longer reachable over TCP/IP.</p>\n<p>So at the moment it seems that the issue is not related to full USB OTG FS initialization itself, but rather to some side effect associated with assigning the USB instance to the PCD_HandleTypeDef.</p></div>",
+                    "author": "BTurc.2",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"57123\">@BTurc.2</user-mention>,</p>\n<p>After analysis, it appears the issue is related to LwIP misconfiguration, particularly the LwIP RAM heap pointer address. I made several adjustments:</p>\n<ul>\n<li>Changed LWIP_RAM_HEAP_POINTER in lwipopts.h to 0x20074000.</li>\n<li>Increased memory size to 16 KB to support your application; you can modify it if needed:\n<div class=\"markdown-block\">\n<div class=\"markdown-toolbar-wrapper\" data-v-app=\"\" id=\"toolbar_0_6815095581\">\n<div class=\"markdown-toolbar\" data-v-c2f29b64=\"\">\n<div data-v-c2f29b64=\"\"> </div>\n</div>\n</div>\n<div class=\"markdown-code-container\">\n<pre><code class=\"hljs language-c\"><span class=\"hljs-meta\">#<span class=\"hljs-keyword\">define</span> MEM_SIZE 16*1024</span>\n</code></pre>\n</div>\n</div>\n</li>\n</ul>\n<p>Regarding the function being commented out or uncommented, the issue might be related to memory alignment or a similar cause. I have been pinging the app nonstop, and everything seems to work well.</p>\n<p>Additionally, please refer to this article for further details and as a reference for future work:</p>\n<ul>\n<li><a href=\"https://community.st.com/t5/stm32-mcus/implementing-a-lwip-and-freertos-v1-udp-echo-server-on-the/ta-p/780261\" target=\"_blank\">Implementing a LwIP and FreeRTOS™ v1 UDP echo server on the STM32F7 series</a> </li>\n</ul>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

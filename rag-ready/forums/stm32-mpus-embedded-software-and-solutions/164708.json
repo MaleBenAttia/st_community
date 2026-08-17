@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164708",
+            "publicId": "164708",
+            "title": "Power consumption of DDRPHY in Self Refresh on a MPU157",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/power-consumption-of-ddrphy-in-self-refresh-on-a-mpu157-164708",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "STM32MP15 lines",
+                "TF-A",
+                "OP-TEE"
+            ],
+            "published_at": "2026-04-13T16:03:21+00:00",
+            "views": 169,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @g\\_marques ,\n\nThank your for highlighting this point. You are right there is a mistake in OP-TEE code that replace what was done by SPMIN.\n\nDev teams' correction is ongoing.\n\nThanks again.\n\nErwan.",
+            "best_answer_author": "Erwan SZYMANSKI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI'm a migrating from openSTLinux ecosystem 5 to 6 on an existing product of ours (with a stm32mp157) and we are really focused on power consumption efficiency.\n\nThe main difference between our first version and the second is that we first had TF-A + SPMIN and now we are using the OP-TEE OS.\n\nPrevious :\n\n* TF-A 2.4 +SPMIN\n\n* U-Boot 2020.10\n\n* Linux 5.10\n\nBump to :\n\n* TF-A 2.10\n\n* OP-TEE 4.0.0\n\n* U-Boot 2023.10\n\n* Linux 6.6\n\nWe achieved to reach almost the same application state as we were with our version 5 except about the power consumption.\n\nWe set the MPU on standby with suspend to RAM mode and we measured the consumption of the overall board and we found that our system used around 10mW more with version 6. After a lot of research, we found out the culprit which is the OP-TEE DDR driver that doesn't latch the CKOE and never disables the DDRPHYCEN bit.\n\nIndeed, in ST version of [arm-trusted-firmware 2.4-stm32mp](https://github.com/STMicroelectronics/arm-trusted-firmware/tree/v2.4-stm32mp), the [CKOE](https://github.com/STMicroelectronics/arm-trusted-firmware/blob/674dbfb86e594e1a4dee4fbe6f1a4d5cc8837f7c/drivers/st/ddr/stm32mp1_ddr_helpers.c#L159-L162) pin is disabled when entering the DDR Self Refresh mode and enabled again when leaving that mode.\n\nAlso, this time in version 2.10 of the TF-A, the [DDRPHYCEN](https://github.com/STMicroelectronics/arm-trusted-firmware/blob/41575b25c972b6f8958c101458d06ed23e38442b/drivers/st/ddr/stm32mp1_ddr_helpers.c#L114) is disabled when entering in Self Refresh mode and enabled again at leaving that mode.\n\nBut it is not done in OP-TEE OS ([here](https://github.com/STMicroelectronics/optee_os/blob/afdfcb01c02630bd0986342c3b61db60253d8ac9/core/arch/arm/plat-stm32mp1/drivers/stm32mp1_ddrc.c#L233-L246) and [here](https://github.com/STMicroelectronics/optee_os/blob/afdfcb01c02630bd0986342c3b61db60253d8ac9/core/arch/arm/plat-stm32mp1/drivers/stm32mp1_ddrc.c#L346-L349)) which is now in charge of making the DDR enter in Self Refresh. It is enabled at start but never disabled when entering the Self Refresh.\n\nSo to test my theory, I added back those lines in the OP-TEE OS driver, run a test and my board booted, entered in suspend and woke up without any problem and the consumption was back to what I had in version 5.\n\nI didn't find any information about why those lines are missing. Is that wanted by the developers or is it an oversight ? If this is wanted by the developers, is there a way to workaround and have the TF-A take care  of that part again ?\n\nDon't hesitate to ask for more information if needed or if I wasn't clear.\n\nThanks in advance for your answer",
+            "images": [],
+            "author": "g_marques",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"100870\">@g_marques</user-mention> ,<br/>Thank your for highlighting this point. You are right there is a mistake in OP-TEE code that replace what was done by SPMIN.</p>\n<p>Dev teams' correction is ongoing.</p>\n<p>Thanks again.<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

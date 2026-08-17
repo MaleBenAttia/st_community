@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "165612",
+            "publicId": "165612",
+            "title": "ST-LINK GDB Server issue with STM32C5",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/st-link-gdb-server-issue-with-stm32c5-165612",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-05-12T13:11:20+00:00",
+            "views": 286,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nThis device has the CPU core on access port 1 so you should add \"-m 1\" in your args.\n\nRgds,\n\nLaurent",
+            "best_answer_author": "LaurentL",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI'm using a NUCLEO-C5A3ZG. Not sure it's the right place to write but my goal is to setup the debugger using the STM32CubeCLT\\_1.21.0 Package under a VSCode environment (already using cortex-debug extension for other projects).\n\nI am able to reach the target using the embedded stlink for example with a reading of the flash :\n\n```\n\n/c/Program Files (x86)/ST/STM32CubeCLT_1.21.0/STM32CubeProgrammer\n\n$ ./bin/STM32_Programmer_CLI.exe -c port=SWD freq=1000 mode=UR -r32 0x08000000 10\n\n-------------------------------------------------------------------\n\nSTM32CubeProgrammer v2.22.0\n\n-------------------------------------------------------------------\n\nST-LINK SN : 005100353235511237333439\n\nST-LINK FW : V3J17M10\n\nBoard : NUCLEO-C5A3ZG\n\nVoltage : 3.29V\n\nSWD freq : 1000 KHz\n\nConnect mode: Under Reset\n\nReset mode : Hardware reset\n\nDevice ID : 0x45A\n\nRevision ID : Rev Z\n\nDevice name : STM32C59x/5A3\n\nNVM size : 1 MBytes\n\nDevice type : MCU\n\nDevice CPU : Cortex-M33\n\nBL Version : 0x100\n\nDebug in Low Power mode enabled\n\nReading 32-bit memory content\n\nSize : 12 Bytes\n\nAddress: : 0x08000000\n\n0x08000000 : 20000480 0800137D 080012B5\n\n```\n\nHowever when i try to use the GDB Server it fails with :\n\n```\n\n/c/Program Files (x86)/ST/STM32CubeCLT_1.21.0/STLink-gdb-server\n\n$ ./bin/ST-LINK_gdbserver.exe --swd --halt -l 31\n\nSTMicroelectronics ST-LINK GDB server. Version 7.13.0\n\nCopyright (c) 2026, STMicroelectronics. All rights reserved.\n\nStarting server with the following options:\n\nPersistent Mode : Disabled\n\nLogging Level : 31\n\nListen Port Number : 61234\n\nStatus Refresh Delay : 15s\n\nVerbose Mode : Disabled\n\nSWD Debug : Enabled\n\nCOM frequency = 24000 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nCOM frequency = 8000 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nCOM frequency = 3300 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nCOM frequency = 1000 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nCOM frequency = 200 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nCOM frequency = 50 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nCOM frequency = 5 kHz\n\nTarget connection mode: Default\n\nTarget connection failed. Try connecting under reset\n\nTarget connection failed\n\nTarget unknown error 32\n\nError in initializing ST-LINK device.\n\nReason: Unknown. Please check power and cabling to target.\n\n```\n\nI tried in a linux environment, same behavior.\n\nI checked the correct behavior on an other nucleo board NUCLEO-H7A3ZI & it is ok.\n\nThank's for your help.",
+            "images": [],
+            "author": "AdrienST",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>This device has the CPU core on access port 1 so you should add \"-m 1\" in your args.</p><p>Rgds,</p><p>Laurent</p></div>",
+                    "author": "LaurentL",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you very much !</p><p>Just for my understanding, as it's not a multicore device, what's the explanation for this change ?</p></div>",
+                    "author": "AdrienST",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have a look in the Reference Manual on \"Debug support (DBG)\" chapter and then Access Ports :</p><p>There are two access ports (AP) attached to the DP.<br/>• System debug access port (AP0): Enables access to the DBGMCU and the system ROM table via an APB bus.<br/>• Cortex-M33 debug access port (AP1): Enables access to the debug and trace features integrated in the Cortex-M33 processor core via its internal AHB bus.</p><p> </p></div>",
+                    "author": "LaurentL",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "LaurentL",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "LaurentL",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

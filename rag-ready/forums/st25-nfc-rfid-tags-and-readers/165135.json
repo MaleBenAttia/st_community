@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "165135",
+            "publicId": "165135",
+            "title": "Working with X-NUCLEO-NFC10A1 with esp32",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/working-with-x-nucleo-nfc10a1-with-esp32-165135",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Tags - ST25TB series"
+            ],
+            "published_at": "2026-04-26T18:37:58+00:00",
+            "views": 301,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nmake sure VDD and VDD\\_IO are both provided to the X-NUCLEO-NFC10A1. Make sure the various GND pins are properly connected.\n\nCould you also send a picture of your setup?\n\nStrange to see MISO always at 1. Could you check MISO/MOSI have not been swapped?\n\nRgds\n\nBT",
+            "best_answer_author": "Brian TIDAL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am currently working with the X-NUCLEO-NFC10A1 board and interfacing it with an ESP32 DevKit V1. While attempting to establish communication between the two, I have tried all SPI modes as well as different reset logic configurations, but I am still unable to get them to communicate properly.\n\nI have included my Arduino test code below for reference, which I am using to verify the communication:\n\nPlease check in attachment section there is code file",
+            "images": [],
+            "author": "Abhishek_1305",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <span> Abhishek_1305,</span></p>\n<p>Please observe:</p>\n<p>Attach a logic analyzer to CS,MISO,MOSI,SCLK,RESET. See that SPI is driven in the right mode according to DS.</p>\n<p>If you see the right waveforms and still doesn't work: Double check the supply and the connections. If still not working: Please share the logic analyzer traces + picture of the setup and any other helpful information.</p>\n<p>BR, Ulysses</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>in your readReg code </p>\n<pre class=\"lia-code-sample language-c\"><code>uint8_t readReg(uint8_t reg) {\n uint8_t val;\n SPI.beginTransaction(spiSettings);\n selectChip();\n SPI.transfer(0x40 | reg);\n val = SPI.transfer(0x00);\n deselectChip();\n SPI.endTransaction();\n return val;\n}\n</code></pre>\n<p> <font face=\"courier new,courier\">SPI.transfer(0x40 | reg);</font> is likely not correct. See Table 3 in the ST25R200 Data Sheet.</p>\n<p><span>A C driver library is available for the ST25R200. It is portable on different MCU (STM32 or other MCUs). It prevents the need to reimplement the driver from scratch. See the <a href=\"https://www.st.com/en/embedded-software/x-cube-nfc10.html\" rel=\"noopener noreferrer\" target=\"_self\">X-CUBE-NFC10</a> package or the <a href=\"https://www.st.com/en/embedded-software/stsw-st25r-lib.html\" rel=\"noopener noreferrer\" target=\"_self\">ST25 embedded NFC library</a>.</span></p>\n<p><span>Rgds</span></p>\n<p><span>BT</span></p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>I am currently working on interfacing the ESP32 with the X-NUCLEO-NFC10A1 board over SPI, and I would like to share my setup along with the steps I’ve already taken.</span></p><p class=\"\"><span>Here is my current connection configuration:</span></p><ul><li><span>ESP32 GPIO23 → MOSI (X-NUCLEO-NFC10A1)</span></li><li><span>ESP32 GPIO19 → MISO (X-NUCLEO-NFC10A1)</span></li><li><span>ESP32 GPIO18 → SCK (X-NUCLEO-NFC10A1)</span></li><li><span>ESP32 GPIO5 → CS (X-NUCLEO-NFC10A1)</span></li></ul><p class=\"\"><span>I have also attached logic analyzer captures along with my latest code for your reference.<br/>Attached image bytes when I am sending 0x3F register with MSB Bit high and it becomes 0xBF and it gives response 0xFF.</span></p><p class=\"\"><span>Additionally, I have experimented with all SPI modes by configuring different combinations of CPOL and CPHA, but I am still facing issues with proper communication.<br/></span><span>Currently I am using this SPI mode <br/></span><span class=\"\"><strong>Mode 1 (CPOL=0, CPHA=1):</strong><span> </span>Clock idles low, data sampled on falling edge.</span></p><p><span>Could you please review my setup and provide guidance on what might be going wrong or any additional configurations I should check?<br/></span></p></div>",
+                    "author": "Abhishek_1305",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>make sure VDD and VDD_IO are both provided to the X-NUCLEO-NFC10A1. Make sure the various GND pins are properly connected. </p>\n<p>Could you also send a picture of your setup?</p>\n<p>Strange to see MISO always at 1. Could you check MISO/MOSI have not been swapped?</p>\n<p>Rgds</p>\n<p>BT</p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

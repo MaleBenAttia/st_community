@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "166651",
+            "publicId": "166676",
+            "title": "STM32H7B3I-DK  C03– Clarification Regarding R114 Voltage Drop on 5V_VIN Input",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32h7b3i-dk-c03-clarification-regarding-r114-voltage-drop-on-5v-vin-input-166676",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32H7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-07-04T19:31:18+00:00",
+            "views": 88,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n*>> Is this voltage drop across **R114** normal when powering the board through **5V\\_VIN**?*\n\nIf you’re trying to  power the boards with that pin, the voltage accross R114 drop is normal accross the 1K.\n\nOriginally this pin is not intented to power the board.\n\n*>> What is the function of **R114** in this design? Is it intended for current limiting, protection, or another purpose?*\n\nTesting purpose on ST board, pin 1 on this arduino is defined as NC.\n\nOur latest designs include that note:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c15c0833-747c-494e-a557-6f91aebcddd0.png)\n\n*>> Would it be safe to replace **R114 (1 kΩ)** with a **0 Ω resistor** to eliminate this voltage drop, or could this affect the proper operation or protection of the board?*\n\nYou could try, but maybe there would be a problem with the U3 LDO, I have never tested..\n\nI would prefer injecting 5V on CN19/Pin 5 while removing JP1.",
+            "best_answer_author": "Mike_ST",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear STMicroelectronics Support,\n\nIn our application, the STM32H7B3I-DK board is used in a \"shield\" configuration: it is mounted on a carrier/daughter board(**PHOTO 2)**(via the Arduino connectors CN19/CN20/CN10/CN11) which supplies its power. The daughter board therefore injects a 5V voltage directly onto CN19, pin 1 (5V\\_VIN), without going through a USB supply or through the standard VIN input of the kit.\n\n### Power configuration\n\n* 5 V is applied to **CN19, pin 1 (5V\\_VIN)**.\n\n* **JP1** is configured in the **5V\\_VIN** position.\n\n* **VIN (CN19, pin 8)** is left unconnected.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ad76a2e-64ba-40d9-9d64-f0f30d420880.png)\n\n### Measurements\n\n* Voltage before **R114 (1 kΩ)**: **5.0 V**\n\n* Voltage after **R114**: **1.6 V**\n\nThis corresponds to a voltage drop of approximately **3.4 V** across **R114**, which indicates a current of about **3.4 mA** flowing through the resistor.\n\nI would like to better understand whether this behavior is expected and the purpose of **R114** in this circuit.\n\nCould you please clarify the following points?\n\n1. Is this voltage drop across **R114** normal when powering the board through **5V\\_VIN**?\n\n2. What is the function of **R114** in this design? Is it intended for current limiting, protection, or another purpose?\n\n3. Would it be safe to replace **R114 (1 kΩ)** with a **0 Ω resistor** to eliminate this voltage drop, or could this affect the proper operation or protection of the board?\n\nThank you in advance for your assistance.\n\nKind regards,",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36905ad3-c454-424a-b634-6594b15a2168.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dcc010c1-e92f-47e5-9434-77396bd9e900.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ad76a2e-64ba-40d9-9d64-f0f30d420880.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c15c0833-747c-494e-a557-6f91aebcddd0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89c03c34-f56a-4519-a7e7-12a205a58c02.png"
+            ],
+            "author": "ARIJ",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p><em>&gt;&gt; Is this voltage drop across <strong>R114</strong> normal when powering the board through <strong>5V_VIN</strong>?</em></p><p>If you’re trying to  power the boards with that pin, the voltage accross R114 drop is normal accross the 1K.</p><p>Originally this pin is not intented to power the board.</p><p><em>&gt;&gt; What is the function of <strong>R114</strong> in this design? Is it intended for current limiting, protection, or another purpose?</em></p><p>Testing purpose on ST board, pin 1 on this arduino is defined as NC.</p><p>Our latest designs include that note:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c15c0833-747c-494e-a557-6f91aebcddd0.png\"/></figure><p><em>&gt;&gt; Would it be safe to replace <strong>R114 (1 kΩ)</strong> with a <strong>0 Ω resistor</strong> to eliminate this voltage drop, or could this affect the proper operation or protection of the board?</em></p><p>You could try, but maybe there would be a problem with the U3 LDO, I have never tested..</p><p>I would prefer injecting 5V on CN19/Pin 5 while removing JP1.</p><p> </p></div>",
+                    "author": "Mike_ST",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your clarification.</p><p>I have one additional question.</p><p>Would it be possible to power the board directly with <strong>3.3 V</strong> through <strong>CN19 Pin 4 (3V3)</strong> instead of using the 5V pin 5? </p><p>Thank you for your support.</p><p>Best regards,</p></div>",
+                    "author": "ARIJ",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>The user manuel explicitly says that these are outputs:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36905ad3-c454-424a-b634-6594b15a2168.png\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dcc010c1-e92f-47e5-9434-77396bd9e900.png\"/></figure><p> </p><p>But, that doesn’t mean I wouldn’t try. For instance If I would inject 3.3V on pin 4, at least would remove SB33 beforehand.</p><p>Maybe there is more to do, I didn’t check further.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89c03c34-f56a-4519-a7e7-12a205a58c02.png\"/></figure><p> </p><p>Anyways, before doing anything, please check the documentation, to fully understand what is possible.</p><p>The user manual is here:</p><p><a href=\"https://www.st.com/resource/en/user_manual/um2569-discovery-kit-with-stm32h7b3li-mcu-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/user_manual/um2569-discovery-kit-with-stm32h7b3li-mcu-stmicroelectronics.pdf</a></p><p>And the schematic here:</p><p><a href=\"https://www.st.com/en/evaluation-tools/stm32h7b3i-dk.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/stm32h7b3i-dk.html#cad-resources</a></p></div>",
+                    "author": "Mike_ST",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mike_ST",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Mike_ST",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,113 @@
+{
+    "forum": [
+        {
+            "id": "164697",
+            "publicId": "164697",
+            "title": "livetune sysin",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/livetune-sysin-164697",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-04-13T12:57:15+00:00",
+            "views": 416,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nFrom the DK schematic, PDM\\_SAI1\\_SD2 is connected to the audio connector, thus its feasible on the DK.\n\nOn the Designer FW side, you will need to modify to introduce a 4ch sys mic inputs. You can get inspiration from the existing code; here are few guidelines:\n\n1. update UTIL\\_AUDIO\\_MAX\\_IN\\_CH\\_NB to 4\n\n2. Then create an audio config with 4mic to be able to switch to it with the ac audio command in the terminal. This is in the file called stm32\\_audio\\_persist\\_config\\_setup.c (see example below)\n\n3. You will probably need to modify stm32\\_audio\\_sai\\_pdm.c:\n\n1. complete the s\\_gpio\\_init/s\\_gpio\\_deinit with new IOs,\n\n2. also get inspiration from the code around UTIL\\_AUDIO\\_SAI\\_PDM\\_D2\\_USED but with a SlotActive that match your need. As explain, this code is a trick to work around one of the DK that has no connection on D1 , so 2 microphones only but on D2... here you'll have 2mics on D1 & 2mics on D2.\n\nstm32\\_audio\\_persist\\_config\\_setup.c proposed update:\n\n```\n\n{\n\n.pConfigName = \"stval_mic008\",\n\n.audioMs = 8U,\n\n.audioInFreq = 16000U,\n\n.audioInCh = 4U, // Modif here\n\n.audioInHwInterleave = 0U,\n\n.audioOutFreq = 16000U,\n\n.audioOutCh = 2U,\n\n.audioOutResolution = UTIL_AUDIO_RESOLUTION_16B,\n\n.audioInResolution = UTIL_AUDIO_RESOLUTION_16B,\n\n.audioInHwResolution = UTIL_AUDIO_RESOLUTION_8B,\n\n.audioInHwCh = 4UL, // Modif here\n\n.audioInDeviceSelect = AUDIO_IN_DEVICE_DIGITAL_MIC1,\n\n.audioInVolume = 100UL,\n\n.audioOutVolume = 100UL,\n\n.audioInDeviceOutFormat = 1UL,\n\n.audioInUsePdm2Pcm = 1U,\n\n.audioInUsePdm = 1U,\n\n.ac_sysInMicBuffType = ABUFF_FORMAT_FIXED16,\n\n.audioChainLowLatency = 0U,\n\n.usbResolution = UTIL_AUDIO_RESOLUTION_16B,\n\n.ac_sysUsbBuffType = ABUFF_FORMAT_FIXED16\n\n},\n\n```",
+            "best_answer_author": "JonathanC",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Looking to add a 4 mic pdm array setup to livetune environment. Had questions on how deep into the environment we need to go for the changes. Is it just a matter of changing the # of channels for the sysIn, # of slots and active slots on the pdm interface? or do we need to drive deep as address the audio buffer as well. At one point I thought I read the audio buffer was allocated dynamically. We are just looking for a little guidance before we start changing things as there might be a simple way to achieve our goal vs us guessing and creating issues.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2b604b4d-f5a1-15d9-c110-3d6f72baa6e8.png"
+            ],
+            "author": "mantwih",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, <br/><br/>From the DK schematic, PDM_SAI1_SD2 is connected to the audio connector, thus its feasible on the DK.<br/>On the Designer FW side, you will need to modify to introduce a 4ch sys mic inputs. You can get inspiration from the existing code; here are few guidelines:</p>\n<ol>\n<li>update UTIL_AUDIO_MAX_IN_CH_NB to 4</li>\n<li>Then create an audio config with 4mic to be able to switch to it with the ac audio command in the terminal. This is in the file called <span>stm32_audio_persist_config_setup.c (see example below)</span></li>\n<li><span>You will probably need to modify stm32_audio_sai_pdm.c:</span>\n<ol>\n<li><span>complete the s_gpio_init/s_gpio_deinit with new IOs, </span></li>\n<li><span>also get inspiration from the code around UTIL_AUDIO_SAI_PDM_D2_USED but with a SlotActive that match your need. As explain, this code is a trick to work around one of the DK that has no connection on D1 , so 2 microphones only but on D2... here you'll have 2mics on D1 &amp; 2mics on D2.</span></li>\n</ol>\n</li>\n</ol>\n<p>stm32_audio_persist_config_setup.c proposed update:</p>\n<pre class=\"lia-code-sample language-c\"><code>{\n.pConfigName = \"stval_mic008\",\n.audioMs = 8U,\n.audioInFreq = 16000U,\n.audioInCh = 4U, // Modif here\n.audioInHwInterleave = 0U,\n.audioOutFreq = 16000U,\n.audioOutCh = 2U,\n.audioOutResolution = UTIL_AUDIO_RESOLUTION_16B,\n\n.audioInResolution = UTIL_AUDIO_RESOLUTION_16B,\n.audioInHwResolution = UTIL_AUDIO_RESOLUTION_8B,\n.audioInHwCh = 4UL, // Modif here\n.audioInDeviceSelect = AUDIO_IN_DEVICE_DIGITAL_MIC1,\n.audioInVolume = 100UL,\n.audioOutVolume = 100UL,\n.audioInDeviceOutFormat = 1UL,\n.audioInUsePdm2Pcm = 1U,\n.audioInUsePdm = 1U,\n.ac_sysInMicBuffType = ABUFF_FORMAT_FIXED16,\n\n.audioChainLowLatency = 0U,\n\n.usbResolution = UTIL_AUDIO_RESOLUTION_16B,\n.ac_sysUsbBuffType = ABUFF_FORMAT_FIXED16\n},</code></pre>\n<p> </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks JonathanC appreciate the guidance. All made sense but right out of the gate we get a ram issue lol when changing <span>UTIL_AUDIO_MAX_IN_CH_NB to 4. 1372 bytes. Is it possible to take away from the user heap?</span></p></div>",
+                    "author": "mantwih",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>sure,</p><p>just reduce HEAP size and it should fit. <br/>The heap size is set at maximum to give max capabilities to the LiveTune designer. You can take a chunk from there!</p><p>  </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>do we need to change any of the audio chain modules? For example this sysin now has 4 channels do we need to somehow modify the pdm2pcm module to now work with 4 channels or is that done in the background on its own</p></div>",
+                    "author": "mantwih",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>or is the trick to use the deinterleave module first then use the previous mentioned modules like pdm2pcm</p></div>",
+                    "author": "mantwih",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div><p>Hello,</p><p>In your setup, microphones are connected to a hardware block that outputs PDM data (for example, SAI PDM). In this case, LiveTune Designer exposes two types of system inputs:</p><p><strong>SysIn‑Microphones</strong></p><ul><li>Provides PCM data.</li><li>The Utilities/Audio software component performs the PDM‑to‑PCM conversion.</li><li>UTIL_AUDIO_MAX_IN_CH_NB = 4 is propagated to the PDM2PCM conversion stage.</li></ul><p><strong>SysIn‑MicroPDM</strong></p><ul><li>Provides raw PDM data from the same microphone(s).</li><li>The Utilities/Audio software component forwards the data directly from the DMA, without conversion.</li></ul><p>With the <strong>SysIn‑MicroPDM</strong> input, you can apply the PDM‑to‑PCM conversion directly in the LiveTune dataflow, either by using the <em>pdm2pcm</em> algorithm (equivalent to the one used in the driver) or a CIC filter. This can also be used to introduce delay on the PDM streams if required.<br/>Additionally, <em>acousticBf</em> supports both PCM and PDM input streams; using PDM enables support for shorter microphone spacing.</p><p>When designing your dataflow in LiveTune, you are free to route the four system‑input channels as needed. For example, you can split them and send them to multiple router algorithms, create streams based on selected input channels, de‑interleave channels, and so on.</p><p><br/>Jonathan</p></div><p> </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So essential just changing the sysIn parameters and the rest should fall into place.</p><p>How do we overcome the 2048000 sampling frequency when using the pdm sysIn?<br/><br/>sampling frequency 2048000 is not in algo capabilities. This was also confirmed with the original supplied hex file for the designer. We attempted to use the resample but got the same error message.</p></div>",
+                    "author": "mantwih",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The PDM stream is 1-bit high frequency.<br/>You need to use pdm2pcm or cic filter to get a PCM data. <br/>Some routing blocks are able to work with PDM format like splitter, router, etc... <br/>But the algorithm called resample is working on PCM only, this is why it fails.<br/>If after the PDM sysIn you use CiC or PDM2PCM it will work; don't forget to configure the output wire to 16kHz and 128 elements if working at 8ms (see below). Then it will work!<br/><br/></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JonathanC_0-1776959955620.png\" style=\"width: 400px;\"><img alt=\"JonathanC_0-1776959955620.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2b604b4d-f5a1-15d9-c110-3d6f72baa6e8.png\" title=\"JonathanC_0-1776959955620.png\"/></span></p><p> </p><p>  </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>No trouble. Yes, I'd say the router is the best for that matter.<br/>Br<br/>Jonathan </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks appreciate the assistance. </p><p>Closing ticket, I open a new case if I have further questions.</p><p> </p></div>",
+                    "author": "mantwih",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

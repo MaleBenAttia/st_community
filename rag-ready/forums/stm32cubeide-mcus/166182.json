@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "166166",
+            "publicId": "166182",
+            "title": "STM32H723 GCC compiler Optimization problem",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/stm32h723-gcc-compiler-optimization-problem-166182",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-06-15T15:16:41+00:00",
+            "views": 111,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "This typically means that there is a flaw (or flaws) in your code - it’s relying on something which the C language does not guarantee.\n\nProbably the commonest is omitting/forgetting `volatile` where it's needed.\n\nRelying on timing of the C code is another.\n\nThe `-Og` level should give you good debuggability - see [here](https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#:~:text=Optimize%20while%20keeping%20in%20mind%20debugging%20experience.%20-Og%20should%20be%20the%20optimization%20level%20of%20choice%20for%20the%20standard%20edit-compile-debug%20cycle%2C%20offering%20a%20reasonable%20blend%20of%20optimization%2C%20fast%20compilation%20and%20debugging%20experience).\n\nYou could try that …\n\nYour could also try `printf`-style debugging to see where your code execution differs from what you intended\n\n<https://community.st.com/stm32-mcus-products-25/compiler-optimization-problems-112524?postid=485029#post485029>",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "STM32CubeIDE 2.1.1: My program works if I choose the GCC compiler “none” optimization and it doesn’w work if I select any other optimization; anyone may help me ?\n\nThank you",
+            "images": [],
+            "author": "carloV",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This typically means that there is a flaw (or flaws) in your code - it’s relying on something which the C language does not guarantee.</p><p> </p><p>Probably the commonest is omitting/forgetting <code>volatile </code>where it's needed.</p><p>Relying on timing of the C code is another.</p><p> </p><p>The <code>-Og</code> level should give you good debuggability - see <a href=\"https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#:~:text=Optimize%20while%20keeping%20in%20mind%20debugging%20experience.%20-Og%20should%20be%20the%20optimization%20level%20of%20choice%20for%20the%20standard%20edit-compile-debug%20cycle%2C%20offering%20a%20reasonable%20blend%20of%20optimization%2C%20fast%20compilation%20and%20debugging%20experience\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">here</a>.</p><p>You could try that …</p><p> </p><p>Your could also try <code>printf</code>-style debugging to see where your code execution differs from what you intended</p><p> </p><p><oembed url=\"https://community.st.com/stm32-mcus-products-25/compiler-optimization-problems-112524?postid=485029#post485029\"></oembed></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, I need the max speed...is there a fast way to identify where the problem comes ?</p><p> </p><p>CarloV</p></div>",
+                    "author": "carloV",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No.</p><p>You’re just going to have to debug it to see what’s going wrong.</p><p>You could start with a code review to check <code>volatile</code> usage, timing dependencies, etc.</p><p>As well as the software debugger, use a scope or logic analyser to see what happens with/without the optimisation. </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

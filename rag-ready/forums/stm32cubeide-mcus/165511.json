@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "165511",
+            "publicId": "165511",
+            "title": "typo in IRQHandler for CMake of STM32U0",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/typo-in-irqhandler-for-cmake-of-stm32u0-165511",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "Bug-report",
+                "STM32U0 series"
+            ],
+            "published_at": "2026-05-08T10:37:45+00:00",
+            "views": 387,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Indeed..\n\nSame thing as this one: [STM32C092GCU6: FDCAN interrupt handler name mismatch](https://community.st.com/t5/stm32cubemx-mcus/stm32c092gcu6-fdcan-interrupt-handler-name-mismatch/m-p/896802#M35923)\n\nCubeMx doesn't generate code for .s it just copies it from the HAL repository.\n\nSo the recommendation here is to use the latest version of the tool. In his case he needs to use CubeMx (which points to the latest version of the CubeHAL, supposedly fixing some issues) instead of CubeIDE as \"starting a project for STM32\" is no more supported.\n\n[STM32CubeIDE 2.0.0 workflow tutorial](https://community.st.com/t5/stm32-mcus/stm32cubeide-2-0-0-workflow-tutorial/ta-p/864831)\n\nNow after checking by generating a code with CubeMx 6.17.0 which by default points to STM32Cube FW\\_U0 V1.3.0, the copied .s file gives the following:\n\n```\n\n.weak\tDMA1_Channel1_IRQHandler\n\n.thumb_set DMA1_Channel1_IRQHandler,Default_Handler\n\n```\n\nSo I suppose the issue was fixed.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "With STM32CubeIDE 1.19.0, i generate a CMake project for STM32U073CCT6. The generated startup file has a DMA1\\_C**H**annel1\\_IRQHandler instead of DMA1\\_C**h**annel1\\_IRQHandler.",
+            "images": [],
+            "author": "nicolas",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"4211\">@nicolas</user-mention> wrote:<br/>\n<p><span>With STM32CubeIDE 1.19.0 </span></p>\n<hr/></blockquote>\n<p>That was with 1.19.0 of CubeIDE which doesn't support anymore Code generation and this function was deprecated <span>in the newer tools versions</span>. What about generating the code with the latest STM32CubeMx tool?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Is the startup file actually <em>generated</em>, or is it just copied from the Firmware Pack ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Indeed.. </p>\n<p>Same thing as this one: <a href=\"https://community.st.com/t5/stm32cubemx-mcus/stm32c092gcu6-fdcan-interrupt-handler-name-mismatch/m-p/896802#M35923\" target=\"_blank\"><span>STM32C092GCU6: FDCAN interrupt handler name mismatch</span></a></p>\n<p>CubeMx doesn't generate code for .s it just copies it from the HAL repository.</p>\n<p>So the recommendation here is to use the latest version of the tool. In his case he needs to use CubeMx (which points to the latest version of the CubeHAL, supposedly fixing some issues) instead of CubeIDE as \"starting a project for STM32\" is no more supported.</p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/stm32cubeide-2-0-0-workflow-tutorial/ta-p/864831\" target=\"_blank\"><span>STM32CubeIDE 2.0.0 workflow tutorial</span></a></p>\n<p><span>Now after checking by generating a code with CubeMx 6.17.0 which by default points to STM32Cube FW_U0 V1.3.0, the copied .s file gives the following:</span></p>\n<pre class=\"lia-code-sample language-c\"><code>\t.weak\tDMA1_Channel1_IRQHandler\n\t.thumb_set DMA1_Channel1_IRQHandler,Default_Handler</code></pre>\n<p>So I suppose the issue was fixed.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As stated previously start from CubeMx and generate a CMake project. Do you face the same issue?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As stated previously, startup file is correct in CubeMX but not in CubeIDE.</p></div>",
+                    "author": "nicolas",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

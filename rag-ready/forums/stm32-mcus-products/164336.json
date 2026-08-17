@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "164336",
+            "publicId": "164336",
+            "title": "STM32L0 doesn't start on power cycle.",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32l0-doesn-t-start-on-power-cycle-164336",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L0 series"
+            ],
+            "published_at": "2026-03-31T09:27:16+00:00",
+            "views": 501,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "We forgot to connect BOOT0 pin to ground.\n\nWe fixed this using Option bytes and STM32CubeProgrammer.\n\nNow everything works fine.",
+            "best_answer_author": "LMehm",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello!\n\nWe are using an STM32L0 microcontroller as a power switch.\n\nThe device works correctly when the firmware is started from STM32CubeIDE using the **Run** command.\n\nHowever, if we switch the power supply off and then back on, the STM32L0 does not boot.\n\nWe suspect there may be an issue related to the reset circuit.\n\nPlease see the attached schematic. The relevant device is **U6**.\n\nCould you please advise?\n\nThank you in advance.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a172a18c-d56c-cb64-f410-ca6758adb9ff.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c5eb535a-1906-5c6c-e345-1dfa3f5ffe3d.png"
+            ],
+            "author": "LMehm",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Presumably, it does start correctly if you just assert NRST ?</p><p>Similar issue here: <a href=\"https://community.st.com/t5/stm32-mcus-products/mcu-doesn-t-start-after-power-cycle-reset-works-ok/td-p/888399\" target=\"_blank\" title=\"MCU doesn't start after power cycle; Reset works OK\"><em>MCU doesn't start after power cycle; Reset works OK</em></a></p><p> </p><blockquote><hr/><user-mention data-id=\"81\">@LMehm</user-mention> wrote:<br/><p class=\"\"><span>We suspect there may be an issue related to the reset circuit.</span></p><hr/></blockquote><p>So have you looked at the reset signal with an oscilloscope? Does it meet the datasheet requirements.</p><p>It's recommended to have a capacitor on NRST - you don't have that:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Image1.png\" style=\"width: 999px;\"><img alt=\"Image1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c5eb535a-1906-5c6c-e345-1dfa3f5ffe3d.png\" title=\"Image1.png\"/></span></p><p><strong><u>PS</u>:</strong></p><p>In the datasheet:</p><div class=\"\"> </div><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Image2.png\" style=\"width: 999px;\"><img alt=\"Image2.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a172a18c-d56c-cb64-f410-ca6758adb9ff.png\" title=\"Image2.png\"/></span></p><p><a href=\"https://www.st.com/resource/en/datasheet/stm32l010c6.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/datasheet/stm32l010c6.pdf</a> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Adding 100nF capacitor didn't help.</p></div>",
+                    "author": "LMehm",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is the waveform on NRST pin during startup.</p></div>",
+                    "author": "LMehm",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Debug the code and see where it's stuck.</p><p>NRST circuit and signal looks fine. That is not the issue. The chip is no doubt booted and running something.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>We forgot to connect BOOT0 pin to ground.</p><p>We fixed this using Option bytes and STM32CubeProgrammer.</p><p>Now everything works fine.</p></div>",
+                    "author": "LMehm",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"81\">@LMehm</user-mention> wrote:<br/><p>Now everything works fine.</p><hr/></blockquote><p>Jolly good - so please <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" target=\"_blank\">mark that as the solution</a>.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

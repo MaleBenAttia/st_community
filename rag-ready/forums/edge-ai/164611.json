@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "164611",
+            "publicId": "164611",
+            "title": "STM32N6570-DK: Black screen with AI model from original demo",
+            "url": "https://community.st.com/edge-ai-134/stm32n6570-dk-black-screen-with-ai-model-from-original-demo-164611",
+            "category": "Edge AI",
+            "tags": [
+                "Flash",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-09T15:13:39+00:00",
+            "views": 505,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi! I found the problem. The AI demo with the included camera requires more power/current than what my laptop’s USB-A port can provide. I needed to use an external power source.\n\nI found an ST Community post describing the exact same issue I had. I’m sharing the link below in case it helps others:\n\n<https://community.st.com/t5/stm32-mcus-boards-and-hardware/stm32n6570-dk-ai-demo-not-working/td-p/755464>",
+            "best_answer_author": "TatianaP",
+            "best_answer_author_role": "",
+            "content_text": "As the subject states, when I try to run the AI model from the original demo on the STM32N6570-DK board, the screen turns black and the LEDs switch to red.\n\nA few days ago, I attempted to run my own AI model. Using STM32CubeProgrammer, I selected the external loader **MX25UM1245G\\_STM32N6570-DK** (I believe this may have been incorrect). Then, in the *Erasing & Programming* section, I uploaded my .bin file, set the start address to 0x70380000, and started the programming process.\n\nAfter that, I tried to debug the *STM32N6570-DK Getting Started Object Detection* project in STM32CubeIDE. However, I encountered an issue in main.c with the error:\n\n```\n\n#error \"PostProcessing type not supported\"\n\n```\n\nwhich persists.\n\nLater, I decided to restore the original demo. I erased the external memory using STM32CubeProgrammer,then downloaded the original demo .hex file (*\"STM32N6570-DK Out-of-the-box demo binary\"*), and followed the provided instructions.\n\nThe demo now runs on the board, but when I try to launch the original AI model from the ST demo, the screen immediately turns black and the LEDs become red.\n\nAt this point, I’m unsure what is causing the issue. It seems the camera is not functioning properly, and I suspect I may have corrupted something in the internal flash or firmware during my previous attempts.\n\nAny guidance would be greatly appreciated.",
+            "images": [],
+            "author": "TatianaP",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi! I found the problem. The AI demo with the included camera requires more power/current than what my laptop’s USB-A port can provide. I needed to use an external power source.</p><p>I found an ST Community post describing the exact same issue I had. I’m sharing the link below in case it helps others: </p><p><a href=\"https://community.st.com/t5/stm32-mcus-boards-and-hardware/stm32n6570-dk-ai-demo-not-working/td-p/755464\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-boards-and-hardware/stm32n6570-dk-ai-demo-not-working/td-p/755464</a></p><p> </p></div>",
+                    "author": "TatianaP",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105925\">@TatianaP</user-mention>,</p>\n<p> </p>\n<p>The external loader that starts with MX25 should end with Nucleo, not DK, the one you wrote doesn't exist.</p>\n<p>The correct one to use is the MX66UW1G45G_STM32N6570-DK. </p>\n<p>Could you please try to flash the out of the box demo again using this external loader please?</p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, I know that the first time I selected the wrong external loader  and after that, I tried to run my own AI model and debug the <em>Getting Started Object Detection</em> project in STM32CubeIDE, but It doesnt work. </p><p>Later, I wanted to go back to the original demo, so I reflashed it using the .hex file with the <strong>MX66UW1G45G_STM32N6570-DK</strong> external loader, as specified in the instructions.</p><p>However, when I run the demo now, everything works except for the camera on the board, which is not functioning.</p><p>So my question is: could I have corrupted something in the internal flash or firmware during my earlier attempts, when I first tried debugging  a project in STM32CubeIDE?</p></div>",
+                    "author": "TatianaP",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105925\">@TatianaP</user-mention>,</p>\n<p> </p>\n<p><span>So my question is: could I have corrupted something in the internal flash or firmware during my earlier attempts, when I first tried debugging  a project in STM32CubeIDE?</span></p>\n<p><span>=&gt; I don't think so</span></p>\n<p> </p>\n<p><span>Please try to unplug the camera from the board, unplug both side of the connector and then plug it again to make sure that is correct.</span></p>\n<p><span>Then try again.</span></p>\n<p><span>A wrongly plugged camera could be the cause of your issue if you tell me that the rest of the demo works.</span></p>\n<p> </p>\n<p><span>Have a good day,</span></p>\n<p><span>Julian</span></p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}
