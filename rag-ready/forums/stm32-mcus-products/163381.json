@@ -19,8 +19,8 @@
             "best_answer_author_role": "ST Technical Moderator",
             "content_text": "I am currently performing the bring-up of a custom PCBA using the **STM32H755ZIT3**.\n\nMy design is intended to use the **Internal LDO only**, bypassing the SMPS to reduce component count (i.e. one less inductor in my layout).\n\nHere's few details about the MCU power section of my SCH (also, please check attached capture):\n\n* **SMPS Pins:** As per the Reference Manual for \"LDO-only\" mode, I have grounded VFBBSMPS, VSSSMPS and VDDSMPS, whereas VLXSMPS is floating.\n\n* **VCORE/VCAP:** I have placed the required 2.2uF decoupling capacitors on VCAP\\_1, VCAP\\_2, and VCAP\\_3. No external inductor is present on the layout.\n\nWhat I'm observing is that at power-on, VCORE remains at 0V. Consequently, the target is not detected by the ST-LINK. If I instead \"jumpstart\" the board by applying an external 1.2V to the VCAP nodes, the MCU becomes reachable via SWD, and I can successfully modify registers.\n\nI suspect a conflict between my hardware layout and the **factory default reset value** of the PWR\\_CR3 register (see attached abstract of RM0399). Looking at the documentation, if the SMPS is enabled by default, the power-on sequence hangs because the SMPS cannot regulate without the missing inductor.\n\nMy question for you is: is there an easier way to have the MCU wake up with LDO-only config than externally forcing 1.2V on VCAP? Am I really forced to have an inductor in my layout?\n\nThank you,\n\nNB",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f78862f4-edf0-6708-6e2e-75fbfcb00e38.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c91ed8c9-0c5e-3997-d0e6-63c460361876.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c91ed8c9-0c5e-3997-d0e6-63c460361876.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f78862f4-edf0-6708-6e2e-75fbfcb00e38.png"
             ],
             "author": "RIVR",
             "scraped_replies": [

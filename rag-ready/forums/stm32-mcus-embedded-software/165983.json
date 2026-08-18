@@ -21,10 +21,10 @@
             "best_answer_author_role": "ST Technical Moderator",
             "content_text": "I have a custom board with G491 and an LED driver (Kinetic KTD2037). MCU is the I2C master. Any attempt to read a register using HAL from the KTD2037 fails, ErrorCode = 0x2 (arb lost). Register writes are OK. I can read/write other devices on the same bus OK.\n\nThe KTD2037 datasheet has this for an I2C register read:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f11872a8-9188-4d87-84e6-08f1b6c56a1d.png)\n\nThis doesn’t seem consistent with HAL\\_I2C\\_Mem\\_Read() or HAL\\_I2C\\_Master\\_Receive().\n\nOn a scope HAL\\_I2C\\_Mem\\_Read() results in\n\nS, 7-bit addr, write, ack, reg addr, ack, Sr, 7-bit addr, read, ack, 0xFF, nack\n\nI try setting the internal register pointer (it may not have one) using HAL\\_I2C\\_Master\\_Transmit(), which works OK. Then I follow it with HAL\\_I2C\\_Master\\_Receive() resulting in\n\nS, 7-bit addr, read, ack, 0xFF, nack\n\nIt looks like the master says arbitration lost because of unexpected nack from the KtTD037.\n\nThe KTD2037 datasheet does not mention I2C repeat start.\n\nAny way to read this device without writing my own I2C driver?",
             "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f0428a33-6b11-497f-bf76-5c9aa8beffe8.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/25ac4b4b-6c5e-414b-8a01-2cbd3f5ae355.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d33d636b-24ca-4a2a-bc1a-14377a3210fc.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f11872a8-9188-4d87-84e6-08f1b6c56a1d.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f0428a33-6b11-497f-bf76-5c9aa8beffe8.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d33d636b-24ca-4a2a-bc1a-14377a3210fc.png"
             ],
             "author": "mccabehm",
             "scraped_replies": [

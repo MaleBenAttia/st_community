@@ -542,6 +542,8 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force
         print("[OK] Toutes les reponses ont un role (aucun auteur sans role).")
 
     return {
+        "start_time": start_time_dt.isoformat(),
+        "end_time": end_time_dt.isoformat(),
         "kb_extracted": total_kb,
         "forum_extracted": total_forums,
         "kb_pages_total": all_kb_pages,

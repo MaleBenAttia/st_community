@@ -20,9 +20,9 @@
             "best_answer_author_role": "Associate",
             "content_text": "Hello everyone! I have a problem with reterning ticks in line \"measure\\_speed\\_rpm = speed\\_reference / LL\\_TIM\\_GetCounter(TIM2);\". speed\\_reference is const variable and equals 15000000. When I looked at Serial Monitor, it's indicated: (picture)\n\n![FreshDin_0-1778496772503.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c8d81bc8-62af-6655-fcca-289f397e94bc.png \"FreshDin_0-1778496772503.png\")\n\nThat's mean that LL\\_TIM\\_GetCounter(TIM2) returns '1' sometimes. Nothing in my code not calling void EXTI1\\_IRQHandler(void), except EXTI Interrupt. And the main question is - Why it reterns only '1'??? Not 2,3 e.t.c.\n\nThank you for help!\n\n```\n\nvoid EXTI1_IRQHandler(void)\n\n{\n\nif (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_1))\n\n{\n\nLL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);\n\nstatic uint8_t edge_switch = 0;\n\nif (!edge_switch)\n\n{\n\nedge_switch = 1;\n\nLL_TIM_SetCounter(TIM2, 0);\n\n}\n\nelse\n\n{\n\nedge_switch = 0;\n\nmeasure_speed_rpm = speed_reference / LL_TIM_GetCounter(TIM2);\n\nNVIC_SetPendingIRQ(SPI1_IRQn); // SPI1_IRQHandler is free vector in list, that's why I use it for PID update trigger\n\n}\n\nuint8_t hall_index = HALL_Read();\n\nSixStep_SetPhase(duty, hall_index);\n\n}\n\n}\n\n```\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f3b5894-4b0e-41c9-ada4-7996fd754ddb.bmp",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d7e66ba-793e-64b7-5c5b-e5f3da18f780.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c8d81bc8-62af-6655-fcca-289f397e94bc.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c8d81bc8-62af-6655-fcca-289f397e94bc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f3b5894-4b0e-41c9-ada4-7996fd754ddb.bmp"
             ],
             "author": "FreshDin",
             "scraped_replies": [

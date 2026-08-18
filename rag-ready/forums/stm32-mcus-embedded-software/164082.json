@@ -20,11 +20,11 @@
             "best_answer_author_role": "Associate III",
             "content_text": "Good day,\n\nWe are using a composite USBX device class combining CDC and MSC over USB Full Speed, built on X\\_CUBE\\_AZRTOS-H7 version 3.3.0 (USBX 6.4). During testing we discovered that a certain Windows PC sends a MODE SELECT(10) command (opcode 0x55) and causes an endpoint stall.\n\nAfter a rather long debugging session, it was found that the USBX source \\_ux\\_device\\_class\\_storage\\_mode\\_select() is explicitly not implemented — it stalls the OUT endpoint, UX\\_FUNCTION\\_NOT\\_SUPPORTED (which is not checked in the thread) and never recovers:\n\n![Application_Middlewares_ST_usbx_common_usbx_device_classes_src_u.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86e70d56-42a7-c5c1-b798-31d0663f9e39.png \"Application_Middlewares_ST_usbx_common_usbx_device_classes_src_u.png\")\n\nThe MODE SELECT(6) SCSI command is not even implemented and the storage thread falls through to the default case, also triggering a endpoint stall.\n\nSo:\n\n- Are there any plans to implement these MODE SELECT(6/10) commands properly in a future USBX release?\n\n- Does anyone already have a workaround for this?\n\n- Wouldn't it be cleaner to reply with an ILLEGAL REQUEST instead of stalling the endpoint?\n\nSystem details:\n\n- MCU: STM32H7\n\n- USBX version: 6.4 (X\\_CUBE\\_AZRTOS-H7 3.3.0)\n\n- USB class: Composite CDC + MSC, Full Speed\n\n- Failing host OS: Windows 11\n\nThanks in advance for your support.\n\nBest regards,\n\nDaniel",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9eb9cc02-df9a-a34a-9fb8-f457534b473a.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b77f9fcc-0f4f-b8f8-7a79-4dc8ce3712e3.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ac426538-7ea9-bbd1-be53-03028e8bfbc7.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86e70d56-42a7-c5c1-b798-31d0663f9e39.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/451a22f0-7e37-d2ed-0079-fe5be0dda2ec.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/451a22f0-7e37-d2ed-0079-fe5be0dda2ec.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b77f9fcc-0f4f-b8f8-7a79-4dc8ce3712e3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9eb9cc02-df9a-a34a-9fb8-f457534b473a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86e70d56-42a7-c5c1-b798-31d0663f9e39.png"
             ],
             "author": "DZimm.9",
             "scraped_replies": [

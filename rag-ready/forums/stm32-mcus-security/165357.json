@@ -22,11 +22,11 @@
             "best_answer_author_role": "ST Employee",
             "content_text": "Hello,\n\nI am working on the boot process and security of the STM32H757.\n\nFor my tests, I have placed the two boot addresses for the two cores (ADD0 and ADD1 for CM7 and CM4) in the internal flash memory, with an ISR vector at each boot address :\n\nADD0: standard ISR vector calling the standard Reset\\_Handler, which in turn calls the main function\n\n```\n\ng_pfnVectors:\n\n.word __initial_spTop /* Use internal RAM for stack for calling SystemInit. */\n\n.word Reset_Handler\n\n.word NMI_Handler\n\n.word HardFault_Handler\n\n.word MemManage_Handler\n\n.word BusFault_Handler\n\n.word UsageFault_Handler\n\n...\n\n```\n\nand ADD1: virtually the same ISR vector but calling BootPin\\_Handler instead of Reset\\_Handler\n\n```\n\ng_bootPinVectors:\n\n.word __initial_spTop\n\n.word BootPin_Handler\n\n.word NMI_Handler\n\n.word HardFault_Handler\n\n.word MemManage_Handler\n\n.word BusFault_Handler\n\n.word UsageFault_Handler\n\n...\n\n```\n\nEverything seems to be working properly, at least up until the security test.\n\nWhen RDP is set to level 0 or 1, everything is fine and everything seems to work, but when I set the RDP level to 2, it no longer works; the programme still launches at ADD0.\n\nI’ve tried to find a link between the two in the documentation, but either I can’t find it or I don’t understand it.\n\nCan anyone help me?\n\nTo set level 2, I download the program in the device and then switch to level 1 then to level 2. In option byte I only changed boot address and RDP level. Maybe I have missed a step ?",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8040cf3e-5466-9730-5246-242bbe0c9bbe.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d613f136-afa0-e9f3-b6b5-4c71929a7a2f.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ca6f1206-9cd6-0b98-1901-4c606a105e3e.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/249a4cc0-a974-241f-7683-a701c16070dd.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/237d069c-a3fd-f9f8-974f-e9efdc672ed5.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ca6f1206-9cd6-0b98-1901-4c606a105e3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d613f136-afa0-e9f3-b6b5-4c71929a7a2f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/237d069c-a3fd-f9f8-974f-e9efdc672ed5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8040cf3e-5466-9730-5246-242bbe0c9bbe.png"
             ],
             "author": "MA4",
             "scraped_replies": [

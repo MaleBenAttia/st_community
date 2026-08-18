@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "167014",
+            "publicId": "167034",
+            "title": "Duplicate SAI clocks outputs to other pins Nucleo F756ZG",
+            "url": "https://community.st.com/stm32-mcus-products-25/duplicate-sai-clocks-outputs-to-other-pins-nucleo-f756zg-167034",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "SAI",
+                "STM32F7 series"
+            ],
+            "published_at": "2026-07-17T09:15:59+00:00",
+            "views": 32,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\n>Is there a way to clone or duplicate the SAI1A clock outputs to SAI2B pins so DAC 2 receives the clock signals as well, without modifying the routing ?\n\nYes, just you have to connect the clk+frame signals to the slave : set it to async.slave , then the pins for **putting *in*** the clk+frame are activated.\n\nIf on sync.slave , clk+frame are internal connected, only SD data coming out; and dac get clk+frame from the master output.\n\nYou have to make the connection external on the board.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI am currently using SAI1A as Master and SAI2B as synchronous slave on the Nucleo F756ZG to send data to 2 DACs.\n\nOne DAC is connected to SAI1A pins and the other is connected to SAI2B pins.\n\n**The issue :**\n\n* SAI1A needs to be configured as master and SAI2B as its slave to be synchronized so the data are sent at the exact same moment to both DACs\n\n* The second DAC is routed to the SAI2B SD, SCK, FS and MCLK pins but these are not used because the SAI2B is slave\n\n* In this configuration, DAC 2 does not receive any signal from SAI2B SCK, FS and MCLK pins\n\n* If both SAIs are configured as masters, there is a 20 microsecond latency between the data frames because the SAIs are not synchronized so there is a delay because of calling twice HAL\\_SAI\\_Trasmit\\_DMA function. I cannot afford this delay in my use case.\n\nIs there a way to clone or duplicate the SAI1A clock outputs to SAI2B pins so DAC 2 receives the clock signals as well, without modifying the routing ? Or reduce the delay to some nanoseconds with both SAIs in Master mode ?\n\nThanks",
+            "images": [],
+            "author": "pti_ju",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt;Is there a way to clone or duplicate the SAI1A clock outputs to SAI2B pins so DAC 2 receives the clock signals as well, without modifying the routing ?</p><p>Yes, just you have to connect the clk+frame signals to the slave : set it to async.slave , then the pins for <strong>putting <em>in</em></strong> the clk+frame are activated.</p><p>If on sync.slave , clk+frame are internal connected, only SD data coming out; and dac get clk+frame from the master output.</p><p>You have to make the connection external on the board.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

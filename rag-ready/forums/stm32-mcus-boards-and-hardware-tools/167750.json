@@ -1,0 +1,68 @@
+{
+    "forum": [
+        {
+            "id": "167718",
+            "publicId": "167750",
+            "title": "Synchro issue SAI1A and SAI2B STM32F756",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/synchro-issue-sai1a-and-sai2b-stm32f756-167750",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32CubeMX",
+                "SAI",
+                "STM32F7 series"
+            ],
+            "published_at": "2026-08-17T16:07:50+00:00",
+            "views": 24,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Ok, still no info about the timing signal/pause, frequency range etc.\n\nSo just the basic way, how to do it:\n\nFirst you set up all SAI channels with circular buffers and callbacks.\n\nThen, buffers with zero data filled, the slaves and then the master is started.\n\nAny sound, that should be generated, is just copied in the callbacks to the desired target\n\nThen everything has the correct moment and no phase or sync errors, sounds can have any length and silence after the sound is just setting the buffers to zero.\n\nThis way all will be running fine, as long as the buffers are filled in the callbacks in time. And the streams running always, never been stopped.\n\nThe size of the buffers is up to you, it's a optimum balance between the minimum time you want to have as one half-buffer and the time and overhead you get by choosing to short buffers.\n\nPossible could be any size from 16 samples up to 4K samples.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello everyone,\n\nI am currently working on a project on STM32F756 with SAI1A as asynchronous master and SAI2B as synchronous slave.\n\nConfig :\n\n* TDM Mode frame length 256, data size 32, slots 8\n\n* Freq 96k\n\n* Fifo threshold full\n\n* Master ext sync out enable\n\n* Slave sync with SAI1\n\nThen in my code I call HAL\\_SAI\\_Transmit\\_DMA for Slave then for Master but the Slave sends its data 5 us before the master because BCLK and FS clocks are always active.\n\nSo the Slave does not wait for the master to have its buffer ready. They should be synchro with this config right ?\n\nIs there a way to have perfect sync between both SAIs ?\n\nThanks",
+            "images": [],
+            "author": "pti_ju",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sync just means that clocks are interconnected from master to slave on-chip. There’s no “data are ready or not” signal - in fact, you are supposed to supply data *before* enabling the modules/starting clocks. So do just that - first set up everything, including DMA, then as the last step enable the master sai (SAI1_ACR1.SAIEN = 1).</p><p>Now you use Cube/HAL and I don’t so I don’t know how does this fare with Cube/HAL’s built in automagic; but Cube/HAL is open source, so you can check; and also you can single-step and observe how registers are filled.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>seems you still dont understand, what the SAI doing, depending on your settings. :)</p><p>So they will be sync if you start them (as you do..?) :</p><ol><li> slave start ( no BCLK and FS clocks , because they are from SAI1A , which is still doing nothing)</li></ol><ol start=\"2\"><li>master start (now BCLK and FS clocks coming out and both 1A + 2B working )</li> <li>both have to get exactly same settings (frame, bits...etc)</li> <li>for continuous streams both have to be with circular DMA , otherwise normal DMA with same block sizes.</li></ol><p>btw</p><p>I have 3 SAI running this way, 6 audio channels, and there <strong>never</strong> is any out of sync, even after many hours of running.</p><p>(+ all is just HAL calls , no problem at all. )</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, thank you for your answer.</p><p>Yes I noticed when slave starts first there is no clock or FS, ans when master starts both are on sync, but once the master sent his first data buffer both the clock and FS are running so the next time the slave starts, it's out of sync.</p><p>I'm not using continuous stream, I'm sending pulses at specific timings. </p><p>I tried to stop and restart the SAIs between 2 send but it's not resolving the issue.</p><p> </p><p>Both SAIs have the same settings and send the same data buffer.</p><p> </p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt;I'm not using continuous stream, I'm sending pulses at specific timings. </p><p>That's not reliable possible. </p><p>So tell me, what it should do ? why pulses or pulse packets ? what is target, dac, codec ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok, still no info about the timing signal/pause, frequency range etc.</p><p>So just the basic way, how to do it: </p><p>First you set up all SAI channels with circular buffers and callbacks.</p><p>Then, buffers with zero data filled, the slaves and then the master is started.</p><p>Any sound, that should be generated, is just copied in the callbacks to the desired target </p><p>Then everything has the correct moment and no phase or sync errors, sounds can have any length and silence after the sound is just setting the buffers to zero.</p><p>This way all will be running fine, as long as the buffers are filled in the callbacks in time. And the streams running always, never been stopped.</p><p>The size of the buffers is up to you, it's a optimum balance between the minimum time you want to have as one half-buffer and the time and overhead you get by choosing to short buffers.</p><p>Possible could be any size from 16 samples up to 4K samples.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi</p><p>So I implemented your solution and it's working perfectly, thanks! </p><p>The circular dma buffer filled with zeros when I don't want to send pulses was the way to go.</p><p>Hope you have a wonderful day, thank you very much for your time :)</p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

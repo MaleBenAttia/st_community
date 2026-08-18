@@ -21,10 +21,10 @@
             "best_answer_author_role": "ST Technical Moderator",
             "content_text": "Hello,\n\nI have a STM32F401RCT connected to a ST25R100.\n\nIn the ioc file I enabled the X-CUBE-NFC9 library with all the necesary dependencies.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1bccf77-b7e9-420f-b3b6-c6bec5bdb200.png)\n\nAll the IOs also have pins assigned to them.\n\nPlus Pull ups enabled on the IRQ (open drain) and NFC\\_Reset.\n\nCurrently I have found out that it crashes somewhere after MX\\_X\\_CUBE\\_NFC9\\_Init();\n\n```\n\nret code: 0\n\nNFC BSP COM = 100\n\nWelcome to X-NUCLEO-NFC09A1\n\nentered error handler\n\n```\n\nThis is what I get in my console. I added some printfs in the code already.\n\nWhen I run it in debug mode to check were it calls the error handler it for some reason does not hit the error handler but it gets stuck in stm32F4xx\\_il\\_usb.c; when I click pauze, this seems rather odd.\n\n```\n\nHAL_StatusTypeDef USB_FlushTxFifo(USB_OTG_GlobalTypeDef *USBx, uint32_t num)\n\n{\n\n__IO uint32_t count = 0U;\n\n/* Wait for AHB master IDLE state. */\n\ndo\n\n{\n\ncount++;\n\nif (count > HAL_USB_TIMEOUT)\n\n{\n\nreturn HAL_TIMEOUT;\n\n}\n\n} while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL) == 0U);\n\n/* Flush TX Fifo */\n\ncount = 0U;\n\nUSBx->GRSTCTL = (USB_OTG_GRSTCTL_TXFFLSH | (num << 6));\n\ndo\n\n{\n\ncount++;\n\nif (count > HAL_USB_TIMEOUT)\n\n{\n\nreturn HAL_TIMEOUT;\n\n}\n\n} while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH) == USB_OTG_GRSTCTL_TXFFLSH);\n\nreturn HAL_OK;\n\n}\n\n```\n\nAre there any debugging tips on what I can do next to figure this issue out?",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8493da23-fca6-4072-b9e9-6a7d90cacfac.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/297cfa6f-0838-44cc-845d-8dad69691ebb.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1bccf77-b7e9-420f-b3b6-c6bec5bdb200.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e4cfb4e-3be9-43f2-a1ab-573cadcb1e10.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/297cfa6f-0838-44cc-845d-8dad69691ebb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e4cfb4e-3be9-43f2-a1ab-573cadcb1e10.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8493da23-fca6-4072-b9e9-6a7d90cacfac.png"
             ],
             "author": "William_RnD",
             "scraped_replies": [

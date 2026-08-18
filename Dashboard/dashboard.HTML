@@ -72,32 +72,36 @@
     }
 
     .header {
-      padding: 30px 40px;
+      padding: 34px 42px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 22px;
     }
     .header-title {
-      font-size: 28px;
+      font-size: 36px;
       font-weight: 700;
       background: var(--accent-grad);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -0.5px;
+      letter-spacing: 0.5px;
+      line-height: 1.15;
     }
     .header-sub {
-      font-size: 14px;
+      font-size: 16px;
       color: var(--text-muted);
-      margin-top: 5px;
+      margin-top: 8px;
     }
     .header-meta {
       display: flex;
-      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 18px 40px;
       font-size: 13px;
       color: var(--text-muted);
       text-align: right;
+      width: 100%;
+      padding-top: 22px;
     }
     .header-meta strong {
       display: block;
@@ -106,7 +110,22 @@
       font-size: 15px;
       font-weight: 600;
       margin-top: 4px;
+      white-space: nowrap;
     }
+    .header-meta .meta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+      gap: 2px;
+    }
+    .header-meta .meta-group strong {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0;
+    }
+    .header-meta .meta-group strong span { color: var(--text-main); font-weight: 600; }
 
     .input-group label {
       display: block;
@@ -312,8 +331,13 @@
     }
     .kpi-sub-row:last-child { border-bottom: none; }
     .kpi-sub-row .lbl { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+    .kpi-sub-row .lbl .lbl-text { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+    .kpi-sub-row .lbl .lbl-sub { font-size: 12px; font-weight: 600; opacity: 0.7; }
     .kpi-sub-row .val { display: inline-flex; align-items: baseline; gap: 10px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; }
     .kpi-sub-row .val .pct { color: inherit; opacity: 0.85; font-weight: 600; }
+    .kpi-sub-row.nested { padding-left: 26px; font-size: 14px; }
+    .kpi-sub-row.nested .lbl { font-size: 14px; }
+    .kpi-sub-row.nested .val { font-size: 15px; }
     .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
     .dot.success { background: var(--success); }
     .dot.warning { background: var(--warning); }
@@ -321,6 +345,7 @@
     .dot.blue { background: var(--accent-color); }
     .dot.red { background: var(--danger); }
     .text-info { color: var(--accent-color); }
+    .text-light { color: var(--text-light); }
 
     /* Hauteurs équilibrées sur les grilles à 2 colonnes */
     .row-2 > .glass {
@@ -443,6 +468,13 @@
         <div>Start<strong id="m-start">-</strong></div>
         <div>End<strong id="m-end">-</strong></div>
         <div>Duration<strong id="m-dur">-</strong></div>
+        <div class="meta-group">
+          Scrap date
+          <strong>Start <span id="hd-scrap-start">-</span></strong>
+          <strong>End <span id="hd-scrap-end">-</span></strong>
+          <strong>Duration <span id="hd-scrap-dur">-</span></strong>
+        </div>
+        <div>Activity date<strong id="hd-activity">-</strong></div>
       </div>
     </header>
 
@@ -460,7 +492,7 @@
           <div class="num gradient" id="g-accepted">-</div>
         </div>
         <div class="stat-card glass">
-          <div class="lbl">Total Rejected</div>
+          <div class="lbl">Ongoing</div>
           <div class="num" id="g-rejected" style="color:var(--text-muted)">-</div>
         </div>
         <div class="stat-card glass">
@@ -522,12 +554,20 @@
             <div class="big-num text-success" id="fo-solved-total">-</div>
             <div class="kpi-sub">
               <div class="kpi-sub-row">
-                <span class="lbl text-success"><span class="dot success"></span>Replied with ST agent</span>
+                <span class="lbl text-success"><span class="dot success"></span><span class="lbl-text">ST reply > 0<span class="lbl-sub"> </span></span></span>
                 <span class="val text-success"><span id="fo-solved-st">-</span><span class="pct" id="fo-solved-st-pct">-</span></span>
               </div>
               <div class="kpi-sub-row">
-                <span class="lbl text-info"><span class="dot blue"></span>Replied without ST agent</span>
-                <span class="val text-info"><span id="fo-solved-none">-</span><span class="pct" id="fo-solved-none-pct">-</span></span>
+                <span class="lbl text-danger"><span class="dot red"></span><span class="lbl-text">ST reply = 0<span class="lbl-sub"></span></span></span>
+                <span class="val text-danger"><span id="fo-solved-none">-</span><span class="pct" id="fo-solved-none-pct">-</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="lbl text-success"><span class="dot success"></span>Super User &gt; 0</span>
+                <span class="val text-success"><span id="solved-su">-</span><span class="pct" id="solved-su-pct">-</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="lbl text-light"><span class="dot muted"></span>Super User = 0</span>
+                <span class="val text-light"><span id="solved-nosu">-</span><span class="pct" id="solved-nosu-pct">-</span></span>
               </div>
             </div>
           </div>
@@ -536,12 +576,20 @@
             <div class="big-num text-warning" id="fo-ongoing-total">-</div>
             <div class="kpi-sub">
               <div class="kpi-sub-row">
-                <span class="lbl text-warning"><span class="dot warning"></span>With ST agent</span>
-                <span class="val text-warning"><span id="fo-ongoing-st">-</span><span class="pct" id="fo-ongoing-st-pct">-</span></span>
+                <span class="lbl text-success"><span class="dot success"></span><span class="lbl-text">ST reply > 0<span class="lbl-sub"></span></span></span>
+                <span class="val text-success"><span id="fo-ongoing-st">-</span><span class="pct" id="fo-ongoing-st-pct">-</span></span>
               </div>
               <div class="kpi-sub-row">
-                <span class="lbl text-danger"><span class="dot red"></span>Without ST agent</span>
+                <span class="lbl text-danger"><span class="dot red"></span><span class="lbl-text">ST reply = 0<span class="lbl-sub"></span></span></span>
                 <span class="val text-danger"><span id="fo-ongoing-none">-</span><span class="pct" id="fo-ongoing-none-pct">-</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="lbl text-success"><span class="dot success"></span>Super User &gt; 0</span>
+                <span class="val text-success"><span id="ongoing-su">-</span><span class="pct" id="ongoing-su-pct">-</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="lbl text-light"><span class="dot muted"></span>Super User = 0</span>
+                <span class="val text-light"><span id="ongoing-nosu">-</span><span class="pct" id="ongoing-nosu-pct">-</span></span>
               </div>
             </div>
           </div>
@@ -640,6 +688,27 @@
     }
     function pct(n) { return (n || 0).toFixed(1).replace('.', ',') + ' %'; }
     function pctP(n) { return '(' + pct(n) + ')'; }
+    function fmtDur(sec) {
+      if (sec == null || sec === '') return '-';
+      const s = Math.round(Number(sec));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const r = s % 60;
+      if (h) return `${h}h ${String(m).padStart(2, '0')}m ${String(r).padStart(2, '0')}s`;
+      if (m) return `${m}m ${r}s`;
+      return `${r}s`;
+    }
+    function fmtRange(startIso, endIso) {
+      if (!startIso && !endIso) return '-';
+      const o = { month: 'short', day: '2-digit', year: 'numeric' };
+      const s = startIso ? new Date(startIso) : null;
+      const e = endIso ? new Date(endIso) : null;
+      if (s && e && s.getFullYear() === e.getFullYear()) {
+        const so = { month: 'short', day: '2-digit' };
+        return s.toLocaleDateString('en-US', so) + ' – ' + e.toLocaleDateString('en-US', o);
+      }
+      return `${s ? s.toLocaleDateString('en-US', o) : '-'} – ${e ? e.toLocaleDateString('en-US', o) : '-'}`;
+    }
 
     // Liste repliable : 5 items par défaut + bouton "Voir plus / Voir moins" (chevron rotatif)
     function renderCollapsible(container, items, renderFn, toggleId, limit) {
@@ -675,6 +744,13 @@
       document.getElementById('g-rate').textContent = pct(data.step_3_summary.global_acceptance_rate_pct);
 
       const s1 = data.step_1_scan, s2 = data.step_2_extract, kb = data.step_3_kb_stats, fo = data.step_3_forums_stats;
+
+      // Header — métadonnées de scraping + période d'activité
+      const ar = fo.activity_range || {};
+      document.getElementById('hd-scrap-start').textContent = fmtDate(s2.start_time);
+      document.getElementById('hd-scrap-end').textContent = fmtDate(s2.end_time);
+      document.getElementById('hd-scrap-dur').textContent = fmtDur(s2.duration_seconds);
+      document.getElementById('hd-activity').textContent = fmtRange(ar.start, ar.end);
 
       // KB
       document.getElementById('kb-k4').textContent = kb.accepted;
@@ -716,6 +792,24 @@
       document.getElementById('fo-ongoing-st-pct').textContent = pctP(ogStats.st_reply_pct);
       document.getElementById('fo-ongoing-none').textContent = ogStats.forums_without_st_reply || 0;
       document.getElementById('fo-ongoing-none-pct').textContent = pctP(rejectedTotal ? 100 - (ogStats.st_reply_pct || 0) : 0);
+
+      // Breakdown Super User (rôle "Super User") agrégé par bloc (Solved / Ongoing)
+      const su = fo.super_user_stats || {};
+      const aggSu = (g1, g2) => {
+        g1 = g1 || {}; g2 = g2 || {};
+        return { with_su: (g1.with_su || 0) + (g2.with_su || 0), without_su: (g1.without_su || 0) + (g2.without_su || 0) };
+      };
+      const fillSu = (prefix, g) => {
+        const withSu = g.with_su || 0;
+        const withoutSu = g.without_su || 0;
+        const total = withSu + withoutSu;
+        document.getElementById(prefix + '-su').textContent = withSu;
+        document.getElementById(prefix + '-su-pct').textContent = pctP(total ? (withSu / total * 100) : 0);
+        document.getElementById(prefix + '-nosu').textContent = withoutSu;
+        document.getElementById(prefix + '-nosu-pct').textContent = pctP(total ? (withoutSu / total * 100) : 0);
+      };
+      fillSu('solved', aggSu(su.solved_with_st, su.solved_without_st));
+      fillSu('ongoing', aggSu(su.ongoing_with_st, su.ongoing_without_st));
 
       const foCatItems = fo.by_category ? Object.entries(fo.by_category).map(([name, c]) => ({ name: name, accepted: c.accepted, total_replies: c.total_replies, total_views: c.total_views })) : [];
       renderCollapsible(

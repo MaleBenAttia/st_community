@@ -20,10 +20,10 @@
             "best_answer_author_role": "Associate II",
             "content_text": "After an aborted attempt to get the PSSI interface on the STM32N6 to work with DMA, I have decided to try a different part, the STM32H7A.  Running into a similar problem attempting to get the DMA to work.\n\nHere is a snap-shot of what I see:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b41c12f4-f268-4ade-b70e-0890331e60f7.png)\n\nAfter receiving HAL\\_OK from HAL\\_PSSI\\_Receive\\_DMA(). I get the error interrupt with an error code of 0.  As may be seen, there is a DMA Transfer error.  This is running on the Nucleo-H7A3ZI-Q board.  The clock tree has been changed to increase the clock speed:![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1dde485a-625f-41ba-9656-8f2e1b2f46a1.png)\n\nThe PSSI clock is produced by a PWM Timer and set to a frequency of 10MHz.  Data is from a 12 bit ADC with an active high Ready.  DE is not used.  I have a pull-up on Ready.  With HAL\\_PSSI\\_Receive\\_DMA() in a loop from a frame timer, each call returns HAL\\_OK followed by the error interrupt.\n\nThe PSSI setup:![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83cdd98c-9f76-408d-bdf6-9d74a628194a.png)The DMA setup:![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4401335-2542-404d-bf30-cd2dc6ee12c4.png)\n\nI’ve been studying the examples given on this board for both the H5 and the H7.  Whereas the N6 produced an immediate error response to multiple PSSI DMA attempts, the H7A does not.  The DMA controller fails on both.  What is preventing the DMA from working?",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83cdd98c-9f76-408d-bdf6-9d74a628194a.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1dde485a-625f-41ba-9656-8f2e1b2f46a1.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4401335-2542-404d-bf30-cd2dc6ee12c4.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b41c12f4-f268-4ade-b70e-0890331e60f7.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b41c12f4-f268-4ade-b70e-0890331e60f7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83cdd98c-9f76-408d-bdf6-9d74a628194a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1dde485a-625f-41ba-9656-8f2e1b2f46a1.png"
             ],
             "author": "Neuraleanus",
             "scraped_replies": [

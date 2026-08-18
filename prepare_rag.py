@@ -29,6 +29,8 @@ from config import (
 
 # Rôles considérés comme des agents ST (réponses ST sur les forums)
 ST_AGENT_ROLES = {"ST Technical Moderator", "ST Community Manager", "ST Employee"}
+# Rôle considéré comme "Super User" (badge de rang communauté)
+SUPER_USER_ROLES = {"Super User"}
 
 
 # --------------------------------------------------------------------------
@@ -119,6 +121,18 @@ def process_forums() -> dict:
     st_without = 0   # topics acceptés sans réponse d'agent ST
     ongoing_with = 0      # topics rejetés (non résolus) où un agent ST a répondu
     ongoing_without = 0   # topics rejetés (non résolus) sans réponse d'agent ST
+    # Breakdown Super User (rôle "Super User") par groupe
+    solved_with_st_su = 0
+    solved_with_st_nosu = 0
+    solved_without_st_su = 0
+    solved_without_st_nosu = 0
+    ongoing_with_st_su = 0
+    ongoing_with_st_nosu = 0
+    ongoing_without_st_su = 0
+    ongoing_without_st_nosu = 0
+    # Période d'activité des posts analysés
+    activity_min = None
+    activity_max = None
 
     if not input_dir.exists():
         print("Aucun dossier de forums trouvé.")
@@ -131,6 +145,24 @@ def process_forums() -> dict:
 
         topic_url = topic.get("_seoUrl", file_path.name)
 
+        # Période d'activité (min/max publishedAt sur tous les posts analysés)
+        pub_dt = None
+        if topic.get("publishedAt"):
+            try:
+                pub_dt = datetime.fromisoformat(str(topic["publishedAt"]).replace("Z", "+00:00"))
+            except ValueError:
+                pass
+        if pub_dt:
+            if activity_min is None or pub_dt < activity_min:
+                activity_min = pub_dt
+            if activity_max is None or pub_dt > activity_max:
+                activity_max = pub_dt
+
+        # Détection rôles (une seule fois par topic)
+        scraped_replies = topic.get("scraped_replies", [])
+        has_st_reply = any((r.get("role") or "") in ST_AGENT_ROLES for r in scraped_replies)
+        has_su_reply = any((r.get("role") or "") in SUPER_USER_ROLES for r in scraped_replies)
+
         cat_dir = _category_dir(output_dir, topic.get("categoryName", ""))
         # Toujours traiter le fichier pour appliquer les corrections de scraping récents
 
@@ -138,30 +170,54 @@ def process_forums() -> dict:
         if not topic.get("bestAnswer", False):
             filtered_urls.append({"url": topic_url, "reason": "no_best_answer"})
             filtered_no_best_answer += 1
-            if any((r.get("role") or "") in ST_AGENT_ROLES for r in topic.get("scraped_replies", [])):
+            if has_st_reply:
                 ongoing_with += 1
+                if has_su_reply:
+                    ongoing_with_st_su += 1
+                else:
+                    ongoing_with_st_nosu += 1
             else:
                 ongoing_without += 1
+                if has_su_reply:
+                    ongoing_without_st_su += 1
+                else:
+                    ongoing_without_st_nosu += 1
             continue
 
         # 2. Filtre: Date
         if not is_recent_enough(topic.get("publishedAt")):
             filtered_urls.append({"url": topic_url, "reason": "too_old"})
             filtered_too_old += 1
-            if any((r.get("role") or "") in ST_AGENT_ROLES for r in topic.get("scraped_replies", [])):
+            if has_st_reply:
                 ongoing_with += 1
+                if has_su_reply:
+                    ongoing_with_st_su += 1
+                else:
+                    ongoing_with_st_nosu += 1
             else:
                 ongoing_without += 1
+                if has_su_reply:
+                    ongoing_without_st_su += 1
+                else:
+                    ongoing_without_st_nosu += 1
             continue
 
         topic_id = topic.get("id")
         if not topic_id:
             filtered_urls.append({"url": topic_url, "reason": "no_id"})
             filtered_other += 1
-            if any((r.get("role") or "") in ST_AGENT_ROLES for r in topic.get("scraped_replies", [])):
+            if has_st_reply:
                 ongoing_with += 1
+                if has_su_reply:
+                    ongoing_with_st_su += 1
+                else:
+                    ongoing_with_st_nosu += 1
             else:
                 ongoing_without += 1
+                if has_su_reply:
+                    ongoing_without_st_su += 1
+                else:
+                    ongoing_without_st_nosu += 1
             continue
 
         print(f"Traitement du topic forum {topic_id}...")
@@ -263,10 +319,18 @@ def process_forums() -> dict:
             "has_st_reply": bool(st_replies),
             "replies": st_replies,
         }
-        if st_replies:
+        if has_st_reply:
             st_with += 1
+            if has_su_reply:
+                solved_with_st_su += 1
+            else:
+                solved_with_st_nosu += 1
         else:
             st_without += 1
+            if has_su_reply:
+                solved_without_st_su += 1
+            else:
+                solved_without_st_nosu += 1
 
         # Silhouette exacte demandée : englobé dans {"forum": [ ... ]}
         wrapped_item = {"forum": [rag_item]}
@@ -343,6 +407,34 @@ def process_forums() -> dict:
             "forums_with_st_reply":       ongoing_with,
             "forums_without_st_reply":    ongoing_without,
             "st_reply_pct":               round(ongoing_with / rejected_total * 100, 1) if rejected_total > 0 else 0,
+        },
+        # Période d'activité des posts analysés (min/max publishedAt)
+        "activity_range": {
+            "start": activity_min.isoformat() if activity_min else "",
+            "end": activity_max.isoformat() if activity_max else "",
+        },
+        # Breakdown Super User (rôle "Super User") par groupe (avec/sans réponse ST)
+        "super_user_stats": {
+            "solved_with_st": {
+                "with_su": solved_with_st_su,
+                "without_su": solved_with_st_nosu,
+                "su_pct": round(solved_with_st_su / (solved_with_st_su + solved_with_st_nosu) * 100, 1) if (solved_with_st_su + solved_with_st_nosu) > 0 else 0,
+            },
+            "solved_without_st": {
+                "with_su": solved_without_st_su,
+                "without_su": solved_without_st_nosu,
+                "su_pct": round(solved_without_st_su / (solved_without_st_su + solved_without_st_nosu) * 100, 1) if (solved_without_st_su + solved_without_st_nosu) > 0 else 0,
+            },
+            "ongoing_with_st": {
+                "with_su": ongoing_with_st_su,
+                "without_su": ongoing_with_st_nosu,
+                "su_pct": round(ongoing_with_st_su / (ongoing_with_st_su + ongoing_with_st_nosu) * 100, 1) if (ongoing_with_st_su + ongoing_with_st_nosu) > 0 else 0,
+            },
+            "ongoing_without_st": {
+                "with_su": ongoing_without_st_su,
+                "without_su": ongoing_without_st_nosu,
+                "su_pct": round(ongoing_without_st_su / (ongoing_without_st_su + ongoing_without_st_nosu) * 100, 1) if (ongoing_without_st_su + ongoing_without_st_nosu) > 0 else 0,
+            },
         },
         "reply_distribution": {
             "0_replies":    dist["0"],

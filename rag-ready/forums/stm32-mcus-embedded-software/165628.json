@@ -18,14 +18,14 @@
             "best_answer_author_role": "ST Technical Moderator",
             "content_text": "**Hi everyone,**\n\nI am working on a project using the **STM32H753ZI Nucleo-144** board. My goal is to save data to an external USB thumb drive via the **CN13** (USB OTG FS) port.\n\n**My Environment:**\n\n* **RTOS Stack:** ThreadX, NetXDuo (Ethernet is working), USBX (Host/Storage Class), and FileX.\n\n* **Tools:** STM32CubeMX v6.12/6.17 and IAR Embedded Workbench.\n\n* **Clocking:** Using **HSI48** for USB, stabilized by the **CRS** (Source: LSE).\n\n**Hardware Configuration:**\n\n* **VBUS:** Manually controlled via **PD10** (STMPS2141). I have confirmed with a multimeter that 5V is present on the port when the software runs.\n\n* **VBUS Sensing:** Disabled in CubeMX (since I am driving power manually).\n\n**USB\\_OTG\\_FS Settings:**\n\n* **Mode:** Host\\_Only.\n\n* **Speed:** Full Speed (12 MBit/s).\n\n* **DMA:** Disabled.\n\n* **Interrupts:** USB OTG FS global interrupt enabled (Priority 15).\n\n**The Issue:** Despite the drive having power, the USBX stack does not seem to trigger the device insertion callback. I suspect the issue lies in the registration of the Host Controller Driver (HCD) or the link between the HAL interrupts and the USBX stack.\n\n**What I have implemented so far:**\n\n1. **HCD Registration:** I am calling ux\\_host\\_stack\\_hcd\\_register using the controller constant **6U** (which corresponds to UX\\_HCD\\_STM32\\_CONTROLLER in my version of the header files).\n\n2. **Interrupts:** I have linked the HAL HCD callbacks (HAL\\_HCD\\_Connect\\_Callback, etc.) to the \\_ux\\_hcd\\_stm32\\_interrupt\\_handler.\n\n3. **Memory:** All USBX memory pools are located in **AXI SRAM** (DMA is off).\n\n**The Question:** Is there a specific requirement for the H753ZI when using **HSI48 + CRS** in Host mode that I might be missing? Specifically, are there known issues with the 6U controller ID for the FS peripheral in the latest Azure RTOS USBX drivers?\n\nAny help or sample initialization code for the H7 Host FS would be greatly appreciated.\n\nThank you",
             "images": [
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1eb4dfec-d4e8-776e-4d22-a0c0b57ab02f.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0a4be9b0-31ae-21b4-2b49-98909ba57727.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e3bf7b4-a9b2-60e2-5cf1-4634ab959472.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/efdb3a6c-9a7a-32df-b7f4-1fb5f5237293.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/babbd2d0-d261-b74c-4fba-ce0392e8560e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0a4be9b0-31ae-21b4-2b49-98909ba57727.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bc219bd-0a2c-2de3-8465-9972c679869f.png",
                 "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/93e8dae3-bdae-edf9-aab0-ebf56714b048.png",
-                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01a9a5c2-75ca-cd12-419a-9a717af6d13b.png"
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1eb4dfec-d4e8-776e-4d22-a0c0b57ab02f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01a9a5c2-75ca-cd12-419a-9a717af6d13b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/efdb3a6c-9a7a-32df-b7f4-1fb5f5237293.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/babbd2d0-d261-b74c-4fba-ce0392e8560e.png"
             ],
             "author": "SeoEngineer",
             "scraped_replies": [
