@@ -1,14 +1,26 @@
 import React from 'react';
-import { Stm32Chip, CircuitTrace, EmWave } from './floating-elements.jsx';
+import { 
+  Stm32Chip, CircuitTrace, EmWave, SensorNode, SignalGraph, 
+  AIChip, SiliconWafer, QfpPackage, MosfetSymbol,
+  Stm32Cube3D, NucleoBoard, CortexMCore 
+} from './floating-elements.jsx';
 import './floating.css';
 
 const POOL = [
-  Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip,
-  Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip,
-  CircuitTrace, CircuitTrace, CircuitTrace, CircuitTrace,
-  EmWave, EmWave, EmWave, EmWave,
+  Stm32Chip, Stm32Chip, Stm32Chip, Stm32Chip,
+  Stm32Cube3D, Stm32Cube3D, Stm32Cube3D,
+  NucleoBoard, NucleoBoard, NucleoBoard,
+  CortexMCore, CortexMCore, CortexMCore,
+  QfpPackage, QfpPackage, QfpPackage,
+  SiliconWafer, SiliconWafer,
+  CircuitTrace, CircuitTrace,
+  AIChip, AIChip,
+  SensorNode, SensorNode,
+  SignalGraph, SignalGraph,
+  EmWave, EmWave,
+  MosfetSymbol, MosfetSymbol
 ];
-const COUNT = POOL.length;
+const COUNT = 42;
 const DRIFTS = ['driftA', 'driftB', 'driftC', 'driftD'];
 
 const rand = (min, max) => min + Math.random() * (max - min);
