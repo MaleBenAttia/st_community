@@ -1,0 +1,105 @@
+{
+    "forum": [
+        {
+            "id": "164763",
+            "publicId": "164763",
+            "title": "STM32C5 HAL SPI: CRC error not reported via error callback when using CRC",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32c5-hal-spi-crc-error-not-reported-via-error-callback-when-using-crc-164763",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "SPI",
+                "STM32C5 series",
+                "HAL2"
+            ],
+            "published_at": "2026-04-15T08:35:14+00:00",
+            "views": 481,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hello @ChristianZ,\n\nThe developer had the same doubts about the other error flags and created the following fix, which will also be included in the release:\n\n```\n\ndiff --git a/Code/c5/hal_spi.c b/Code/c5/hal_spi.c\n\nindex 7ad8f4f..1779cc7 100644\n\n--- a/Code/c5/hal_spi.c\n\n+++ b/Code/c5/hal_spi.c\n\n@@ -5276,18 +5276,6 @@\n\n}\n\n#endif /* USE_HAL_SPI_CRC */\n\n- LL_SPI_Disable((SPI_TypeDef *)((uint32_t)hspi->instance));\n\n-\n\n- /* Disable ITs */\n\n- LL_SPI_DisableIT((SPI_TypeDef *)((uint32_t)hspi->instance),\n\n- LL_SPI_IT_EOT | LL_SPI_IT_TXP | LL_SPI_IT_RXP | LL_SPI_IT_DXP |\n\n- LL_SPI_IT_UDR | LL_SPI_IT_OVR | LL_SPI_IT_TIFRE | LL_SPI_IT_MODF);\n\n-\n\n-#if defined(USE_HAL_SPI_DMA) && (USE_HAL_SPI_DMA == 1)\n\n- LL_SPI_DisableDMAReq_TX((SPI_TypeDef *)((uint32_t)hspi->instance));\n\n- LL_SPI_DisableDMAReq_RX((SPI_TypeDef *)((uint32_t)hspi->instance));\n\n-#endif /* USE_HAL_SPI_DMA */\n\n-\n\n/* Report Underrun error for non RX Only communication */\n\nif (hspi->global_state != HAL_SPI_STATE_RX_ACTIVE)\n\n{\n\n@@ -5340,6 +5328,19 @@\n\nstatus = HAL_ERROR;\n\n}\n\n+\n\n+ LL_SPI_Disable((SPI_TypeDef *)((uint32_t)hspi->instance));\n\n+\n\n+ /* Disable ITs */\n\n+ LL_SPI_DisableIT((SPI_TypeDef *)((uint32_t)hspi->instance),\n\n+ LL_SPI_IT_EOT | LL_SPI_IT_TXP | LL_SPI_IT_RXP | LL_SPI_IT_DXP |\n\n+ LL_SPI_IT_UDR | LL_SPI_IT_OVR | LL_SPI_IT_TIFRE | LL_SPI_IT_MODF);\n\n+\n\n+#if defined(USE_HAL_SPI_DMA) && (USE_HAL_SPI_DMA == 1)\n\n+ LL_SPI_DisableDMAReq_TX((SPI_TypeDef *)((uint32_t)hspi->instance));\n\n+ LL_SPI_DisableDMAReq_RX((SPI_TypeDef *)((uint32_t)hspi->instance));\n\n+#endif /* USE_HAL_SPI_DMA */\n\n+\n\nhspi->tx_xfer_count = (uint16_t)0UL;\n\nhspi->rx_xfer_count = (uint16_t)0UL;\n\n```\n\nRegarding CRC no longer being inside the if (hspi->global\\_state != HAL\\_SPI\\_STATE\\_TX\\_ACTIVE) statement, this is expected, since this case should be handled in all cases, not only in HAL\\_SPI\\_STATE\\_TX\\_ACTIVE.\n\nFor example, it may be necessary when the state is HAL\\_SPI\\_STATE\\_TX\\_RX\\_ACTIVE.\n\nAs for the release date of the next HAL2 update, there is still no fixed date I can share.\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am facing an issue with the STM32C5 HAL SPI driver related to CRC error detection.\n\nIn my setup, CRC is enabled for SPI. When a CRC error occurs, I can observe that the CRCERR flag is set *before* the transfer is closed. However, the CRC error is never reported via the HAL error callback.\n\nLooking into the HAL implementation, I noticed the following behavior:\n\n* SPI\\_CloseTransfer() calls LL\\_SPI\\_Disable()\n\n* After disabling SPI, SPI\\_CloseTransfer() checks LL\\_SPI\\_IsActiveFlag\\_CRCERR()\n\n* When this check is performed after LL\\_SPI\\_Disable(), the CRC error is no longer detected\n\n* If I move the LL\\_SPI\\_IsActiveFlag\\_CRCERR() check before LL\\_SPI\\_Disable(), the CRC error is detected correctly\n\nAdditionally, in my case SPI\\_CloseTransfer() is called from HAL\\_SPI\\_IRQHandler(), but:\n\n* the return value of SPI\\_CloseTransfer() is not evaluated\n\n* only the Tx/Rx complete callback is invoked\n\n* my error callback is never called, even though a CRC error has occurred\n\nFrom my understanding:\n\n* LL\\_SPI\\_Disable() itself does not clear the CRCERR flag\n\n* therefore, it seems the HAL state machine closes the transfer and reports completion before properly propagating CRC errors\n\nCould you please clarify:\n\n1. What is the intended sequence for CRC error detection in the HAL SPI driver?\n\n2. Should CRC errors be detected and handled before disabling the SPI peripheral?\n\n3. Is this a known issue or limitation in the STM32C5 HAL SPI implementation?\n\nI would appreciate guidance or confirmation whether this is a HAL bug.\n\nBest regards\n\nChristian",
+            "images": [],
+            "author": "ChristianZ",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104815\">@ChristianZ</user-mention>, and Welcome to ST Community!</p>\n<p>I have escalated the issue to the relevant team for resolution. It is being tracked internally under ticket number CDM0061755.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span data-teams=\"true\">Hello, </span></p>\n<p><span data-teams=\"true\">this thread has been moved to the <a aria-label=\"Link STM32 MCUs Embedded software\" class=\"fui-Link ___1q1shib f2hkw1w f3rmtva f1ewtqcl fyind8e f1k6fduh f1w7gpdv fk6fouc fjoy568 figsok6 f1s184ao f1mk8lai fnbmjn9 f1o700av f13mvf36 f1cmlufx f9n3di6 f1ids18y f1tx3yz7 f1deo86v f1eh06m1 f1iescvh fhgqx19 f1olyrje f1p93eir f1nev41a f1h8hb77 f1lqvz6u f10aw75t fsle3fq f17ae5zn\" href=\"https://community.st.com/t5/stm32-mcus-embedded-software/bd-p/mcu-embedded-software-forum\" id=\"menurlr6\" target=\"_blank\" title=\"https://community.st.com/t5/stm32-mcus-embedded-software/bd-p/mcu-embedded-software-forum\">STM32 MCUs Embedded software</a> forum because it relates only to HAL2, not STM32CubeMX2. This will help improve visibility and ensure the right experts are involved.</span></p>\n<p><span data-teams=\"true\">Regards,</span></p>\n<p><span data-teams=\"true\">Sara.</span></p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104815\">@ChristianZ</user-mention>,</p>\n<p>I have just received the following fix for the issue you are encountering:</p>\n<p> </p>\n<pre class=\"lia-code-sample language-c\"><code>- (void)SPI_CloseTransfer(hspi);\n+ if (SPI_CloseTransfer(hspi) != HAL_OK)\n+ {\n+#if defined(USE_HAL_SPI_REGISTER_CALLBACKS) &amp;&amp; (USE_HAL_SPI_REGISTER_CALLBACKS == 1)\n+ hspi-&gt;p_error_cb(hspi);\n+#else\n+ HAL_SPI_ErrorCallback(hspi);\n+#endif /* USE_HAL_SPI_REGISTER_CALLBACKS */\n+ }</code></pre>\n<p>This patch will be available in the next releases of HAL2 for all products, including C5.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93235\">@STackPointer64</user-mention>,</p><p><span>thank you for your response.</span></p><p><span>Is this behavior only relevant in </span>HAL_SPI_IRQHandler()<span>? What about the other transfer methods (e.g. polling or DMA)?</span></p><p><span>From my analysis, this fix does not work in my case. </span>SPI_CloseTransfer()<span> never returns </span>HAL_ERROR<span> when a CRC error occurs, because the CRC error flag seems to be cleared by </span>LL_SPI_Disable()<span> (line 5256).</span></p><div><p>When I move the USE_HAL_SPI_CRC section (lines 5295–5309) <em>before</em> the call to LL_SPI_Disable(), the CRC error is detected correctly and status is set to HAL_ERROR. With the additional fix you mentioned regarding the SPI_CloseTransfer() return value, the error callback is then triggered as expected.</p><p>Did this really work for you without modifying SPI_CloseTransfer()? If so, could you please clarify how this was tested, or what I might be missing?</p><p>Thank you very much for your help.</p></div><p>Best regards,<br/>Christian</p></div>",
+                    "author": "ChristianZ",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104815\">@ChristianZ</user-mention>,</p>\n<p>This is the rest of the fix regarding CRC:</p>\n<pre class=\"lia-code-sample language-c\"><code>diff --git a/Code/c5/hal_spi.c b/Code/c5/hal_spi.c\nindex 35affef..7ad8f4f 100644\n--- a/Code/c5/hal_spi.c\n+++ b/Code/c5/hal_spi.c\n@@ -5260,6 +5260,22 @@\n /* Clear the Status flags in the SR register */\n LL_SPI_ClearFlag((SPI_TypeDef *)((uint32_t)hspi-&gt;instance), LL_SPI_FLAG_EOT | LL_SPI_FLAG_TXTF);\n \n+#if (USE_HAL_SPI_CRC != 0UL)\n+ /* Check if CRC error occurred */\n+ if (LL_SPI_IsEnabledCRC((SPI_TypeDef *)((uint32_t)hspi-&gt;instance)) != 0UL)\n+ {\n+ if (LL_SPI_IsActiveFlag_CRCERR((SPI_TypeDef *)((uint32_t)hspi-&gt;instance)) != 0UL)\n+ {\n+#if defined(USE_HAL_SPI_GET_LAST_ERRORS) &amp;&amp; (USE_HAL_SPI_GET_LAST_ERRORS == 1)\n+ STM32_SET_BIT(hspi-&gt;last_error_codes, HAL_SPI_ERROR_CRC);\n+#endif /* USE_HAL_SPI_GET_LAST_ERRORS */\n+ LL_SPI_ClearFlag_CRCERR((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n+\n+ status = HAL_ERROR;\n+ }\n+ }\n+#endif /* USE_HAL_SPI_CRC */\n+\n LL_SPI_Disable((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n \n /* Disable ITs */\n@@ -5298,22 +5314,6 @@\n \n status = HAL_ERROR;\n }\n-\n-#if (USE_HAL_SPI_CRC != 0UL)\n- /* Check if CRC error occurred */\n- if (LL_SPI_IsEnabledCRC((SPI_TypeDef *)((uint32_t)hspi-&gt;instance)) != 0UL)\n- {\n- if (LL_SPI_IsActiveFlag_CRCERR((SPI_TypeDef *)((uint32_t)hspi-&gt;instance)) != 0UL)\n- {\n-#if defined(USE_HAL_SPI_GET_LAST_ERRORS) &amp;&amp; (USE_HAL_SPI_GET_LAST_ERRORS == 1)\n- STM32_SET_BIT(hspi-&gt;last_error_codes, HAL_SPI_ERROR_CRC);\n-#endif /* USE_HAL_SPI_GET_LAST_ERRORS */\n- LL_SPI_ClearFlag_CRCERR((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n-\n- status = HAL_ERROR;\n- }\n- }\n-#endif /* USE_HAL_SPI_CRC */\n }\n \n /* SPI Mode Fault error interrupt occurred -------------------------------*/\n</code></pre>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93235\">@STackPointer64</user-mention>,</p><p><span>t</span><span>hank you for the clarification.</span></p><p><span>What about the other error flags – are they affected in a similar way and would they also need to be evaluated before calling </span>LL_SPI_Disable()<span>?</span></p><p><span>Additionally, if only the CRC handling is moved, it would no longer be inside </span><span>if (hspi-&gt;global_state != HAL_SPI_STATE_TX_ACTIVE) { ... } </span><span>together with the LL_SPI_IsActiveFlag_OVR() check.</span></p><div><p>In this case, is moving only the CRC part considered the correct and complete fix, or is it intended as an intermediate workaround?</p><p>Finally, is there already any information available regarding the schedule for the next HAL2 driver release?</p><p><span>Best regards,</span></p></div><div><div><span>Christian</span></div></div></div>",
+                    "author": "ChristianZ",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104815\">@ChristianZ</user-mention>,</p>\n<p>The developer had the same doubts about the other error flags and created the following fix, which will also be included in the release:</p>\n<pre class=\"lia-code-sample language-c\"><code>diff --git a/Code/c5/hal_spi.c b/Code/c5/hal_spi.c\nindex 7ad8f4f..1779cc7 100644\n--- a/Code/c5/hal_spi.c\n+++ b/Code/c5/hal_spi.c\n@@ -5276,18 +5276,6 @@\n }\n #endif /* USE_HAL_SPI_CRC */\n \n- LL_SPI_Disable((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n-\n- /* Disable ITs */\n- LL_SPI_DisableIT((SPI_TypeDef *)((uint32_t)hspi-&gt;instance),\n- LL_SPI_IT_EOT | LL_SPI_IT_TXP | LL_SPI_IT_RXP | LL_SPI_IT_DXP |\n- LL_SPI_IT_UDR | LL_SPI_IT_OVR | LL_SPI_IT_TIFRE | LL_SPI_IT_MODF);\n-\n-#if defined(USE_HAL_SPI_DMA) &amp;&amp; (USE_HAL_SPI_DMA == 1)\n- LL_SPI_DisableDMAReq_TX((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n- LL_SPI_DisableDMAReq_RX((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n-#endif /* USE_HAL_SPI_DMA */\n-\n /* Report Underrun error for non RX Only communication */\n if (hspi-&gt;global_state != HAL_SPI_STATE_RX_ACTIVE)\n {\n@@ -5340,6 +5328,19 @@\n \n status = HAL_ERROR;\n }\n+\n+ LL_SPI_Disable((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n+\n+ /* Disable ITs */\n+ LL_SPI_DisableIT((SPI_TypeDef *)((uint32_t)hspi-&gt;instance),\n+ LL_SPI_IT_EOT | LL_SPI_IT_TXP | LL_SPI_IT_RXP | LL_SPI_IT_DXP |\n+ LL_SPI_IT_UDR | LL_SPI_IT_OVR | LL_SPI_IT_TIFRE | LL_SPI_IT_MODF);\n+\n+#if defined(USE_HAL_SPI_DMA) &amp;&amp; (USE_HAL_SPI_DMA == 1)\n+ LL_SPI_DisableDMAReq_TX((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n+ LL_SPI_DisableDMAReq_RX((SPI_TypeDef *)((uint32_t)hspi-&gt;instance));\n+#endif /* USE_HAL_SPI_DMA */\n+\n hspi-&gt;tx_xfer_count = (uint16_t)0UL;\n hspi-&gt;rx_xfer_count = (uint16_t)0UL;\n \n</code></pre>\n<p>Regarding CRC no longer being inside the<span> </span>if (hspi-&gt;global_state != HAL_SPI_STATE_TX_ACTIVE)<span> </span>statement, this is expected, since this case should be handled in all cases, not only in<span> </span>HAL_SPI_STATE_TX_ACTIVE.</p>\n<p>For example, it may be necessary when the state is<span> </span>HAL_SPI_STATE_TX_RX_ACTIVE.</p>\n<p>As for the release date of the next HAL2 update, there is still no fixed date I can share.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"104815\">@ChristianZ</user-mention> </p><p>The issue has been solved in the new STM32C5 Ecosystem release 2.1.0. </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

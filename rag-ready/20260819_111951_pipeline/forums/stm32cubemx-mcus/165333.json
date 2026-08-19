@@ -1,0 +1,84 @@
+{
+    "forum": [
+        {
+            "id": "165333",
+            "publicId": "165333",
+            "title": "CubeL4 ADC HAL_ADC_MspInit and HAL_ADC_MspDeInit issue",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/cubel4-adc-hal-adc-mspinit-and-hal-adc-mspdeinit-issue-165333",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "STM32L4 series",
+                "ADC"
+            ],
+            "published_at": "2026-05-04T06:39:21+00:00",
+            "views": 250,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@MarkusVogel ​@Ozone\n\nThank you all for your contributions.\n\nIssue has been escalated to dev team under internal ticket ID **# 0064173** for further investigation.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear all,\n\nI found an interesting effect using the CubeL4 and CubeMX generated files for a STM32L496 and use ADC1 and ADC3 (not simultaneously):\n\nWhat we do:\n\n* We turn the ADCs on only when we sample data, otherwise they are turned off.\n\n* To turn the ADC off, we use HAL\\_ADC\\_DeInit which calls HAL\\_ADC\\_MspDeInit.\n\nIssue:\n\nHAL\\_ADC\\_MspInit and HAL\\_ADC\\_MspDeInit keep track of active ADCs through static variable HAL\\_RCC\\_ADC\\_CLK\\_ENABLED. Init increases the count, deinit decreases it. If, however, init and fails but we still call deinit the count wraps around to 0xFFFF FFFF - upon next init it wraps around to 0, but then the ADC clock is not turned on and initialization fails again. See the code snippets below:\n\nHAL\\_ADC\\_MspInit\n\n```\n\nHAL_RCC_ADC_CLK_ENABLED++;\n\nif(HAL_RCC_ADC_CLK_ENABLED==1){\n\n__HAL_RCC_ADC_CLK_ENABLE();\n\n}\n\n```\n\nHAL\\_ADC\\_MspDeInit\n\n```\n\nHAL_RCC_ADC_CLK_ENABLED--;\n\nif(HAL_RCC_ADC_CLK_ENABLED==0){\n\n__HAL_RCC_ADC_CLK_DISABLE();\n\n}\n\n```\n\nSuggestion:\n\n* Check for underflow of HAL\\_RCC\\_ADC\\_CLK\\_ENABLED in HAL\\_ADC\\_MspDeInit\n\n* In HAL\\_ADC\\_MspInit add a check if ADC-clock is off - then turn it on -> that is what we want to do with initialization -> alternatively only check for ADC-clock and disregard the count completely.\n\nVersions:\n\n* I checked with CubeMX Version 6.17 and CubeL4 version 1.18.2 (latest as of today)\n\nWhat do you think? Let me know if you need additional information.\n\nLooking forward to your opinion on this case, best regards\n\nMarkus",
+            "images": [],
+            "author": "MarkusVogel",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; HAL_ADC_MspInit and HAL_ADC_MspDeInit keep track of active ADCs through static variable HAL_RCC_ADC_CLK_ENABLED. Init increases the count, deinit decreases it. If, however, init and fails but we still call deinit the count wraps around to 0xFFFF FFFF - upon next init it wraps around to 0, but then the ADC clock is not turned on and initialization fails again. </em></font></p><p><span>Sounds like quite a bug to me.<br/>I don't use Cube/HAL, and this resource management seems way overblown and superfluous to me on this occasion.</span></p><p><span>Anyway, why don't you just disable the ADC when not using ?</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>We do turn it off - using the HAL code (<span>HAL_ADC_DeInit). It clears the ADEN bit in the ADC's CR-register and further also switches off the clock (which was the issue here) to save even more power. What it could do but does not is even to active Deeppower down mode - then calibration would have to be redone and startup takes longer. That is why we did not add deeppower down code ourselves. </span></p></div>",
+                    "author": "MarkusVogel",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106649\">@MarkusVogel</user-mention> </p>\n<p>Could you please provide your IOC?</p>\n<p>I will be waiting for your feedback.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> ,</p><p>I am not sure what IOC stands for - but I assume you could mean a fix version :)</p><p>If so, here is what I added now to our code:</p><p>HAL_ADC_MspInit</p><pre class=\"lia-code-sample language-c\"><code>HAL_RCC_ADC_CLK_ENABLED++;\nif((HAL_RCC_ADC_CLK_ENABLED==1) || __HAL_RCC_ADC_IS_CLK_DISABLED())\n{\n__HAL_RCC_ADC_CLK_ENABLE();\n}</code></pre><p> </p><p>HAL_ADC_MspDeInit:</p><pre class=\"lia-code-sample language-c\"><code>if (HAL_RCC_ADC_CLK_ENABLED &gt; 0)\n{\nHAL_RCC_ADC_CLK_ENABLED--;\n}\n\nif(HAL_RCC_ADC_CLK_ENABLED==0)\n{\n__HAL_RCC_ADC_CLK_DISABLE();\n}</code></pre><p> </p><p>Best regards Markus</p></div>",
+                    "author": "MarkusVogel",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I am not sure what IOC stands for - but I assume you could mean a fix version :)</em></font></p><p><span>No. It is a kind of meta - project file, generated by CubeMX AFAIK, and containing the pin assignments and software components to include for a project, amongst others.<br/>I suppose the suffix \"*.IOC\" stands for \"IO Configuration\".</span></p><p><span>I'm not using CubeIDE and it's tools, but I assume it is basically XML.<br/>Which means you can inspect it with any text editor.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention>,</p><p>could you regenerate the effect on your side and maybe fix the issue in CubeL4?</p><p>I have fixed the issue in our code myself, but would be could if future users do not fall over it.</p><p>Best regards</p><p>Markus</p></div>",
+                    "author": "MarkusVogel",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"106649\">@MarkusVogel</user-mention> ​<user-mention data-id=\"48557\">@Ozone</user-mention> </p><p>Thank you all for your contributions.</p><p>Issue has been escalated to dev team under internal ticket ID <strong># 0064173</strong> for further investigation.</p><p>THX</p><p>Ghofrane</p><p> </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

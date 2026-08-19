@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163685",
+            "publicId": "163685",
+            "title": "USB VBus Sensing during USB 2.0 Full Speed Communication",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/usb-vbus-sensing-during-usb-2-0-full-speed-communication-163685",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32F7 series",
+                "USB"
+            ],
+            "published_at": "2026-03-11T09:14:41+00:00",
+            "views": 437,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello Circuit,\n\nThe ATTACH pin is perfect for your need, as it is tied to GND by STUSB4500 when a valid source-to-sink connection is established.\n\nRegards,\n\nDidier Herrouin",
+            "best_answer_author": "Didier HERROUIN",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi\n\nI have a USB-C Connector that will be used for **Power Delivery Sink  for charging** and **USB Full Speed Mode(12Mbps) for communicating with onboard STM32F767ZIT6**. But only one thing will happen at a time.\n\nAs seen in the attached schematics, I have used STUSB4500 as PD Sink controller. I will communicate with it via I2C using STM32. I understand that this STUSB4500 will negotiate 20V(60W which i want for charging) with the source(which in this case is AC-DC Wall adapter) in **Power Delivery Mode**.\n\nBut my question is during **USB Full Speed Mode Communication with STM32**, when that USB-C Receptable is connected to a PC instead of Wall Adapter. As during charging mode, USB\\_VBus is 20V and in Full Speed mode, it is 5V and **my STM32 is Self-Powered and VBus sensing is mandatory**.\n\nBut due to USB VBus varying between 5V and 20V, I cant connect it to for example PA9 VBus sensing pin of STM32 using a voltage divider.\n\nSo, i was thinking maybe there is another option to sense VBus(5V) in Communication Mode. And that would be maybe connecting one of the Pins from STUSB4500 to STM32 to let it know VBUS is present? But i am unsure which  Pin is best suited for this job ATTACH/GPIO Pin or anything else?\n\nThanks!",
+            "images": [],
+            "author": "Circuit",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Duplicate:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-products/usb-c-connector-for-power-delivery-and-communication-with/td-p/884309\" target=\"_blank\">USB-C Connector for Power Delivery and communicati... - STMicroelectronics Community</a></p><p> </p><p>Use a clamping diode to keep the voltage in the correct level, or use an ADC pin along with a resistor divider which can accept the full range.</p><p>For example, a schottky diode between the middle of the resistor and the bridge to 3.3 V will prevent it from causing overvoltage, yet still allow it to read 1 when the voltage is 5 V or 20 V.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks!</p><p> </p><p>But isn't using ATTACH/GPIO Pin from STUSB4500 to indicate STM32 that USB VBUS is present an easier solution? or do you see any drawback with that? </p></div>",
+                    "author": "Circuit",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Circuit,</p>\n<p>The ATTACH pin is perfect for your need, as it is tied to GND by STUSB4500 when a valid source-to-sink connection is established. </p>\n<p>Regards,</p>\n<p>Didier Herrouin</p></div>",
+                    "author": "Didier HERROUIN",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Didier HERROUIN",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

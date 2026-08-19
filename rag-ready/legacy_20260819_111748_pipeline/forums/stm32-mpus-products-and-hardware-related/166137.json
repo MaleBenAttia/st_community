@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "166123",
+            "publicId": "166137",
+            "title": "STM32MP257F-DK - Using USB Type-C Ethernet as Second RJ45 Port for Ring Topology",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp257f-dk-using-usb-type-c-ethernet-as-second-rj45-port-for-ring-topology-166137",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-06-13T05:16:00+00:00",
+            "views": 80,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "HEllo,\n\nTo complete above ref.\n\nIF you take a starter package on your DK board, by default usb0 is mounted as a network interface on the USB DRD type C port (CN15):\n\n# ip a\n\n1: lo: <LOOPBACK,UP,LOWER\\_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000\n\nlink/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00\n\ninet 127.0.0.1/8 scope host lo\n\nvalid\\_lft forever preferred\\_lft forever\n\ninet6 ::1/128 scope host noprefixroute\n\nvalid\\_lft forever preferred\\_lft forever\n\n2: end0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000\n\nlink/ether 10:e7:7a:e3:c3:51 brd ff:ff:ff:ff:ff:ff\n\naltname ethernet0\n\naltname ethernet0.eth1\n\n3: wlan0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000\n\nlink/ether 50:26:ef:af:11:f0 brd ff:ff:ff:ff:ff:ff\n\n4: usb0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc fq\\_codel state DOWN group default qlen 1000\n\nlink/ether 46:c0:e2:68:fc:c5 brd ff:ff:ff:ff:ff:ff\n\nBy plugging most of USB C to ETH device, you will get a RJ45 interface on this port (here D-Link M520:\n\n# ip a\n\n1: lo: <LOOPBACK,UP,LOWER\\_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000\n\nlink/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00\n\ninet 127.0.0.1/8 scope host lo\n\nvalid\\_lft forever preferred\\_lft forever\n\ninet6 ::1/128 scope host noprefixroute\n\nvalid\\_lft forever preferred\\_lft forever\n\n2: end0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000\n\nlink/ether 10:e7:7a:e3:c3:51 brd ff:ff:ff:ff:ff:ff\n\naltname ethernet0\n\naltname ethernet0.eth1\n\n3: wlan0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000\n\nlink/ether 50:26:ef:af:11:f0 brd ff:ff:ff:ff:ff:ff\n\n5: enu1u4: <BROADCAST,MULTICAST,UP,LOWER\\_UP> mtu 1500 qdisc fq\\_codel state UP group default qlen 1000\n\nlink/ether a4:2a:95:76:02:ad brd ff:ff:ff:ff:ff:ff\n\ninet 10.48.108.73/23 metric 10 brd 10.48.109.255 scope global dynamic enu1u4\n\nvalid\\_lft 3597sec preferred\\_lft 3597sec\n\ninet6 fe80::a62a:95ff:fe76:2ad/64 scope link proto kernel\\_ll\n\nvalid\\_lft forever preferred\\_lft forever\n\nFrom here, you will get a second ETH port RJ45 (enu1u4 in this ex) on top of end0 existing one.\n\nYou can then create a bridge between both ports or whatever you like in term of networking with standard linux commands (like ref by PAtrick above).\n\nHave fun !",
+            "best_answer_author": "Bernard PUEL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am working on the STM32MP257F-DK board and would like to use two Ethernet interfaces simultaneously for industrial network communication.\n\nThe board provides:\n\n* One onboard RJ45 Ethernet connector.\n\n* One USB Type-C connector that, according to the documentation, can also provide Ethernet connectivity.\n\nMy objective is to establish a network ring topology, where both Ethernet interfaces are connected to external devices using RJ45 Ethernet cables.\n\nI would like to understand:\n\n1. How can the USB Type-C Ethernet interface be converted to a standard RJ45 Ethernet connection?\n\n2. Does the USB Type-C port support Ethernet through a USB-to-Ethernet adapter (USB Ethernet dongle)?\n\n3. If yes, are there any ST-recommended USB-to-RJ45 adapters that have been validated with STM32MP257F-DK?\n\n4. Under Linux/OpenSTLinux, will the onboard RJ45 and the USB Ethernet adapter appear as two independent network interfaces (for example eth0 and eth1)?\n\n5. Has anyone implemented Ethernet ring topologies such as MRP, RSTP, PRP, or custom ring communication using STM32MP257 devices?\n\nMy final goal is to have two RJ45 Ethernet ports connected simultaneously and use them for ring-network communication.\n\nAny guidance, reference designs, device tree configurations, or example projects would be greatly appreciated.\n\nThank you.",
+            "images": [],
+            "author": "jumman_JHINGA",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HI ​<user-mention data-id=\"51777\">@jumman_JHINGA</user-mention> </p><p>I cannot answer for SW point of view, but Linux running on the board could be tailored to your need (if this is supported by Linux).</p><p>For HW, I encourage you to prototype your future board using  <a href=\"https://www.st.com/en/evaluation-tools/stm32mp257f-ev1.html\" rel=\"noreferrer noopener\" target=\"_blank\">STM32MP257F-EV1 </a>which provide much more handy Ethernet connectivity (2 x RJ45 with embedded switch + 1 x RJ45).</p><p> </p><p>see also </p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/Getting_started/STM32MP2_boards/STM32MP257x-EV1/Let%27s_start/Unpack_the_STM32MP257x-EV1_board\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/Getting_started/STM32MP2_boards/STM32MP257x-EV1/Let%27s_start/Unpack_the_STM32MP257x-EV1_board</a></p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/Ethernet_overview\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/Ethernet_overview</a></p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/Ethernet_switch_overview\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/Ethernet_switch_overview</a></p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_create_a_bridge_between_ETH1,_ETH2,_ETH3\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_create_a_bridge_between_ETH1,_ETH2,_ETH3</a></p><p> </p><p> </p><p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>HEllo,</p><p>To complete above ref.</p><p>IF you take a starter package on your DK board, by default usb0 is mounted as a network interface on the USB DRD type C port (CN15):</p><p># ip a<br/>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000<br/>    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<br/>    inet 127.0.0.1/8 scope host lo<br/>       valid_lft forever preferred_lft forever<br/>    inet6 ::1/128 scope host noprefixroute <br/>       valid_lft forever preferred_lft forever<br/>2: end0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc mq state DOWN group default qlen 1000<br/>    link/ether 10:e7:7a:e3:c3:51 brd ff:ff:ff:ff:ff:ff<br/>    altname ethernet0<br/>    altname ethernet0.eth1<br/>3: wlan0: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN group default qlen 1000<br/>    link/ether 50:26:ef:af:11:f0 brd ff:ff:ff:ff:ff:ff<br/>4: usb0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc fq_codel state DOWN group default qlen 1000<br/>    link/ether 46:c0:e2:68:fc:c5 brd ff:ff:ff:ff:ff:ff<br/> </p><p>By plugging most of USB C to ETH device, you will get a RJ45 interface on this port (here D-Link M520:</p><p># ip a<br/>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000<br/>    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<br/>    inet 127.0.0.1/8 scope host lo<br/>       valid_lft forever preferred_lft forever<br/>    inet6 ::1/128 scope host noprefixroute <br/>       valid_lft forever preferred_lft forever<br/>2: end0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc mq state DOWN group default qlen 1000<br/>    link/ether 10:e7:7a:e3:c3:51 brd ff:ff:ff:ff:ff:ff<br/>    altname ethernet0<br/>    altname ethernet0.eth1<br/>3: wlan0: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN group default qlen 1000<br/>    link/ether 50:26:ef:af:11:f0 brd ff:ff:ff:ff:ff:ff<br/>5: enu1u4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000<br/>    link/ether a4:2a:95:76:02:ad brd ff:ff:ff:ff:ff:ff<br/>    inet 10.48.108.73/23 metric 10 brd 10.48.109.255 scope global dynamic enu1u4<br/>       valid_lft 3597sec preferred_lft 3597sec<br/>    inet6 fe80::a62a:95ff:fe76:2ad/64 scope link proto kernel_ll <br/>       valid_lft forever preferred_lft forever<br/> </p><p>From here, you will get a second ETH port RJ45 (enu1u4 in this ex) on top of end0 existing one.</p><p>You can then create a bridge between both ports or whatever you like in term of networking with standard linux commands (like ref by PAtrick above).</p><p>Have fun !</p></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Also note in term of Performance:</p><ul><li>usb0 is about 900Mbps to 1Gbps interface in that context.</li> <li>If you bridge end0 to usb0, you will get some penalty due to the conversion between usb payload and eth payload (compared to a full eth to eth bridge in Linux)</li> <li>MP2 embeds a HW bridge you can use for better perf (but only available on EV board) and to get up to 3 eth native port</li></ul></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

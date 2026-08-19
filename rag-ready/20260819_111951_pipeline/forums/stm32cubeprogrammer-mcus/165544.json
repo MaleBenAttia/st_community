@@ -1,0 +1,83 @@
+{
+    "forum": [
+        {
+            "id": "165544",
+            "publicId": "165544",
+            "title": "NUCLEO-G431 does not communicate on M5 Mac with a direct USB-C port connection",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/nucleo-g431-does-not-communicate-on-m5-mac-with-a-direct-usb-c-port-connection-165544",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "Bug-report"
+            ],
+            "published_at": "2026-05-10T16:33:09+00:00",
+            "views": 329,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hello there @CTapp.1 ,\n\nThis behavior appears to match the known issue reported in this [FAQ: Possible communication failure between STLINK-V3 and some recent computers](https://community.st.com/t5/stm32-mcus/faq-possible-communication-failure-between-stlink-v3-and-some/ta-p/736578). The FAQ might help explain the root cause of this behavior and how to mitigate it, including one of the workarounds which you have already found.\n\nKind regards,\n\nKouthair",
+            "best_answer_author": "Kouthair",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "CubeProgrammer 2.22.0 under MacOS 26.4.1 is not able to connect to my NUCLEO-G431, with the log window showing:\n\nST-LINK error (DEV\\_CONNECT\\_ERR)\n\nStrange thing is this only happens when I have a direct cable connection between the USB-C port on the Mac and the ST-LINK V3 USB on the board - it works as expected if I connect via a USB-C hub.\n\nVS Code is also not able to connect to the board to run a debug session without the hub, so I suspect this is an ST-LINK USB driver issue on the Mac.",
+            "images": [],
+            "author": "CTapp.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span> it works as expected if I connect via a USB-C hub.</span></p><p>Is the hub powered?</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Whilst it does support PD, it does not need to be connected to external power for things to work (one wire to Mac, on to the board).</p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div>It also works abnormally on my Mac Studio (M4 Max) with STM32WBA65I-DK1</div></div>",
+                    "author": "Xiaojie",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>These devices work well with many Windows, Linux and <strong>Intel</strong> Mac hosts. The drivers are very thin - no dedicated kernel modules. So it looks unlikely that ST could \"fix\" anything in their drivers. Using a hub is a good workaround.</p><p>Of course, people that are motivated and have a type-C analyzer can debug and find the real cause of the connection failures.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm using the latest MacBook Pro M5, so it will soon be \"one of the many\" ;)</p><p>If there is a potential issue here that can't be fixed, it would be useful if that could be documented somewhere - it took me a couple of hours to find the workaround, and the diagnostic messages that were given didn't give any clues.</p><p>CubeProgrammer also appeared to connect to the probe at times (though in a non-functional way - just the serial number and target voltage shown), and even allowed the \"firmware update\" for the ST-LINK to be activated - though that failed with something like \"bad firmware checksum\". Sounds like USB packet loss, but that's just a guess.</p></div>",
+                    "author": "CTapp.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello there <user-mention data-id=\"40209\">@CTapp.1</user-mention> ,</p><p>This behavior appears to match the known issue reported in this <a href=\"https://community.st.com/t5/stm32-mcus/faq-possible-communication-failure-between-stlink-v3-and-some/ta-p/736578\" target=\"_self\">FAQ: Possible communication failure between STLINK-V3 and some recent computers</a>. The FAQ might help explain the root cause of this behavior and how to mitigate it, including one of the workarounds which you have already found.</p><p>Kind regards,<br/>Kouthair</p></div>",
+                    "author": "Kouthair",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"40209\">@CTapp.1</user-mention> wrote:<br/><p><span>it works as expected if I connect via a USB-C hub.</span></p><hr/></blockquote><p>Checking with/without a hub is, indeed, one of the recommended steps in dealing with ST-Link comms issues:</p><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-solve-debugger-connection-issues/ta-p/49693#:~:text=If%20connecting%20via%20a%20hub%2C%20try%20without%20it%3B%20if%20connecting%20without%20a%20hub%2C%20try%20with%20one\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/how-to-solve-debugger-connection-issues/ta-p/49693#:~:text=If%20connecting%20via%20a%20hub%2C%20try%20without%20it%3B%20if%20connecting%20without%20a%20hub%2C%20try%20with%20one</a></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Type-C connectors on these thin laptops are too overloaded: they carry USB and Thunderbolt video and smart power functions, maybe also something Apple proprietary. Hubs help to untangle this complexity. Without a good analyzer it's hard to tell more. Better treat this as <a href=\"https://en.wikipedia.org/wiki/Somebody_else%27s_problem\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Somebody Else's problem</a>.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Kouthair",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

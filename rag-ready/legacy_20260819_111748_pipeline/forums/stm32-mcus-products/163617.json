@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "163617",
+            "publicId": "163617",
+            "title": "Trouble getting accurate ADC readings",
+            "url": "https://community.st.com/stm32-mcus-products-25/trouble-getting-accurate-adc-readings-163617",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F1 series"
+            ],
+            "published_at": "2026-03-09T20:25:19+00:00",
+            "views": 241,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "The product you are using is a so-called Blue Pill since years only containing clones of a genuine ST product.The seemingly small price advantage quickly evaporates, because you also need an ST-LINK. If one or both contain illegal clones, as the [colourful tin cans](https://community.st.com/t5/stm32-mcus/how-to-recognize-a-genuine-st-link-v2-versus-a-cloned-one/ta-p/49471) do as well, you end up frustrated forever with tools that don't work as expected – completely overlooking the fact that these are not original ST products, but counterfeits.\n\nTo get the support you need, please contact the third party you purchased this product from.\n\nFor assurance of buying authentic ST products, we recommend purchasing exclusively through our official distributors, which you can find listed here: [ST Official Distributors](https://www.st.com/content/st_com/en/contact-us.html).\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm trying to read a NTC temperature sensor, but the readings I'm getting are very inconsistent and at times just way off.  I have nucleo on the way but this testing I'm doing is on a blue pill.\n\nThe sensor is sitting in a cup of water, so temperature should be very consistent.  Here is the readings I'm getting which are done at 1 second intervals, I don't need speed.  The temperature of the water is about 21C.  The sensor accuracy is rated +/- 1.4C at 25C\n\nTemp k: 293. c: 20.8\n\nTemp k: 293. c: 20.7\n\nTemp k: 294. c: 21.2\n\nTemp k: 292. c: 19.5\n\nTemp k: 307. c: 34.1\n\nTemp k: 295. c: 22.3\n\nTemp k: 294. c: 20.8\n\nTemp k: 293. c: 20.7\n\nTemp k: 294. c: 21.5\n\nTemp k: 293. c: 20.7\n\nTemp k: 294. c: 21.3\n\nTemp k: 294. c: 21.4\n\nTemp k: 293. c: 20.8\n\nTemp k: 293. c: 20.5\n\nTemp k: 294. c: 21.1\n\nTemp k: 292. c: 19.7\n\nTemp k: 266. c: -6.5\n\nTemp k: 293. c: 20.5\n\nTemp k: 293. c: 20.8\n\nTemp k: 291. c: 18.8\n\nTemp k: 266. c: -7.1\n\nTemp k: 293. c: 20.6\n\nTemp k: 294. c: 21.3\n\nTemp k: 294. c: 21.3\n\nTemp k: 293. c: 20.6\n\nTemp k: 294. c: 20.9\n\nAttached is the clock config.  I've triad various settings, faster and slower.\n\nADC config:\n\n```\n\nhadc1.Instance = ADC1;\n\nhadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;\n\nhadc1.Init.ContinuousConvMode = ENABLE;\n\nhadc1.Init.DiscontinuousConvMode = DISABLE;\n\nhadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;\n\nhadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;\n\nhadc1.Init.NbrOfConversion = 1;\n\nsConfig.Channel = ADC_CHANNEL_0;\n\nsConfig.Rank = ADC_REGULAR_RANK_1;\n\nsConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;\n\n```\n\nHow I'm reading at 1 second intervals:\n\n```\n\nif (HAL_OK == HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY)) {\n\nvout = (HAL_ADC_GetValue(&hadc1) / 4095.0) * vin;\n\nrout = rval * ((vin / vout) - 1);\n\ntemp_k = 1 / ((log(rout / rval) / coeff) + (1 / temp_base));\n\ntemp_c = temp_k - 273.15;\n\n}\n\n```",
+            "images": [],
+            "author": "pulsar",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>The product you are using is a so-called Blue Pill since years only containing clones of a genuine ST product.The seemingly small price advantage quickly evaporates, because you also need an ST-LINK. If one or both contain illegal clones, as the <a href=\"https://community.st.com/t5/stm32-mcus/how-to-recognize-a-genuine-st-link-v2-versus-a-cloned-one/ta-p/49471\" target=\"_blank\">colourful tin cans</a> do as well, you end up frustrated forever with tools that don't work as expected – completely overlooking the fact that these are not original ST products, but counterfeits.</p>\n<p>To get the support you need, please contact the third party you purchased this product from.</p>\n<p>For assurance of buying authentic ST products, we recommend purchasing exclusively through our official distributors, which you can find listed here: <a href=\"https://www.st.com/content/st_com/en/contact-us.html\" rel=\"noopener noreferrer\" target=\"_blank\">ST Official Distributors</a>.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes I have a <span>nucleo on the way but thought I'd post this in case I'm doing something wrong with the ADC.</span></p></div>",
+                    "author": "pulsar",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

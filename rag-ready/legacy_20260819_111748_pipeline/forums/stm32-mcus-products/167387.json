@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "167359",
+            "publicId": "167387",
+            "title": "Trying to set the STM32c031 clock to 48MHz. Target is not responding, retrying...",
+            "url": "https://community.st.com/stm32-mcus-products-25/trying-to-set-the-stm32c031-clock-to-48mhz-target-is-not-responding-retrying-167387",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32C0 series",
+                "Clock-configuration"
+            ],
+            "published_at": "2026-07-31T15:58:26+00:00",
+            "views": 67,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I’d check the clock source and PLL configuration first, especially the ready/status flags and the order in which you switch SYSCLK. The delay loops may be masking a timing or synchronization issue rather than actually fixing it. Also, make sure the FLASH wait-state configuration is applied before increasing the CPU clock. The exact point where execution stops would help narrow it down.",
+            "best_answer_author": "Carlo Ramirez",
+            "best_answer_author_role": "Associate",
+            "content_text": "I have a STM32C031C6 and I’m trying to set the clock to be 48MHz\n\nIt works when I have the for loops in there, but its not supposed to have them and I want to get it working properly without needing them.\n\nIf I comment out 1 of the for loops, then after that it gives me this error\n\nI’m not sure what I am doing wrong, I think I’m not waiting properly for something, but I don’t know what that is.\n\n> Error in executing 'cont' command ...\n\n>\n\n> Target is not responding, retrying...\n\n>\n\n> Target is not responding, retrying...\n\n>\n\n> Shutting down...\n\n>\n\n> Target is not responding, retrying…\n\nThis is the code.\n\n```\n\n#include \"stm32c031xx.h\"\n\nvoid speed_up_to_48mhz(void){\n\n//\t1. ENABLE HSI and wait for the HSI to become Ready\n\nRCC->CR |= (1U << 8);\n\nwhile (!(RCC->CR & (1U << 10)));\n\nfor(volatile int i =0; i<1000000; i++){}\n\n//bit 8 is prefetch\n\n//bit 9 is instruction cache\n\n//1 wait state\n\nFLASH->ACR =  (1U << 9) | (1U << 0);\n\nFLASH->ACR &=~ (1U << 8);\n\nvolatile uint32_t acr = FLASH->ACR;\n\n//ahb prescalar\n\nRCC->CFGR &=~ (1U << 11);\n\nRCC->CFGR &=~ (1U << 10);\n\nRCC->CFGR &=~ (1U << 9);\n\nRCC->CFGR &=~ (1U << 8);\n\n//apb prescalar\n\nRCC->CFGR &=~ (1U << 14);\n\nRCC->CFGR &=~ (1U << 13);\n\nRCC->CFGR &=~ (1U << 12);\n\nRCC->CR &=~ (1U<<11);\n\nRCC->CR &=~ (1U<<12);\n\nRCC->CR &=~ (1U<<13);\n\nwhile (!(RCC->CR & (1U<<10)));\n\nfor(volatile int i =0; i<1000000; i++){}\n\n}\n\n```",
+            "images": [],
+            "author": "houseman",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’d check the clock source and PLL configuration first, especially the ready/status flags and the order in which you switch SYSCLK. The delay loops may be masking a timing or synchronization issue rather than actually fixing it. Also, make sure the FLASH wait-state configuration is applied before increasing the CPU clock. The exact point where execution stops would help narrow it down.</p></div>",
+                    "author": "Carlo Ramirez",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thanks, I needed to apply the flash wait state before increasing the clock.</p><p> </p><p> </p></div>",
+                    "author": "houseman",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your clock source switch is missing. You enable HSI but never tell the MCU to actually use it.</p><p>After your FLASH ACR config, add:</p><p>********</p><p>RCC-&gt;CFGR = (RCC-&gt;CFGR &amp; ~(0b11 &lt;&lt; 0)) | (0b01 &lt;&lt; 0);</p><p>while ((RCC-&gt;CFGR &amp; (0b11 &lt;&lt; 2)) != (0b01 &lt;&lt; 2));</p><p>********</p><p>The SWS bits confirm the switch is done.</p></div>",
+                    "author": "Nathri",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thanks, I needed to apply the flash wait state before increasing the clock.</p></div>",
+                    "author": "houseman",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

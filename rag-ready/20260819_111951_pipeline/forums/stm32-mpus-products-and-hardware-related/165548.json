@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "165548",
+            "publicId": "165548",
+            "title": "What is IAC ID 137? DDR memory issue for 2GB",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/what-is-iac-id-137-ddr-memory-issue-for-2gb-165548",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "DDR",
+                "Other boards",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-05-10T22:19:23+00:00",
+            "views": 376,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nI'm not expert of RIF, but status seems to show that a CID1 (Cortex-A35) non-secure privileged code is trying to write at 0x83ffff80 whereas this area is likely defined in RISAF4 as restricted to secure write access only.\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi!\n\nI have a custom board with 2GB RAM instead of 4GB RAM. Yes, I have configured 2GB in CubeMX and generated the new DT.\n\nCheck it out here: <https://github.com/DanielMartensson/Watermelon-Wine-1A/tree/linux-testing/watermelon-wine-os%2Flayers%2Fmeta-watermelon-wine%2Fmx%2Fwatermelon-wine-1a>\n\nIt seems that the booting process passes TF-A without any issues. But it fails at the optee boot process.\n\n```\n\nF/TC:0 0 regulator_enable:94 v3v3\n\nF/TC:0 0 regulator_enable:94 v5v_vconn\n\n[ 0.000000] SCP-firmware 2.13.0-intree-optee-os-4.0.0-dev\n\n[ 0.000000]\n\n[ 0.000000] [FWK] Module initialization complete!\n\nF/TC:0 0 regulator_set_voltage:202 vddcpu 800000uV\n\nF/TC:0 0 lock_i2c_bus_access:796 thread access\n\nF/TC:0 0 unlock_i2c_bus_access:837 thread access completed\n\nF/TC:0 0 stpmic2_register_read:259 REG[0x20 v=0x1e\n\nF/TC:0 0 pmic_get_voltage:192 vddcpu: get voltage: 800000 uV\n\nF/TC:0 0 pwr_get_state:243 vddgpu: get state\n\nD/TC:0 0 set_opp:60 set volt to 800000uV\n\nF/TC:0 0 regulator_set_voltage:202 vddgpu 800000uV\n\nF/TC:0 0 pwr_get_voltage:279 vddgpu: get volt\n\nF/TC:0 0 lock_i2c_bus_access:796 thread access\n\nF/TC:0 0 unlock_i2c_bus_access:837 thread access completed\n\nF/TC:0 0 stpmic2_register_read:259 REG[0x2a v=0x1e\n\nF/TC:0 0 pmic_get_voltage:192 vddgpu_pmic: get voltage: 800000 uV\n\nD/TC:0 0 set_opp:67 set clock to 800000kHz\n\nI/TC: Primary CPU switching to normal world boot\n\nINFO: BL31: Preparing for EL3 exit to normal world\n\nINFO: Entry point address = 0x84000000\n\nINFO: SPSR = 0x3c9\n\nE/TC:0 stm32_serc_handle_ilac:133 SERC exceptions [63:32]: 0x1\n\nE/TC:0 stm32_serc_handle_ilac:139 SERC exception ID: 32\n\nE/TC:0 stm32_iac_itr:192 IAC exceptions [159:128]: 0x200\n\nE/TC:0 stm32_iac_itr:197 IAC exception ID: 137\n\nI/TC:\n\nDUMPING DATA FOR risaf@420d0000\n\nI/TC: =====================================================\n\nI/TC: Status register (IAESR0): 0x91\n\nI/TC: -----------------------------------------------------\n\nI/TC: Faulty address (IADDR0): 0x83ffff80\n\nI/TC: =====================================================\n\nE/TC:0 Panic at /usr/src/debug/optee-os-stm32mp/4.0.0-stm32mp-r3/core/drivers/firewall/stm32_iac.c:212 <stm32_iac_itr>\n\nE/TC:0 TEE load address @ 0x82000000\n\nE/TC:0 Call stack:\n\nE/TC:0 0x82008180\n\nE/TC:0 0x820473cc\n\nE/TC:0 0x82030028\n\nE/TC:0 0x82044d44\n\nE/TC:0 0x82014bf8\n\n```\n\nOne thing that I have found, is that this seems to be and old issue. This has been discussed here:\n\n<https://www.mail-archive.com/u-boot%40lists.denx.de/msg565119.html>\n\n**Questions**:\n\n* Is this issue caused by wrong DDR memory mapping in the DT?\n\n* What is IAC ID 137?\n\n* What do I need to change in the DT to make this work for optee?\n\n* What is SERC ID 32?\n\nSe attached file.",
+            "images": [],
+            "author": "DMårt",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi,</p>\n<p>I'm not expert of RIF, but status seems to show that a CID1 (Cortex-A35) non-secure privileged code is trying to write at 0x83ffff80 whereas this area is likely defined in RISAF4 as restricted to secure write access only.</p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"44549\">@DMårt</user-mention> </p>\n<p> </p>\n<p>IAC event is related to security illegal access issue (RIF setting related). <br/>according to RM0457, ID 137 is \"RISAF4 (DDR-SDRAM)\"<br/><br/>SERC event is related to SW accessing an IP which is not clocked.<br/>according to RM0457, ID 32 is USART2</p>\n<p> </p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"642\">@PatrickF</user-mention> </p><p>Thank you!</p><p>Did you mean RM0457?</p></div>",
+                    "author": "DMårt",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>yes RM0457  (post edited)</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

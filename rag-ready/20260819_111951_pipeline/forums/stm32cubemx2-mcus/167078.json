@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "167059",
+            "publicId": "167078",
+            "title": "Touchgfx and CubeMX2 : Enable vector rendering",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/touchgfx-and-cubemx2-enable-vector-rendering-167078",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-07-20T10:07:03+00:00",
+            "views": 88,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Guillaume Clouard.\n\nAs the integration of TouchGFX with STM32CubeMX2 is currently not as seamless as the integration with the original STM32CubeMX, you need to add some code manually to enable vector support. Fortunately, the code is quite simple. You need to add the following to TouchGFXGeneratedHAL.cpp:\n\n```\n\nnamespace touchgfx\n\n{\n\nVectorRenderer* VectorRenderer::getInstance()\n\n{\n\nstatic CWRVectorRendererRGB565 renderer;\n\nreturn &renderer;\n\n}\n\n} // namespace touchgfx\n\n```\n\nIf you have not already done so, I recommend reading this article from the TouchGFX documentation:\n\n<https://support.touchgfx.com/docs/development/scenarios/touchgfx-with-mx2>.\n\nIt does not explicitly mention how to enable vector support, though.\n\nBest regards,\n\nJohan",
+            "best_answer_author": "JohanAstrup",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone,\n\nI’ve been working for a few weeks on a TouchGFX project using a MCU that is working with CubeMX2, so I used the documentation ([Using TouchGFX with STM32CubeMX2 | TouchGFX Documentation](https://support.touchgfx.com/docs/development/scenarios/touchgfx-with-mx2)) to setup my project, which is working.\n\nHowever I tried to add an SVG Image and then I got the “undefined reference to ‘touchgfx::VectorRenderer::getInstance()’” issue. Normally this issue can be resolved by enabling vector rendering in CubeMX, but because I’m on CubeMX2 it’s not possible in my case.\n\nIs there any way to enable vector rendering manually ? Also just to be sure it wasn’t already activated I tried to put a SVG image with the example project that I started with (the NUCLEO-C5A3ZG + RVA15MD project), and I got the same error.\n\nMCU used is STM32C552RET6.",
+            "images": [],
+            "author": "Guillaume Clouard",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108392\">@Guillaume Clouard</user-mention>.</p><p>As the integration of TouchGFX with STM32CubeMX2 is currently not as seamless as the integration with the original STM32CubeMX, you need to add some code manually to enable vector support. Fortunately, the code is quite simple. You need to add the following to TouchGFXGeneratedHAL.cpp:</p><pre><code class=\"language-c\">namespace touchgfx<br/>{<br/>VectorRenderer* VectorRenderer::getInstance()<br/>{<br/>    static CWRVectorRendererRGB565 renderer;<br/><br/>    return &amp;renderer;<br/>}<br/>} // namespace touchgfx</code></pre><p>If you have not already done so, I recommend reading this article from the TouchGFX documentation:<br/><a href=\"https://support.touchgfx.com/docs/development/scenarios/touchgfx-with-mx2\" rel=\"noreferrer noopener\" target=\"_blank\">https://support.touchgfx.com/docs/development/scenarios/touchgfx-with-mx2</a>.<br/>It does not explicitly mention how to enable vector support, though.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Johan,</p><p>Thank you for your response, it indeed solved the issue.</p><p> </p><p>Regards,</p><p>Guillaume</p></div>",
+                    "author": "Guillaume Clouard",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

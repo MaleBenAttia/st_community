@@ -1,0 +1,89 @@
+{
+    "forum": [
+        {
+            "id": "163374",
+            "publicId": "163374",
+            "title": "LIV4F less sensitivity compared to MAX-M10S?",
+            "url": "https://community.st.com/gnss-positioning-120/liv4f-less-sensitivity-compared-to-max-m10s-163374",
+            "category": "GNSS positioning",
+            "tags": [
+                "GPS"
+            ],
+            "published_at": "2026-03-03T09:30:10+00:00",
+            "views": 645,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @GalaxyQuest wrote:\n\n>\n\n> Also looking at Mikroe GNSS9 board the RF line is powered, therefore, can you please remove R3 - 10 ohm to isolate the DC offset on RF\\_IN line and retest with passive antenna\n\n>\n\n> ---\n\nR3 likely doesn't harm as stated above, but if there is really the 56pF capacitor C8, this would dampen the signal quite much. I'll remove it and report back.",
+            "best_answer_author": "bofh",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi all,\n\nto evaluate LIV4F and MAX-M10S, I use Mikroe \"GNSS 9\" and \"MAX\" click boards with a passive antenna (Quectel YEGT001W1AM).\n\nWhile the MAX click board with the MAX-M10S gets a fix in less than one minute, the MAX 9 board with the LIV4F doesn't get a fix. Even when starting with an active antenna to get a fix and then switching to the passive antenna, the LIV4F stops operating. Sporadically, the GSV sentence shows then one or two weak (~20) signals while the MAX-M10S has >10 satellites with signals in the range 20..44.\n\nFrom my understanding of the data sheets, both the LIV4F and MAX-M10S should have similar performance without an external LNA, isn't it?\n\nIs there any known issue with the Mikroe GNSS 9 click board?\n\nOr a possible misconfiguration of the LIV4F I could fix?",
+            "images": [],
+            "author": "bofh",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"79411\">@bofh</user-mention> wrote:<br/><p>Is there any known issue with the Mikroe GNSS 9 click board?</p><hr/></blockquote><p>You'd have to ask <strong>Mikroe</strong> about that: it's their board - nothing to do with ST!</p><p><a href=\"https://helpdesk.mikroe.com/en-us\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://www.mikroe.com/support </a></p><p> </p><blockquote><hr/><user-mention data-id=\"79411\">@bofh</user-mention> wrote:<br/><p>Or a possible misconfiguration of the LIV4F I could fix?</p><hr/></blockquote><p>You'd need to show your code to know that.</p><p><em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" target=\"_blank\" title=\"How to write your question to maximize your chances to find a solution\">How to write your question to maximize your chances to find a solution</a></em></p><p><em><a href=\"https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413\" target=\"_blank\" title=\"How to insert source code\">How to insert source code</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/><blockquote><hr/>You'd have to ask <strong>Mikroe</strong> about that: it's their board - nothing to do with ST!</blockquote></blockquote><p>asking for known issues in the ST community doesn't require that the product has \"something to do\" with ST. But MikroElektronika is official partner <a href=\"https://www.st.com/content/st_com/en/partner/partner-program/partnerpage/MikroElektronika.html\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/content/st_com/en/partner/partner-program/partnerpage/MikroElektronika.html</a></p><p>To me, the board looks unsuspicious - maybe the 6.8n series inductor isn't perfect... I could add 3.9pF to GND to match the network shown in the X-NUCLEO-GNSS1A1 docs. Or remove it at all.</p><p> </p><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/><blockquote><hr/><user-mention data-id=\"79411\">@bofh</user-mention> wrote:</blockquote><blockquote><p>Or a possible misconfiguration of the LIV4F I could fix?</p><hr/></blockquote><p>You'd need to show your code to know that.</p></blockquote><p>no code by me, I'm using the LIV4F with <em>factory settings</em>.</p></div>",
+                    "author": "bofh",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What voltage are you providing to the board? LIV4F needs 3V3.</p>\n<p>I would start with an active antenna and make sure the gain is less than 36 dB.</p>\n<blockquote>From Datasheet<br/>\n<blockquote>\n<blockquote><hr/></blockquote>\n</blockquote>\n<p>Teseo-LIV4F has built-in LNA and SAW. It is recommended to use an active antenna with gain less than 36 dB <br/>and the noise figure less than 1.5 dB</p>\n<hr/></blockquote>\n<p> </p></div>",
+                    "author": "GalaxyQuest",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>We don't normally support the Mikroe boards. However, I took a quick look at them on their web site. The GNSS 9 has an antenna power supply connected to the AON pin. If a passive antenna is being used, power should not be supplied to that pin or it will reduce performance.</p><p>The Max 2 board looks like it does not have an antenna power supply, which, to me, means it is designed for a passive antenna.</p><p>I recommend contacting Mikroe and asking their recommendations for using the GNSS 9 board with a passive antenna.</p></div>",
+                    "author": "GNSS-LeaT",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For my passive antenna test, I am using the EVB-LIV4F which is an ST Eval board, schematics are found here <a href=\"https://www.st.com/resource/en/schematic_pack/evb-liv4f_schematics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">EVB LIV4F Schematics</a> </p>\n<p>Also looking at Mikroe GNSS9 board the RF line is powered, therefore, can you please remove R3 - 10 ohm to isolate the DC offset on RF_IN line and retest with passive antenna</p></div>",
+                    "author": "GalaxyQuest",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"66503\">@GalaxyQuest</user-mention> wrote:<br/><p>Also looking at Mikroe GNSS9 board the RF line is powered, therefore, can you please remove R3 - 10 ohm to isolate the DC offset on RF_IN line and retest with passive antenna</p><hr/></blockquote><p>R3 likely doesn't harm as stated above, but if there is really the 56pF capacitor C8, this would dampen the signal quite much. I'll remove it and report back.</p><p> </p></div>",
+                    "author": "bofh",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Glad you were able to resolve this.</p></div>",
+                    "author": "GalaxyQuest",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GalaxyQuest",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "GNSS-LeaT",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "GalaxyQuest",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "GalaxyQuest",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

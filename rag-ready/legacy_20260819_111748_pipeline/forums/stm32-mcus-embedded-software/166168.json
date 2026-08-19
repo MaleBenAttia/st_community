@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "166154",
+            "publicId": "166168",
+            "title": "STM32N6 initializing JPEG causes HardFault",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-initializing-jpeg-causes-hardfault-166168",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeMX",
+                "JPEG",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-06-15T09:45:16+00:00",
+            "views": 56,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Okay, so I essentially fixed the initialization issue.\n\n**The Problem**\n\nIn my case, I added the JPEG code to an existing application that made use of the NPU via. generated files from STM32Cube AI Studio. To make use of that generated code, I had to expand my linker script with the provided one by the AI Studio; so I basically expanded my MEMORY region, to match that of the generated .ld file:\n\n```\n\n/* Memories definition */\n\nMEMORY\n\n{\n\nRAM (xrw)\t: ORIGIN = 0x34000000, LENGTH = 0x100000\n\nAXISRAM3_4_5_6 (xrw)\t: ORIGIN = 0x34270000, LENGTH = 0x0\n\nROM (xrw)\t: ORIGIN = 0x70100400, LENGTH = 0x6ffc00\n\nEXTFLASH (rx)\t: ORIGIN = 0x70180000, LENGTH = 0x7e80000\n\n}\n\n/* Sections */\n\nSECTIONS\n\n{\n\n/* Add Memory Area for AXIFLEXMEM */\n\n.AI_AXIFLEXMEM (NOLOAD):\n\n{\n\n. = ALIGN(4);\n\nKEEP(*(.AI_AXIFLEXMEM))\n\n. = ALIGN(4);\n\n} >RAM\n\n/* Add Memory Area for AXISRAM1 */\n\n.AI_AXISRAM1 (NOLOAD):\n\n{\n\n. = ALIGN(4);\n\nKEEP(*(.AI_AXISRAM1))\n\n. = ALIGN(4);\n\n} >RAM\n\n/* Add Memory Area for xSPI2 */\n\n.AI_XSPI2 :\n\n{\n\n. = ALIGN(4);\n\nKEEP(*(.AI_XSPI2))\n\n. = ALIGN(4);\n\n} >EXTFLASH\n\n/* Add Memory Area for EXTFLASH */\n\n.AI_EXTFLASH :\n\n{\n\n. = ALIGN(4);\n\nKEEP(*(.AI_EXTFLASH))\n\n. = ALIGN(4);\n\n} >EXTFLASH\n\n/* ... the rest of the ld file ... */\n\n```\n\n**The Fix**\n\nI didn’t see that the generated .ld file also increased the \\_Min\\_Heap\\_Size and \\_Min\\_Stack\\_Size, so I additionally updated those:\n\n```\n\n_Min_Heap_Size = 2048; /* required amount of heap */\n\n_Min_Stack_Size = 8192; /* required amount of stack */\n\n```",
+            "best_answer_author": "rphii",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi everyone\n\nI have a bit trouble initializing the JPEG peripheral on the N6. See the stack trace:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d3374715-19f9-4efa-a896-ca058b6f5062.png)\n\nI feel like this has something to do with the RIF? I don’t know, this chip is very new to me. If anyone can help me, it’d be greatly appreciated.\n\nBest regards",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d3374715-19f9-4efa-a896-ca058b6f5062.png"
+            ],
+            "author": "rphii",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107305\">@rphii</user-mention> </p><p>Please refer to the article below to debug your Hardfault. </p><p><a href=\"https://community.st.com/stm32-mcus-60/how-to-debug-a-hardfault-on-an-arm-cortex-m-stm32-132895?tid=132895&amp;fid=60\" rel=\"noopener noreferrer\" target=\"_self\">How to debug a HardFault on an Arm® Cortex®-M STM32 | Community</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1684\">@Saket_Om</user-mention> </p><p> </p><p>Thanks for the suggestion, I will look into that. In the meantime, I tried to use the example ‘JPEG_EncodingFromOSPI_DMA’ and that also HardFaults at the same location… </p><p> </p><p>=&gt; Which is because of my linker script, lol</p></div>",
+                    "author": "rphii",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, so I essentially fixed the initialization issue.</p><p> </p><p><strong>The Problem</strong></p><p>In my case, I added the JPEG code to an existing application that made use of the NPU via. generated files from STM32Cube AI Studio. To make use of that generated code, I had to expand my linker script with the provided one by the AI Studio; so I basically expanded my MEMORY region, to match that of the generated .ld file:</p><pre><code class=\"language-c\"><br/>/* Memories definition */<br/>MEMORY<br/>{<br/>\tRAM (xrw)\t: ORIGIN = 0x34000000, LENGTH = 0x100000<br/>\tAXISRAM3_4_5_6 (xrw)\t: ORIGIN = 0x34270000, LENGTH = 0x0<br/>\tROM (xrw)\t: ORIGIN = 0x70100400, LENGTH = 0x6ffc00<br/>\tEXTFLASH (rx)\t: ORIGIN = 0x70180000, LENGTH = 0x7e80000<br/>}<br/><br/>/* Sections */<br/>SECTIONS<br/>{<br/><br/>\t/* Add Memory Area for AXIFLEXMEM */<br/>\t.AI_AXIFLEXMEM (NOLOAD):<br/>\t{<br/>\t    . = ALIGN(4);<br/>\t    KEEP(*(.AI_AXIFLEXMEM))<br/>\t    . = ALIGN(4);<br/>\t} &gt;RAM<br/>\t/* Add Memory Area for AXISRAM1 */<br/>\t.AI_AXISRAM1 (NOLOAD):<br/>\t{<br/>\t    . = ALIGN(4);<br/>\t    KEEP(*(.AI_AXISRAM1))<br/>\t    . = ALIGN(4);<br/>\t} &gt;RAM<br/>\t/* Add Memory Area for xSPI2 */<br/>\t.AI_XSPI2 :<br/>\t{<br/>\t    . = ALIGN(4);<br/>\t    KEEP(*(.AI_XSPI2))<br/>\t    . = ALIGN(4);<br/>\t} &gt;EXTFLASH<br/>\t/* Add Memory Area for EXTFLASH */<br/>\t.AI_EXTFLASH :<br/>\t{<br/>\t    . = ALIGN(4);<br/>\t    KEEP(*(.AI_EXTFLASH))<br/>\t    . = ALIGN(4);<br/>\t} &gt;EXTFLASH<br/><br/>\t/* ... the rest of the ld file ... */</code></pre><p><strong>The Fix</strong></p><p>I didn’t see that the generated .ld file also increased the _Min_Heap_Size and _Min_Stack_Size, so I additionally updated those:</p><pre><code class=\"language-c\">_Min_Heap_Size = 2048; /* required amount of heap */<br/>_Min_Stack_Size = 8192; /* required amount of stack */</code></pre><p> </p></div>",
+                    "author": "rphii",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

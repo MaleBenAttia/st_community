@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164180",
+            "publicId": "164180",
+            "title": "aci_hal_write_config_data() usage",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/aci-hal-write-config-data-usage-164180",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Flash",
+                "STM32WB series",
+                "STM32WB0 series"
+            ],
+            "published_at": "2026-03-25T23:41:32+00:00",
+            "views": 281,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "This issue is solved by:\n\n- Use public address\n\n- Write my MAC to 0x00 every time at boot up",
+            "best_answer_author": "xufl",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello,\n\nI use STM32WB05KZ. Could you give me an example about how to store configuration data to NVM by aci\\_hal\\_write\\_config\\_data() function?\n\n- When I tried to store to 0x00 (I used static randow MAC address), it returns 0 but the data is lost when the chip is rebooted;\n\n- When I save to any other address (such as, 0x40), it always returns to 0x12.\n\nThanks a lot.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c9167089-e43c-0671-40b5-a3d48a85e33e.png"
+            ],
+            "author": "xufl",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"102644\">@xufl</user-mention> </p>\n<p>Use offset<span> 0x2E </span>and a 6-byte address for storing a static random MAC address with<span> aci_hal_write_config_data().</span></p>\n<p>Ensure you handle the NVM cache as required by the BLE stack for data retention.</p>\n<p>Refer to the <a href=\"https://www.st.com/resource/en/programming_manual/pm0271-guidelines-for-bluetooth-le-stack-programming-on-stm32wbstm32wba-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">PM0271</a> and <a href=\"https://www.st.com/resource/en/application_note/an6142-introduction-to-the-stm32wb0-bluetooth-le-wireless-interface-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AN6142</a> in section \"<em>2.3.11 aci_hal_write_config_data\" </em>for valid offsets and command usage.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-26 133138.png\" style=\"width: 999px;\"><img alt=\"Screenshot 2026-03-26 133138.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c9167089-e43c-0671-40b5-a3d48a85e33e.png\" title=\"Screenshot 2026-03-26 133138.png\"/></span></p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Imen.D,</p><p>Thanks for the reply. When I write to 0x2E, it returns 0x12.</p><p>I notice \"<span>This command shall not be called if a command different than Stack Init, HCI_RESET, ACI_HAL_WRITE_CONFIG_DATA, ro ACI_HAL_READ_CONFIG_DATA has already been called\", so what is the formal solution to import our own MAC address (I am sure I used legal MAC address)?</span></p><p><span>For example, we run p2pService example but with our own MAC address. How to implement it?</span></p><p><span>Best Regards.</span></p></div>",
+                    "author": "xufl",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This issue is solved by:</p><p>- Use public address</p><p>- Write my MAC to 0x00 every time at boot up</p><p> </p></div>",
+                    "author": "xufl",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

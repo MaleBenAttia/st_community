@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "165460",
+            "publicId": "165460",
+            "title": "Ethernet Bring-up Issue – NX_UDP_Echo_Server on STM32N6570-DK",
+            "url": "https://community.st.com/stm32-mcus-products-25/ethernet-bring-up-issue-nx-udp-echo-server-on-stm32n6570-dk-165460",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Ethernet",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-05-07T05:01:53+00:00",
+            "views": 149,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nPerhaps the Ethernet pin setup is not properly configured or your Ethernet interrupt is not configured, hence why the RX path seems silent.\n\nYou could try having a look at [this ioc file](https://mongoose.ws/wizard/#/output?board=n6570-dk&ide=CubeIDE&rtos=baremetal&file=n6570-dk.ioc) and comparing it with your current one. It's part of an Ethernet Cube example for N6570-DK using the [Mongoose networking library](https://github.com/cesanta/mongoose).\n\nYou could also download and run this project (to check everything is alright with your hardware) by going to the Settings tab in the URL mentioned before, selecting a directory and clicking the blue 'Generate C/C++ Code' in the upper-right corner. Then, open it with Cube, build the firmware and flash, you should then see the logs on the serial, confirming it got the IP via DHCP.\n\nHope this helps you!",
+            "best_answer_author": "MStackDev_376",
+            "best_answer_author_role": "Graduate",
+            "content_text": "Dear ST Support Team,\n\nThank you for your suggestion to refer to the NX\\_UDP\\_Echo\\_Server example and compare configurations.\n\nI have tried to follow your recommendation, but I am still facing issues with Ethernet bring-up. Please find my observations and current status below.\n\n---\n\n**1. Current Status (My Application Logs)**\n\n* ETH HAL initialization is successful\n\n* PHY link is coming UP\n\n* However, it is negotiating only at **10 Mbps (Full Duplex)** instead of 100 Mbps\n\n* MAC is configured accordingly (10M Full)\n\n* Transmission is working (ARP packets are being sent successfully)\n\n* **Reception is not working at all**\n\nKey observations from logs:\n\n* ARP requests are transmitted:\n\n+ \"ETH Tx OK len=42\"\n\n* But:\n\n+ No RX frames received\n\n+ RX descriptors remain unused (OWN bit = 0)\n\n+ Frames processed = 0\n\n* Ping from PC is failing (Destination unreachable / timeout)\n\n---\n\n**2. Ping Result**\n\nPC Configuration:\n\n* IP: 10.0.0.100\n\n* Subnet: 255.255.255.0\n\nResult:\n\n* No successful ping response\n\n* Board keeps sending ARP requests but does not receive any response\n\n---\n\n**3. NX\\_UDP\\_Echo\\_Server Example Issue**\n\nI tried to use the NX\\_UDP\\_Echo\\_Server example as suggested, but I am facing the following challenges:\n\n* The example does not contain complete project structure:\n\n+ No FSBL / Application split\n\n+ Unable to directly build and flash on my board\n\n* The example mainly includes:\n\n+ Peripheral initialization (Ethernet init)\n\n+ But **no clear IP configuration / MAC handling / UDP logic visible**\n\nDue to this:\n\n* I am unable to use it effectively as a reference\n\n* I cannot directly run or debug the example on my hardware\n\n---\n\n**4. Request for Support**\n\nI am currently stuck at Ethernet bring-up stage. I kindly request your support on the following:\n\n1. Could you please share a **complete working Ethernet example project** (buildable & flashable) for STM32N6570-DK?\n\n* Including proper initialization\n\n* PHY + MAC configuration\n\n* IP setup\n\n* Basic ping or UDP working demo\n\n2. Based on my logs:\n\nCould you guide:\n\n* PHY link is UP\n\n* TX is working\n\n* RX is not working\n\n* What could cause RX path to completely fail?\n\n* Why RX descriptors are not being updated (OWN bit remains 0)?\n\n3. Also, PHY is falling back to **10 Mbps**:\n\n* Could this be due to RGMII delay configuration or clock issue?\n\n* Any recommended configuration for this board?\n\n---\n\nI have already verified:\n\n* DMA descriptor placement (non-cacheable region)\n\n* PHY address\n\n* Basic initialization flow\n\nBut still unable to receive any Ethernet frames.\n\n---\n\nKindly help me with a working reference or specific guidance to resolve this issue.\n\nThank you for your support.\n\nBest regards,\n\nSelvarasu K",
+            "images": [],
+            "author": "Selvarasu_K",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Perhaps the Ethernet pin setup is not properly configured or your Ethernet interrupt is not configured, hence why the RX path seems silent.</p><p>You could try having a look at <a href=\"https://mongoose.ws/wizard/#/output?board=n6570-dk&amp;ide=CubeIDE&amp;rtos=baremetal&amp;file=n6570-dk.ioc\" rel=\"nofollow noopener noreferrer\" target=\"_self\">this ioc file</a> and comparing it with your current one. It's part of an Ethernet Cube example for N6570-DK using the <a href=\"https://github.com/cesanta/mongoose\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Mongoose networking library</a>.</p><p>You could also download and run this project (to check everything is alright with your hardware) by going to the Settings tab in the URL mentioned before, selecting a directory and clicking the blue 'Generate C/C++ Code' in the upper-right corner. Then, open it with Cube, build the firmware and flash, you should then see the logs on the serial, confirming it got the IP via DHCP.</p><p>Hope this helps you!</p></div>",
+                    "author": "MStackDev_376",
+                    "role": "Graduate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

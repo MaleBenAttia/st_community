@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "164621",
+            "publicId": "164621",
+            "title": "ST67W6X Network Driver porting to another processor",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/st67w6x-network-driver-porting-to-another-processor-164621",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "ST67W series"
+            ],
+            "published_at": "2026-04-10T03:00:42+00:00",
+            "views": 261,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The attached project works well on the F746 Nucleo board. In general, it is still a simple SPI protocol, advanced DMA is not needed. It even works without DMA, if the processor is free to manage the transfers.\n\nCan you point out the some of the messages / sites which show the issues which you mentioned?\n\n\"\n\nSearching the internet shows other developers noticing dropped data on other processors. There are also reports that the following requirements must be met:\n\n* Respond within ~30us of SPI\\_RDY going high\n\n* No breaks of more than ~2-3us in the DMA while streaming the SPI data.\n\n\"",
+            "best_answer_author": "EPASZ.1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "We have successfully tested the  [ST67W6X Network Driver](https://github.com/STMicroelectronics/x-cube-st67w61/tree/main/Middlewares/ST/ST67W6X_Network_Driver) CLI example on a NUCLEO-U575ZI-Q with X-NUCLEO-67W61M1 development boards.\n\nWe would like to port the example to an STM32F746.\n\nHowever, this is not simple due to the tight timing constraints required by the ST67W6x - e.g. the examples utilise the advanced SPI DMA available in the STM32U5xx family.\n\nSearching the internet shows other developers noticing dropped data on other processors. There are also reports that the following requirements must be met:\n\n* Respond within ~30us of SPI\\_RDY going high\n\n* No breaks of more than ~2-3us in the DMA while streaming the SPI data.\n\nDo you have an example port for the STM32F746? Or at least on a processor with similar limited DMA capabilities?",
+            "images": [],
+            "author": "ChrisAlfred",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The attached project works well on the F746 Nucleo board. In general, it is still a simple SPI protocol, advanced DMA is not needed. It even works without DMA, if the processor is free to manage the transfers.</p><p>Can you point out the some of the messages / sites which show the issues which you mentioned?</p><p>\"</p><p>Searching the internet shows other developers noticing dropped data on other processors. There are also reports that the following requirements must be met:</p><ul><li>Respond within ~30us of SPI_RDY going high</li><li>No breaks of more than ~2-3us in the DMA while streaming the SPI data.</li></ul><p>\"</p></div>",
+                    "author": "EPASZ.1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am trying to port this to the STM32F746G-DISCO. To do this, I had to redefine the pins in CubeMX and add X-CUBE-ST67W61.</p><p>When I compile in CubeIDE, <span>__get_IPSR() is undefined. I notice in your example the check for tskKERNEL_VERSION_MAJOR is missing.</span></p><p><span>There are 3 sections like below in spi_iface.c:</span></p><p> </p><div><div><p><span>#if ((tskKERNEL_VERSION_MAJOR &gt; 10) || ((tskKERNEL_VERSION_MAJOR == 10) &amp;&amp; (tskKERNEL_VERSION_MINOR &gt;= 6)))</span></p><p><span>if</span><span> (xPortIsInsideInterrupt())</span></p><p><span>#else</span></p><p><span>if (__get_IPSR() != 0U)</span></p><p><span>#</span><span>endif</span><span> /* tskKERNEL_VERSION_MAJOR */</span></p><p> </p></div></div></div>",
+                    "author": "ChrisAlfred",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For those of you trying to get this going on the STM32F746G-DISCO with X-NUCLEO-67W61M1:</p><ul><li>Disconnect Ext32k_U5 signal on X-NUCLEO-67W61M1 by unshorting SB56</li><li>Put the attached <strong>F746_disco.ioc</strong> in an empty directory</li><li>Open the attached <strong>F746_disco.ioc</strong> in CubeMX and click <strong>GENERATE_CODE</strong></li><li><p>Import the generated code into CubeIDE</p></li></ul><p>Unfortunately, the code needs to be modified to compile.</p><p><strong>appli/App/app_config.h</strong></p><ul><li><span>Change </span><strong>WIFI_SSID</strong></li><li><span>Change </span><strong>WIFI_PASSWORD</strong></li></ul><div><div><strong>Core/Src/main.c</strong></div></div><pre class=\"lia-code-sample language-c\"><code> /* USER CODE BEGIN 2 */\n MX_SPI2_Init();\n MX_USART6_UART_Init();\n /* USER CODE END 2 */</code></pre><div><div><div><span><span> </span></span><div><div><span>Fix compilation missing </span><strong>if (__get_IPSR() != 0U) in </strong><span><strong>MiddleWares/ST/ST67W6X_Netowrk_Driver/Driver/W61_bus/spi_iface.c</strong></span><span>, change 3 instances:</span></div></div></div></div></div><pre class=\"lia-code-sample language-c\"><code>//#if ((tskKERNEL_VERSION_MAJOR &gt; 10) || ((tskKERNEL_VERSION_MAJOR == 10) &amp;&amp; (tskKERNEL_VERSION_MINOR &gt;= 6)))\n if (xPortIsInsideInterrupt())\n//#else\n// if (__get_IPSR() != 0U)\n//#endif /* tskKERNEL_VERSION_MAJOR */</code></pre><div> Now the project should compile, build and run on Disco board.</div><div>The serial output is sent on USART6_TX (Pin 2 of CN4).</div></div>",
+                    "author": "ChrisAlfred",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "EPASZ.1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

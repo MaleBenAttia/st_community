@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "165748",
+            "publicId": "165748",
+            "title": "Reset_Handler NFC07A1",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/reset-handler-nfc07a1-165748",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 Dynamic NFC Tags – ST25DV series"
+            ],
+            "published_at": "2026-05-16T15:05:12+00:00",
+            "views": 149,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nmake sure to follow the User Manual [**UM2960**](https://www.st.com/resource/en/user_manual/um2960-getting-started-with-the-xnucleonfc07a1-nfcrfid-tag-ic-expansion-board-based-on-st25dv64kc-for-stm32-nucleo-stmicroelectronics.pdf)Getting started with the X-NUCLEO-NFC07A1 NFC/RFID tag IC expansion board based on ST25DV64KC for STM32 Nucleo. In particular:\n\n* Check that the jumper on the X-NUCLEO-NFC07A1 ST1 connector is in place (between the middle pin and the 3V3 pin if providing power from the nucleo board). This jumper provides the required voltage to the device on the board;\n\n* Check that the X-NUCLEO-NFC07A1 is properly connected on top of the STM32 Nucleo.\n\nRgds\n\nBT",
+            "best_answer_author": "Brian TIDAL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone! I'm working with the NFC07A1 board associated with the Nucleo L053R8, with the intention of being able to perform ADC readings. I configured everything(ADC, pin, NFC07A1, etc.) on CubeMx, and then, opened the generated file on CubeIde. After writing the code for reading the ADC in the main file, i tried to run it, but even though there were no errors in the code, the  \"startup\\_stm32l053r8tx.s\" tab opens by pointing to line 51 (as well as Reset\\_Handler: ldr r0, =\\_estack). Consequently, the values acquired via the ADC are not printed on the screen, but the only thing printed on the sreen is \"welcome to x-cube-nfc7 example\". Could you help me solve the problem?",
+            "images": [],
+            "author": "CART",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>as <span>\"welcome to x-cube-nfc7 example\" is displayed on the serial console, it is likely that the code runs properly up to  MX_NFC7_Init() in main(). I guess you code is in /* USER CODE BEGIN 2 */. I suggest to set a breakpoint in the very first line of your code after MX_NFC7_Init() and to step in until you see the crash. Likely a printf or a null pointer issue.</span></p>\n<p>Rgds</p>\n<p>BT</p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm leaving the code attached. In the Nucleo L053R8, led1 and led3 remain solid red, while in the NFC07A1, led1,led2 and led3 light up correctly</p></div>",
+                    "author": "CART",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>have you tried to debug step by step your code?</p>\n<p>Also some suggestions: I would first display the raw 12 bits value of the ADC as unsigned integer before trying to convert to floats and before trying to use sprintf with %f and before trying to use floats on an embedded system. Note that you can use printf as io_putchar is redirected to HAL_UART_Transmit in <span> stm32l0xx_nucleo.c. Check also the stack size.</span></p>\n<p> </p>\n<p><span>Rgds</span></p>\n<p><span>BT</span></p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the advice! I tried debugging step by step, and when i got to the MX_NFC7_Init(); line, everything froze. I then ran the Step into command, and the app_nfc7.c file opened. Here, i noticed that the code stopped working when it encountered the while (NFC07A1_NFCTAG_Init(NFC07A1_NFCTAG_INSTANCE)!=NFCTAG_OK); line. What's the problem? How can i solve it?</p></div>",
+                    "author": "CART",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>make sure to follow the User Manual <a href=\"https://www.st.com/resource/en/user_manual/um2960-getting-started-with-the-xnucleonfc07a1-nfcrfid-tag-ic-expansion-board-based-on-st25dv64kc-for-stm32-nucleo-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\"><strong><span class=\"st-font--bold st-margin--all-r-1 st-title\" data-translation-app-exclude=\"\">UM2960 </span></strong></a><span class=\"st-margin--all-r-1 st-desc\">Getting started with the X-NUCLEO-NFC07A1 NFC/RFID tag IC expansion board based on ST25DV64KC for STM32 Nucleo. In particular:</span></p>\n<ul>\n<li><span class=\"st-margin--all-r-1 st-desc\">Check that the jumper on the X-NUCLEO-NFC07A1 ST1 connector is in place (between the middle pin and the 3V3 pin if providing power from the nucleo board). This jumper provides the required voltage to the device on the board;</span></li>\n<li><span class=\"st-margin--all-r-1 st-desc\">Check that the X-NUCLEO-NFC07A1 is properly connected on top of the STM32 Nucleo.</span></li>\n</ul>\n<p>Rgds</p>\n<p>BT</p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

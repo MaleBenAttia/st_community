@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "166054",
+            "publicId": "166067",
+            "title": "How to configure ADC in dual mode with STM32CubeMx2?",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/how-to-configure-adc-in-dual-mode-with-stm32cubemx2-166067",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "ADC",
+                "HAL2"
+            ],
+            "published_at": "2026-06-11T08:21:44+00:00",
+            "views": 98,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello Michaela,\n\nADC multimode (dual mode) is supported by STM32CubeMX2 HAL drivers, but not yet by UI interface.\n\nIt will be available in release 2.2.0.\n\nIn the meantime, you can use multimode with:\n\n1. In UI, configure both ADC instances targeted for multimode (typically, ADC1 and ADC2).\n\nIt will generate configuration code (mx\\_adc1\\_init(), mx\\_adc2\\_init()).\n\n2. In your application code, add multimode configuration:\n\n```\n\nhal_adc_handle_t *p_hadc_multimode_master = mx_adc1_gethandle(); // or mx_adc1_init() if not already called\n\nhal_adc_handle_t *p_hadc_multimode_slave = mx_adc2_gethandle(); // or mx_adc2_init() if not already called\n\n/* Link ADC handles */\n\nif (HAL_ADC_SetLinkNextHandle(p_hadc_multimode_master, p_hadc_multimode_slave) != HAL_OK)\n\n{\n\nreturn EXEC_STATUS_ERROR;\n\n}\n\n/* Multimode: configured by ADC master only */\n\nadc_mm_config.mode = HAL_ADC_MM_DUAL_REG_INTERL;\n\nadc_mm_config.reg_data_format = HAL_ADC_MM_REG_DATA_PACK_32_BITS;\n\nadc_mm_config.reg_data_transfer_packing = HAL_ADC_MM_REG_DATA_TRANSFER_UNPACK;\n\nadc_mm_config.interl_delay = HAL_ADC_MM_INTERL_DELAY_12CYCLES;\n\nif (HAL_ADC_MM_SetConfig(p_hadc_multimode_master, &adc_mm_config) != HAL_OK)\n\n{\n\nreturn EXEC_STATUS_ERROR;\n\n}\n\n```\n\n3. Continue with process code:\n\nHAL\\_ADC\\_MM\\_Start(p\\_hadc\\_multimode\\_master);\n\nHAL\\_ADC\\_MM\\_Calibrate(p\\_hadc\\_multimode\\_master);\n\nHAL\\_ADC\\_MM\\_REG\\_StartConv\\_DMA(...)\n\nAdditionally, you can find an example of ADC multimode:\n\nFrom <https://dev.st.com/stm32-example-library>, search \"multimode\\_simultaneous\\_dma\\_multi\\_buffers\":\n\n<https://github.com/STMicroelectronics/STM32CubeC5/tree/main/examples/hal/adc/multimode_simultaneous_dma_multi_buffers>\n\nBest regards\n\nPhilippe",
+            "best_answer_author": "Philippe Cherbonnel",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I have read the migration guide ([Typical HAL ADC use cases for migration - HAL2 Migrator 1.0.0 documentation](https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/docs/markup/drivers_documentation/hal_drivers/adc/hal_adc_use_cases.html#adc-conversion-in-multi-mode-dma)) as well as the article [How to use ADC with STM32CubeMX2 | Community](https://community.st.com/stm32-mcus-60/how-to-use-adc-with-stm32cubemx2-161914)\n\nIn the HAL2 code, I found functions such as HAL\\_ADC\\_MM\\_SetConfig(), which suggests that ADC multimode/dual mode is supported by the HAL.\n\nHowever, when using STM32CubeMX2 (not STM32CubeMX), I cannot find any option to configure ADC dual mode (e.g., ADC1 + ADC2).\n\nMy question is:\n\n**How can ADC dual mode be configured in STM32CubeMX2?**\n\nIf ADC dual mode configuration is currently not supported by STM32CubeMX2, a short confirmation would be appreciated.\n\nThanks in advance for your help.",
+            "images": [],
+            "author": "michaela",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Michaela,<br/>ADC multimode (dual mode) is supported by STM32CubeMX2 HAL drivers, but not yet by UI interface.<br/>It will be available in release 2.2.0.<br/>In the meantime, you can use multimode with:</p><p><br/>1. In UI, configure both ADC instances targeted for multimode (typically, ADC1 and ADC2).<br/>   It will generate configuration code (mx_adc1_init(), mx_adc2_init()).</p><p><br/>2. In your application code, add multimode configuration:</p><pre><code class=\"language-c\">  hal_adc_handle_t *p_hadc_multimode_master = mx_adc1_gethandle(); // or mx_adc1_init() if not already called<br/>  hal_adc_handle_t *p_hadc_multimode_slave = mx_adc2_gethandle(); // or mx_adc2_init() if not already called<br/><br/>  /* Link ADC handles */<br/>  if (HAL_ADC_SetLinkNextHandle(p_hadc_multimode_master, p_hadc_multimode_slave) != HAL_OK)<br/>  {<br/>    return EXEC_STATUS_ERROR;<br/>  }<br/><br/>  /* Multimode: configured by ADC master only */<br/>  adc_mm_config.mode = HAL_ADC_MM_DUAL_REG_INTERL;<br/>  adc_mm_config.reg_data_format = HAL_ADC_MM_REG_DATA_PACK_32_BITS;<br/>  adc_mm_config.reg_data_transfer_packing = HAL_ADC_MM_REG_DATA_TRANSFER_UNPACK;<br/>  adc_mm_config.interl_delay = HAL_ADC_MM_INTERL_DELAY_12CYCLES;<br/><br/>  if (HAL_ADC_MM_SetConfig(p_hadc_multimode_master, &amp;adc_mm_config) != HAL_OK)<br/>  {<br/>    return EXEC_STATUS_ERROR;<br/>  }</code></pre><p> </p><p>3. Continue with process code:<br/>HAL_ADC_MM_Start(p_hadc_multimode_master);<br/>HAL_ADC_MM_Calibrate(p_hadc_multimode_master);<br/>HAL_ADC_MM_REG_StartConv_DMA(...)</p><p><br/>Additionally, you can find an example of ADC multimode:<br/>From <a href=\"https://dev.st.com/stm32-example-library\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://dev.st.com/stm32-example-library</a>, search \"multimode_simultaneous_dma_multi_buffers\":</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeC5/tree/main/examples/hal/adc/multimode_simultaneous_dma_multi_buffers\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeC5/tree/main/examples/hal/adc/multimode_simultaneous_dma_multi_buffers</a></p><p> </p><p>Best regards<br/>Philippe</p></div>",
+                    "author": "Philippe Cherbonnel",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Philippe Cherbonnel",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

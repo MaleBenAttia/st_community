@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "165976",
+            "publicId": "165988",
+            "title": "STM32MP135F-DK: RTC resets to 2024 after reboot beyond Y2038 on OpenSTLinux (Scarthgap)",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/stm32mp135f-dk-rtc-resets-to-2024-after-reboot-beyond-y2038-on-openstlinux-scarthgap-165988",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "OpenSTLinux",
+                "STM32MP13 lines"
+            ],
+            "published_at": "2026-06-10T00:02:52+00:00",
+            "views": 82,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nAbout Y2038 issue, user space is not yet ready in the community.\n\nHere are some advise = <https://wiki.st.com/stm32mpu/wiki/How_to_prevent_the_year_2038_bug>",
+            "best_answer_author": "Bernard PUEL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am working with the STM32MP135F-DK board and built an SD card image using Yocto Scarthgap (openstlinux-6.6-yocto-scarthgap-mpu-v24.11.06).\n\nThe image boots successfully. To prevent the Year 2038 (Y2038) problem, I confirmed that require conf/distro/include/time64.inc is already included and processed in the distro configuration.\n\nTo test Y2038 compliance, I manually set the system time to the year 2040.\n\nThe time was set successfully, and verifying it via the date command showed the correct time (2040).\n\nChecking the RTC using hwclock --show --verbose also returned the correct time in 2040.\n\nNTP is explicitly disabled via timedatectl set-ntp false, so network time synchronization is not causing any interference.\n\n**The Problem**:\n\nThe issue occurs upon a reboot. After the system reboots, the time rolls back to the year 2024.\n\n**My Analysis**:\n\nUpon looking into the Linux kernel source (drivers/rtc/class.c), it appears that the kernel clamps or prevents system time overflow. This seems to be a fallback mechanism to prevent userspace applications (like older 32-bit time\\_t systemd versions) from malfunctioning or crashing.\n\n**My Workaround**:\n\nAs a temporary fix, I created a custom systemd service that runs during the boot process to manually sync the RTC time to the system time. With this service enabled, the board successfully retains the year 2040 even after multiple reboots.\n\n**My Questions**:\n\nIs this manual systemd workaround an acceptable or recommended approach for handling Y2038 on OpenSTLinux?\n\nIs there an official, standard, or more robust way recommended by ST to handle the RTC restore properly beyond 2038 without this manual workaround?\n\nAny insights or recommendations would be greatly appreciated.\n\nThanks in advance!",
+            "images": [],
+            "author": "zoro",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>About Y2038 issue, user space is not yet ready in the community.</p><p>Here are some advise = <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_prevent_the_year_2038_bug\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_prevent_the_year_2038_bug</a> </p></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Bernard,</p><p>Thank you for your answer.</p><p>Since it is not officially supported yet, I think I will have to stick with my current workaround for now.</p><p>For your reference link, the solution in the link you shared has already been applied. As mentioned in my original post: <em>\"<strong>To prevent the Year 2038 (Y2038) problem, I confirmed that require conf/distro/include/time64.inc is already included and processed in the distro configuration.</strong>\"</em></p><p>Thanks again for your help!</p></div>",
+                    "author": "zoro",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

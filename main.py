@@ -265,9 +265,10 @@ def _refresh_metadata(existing_file: Path, existing: dict, fresh: dict) -> None:
 # Collecte paginée + filtre de date, jusqu'à obtenir N items valides
 # --------------------------------------------------------------------------
 
-def collect_items(category_id: str, token: str, target_count: int, label: str, force_rescrape: bool = False) -> dict:
+def collect_items(category_id: str, token: str, target_count: int, label: str, force_rescrape: bool = False, out_dir: Path = None) -> dict:
     """
     Parcourt les pages de /v2/topics pour une catégorie donnée, avec reprise sur erreur.
+    out_dir : dossier de sortie des forums (permet le mode "1 dossier par run").
     """
     headers = {"Authorization": f"Bearer {token}"}
     url = f"{API_BASE_URL}/topics"
@@ -347,8 +348,9 @@ def collect_items(category_id: str, token: str, target_count: int, label: str, f
             # force_rescrape=True -> tout re-scraper sans tenir compte de la reprise.
             if items_to_process:
                 from concurrent.futures import ThreadPoolExecutor
+                forums_out = out_dir or OUTPUT_FORUMS_DIR
                 def _fetch_replies(it):
-                    cat_dir = OUTPUT_FORUMS_DIR / slugify(it.get("categoryName", "unknown"))
+                    cat_dir = forums_out / slugify(it.get("categoryName", "unknown"))
                     public_id = it.get("publicId") or it.get("id") or ""
                     existing_file = cat_dir / f"{public_id}.json"
                     if not force_rescrape and existing_file.exists():
@@ -440,7 +442,7 @@ def save_items(items: list, output_folder: Path, label: str) -> None:
 # Extraction principale
 # --------------------------------------------------------------------------
 
-def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force_rescrape: bool = False) -> dict:
+def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force_rescrape: bool = False, run_id: str = None) -> dict:
     """
     Extrait les items de l'API pour les catégories ciblées.
 
@@ -451,10 +453,17 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force
                            Si None ou vide → utilise la liste complète KB_CATEGORIES.
         force_rescrape   : True → ré-extraction complète (tous les topics sont
                            re-scrapés, la reprise incrémentale est ignorée).
+        run_id           : identifiant du run → les fichiers sont écrits dans
+                           output/<run_id>/forums et output/<run_id>/knowledge_base
+                           (conserve chaque run séparément).
 
     Ce ciblage évite de paginer des catégories vides (0 items récents détectés au scan),
     ce qui réduit considérablement le temps d'exécution.
     """
+    run_dir = OUTPUT_DIR / run_id if run_id else OUTPUT_DIR
+    forums_dir = run_dir / "forums"
+    kb_dir = run_dir / "knowledge_base"
+    print(f"[EXTRACT] Dossier de sortie : {run_dir}")
     if force_rescrape:
         print("[EXTRACT] MODE FULL RE-SCRAPE : tous les topics seront re-scrapés (reprise ignorée).")
     # Sélection des catégories à traiter
@@ -483,7 +492,7 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force
     print(f"\n=== KNOWLEDGE BASE ({len(kb_cats)} catégories) ===")
     for cat_id in kb_cats:
         result = collect_items(cat_id, token, TARGET_COUNT, f"KB-{cat_id}")
-        save_items(result["items"], OUTPUT_KB_DIR, f"KB-{cat_id}")
+        save_items(result["items"], kb_dir, f"KB-{cat_id}")
         ids = [str(item.get("publicId") or item.get("id", "")) for item in result["items"]]
         extracted_ids["knowledge_base"][f"cat_{cat_id}"] = {"count": len(ids), "ids": ids}
         total_kb += len(result["items"])
@@ -492,8 +501,8 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force
     # --- Forums ---
     print(f"\n=== FORUMS ({len(forum_cats)} catégories) ===")
     for cat_id in forum_cats:
-        result = collect_items(cat_id, token, TARGET_COUNT, f"Forum-{cat_id}", force_rescrape=force_rescrape)
-        save_items(result["items"], OUTPUT_FORUMS_DIR, f"Forum-{cat_id}")
+        result = collect_items(cat_id, token, TARGET_COUNT, f"Forum-{cat_id}", force_rescrape=force_rescrape, out_dir=forums_dir)
+        save_items(result["items"], forums_dir, f"Forum-{cat_id}")
         ids = [str(item.get("publicId") or item.get("id", "")) for item in result["items"]]
         extracted_ids["forums"][f"cat_{cat_id}"] = {"count": len(ids), "ids": ids}
         total_forums += len(result["items"])
@@ -502,7 +511,7 @@ def run_extract(active_forum_ids: list = None, active_kb_ids: list = None, force
     print(f"\n[OK] Extraction terminée.")
     print(f"     Knowledge Base : {total_kb} items extraits")
     print(f"     Forums         : {total_forums} items extraits")
-    print(f"     Résultat dans  : {OUTPUT_DIR}")
+    print(f"     Résultat dans  : {run_dir}")
 
     end_time_dt = datetime.now()
     duration = (end_time_dt - start_time_dt).total_seconds()

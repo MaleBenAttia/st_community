@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "163552",
+            "publicId": "163552",
+            "title": "STM32F4DISCOVERY DAC PA4/PA5 not reaching true 0V (shows ~0.045–0.05V)",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32f4discovery-dac-pa4-pa5-not-reaching-true-0v-shows-0-045-0-05v-163552",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32F7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-03-07T07:51:33+00:00",
+            "views": 2736,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nthere is no \"issue\" , the DAC doing , what it should do; if you would read the ds, you could see:\n\n![Bildschirmfoto_2026-03-07_12-09-55.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fba5e8b5-7fbf-f105-d04d-77ea75c57ee5.png \"Bildschirmfoto_2026-03-07_12-09-55.png\")\n\nAnd this you see , when DAC data = 0 .\n\n> Is **~0.05 V at DAC output** a known/expected behavior for STM32F4 DAC or specifically on the STM32F4DISCOVERY board?\n\nAs you could see from ds : yes.\n\n> What is the best recommended method to guarantee a true 0 V level at the output for such a sensitive current-mapping circuit?\n\nMany ways possible , but the obvious and probably most time used way to go :\n\nyour (analog) circuit needs to add some offset , so the DAC output is a little bit shifted;\n\nmaybe this : add some negative offset in the voltage -> current amp, so a DAC value of 100 giving zero current.\n\nAnd same on top: a value for max.level is 4000 , not 4095 .\n\nSo you get a clean and predictable output from zero to max , with DAC values 100 to 4000.\n\nAnd can adjust the offset also , to compensate drift etc.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello ST Community,\n\nMy name is Gorakhnath. I am currently pursuing M.Tech (Power Electronics and Drives) at NIT Kurukshetra. I am using the STM32F4DISCOVERY (STM32F407VGT) board and I need stable DAC outputs for my hardware application.\n\n**What I need (requirement)**\n\nWhen the DAC command is **0 V**, I need the output to be as close as possible to **true 0.0000 V**, because my external circuit maps:\n\n* **0 V → 0 A**\n\n* **3 V → 50 A**\n\nEven a small voltage like **0.045–0.05 V** produces unwanted current (~0.5 A) in my system.\n\n---\n\n## Issue / Observation\n\nOn both DAC pins:\n\n* **PA4 (DAC\\_OUT1)**\n\n* **PA5 (DAC\\_OUT2)**\n\nI measure about:\n\n* **~0.05 V (sometimes ~0.045 V) when the command is 0 V**\n\nThis happens even when I am not sending any command from LabVIEW, or when I send **0,0**.\n\n---\n\n## What I tried (software checks)\n\n1. Set DAC values to 0 using HAL on both channels:\n\n* HAL\\_DAC\\_SetValue(..., 0) for DAC channel 1 and channel 2\n\n1. Forced PA4/PA5 to **GPIO output LOW** when command is 0 V:\n\n* Configured PA4/PA5 as GPIO\\_MODE\\_OUTPUT\\_PP and wrote RESET (hard clamp to 0 V)\n\n1. Startup sequence:\n\n* Start DAC at 0 first, then start USB CDC later (to avoid random outputs during USB init)\n\n1. USB CDC receive parsing:\n\n* Callback is connected correctly and I parse the command format from LabVIEW:\n\n**\"val1,val2\\n\"** (float values), with clamping\n\nEven after all of this, the output still does not reach 0.0000 V and I consistently see ~0.045–0.05 V.\n\n---\n\n## Questions to the community\n\n1. Is **~0.05 V at DAC output** a known/expected behavior for STM32F4 DAC or specifically on the STM32F4DISCOVERY board?\n\n2. Is there any **board-level hardware path** (resistor/capacitor/audio circuit/pull-up or peripheral connection) on **PA4 / PA5** that can cause a small offset or leakage at the header pin?\n\n3. What is the best recommended method to guarantee a true 0 V level at the output for such a sensitive current-mapping circuit?\n\n* External pull-down resistor recommendation (e.g., 10k / 4.7k / 1k)?\n\n* Analog switch / transistor clamp method to force 0 V?\n\n* Any specific STM32F4DISCOVERY resistor/jumper/0Ω link that should be removed to isolate DAC pins from other circuitry?\n\n---\n\n## Attachments / References\n\n* I will attach STM32F4DISCOVERY board photos (front/back, and close-up near PA4/PA5 routing)\n\n* I will attach my STM32CubeIDE project and source files\n\n* Code drive link:\n\n<https://drive.google.com/drive/folders/1sN8W17vqVO0C64_aHqKQm7wwjeYXnULn?usp=sharing>\n\nThank you for your time and support.\n\nKind regards,\n\nGorakhnath\n\nM.Tech (Power Electronics and Drives), NIT Kurukshetra\n\nEmail: [324104207@nitkkr.ac.in](mailto:324104207@nitkkr.ac.in)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fba5e8b5-7fbf-f105-d04d-77ea75c57ee5.png"
+            ],
+            "author": "GORAKHNATH",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>there is no \"issue\" , the DAC doing , what it should do; if you would read the ds, you could see:</p><div class=\"\"> </div><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bildschirmfoto_2026-03-07_12-09-55.png\" style=\"width: 999px;\"><img alt=\"Bildschirmfoto_2026-03-07_12-09-55.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fba5e8b5-7fbf-f105-d04d-77ea75c57ee5.png\" title=\"Bildschirmfoto_2026-03-07_12-09-55.png\"/></span></p><p>And this you see , when DAC data = 0 .</p><p>&gt; Is<span> </span><strong>~0.05 V at DAC output</strong><span> </span>a known/expected behavior for STM32F4 DAC or specifically on the STM32F4DISCOVERY board?</p><p>As you could see from ds : yes.</p><p>&gt; What is the best recommended method to guarantee a true 0 V level at the output for such a sensitive current-mapping circuit?</p><p>Many ways possible , but the obvious and probably most time used way to go :</p><p>your (analog) circuit needs to add some offset , so the DAC output is a little bit shifted;</p><p>maybe this : add some negative offset in the voltage -&gt; current amp, so a DAC value of 100 giving zero current.</p><p>And same on top: a value for max.level is 4000 , not 4095 .</p><p>So you get a clean and predictable output from zero to max , with DAC values 100 to 4000.</p><p>And can adjust the offset also , to compensate drift etc.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, AScha.3, for the clear explanation and for pointing me to the datasheet behavior. I understand now that ~0.05 V at DAC code 0 is expected, not a board fault. Your suggestion to use an offset (e.g., treat DAC code ~100 as “0 A”) and to limit the usable range (e.g., 100 to 4000) for a more predictable output is very helpful. I will implement this calibration in my voltage-to-current stage/mapping.</p><p>Kind regards,<br/>Gorakhnath</p></div>",
+                    "author": "GORAKHNATH",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>DAC is behaving normally if possible modify the other board and ignore the values below 0.1 V or<br/>add a PWM to voltage converter, here I am attaching the reference , adjust the gain to unity for stage 2 (simply replace 2.2k with 0R and remove 1k) <br/><br/>if you need add a small RC filter at the output and use VCC as 5V and choose opamp part number with rail to rail output</p><div class=\"\"> </div><div class=\"\"> </div><p> </p></div>",
+                    "author": "mayurharge",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you so much for sharing this circuit and explanation.<br/>Now I understand your point clearly: instead of fighting the STM32 DAC offset near 0V, I can generate a stable analog control voltage using PWM and then convert it to DC with an RC filter and buffer/amplifier stages.</p><p>Your schematic and the way you explained the RC filter + LM358 buffer + gain stage is very helpful for my case, because my current control circuit is very sensitive near 0V. I really appreciate your time and support.</p><p>Kind regards,<br/>Gorakhnath</p></div>",
+                    "author": "GORAKHNATH",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You have the Output Buffer enabled, so Yes the voltage is normal and can only be reduced by disabling the Output Buffer, but then You have to buffer the DAC output by yourself (DAC output impedance max. 15 kOhm!).</p></div>",
+                    "author": "MHoll.2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi MHoll.2, thank you for the guidance. I tried forcing PA4/PA5 to GPIO low and also used external pull-down resistors, but the output still stays around ~0.045–0.05 V at “0 V command”.</p><p>Before I change my hardware or try another STM32 board, could you please confirm: if I disable the DAC output buffer (DAC_OUTPUTBUFFER_DISABLE) and then add my own external buffer op-amp, will it realistically allow the output to reach much closer to true 0 V on STM32F407?</p><p>Thanks again,<br/>Gorakhnath</p></div>",
+                    "author": "GORAKHNATH",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

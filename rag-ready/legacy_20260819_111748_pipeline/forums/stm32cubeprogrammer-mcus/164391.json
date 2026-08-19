@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "164391",
+            "publicId": "164391",
+            "title": "STM32C562RE unable to unlock RDP2 with JLINK. Works fine with ST-Link.",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32c562re-unable-to-unlock-rdp2-with-jlink-works-fine-with-st-link-164391",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer"
+            ],
+            "published_at": "2026-04-01T15:18:24+00:00",
+            "views": 305,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello Robert,\n\nFollowing checks with the team, I can confirm that RDP regression via the Segger J-Link interface is currently not supported in STM32CubeProgrammer.\n\nAs stated in the user manual:\n\n```\n\n\"Only Flash and Option Bytes (OB) programming are supported via J-Link, other features are not supported\".\n\n```\n\nTo perform the RDP regression, you have two options:\n\n* Use an ST-LINK with STM32CubeProgrammer, as you already did, or\n\n* Use the Segger Device Provisioner.\n\nFor the Segger Device Provisioner, a complete step-by-step guide will be published in the STM32 MCUs Knowledge Base next week : <https://community.st.com/t5/stm32-mcus/tkb-p/stm32-mcus-knowledge-base>\n\nEDIT : detailed step-by-step guide for STM32C5 products and Segger J-Link: <https://community.st.com/t5/stm32-mcus/how-to-use-the-stm32c5-with-segger-j-link/ta-p/889854>",
+            "best_answer_author": "Maxime_BELAVAL",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Locking the controller (NUCLEO-C562RE - RDP level 2 with OEM key) works fine with J-Link / ST-Link (SWD). E.g.\n\n```\n\nstm32_Programmer_CLI.exe -c port=JLINK -lockRDP2 0x11111111 0x11111111 0x11111111 0x11111111 -ob RDP_level=0x72\n\n-------------------------------------------------------------------\n\nSTM32CubeProgrammer v2.22.0\n\n-------------------------------------------------------------------\n\nConnecting to J-Link/Flasher Probe\n\nDevice=Cortex-M33\n\nDevice ID : 0x44E\n\nVoltage : 3.29V\n\nFrequency : 4000 KHz\n\nNVM size : 512 KBytes\n\nLock RDP2 password successfully done\n\nUPLOADING OPTION BYTES DATA ...\n\nBank : 0x00\n\nAddress : 0x40022050\n\nSize : 112 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x01\n\nAddress : 0x40022098\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x02\n\nAddress : 0x40022070\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x03\n\nAddress : 0x40022080\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x04\n\nAddress : 0x400220e8\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x05\n\nAddress : 0x400221e8\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x06\n\nAddress : 0x40022090\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x07\n\nAddress : 0x400220f8\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nBank : 0x08\n\nAddress : 0x400221f8\n\nSize : 8 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nPROGRAMMING OPTION BYTES AREA ...\n\nBank : 0x00\n\nAddress : 0x40022050\n\nSize : 112 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nReconnecting...\n\nReconnected !\n\nUPLOADING OPTION BYTES DATA ...\n\nBank : 0x00\n\nAddress : 0x40022050\n\nSize : 112 Bytes\n\n██████████████████████████████████████████████████ 100%\n\nError: Uploading Option Bytes bank: 0 failed\n\nError: Reloading Option Bytes Data failed\n\nTime elapsed during option Bytes configuration: 00:00:06.833\n\n```\n\nUnlocking works with ST-Link:\n\n```\n\nstm32_Programmer_CLI.exe -c port=SWD -unlockRDP2 0x11111111 0x11111111 0x11111111 0x11111111\n\n-------------------------------------------------------------------\n\nSTM32CubeProgrammer v2.22.0\n\n-------------------------------------------------------------------\n\nST-LINK SN : 004F00363235511838363730\n\nST-LINK FW : V3J17M10\n\nBoard : NUCLEO-C562RE\n\nVoltage : 3.30V\n\nPower OFF...\n\nDrives the target power pin out of the (onboard) ST-Link.\n\nInfo: Power ON/OFF maybe not available on your Board [also not available on standalone probes]\n\nPower OFF the board finished with success !\n\nPower ON...\n\nDrives the target power pin out of the (onboard) ST-Link.\n\nInfo: Power ON/OFF maybe not available on your Board [also not available on standalone probes]\n\nPower ON the board finished with success !\n\nValidation Status: 3\n\nPower OFF...\n\nDrives the target power pin out of the (onboard) ST-Link.\n\nInfo: Power ON/OFF maybe not available on your Board [also not available on standalone probes]\n\nPower OFF the board finished with success !\n\nPower ON...\n\nDrives the target power pin out of the (onboard) ST-Link.\n\nInfo: Power ON/OFF maybe not available on your Board [also not available on standalone probes]\n\nPower ON the board finished with success !\n\nRDP2 unlocked successfully\n\n```\n\nBut does not work with J-Link:\n\n```\n\nstm32_Programmer_CLI.exe -c port=JLINK -unlockRDP2 0x11111111 0x11111111 0x11111111 0x11111111\n\n-------------------------------------------------------------------\n\nSTM32CubeProgrammer v2.22.0\n\n-------------------------------------------------------------------\n\nConnecting to J-Link/Flasher Probe\n\nError: Unlock RDP2 password failed!\n\n```\n\nThanks for the help.",
+            "images": [],
+            "author": "robert-m-lucas",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hello, using the J-Link interface, after setting RDP Level 2, have you performed a power-off / power-on cycle of the board before performing the RDP regression?</span></p></div>",
+                    "author": "Maxime_BELAVAL",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I've tried it with and without it and in the same situations where the ST-Link succeeds, the J-Link fails.</p><p>The J-Link fails after everything is unplugged and then plugged back in, then just changing the jumpers to ST-Link power, plugging in the USB at the top, and running the same command with `port=SWD` works</p></div>",
+                    "author": "robert-m-lucas",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Hello Robert,</p>\n<p>Following checks with the team, I can confirm that RDP regression via the Segger J-Link interface is currently not supported in STM32CubeProgrammer.</p>\n<p>As stated in the user manual:</p>\n<pre class=\"lia-code-sample language-c\"><code>\"Only Flash and Option Bytes (OB) programming are supported via J-Link, other features are not supported\".</code></pre>\n<p> </p>\n<p>To perform the RDP regression, you have two options:</p>\n<ul>\n<li>Use an ST-LINK with STM32CubeProgrammer, as you already did, or</li>\n<li>Use the Segger Device Provisioner.</li>\n</ul>\n<p>For the Segger Device Provisioner, a complete step-by-step guide will be published in the STM32 MCUs Knowledge Base next week : <a href=\"https://community.st.com/t5/stm32-mcus/tkb-p/stm32-mcus-knowledge-base\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/tkb-p/stm32-mcus-knowledge-base</a></p>\n<p> </p>\n<p>EDIT : <span>detailed step-by-step guide for STM32C5 products and Segger J-Link:</span><span> </span><a href=\"https://community.st.com/t5/stm32-mcus/how-to-use-the-stm32c5-with-segger-j-link/ta-p/889854\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/how-to-use-the-stm32c5-with-segger-j-link/ta-p/889854</a></p>\n<p> </p></div>",
+                    "author": "Maxime_BELAVAL",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Robert, <span>a detailed step-by-step guide is now available for STM32C5 products and Segger J-Link:</span> <a href=\"https://community.st.com/t5/stm32-mcus/how-to-use-the-stm32c5-with-segger-j-link/ta-p/889854\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/how-to-use-the-stm32c5-with-segger-j-link/ta-p/889854</a></p>\n<p>Hope this helps,</p>\n<p>Max</p></div>",
+                    "author": "Maxime_BELAVAL",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Maxime_BELAVAL",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Maxime_BELAVAL",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Maxime_BELAVAL",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

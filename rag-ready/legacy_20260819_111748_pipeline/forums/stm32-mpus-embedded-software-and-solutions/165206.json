@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "165206",
+            "publicId": "165206",
+            "title": "Non-Volatile Storage Read/Write Protection Mechanism In STM32MP2",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/non-volatile-storage-read-write-protection-mechanism-in-stm32mp2-165206",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "STM32MP25 lines",
+                "Security"
+            ],
+            "published_at": "2026-04-29T06:38:05+00:00",
+            "views": 206,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nWhen you activate secure boot, All the FIP content can be authenticated (and potentially de encrypted) one by one by the BL2: <https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP#STM32MP2_series>",
+            "best_answer_author": "Bernard PUEL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Greetings,\n\nWe're developing our product on our MYIR MYC-LD25X SoM based on the STM32MP257DAK3 MPU with 8GB eMMC non-volatile storage.\n\nAs per our design requirements, I am required to enforce the [STM32 MCU Equivalent of CRP Level 1 or 2](https://community.st.com/t5/stm32-mcus-security/read-write-protection-mechanism/m-p/395813/highlight/true#M5139) on our Non-Volatile storage so that once we have flashed the eMMC with our program, It's content could only be read/written by the program flashed onto the eMMC & not by JTAG, SWD, etc methods.\n\nUsing an eMMC chip that provides these protection might be an option but is it atleast possible to enforce write protection using the MPU itself? For example the MPU could have a small program running which could then verify if the contents of the eMMC were tampered with?\n\nRegards,\n\nAditya M.",
+            "images": [],
+            "author": "aditya_m",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"99773\">@aditya_m</user-mention> </p>\n<p>please look into <a href=\"https://wiki.st.com/stm32mpu/wiki/Security_overview\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/Security_overview</a>.</p>\n<p>I'm not expert in security, but there is many HW and SW mechanism available depending on how far you want to go into security certification and cyberattack resilience (JTAG lock, encryption, secure boot, RIF, etc...).</p>\n<p> </p>\n<p>Beware that protecting external Flash on STM32MP product is far different than protecting the embedded Flash inside STM32 MCUs.<br/><br/></p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"642\">@PatrickF</user-mention>,</p><p>After some discussion we've established that secure boot is the way to go, We just want to ensure third-party software cannot be run on our platform &amp; secure boot helps with just that.</p><p>I just had one question. Once the control is passed from TF-A to \"BL33\" or SSBL like U-Boot. Does TF-A verify whether U-Boot has been tampered with?</p><p>Because from the documentation I could only find that the FSBL (i.e. TF-A) is verified by the ROM Code but I couldn't find whether U-Boot is verified by TF-A.</p><p>Regards.</p></div>",
+                    "author": "aditya_m",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>When you activate secure boot, All the FIP content can be authenticated (and potentially de encrypted) one by one by the BL2: <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP#STM32MP2_series\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP#STM32MP2_series</a></p></div>",
+                    "author": "Bernard PUEL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Bernard PUEL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

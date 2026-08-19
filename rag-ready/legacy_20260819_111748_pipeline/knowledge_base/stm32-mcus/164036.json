@@ -1,0 +1,27 @@
+{
+    "kb": [
+        {
+            "id": "164036",
+            "publicId": "164036",
+            "type": "knowledge_base",
+            "title": "FAQ: Reflashing the STM32WB after upgrading the FUS/wireless stack",
+            "url": "https://community.st.com/stm32-mcus-60/faq-reflashing-the-stm32wb-after-upgrading-the-fus-wireless-stack-164036",
+            "category": "STM32 MCUs",
+            "tags": [
+                "STM32CubeProgrammer",
+                "Zigbee",
+                "LoRa",
+                "BLE",
+                "STM32WB series",
+                "Thread"
+            ],
+            "published_at": "2026-04-28T16:00:37+00:00",
+            "views": 132,
+            "content_text": "## 1. Question\n\nYou have an application flashed on the M4 Core of the STM32WB. What happens to this application when you perform a firmware upgrade service (FUS) operation via STM32CubeProgrammer such as a FUS or wireless stack upgrade?\n\n## 2. Answer\n\nThere are several connection interfaces available with STM32CubeProgrammer including SWD, USB DFU, and USART. The answer to this question depends primarily on which of these connection interfaces are used.\n\n### 2.1 SWD\n\nWhen using STM32CubeProgrammer to perform FUS operations via an SWD connection, an embedded firmware known as the FUS Operator is flashed onto the M4 Core of the STM32WB.\n\n![CubeProgrammer Screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/85b1d451-8281-24ba-933d-af110a5a22ed.png \"CubeProgrammer Screenshot.png\")\n\nThis FUS Operator is an embedded application used to handle communication between STM32CubeProgrammer and the M0+ Core of the STM32WB. It manages any FUS operations such as reading of the FUS state, upgrading the FUS or wireless stack, or deleting the existing wireless stack.\n\nThis means that any firmware present on the M4 Core is overwritten by the FUS operator and will need to be reflashed after completing FUS operations.\n\n### 2.2 USB DFU and USART\n\nWhen using the STM32CubeProgrammer to perform FUS operations via a USB DFU or USART connection, the system bootloader is used to communicate with the FUS on the M0+ Core of the STM32WB.\n\nIn this case, the application firmware on the M4 Core is preserved during any FUS operations performed.\n\n## 3. Recommendation\n\nRegardless of the communication interface used, it is good practice to always start the wireless stack and reflash your application firmware after performing FUS operations via STM32CubeProgrammer. This procedure assures a clean installation.\n\n## 4. Related links\n\n* [STM32WB](https://www.st.com/en/microcontrollers-microprocessors/stm32wb-series.html)\n\n* [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)\n\n* [Application note AN5185: How to use STMicroelectronics firmware upgrade services for STM32WB MCUs](https://www.st.com/resource/en/application_note/dm00513965-st-firmware-upgrade-services-for-stm32wb-series-stmicroelectronics.pdf)\n\n* [FUS Wiki](https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32WB_FUS)\n\n* [User manual UM2237: STM32CubeProgrammer software description](https://www.st.com/resource/en/user_manual/um2237-stm32cubeprogrammer-software-description-stmicroelectronics.pdf#page=49) - Section 2.7",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/85b1d451-8281-24ba-933d-af110a5a22ed.png"
+            ],
+            "author": "ClaudioVertemara"
+        }
+    ]
+}

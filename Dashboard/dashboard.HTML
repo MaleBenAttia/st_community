@@ -56,7 +56,48 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 30px;
+      position: relative;
+      z-index: 1;
     }
+
+    /* Décor : éléments flottants ST (bundle React servi depuis /static/floating) */
+    #floating-decor {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .run-select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .run-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .rf-link {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: var(--card-bg);
+      color: var(--accent-color);
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .rf-link:hover { text-decoration: underline; }
 
     .glass {
       background: var(--card-bg);
@@ -456,6 +497,7 @@
   </style>
 </head>
 <body>
+  <div id="floating-decor" aria-hidden="true"></div>
   <div class="wrap">
     
     <!-- HEADER -->
@@ -475,6 +517,7 @@
           <strong>Duration <span id="hd-scrap-dur">-</span></strong>
         </div>
         <div>Activity date<strong id="hd-activity">-</strong></div>
+        <div>Run<strong id="hd-run">-</strong></div>
       </div>
     </header>
 
@@ -521,7 +564,7 @@
           </div>
           <div class="mini-stat glass">
             <div class="num" id="kb-k3">-</div>
-            <div class="lbl">Pages Extracted</div>
+            <div class="lbl">Pages Extracted (ID)</div>
           </div>
           <div class="mini-stat glass">
             <div class="num" id="kb-k2">-</div>
@@ -605,14 +648,14 @@
             <button class="see-more" id="fo-cat-toggle" hidden><span class="chev">▾</span><span class="txt">Voir plus</span></button>
           </div>
           <div class="glass" style="padding:24px;">
-            <h3 class="section-title">Most Replied Posts</h3>
-            <div id="fo-top-replied" class="grow" style="display:flex; flex-direction:column;"></div>
+            <h3 class="section-title">Most Viewed Posts</h3>
+            <div id="fo-top-viewed" class="grow" style="display:flex; flex-direction:column;"></div>
           </div>
         </div>
 
         <div class="glass" style="padding:24px;">
-          <h3 class="section-title">Most Viewed Posts</h3>
-          <div id="fo-top-viewed" style="display:flex; flex-direction:column;"></div>
+          <h3 class="section-title">Most Replied Posts</h3>
+          <div id="fo-top-replied" style="display:flex; flex-direction:column;"></div>
         </div>
       </div>
 
@@ -639,12 +682,14 @@
           <div class="terminal" id="log-output">Waiting for execution...</div>
         </div>
 
-        <!-- LAST RUN -->
+        <!-- RUN HISTORY -->
         <div class="glass" style="padding: 30px; margin-top: 25px;">
-          <h2 class="section-title" style="font-size: 22px;">Last Run</h2>
+          <h2 class="section-title" style="font-size: 22px;">Run History</h2>
+          <select id="lr-select" class="run-select"></select>
           <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">
             <span id="lr-name">-</span> · Start <span id="lr-start">-</span> · Duration <span id="lr-duration">-</span> · <span id="lr-errors">0 errors</span>
           </div>
+          <div id="lr-files" class="run-files" style="display:none;"></div>
           <div class="terminal" id="lr-log" style="height:220px;">Loading...</div>
         </div>
       </div>
@@ -666,17 +711,6 @@
     });
 
     // Data Loading
-    async function loadData() {
-      try {
-        const res = await fetch('/api/stats');
-        if (!res.ok) throw new Error("No data available.");
-        const data = await res.json();
-        renderDashboard(data);
-      } catch (err) {
-        document.getElementById('footer-text').textContent = "Error: " + err.message;
-      }
-    }
-
     function fmtDate(iso) {
       if (!iso) return "-";
       const d = new Date(iso);
@@ -731,7 +765,8 @@
       render();
     }
 
-    function renderDashboard(data) {
+    function renderDashboard(data, runName) {
+      if (runName) document.getElementById('hd-run').textContent = runName;
       document.getElementById('footer-text').textContent = `Last report generated on ${fmtDate(data.pipeline_run_info.start_time)}`;
 
       document.getElementById('m-start').textContent = fmtDate(data.pipeline_run_info.start_time);
@@ -745,12 +780,13 @@
 
       const s1 = data.step_1_scan, s2 = data.step_2_extract, kb = data.step_3_kb_stats, fo = data.step_3_forums_stats;
 
-      // Header — métadonnées de scraping + période d'activité
+      // Header — métadonnées de scraping + filtre temporel du run
       const ar = fo.activity_range || {};
+      const filterDate = data.pipeline_run_info.rag_start_date;
       document.getElementById('hd-scrap-start').textContent = fmtDate(s2.start_time);
       document.getElementById('hd-scrap-end').textContent = fmtDate(s2.end_time);
       document.getElementById('hd-scrap-dur').textContent = fmtDur(s2.duration_seconds);
-      document.getElementById('hd-activity').textContent = fmtRange(ar.start, ar.end);
+      document.getElementById('hd-activity').textContent = filterDate ? 'From ' + fmtDate(filterDate) : fmtRange(ar.start, ar.end);
 
       // KB
       document.getElementById('kb-k4').textContent = kb.accepted;
@@ -827,7 +863,7 @@
 
       const viewedList = document.getElementById('fo-top-viewed');
       viewedList.innerHTML = '';
-      if(fo.top3_most_viewed_posts) fo.top3_most_viewed_posts.forEach((p) => {
+      if(fo.top10_most_viewed_posts) fo.top10_most_viewed_posts.forEach((p) => {
         viewedList.innerHTML += `<div class="list-item"><span class="list-badge">${p.views} views</span> <a href="${p.url}" target="_blank">${p.title}</a></div>`;
       });
     }
@@ -871,7 +907,7 @@
           if (e.data.includes("PIPELINE TERMINÉ AVEC SUCCÈS") || e.data.includes("PIPELINE ARRÊTÉ")) {
             resetBtn();
             evtSource.close();
-            if (e.data.includes("TERMINÉ")) { loadData(); loadLastRun(); }
+            if (e.data.includes("TERMINÉ")) { loadRuns(); }
           }
         };
       } catch (err) {
@@ -887,26 +923,118 @@
       btnStop.style.display = 'none';
     }
 
-    // Last Run
-    async function loadLastRun() {
+    // Run History
+    let polling = false;
+
+    async function fetchRunList() {
+      const res = await fetch('/api/runs');
+      if (!res.ok) throw new Error("No run yet");
+      return (await res.json()).runs || [];
+    }
+
+    function populateRunSelect(runs, current) {
+      const sel = document.getElementById('lr-select');
+      sel.innerHTML = '';
+      runs.forEach((r) => {
+        const opt = document.createElement('option');
+        opt.value = r.name;
+        opt.textContent = fmtDate(r.start_time) + ' · ' + fmtDur(r.total_duration_seconds) + ' · ' + (r.errors || 0) + ' err';
+        sel.appendChild(opt);
+      });
+      if (current && runs.some((r) => r.name === current)) sel.value = current;
+      else if (runs.length) sel.value = runs[0].name;
+    }
+
+    async function loadRuns() {
       try {
-        const res = await fetch('/api/runs');
-        if (!res.ok) throw new Error("No run yet");
-        const run = await res.json();
-        document.getElementById('lr-name').textContent = run.name || '-';
-        const info = run.stats && run.stats.pipeline_run_info;
-        document.getElementById('lr-start').textContent = info ? fmtDate(info.start_time) : '-';
-        document.getElementById('lr-duration').textContent = info && info.total_duration_seconds ? (info.total_duration_seconds + 's') : '-';
-        document.getElementById('lr-errors').textContent = (run.errors || 0) + ' errors';
-        document.getElementById('lr-log').textContent = run.log ? run.log.slice(-8000) : 'No log';
-        document.getElementById('lr-log').scrollTop = document.getElementById('lr-log').scrollHeight;
+        const runs = await fetchRunList();
+        populateRunSelect(runs);
+        if (runs.length) {
+          const initial = (runs.find((r) => r.has_stats) || runs[0]).name;
+          document.getElementById('lr-select').value = initial;
+          loadRunDetail(initial);
+        } else {
+          document.getElementById('lr-name').textContent = '-';
+          document.getElementById('lr-log').textContent = 'Aucun run disponible. Lancez le pipeline.';
+        }
       } catch (err) {
         document.getElementById('lr-log').textContent = 'Aucun run disponible. Lancez le pipeline.';
       }
     }
 
-    loadData();
-    loadLastRun();
+    async function poll() {
+      if (polling) return;
+      polling = true;
+      try {
+        const runs = await fetchRunList();
+        if (!runs.length) return;
+        const sel = document.getElementById('lr-select');
+        const current = sel.value;
+        populateRunSelect(runs, current);
+        if (current && runs.some((r) => r.name === current)) {
+          loadRunDetail(current);
+        }
+      } catch (err) {
+        // keep last state
+      } finally {
+        polling = false;
+      }
+    }
+
+    function startPolling() {
+      setInterval(poll, 20000);
+    }
+
+    function renderRunFiles(name, files) {
+      const el = document.getElementById('lr-files');
+      el.innerHTML = files.map((f) =>
+        '<a class="rf-link" target="_blank" rel="noopener" href="/api/runs/' + encodeURIComponent(name) + '/files/' + f.name + '">' + f.name + '</a>'
+      ).join('');
+      el.style.display = files.length ? 'flex' : 'none';
+    }
+
+    async function loadRunFiles(name) {
+      try {
+        const res = await fetch('/api/runs/' + encodeURIComponent(name) + '/files');
+        if (!res.ok) throw new Error("No files");
+        const data = await res.json();
+        renderRunFiles(name, data.files || []);
+      } catch (err) {
+        document.getElementById('lr-files').style.display = 'none';
+      }
+    }
+
+    async function loadRunDetail(name) {
+      try {
+        const res = await fetch('/api/runs/' + encodeURIComponent(name));
+        if (!res.ok) throw new Error("Run not found");
+        const run = await res.json();
+        document.getElementById('lr-name').textContent = run.name || '-';
+        const info = run.stats && run.stats.pipeline_run_info;
+        document.getElementById('lr-start').textContent = info ? fmtDate(info.start_time) : '-';
+        document.getElementById('lr-duration').textContent = info && info.total_duration_seconds ? fmtDur(info.total_duration_seconds) : '-';
+        document.getElementById('lr-errors').textContent = (run.errors || 0) + ' errors';
+        document.getElementById('hd-run').textContent = run.name || '—';
+        if (run.stats && Object.keys(run.stats).length) {
+          renderDashboard(run.stats, run.name);
+        }
+        await loadRunFiles(name);
+        const logEl = document.getElementById('lr-log');
+        logEl.textContent = run.log ? run.log.slice(-8000) : 'No log';
+        logEl.scrollTop = logEl.scrollHeight;
+      } catch (err) {
+        document.getElementById('lr-log').textContent = 'Aucun run disponible. Lancez le pipeline.';
+      }
+    }
+
+    document.getElementById('lr-select').addEventListener('change', function() {
+      if (this.value) loadRunDetail(this.value);
+    });
+
+    loadRuns();
+    startPolling();
   </script>
+  <link rel="stylesheet" href="/static/floating/index.css">
+  <script type="module" src="/static/floating/index.js"></script>
 </body>
 </html>

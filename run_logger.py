@@ -109,6 +109,11 @@ def current_run_dir():
     return _current.folder if _current else None
 
 
+def current_run_id():
+    """Retourne l'identifiant du run actif (nom du dossier logs/<ts>_pipeline), ou None."""
+    return _current.folder.name if _current else None
+
+
 def error(msg):
     """Journalise une erreur : vers ErrorLog.txt si un run est actif, sinon console."""
     if _current:

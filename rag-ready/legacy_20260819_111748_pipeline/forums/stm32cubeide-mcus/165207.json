@@ -1,0 +1,117 @@
+{
+    "forum": [
+        {
+            "id": "165207",
+            "publicId": "165207",
+            "title": "Importing STM32CubeMX project into STM32CubeIDE - Missing Build Options",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/importing-stm32cubemx-project-into-stm32cubeide-missing-build-options-165207",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-04-29T07:14:15+00:00",
+            "views": 729,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "You selected EWARM as an IDE in STM32CubeMX, not STM32CubeIDE.\n\n![unsigned_char_array_0-1778059371726.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cc37ba7a-d0bc-6f70-5f44-2ad5fbb8eb18.png \"unsigned_char_array_0-1778059371726.png\")\n\nI always generate under root.\n\nThis is the difference in project structure:\n\nNot under root:\n\n```\n\nproject.ioc\n\n.mxproject\n\nCore/\n\nDrivers/\n\nSTM32CubeIDE/\n\n.project\n\n.cproject\n\n.settings\n\nSTM32*_FLASH.ld\n\n```\n\nunder root:\n\n```\n\nproject.ioc\n\n.mxproject\n\nCore/\n\nDrivers/\n\n.project\n\n.cproject\n\n.settings\n\nSTM32*_FLASH.ld\n\n```\n\nIf you generate not under root you need to open the STM32CubeIDE folder in STM32CubeIDE, not the root folder.\n\nAdditionally I recommend this setting:\n\n![unsigned_char_array_1-1778060202837.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ad03c5b5-bc85-1b64-84b7-41cf9b0ab7cc.png \"unsigned_char_array_1-1778060202837.png\")\n\nThis is easier with version control. Only peripherals that are changed will have changed files.\n\n> ---\n\n>\n\n> @alw wrote:\n\n> what is the recommended workflow for making changes in STM32CubeMX and then updating STM32CubeIDE please (without overwriting existing user code in main.c)?\n\n>\n\n> ---\n\nBy writing all user code in the appropriate user code sections. Sometimes this can be tricky. I can help you with that. All the user code we write is never overwritten. Our policy is that regenerating in STM32CubeMX doesn't lead to changes.",
+            "best_answer_author": "unsigned_char_array",
+            "best_answer_author_role": "Lead III",
+            "content_text": "Hi,\n\nI created a project in STM32CubeMX 6.17.0 targeting the NUCLEO-G491RE and successfully generated the code. I then imported the project into STM32CubeIDE 2.1.1 and as far as I can tell it looks ok. The only apparent issue was that when I clicked on the .ioc file I thought that the STM32CubeMX project was supposed to open inside STM32CubeIDE but instead I get an error saying:\n\n![Screenshot 2026-04-29 at 15.01.07.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6cbb09-901e-374e-5b73-6c3e3c2d1a3d.png \"Screenshot 2026-04-29 at 15.01.07.png\")\n\nSo that's one issue. But when I come to build the project in STM32CubeIDE there is no Build All (CMD+B) option available, or indeed any other build options available.\n\n![IMG_0674.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ce16bd2f-3cc7-efdb-ed75-2b283781929d.png \"IMG_0674.png\")\n\nThis is the folder structure:\n\n![Screenshot 2026-04-29 at 15.07.37.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5d5f948a-82bd-d5bf-77ae-faf767fdfad4.png \"Screenshot 2026-04-29 at 15.07.37.png\")\n\nWhat is missing from this workflow to create a project that can be built in STM32CubeIDE please?\n\nKind regards,\n\nAl",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ad03c5b5-bc85-1b64-84b7-41cf9b0ab7cc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0e230b75-9db0-c4ad-7e47-301750da2d3d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5d5f948a-82bd-d5bf-77ae-faf767fdfad4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ce16bd2f-3cc7-efdb-ed75-2b283781929d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d58546c-bb97-72ab-a6b4-fc363cb27763.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/90b08f13-b68a-6abe-1c53-35c4c188123f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ea6cbb09-901e-374e-5b73-6c3e3c2d1a3d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cc37ba7a-d0bc-6f70-5f44-2ad5fbb8eb18.png"
+            ],
+            "author": "alw",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"73265\">@alw</user-mention> </p>\n<p>Actually STM32CubeMX is  no longer integrated inside STM32CubeIDE. Instead, the two tools are  interoperable.</p>\n<p>For more details , please check the following LINKs:</p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/stm32cubeide-2-0-0-workflow-tutorial/ta-p/864831\" target=\"_blank\">STM32CubeIDE 2.0.0 workflow tutorial - STMicroelectronics Community</a></p>\n<p><a href=\"https://community.st.com/t5/stm32cubeide-mcus/stm32cubeide-2-0-release-early-heads-up/td-p/810967\" target=\"_blank\">STM32CubeIDE 2.0 release - early heads-up! - STMicroelectronics Community</a></p>\n<p>The missing Build All option usually means CubeIDE does not recognize what you imported as a valid STM32CubeIDE managed C/C++ project .The fix is to reopen the .ioc in STM32CubeMX, set Project Manager &gt; Toolchain/IDE = STM32CubeIDE, regenerate the code, make sure the project root contains .project and .cproject files, then import it into CubeIDE using File &gt; Import &gt; General &gt; Existing Projects into Workspace</p>\n<p> </p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> </p><p>I'm aware that they are two separate applications now, but read that clicking the .ioc in STM32CubeIDE would open the graphical view of the device pinout in STM32CubeMX to allow changes to the .ioc file. It would seem that this isn't the case.</p><p>If I've already imported a project from STM32CubeMX into STM32CubeIDE, what is the recommended workflow if I want to make changes to the .ioc file please? Is there any documentation that provides an explanation of the migration of this workflow from STM32CubeIDE 1.x please?</p><p>Kind regards,</p><p>Al</p></div>",
+                    "author": "alw",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"73265\">@alw</user-mention> </p>\n<p>Try to open the .ioc using STM32CUbeMX following those steps:</p>\n<p>- Launch STM32CubeMX 6.17.0 </p>\n<p>- Go to File &gt; Load Project<br/>- Browse to the project folder<br/>- Select the required .ioc file<br/>- Click Open</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GhofraneGSOURI_0-1777448362596.png\" style=\"width: 400px;\"><img alt=\"GhofraneGSOURI_0-1777448362596.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0e230b75-9db0-c4ad-7e47-301750da2d3d.png\" title=\"GhofraneGSOURI_0-1777448362596.png\"/></span></p>\n<p><span>If the project opens correctly there, you can make your hardware/configuration changes in CubeMX, then regenerate the code with </span><strong>Toolchain / IDE = STM32CubeIDE</strong></p>\n<p> </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> </p><p>I now have the project toolchain specified as STM32CubeIDE, and the folder structure looks like this when imported into STM32CubeIDE:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-04-29 at 15.54.33.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-04-29 at 15.54.33.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d58546c-bb97-72ab-a6b4-fc363cb27763.png\" title=\"Screenshot 2026-04-29 at 15.54.33.png\"/></span></p><p>I still don't have the ability to build the project, what is missing from the workflow please?</p><p>Kind regards,</p><p>Al</p></div>",
+                    "author": "alw",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"73265\">@alw</user-mention> </p>\n<p>Could you please provide your IOC ?</p>\n<p>I am waiting for your feedback .</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> </p><p>Please see attached, all I'm doing at this stage is setting up SAI1 for I2S receive and transmit.</p><p>Kind regards,</p><p>Al</p></div>",
+                    "author": "alw",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"73265\">@alw</user-mention> </p>\n<p>A good next step would be to copy the .ioc file into a clean new folder, open it with STM32CubeMX 6.17.0 (as described in my second comment)  generate the code again with STM32CubeIDE selected as the project toolchain, and then try building that fresh project.</p>\n<p> </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GhofraneGSOURI_0-1777451449322.png\" style=\"width: 400px;\"><img alt=\"GhofraneGSOURI_0-1777451449322.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/90b08f13-b68a-6abe-1c53-35c4c188123f.png\" title=\"GhofraneGSOURI_0-1777451449322.png\"/></span></p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention> </p><p>I had it build successfully one time when I followed your instructions, but then tried it again in a newly created project folder and I still had the same problem with no build options available. I'll investigate more and will post what I find.</p><p>Should the 'Generate Under Root' option be ticked next to the Toolchain/IDE selection in STM32CubeMX please?</p><p>Kind regards,</p><p>Al</p></div>",
+                    "author": "alw",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You selected EWARM as an IDE in STM32CubeMX, not STM32CubeIDE.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"unsigned_char_array_0-1778059371726.png\" style=\"width: 999px;\"><img alt=\"unsigned_char_array_0-1778059371726.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cc37ba7a-d0bc-6f70-5f44-2ad5fbb8eb18.png\" title=\"unsigned_char_array_0-1778059371726.png\"/></span></p><p>I always generate under root.<br/>This is the difference in project structure:</p><p>Not under root:</p><pre>project.ioc<br/>.mxproject<br/>Core/<br/>Drivers/<br/>STM32CubeIDE/<br/> .project<br/> .cproject<br/> .settings<br/> STM32*_FLASH.ld</pre><p>under root:</p><pre>project.ioc<br/>.mxproject<br/>Core/<br/>Drivers/<br/>.project<br/>.cproject<br/>.settings<br/>STM32*_FLASH.ld</pre><p>If you generate not under root you need to open the STM32CubeIDE folder in STM32CubeIDE, not the root folder.</p><p>Additionally I recommend this setting:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"unsigned_char_array_1-1778060202837.png\" style=\"width: 999px;\"><img alt=\"unsigned_char_array_1-1778060202837.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ad03c5b5-bc85-1b64-84b7-41cf9b0ab7cc.png\" title=\"unsigned_char_array_1-1778060202837.png\"/></span></p><p>This is easier with version control. Only peripherals that are changed will have changed files.</p><p> </p><blockquote><hr/><user-mention data-id=\"73265\">@alw</user-mention> wrote:<br/>what is the recommended workflow for making changes in STM32CubeMX and then updating STM32CubeIDE please (without overwriting existing user code in main.c)?<hr/></blockquote><p>By writing all user code in the appropriate user code sections. Sometimes this can be tricky. I can help you with that. All the user code we write is never overwritten. Our policy is that regenerating in STM32CubeMX doesn't lead to changes.</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"27597\">@unsigned_char_array</user-mention> </p><p>Thanks very much, I've got all the above working now.</p><p>Kind regards,</p><p>Al</p></div>",
+                    "author": "alw",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

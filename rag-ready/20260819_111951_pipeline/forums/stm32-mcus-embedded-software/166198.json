@@ -1,0 +1,97 @@
+{
+    "forum": [
+        {
+            "id": "166182",
+            "publicId": "166198",
+            "title": "ADC1 GPDMA1 4 chanels - how to config and run ?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/adc1-gpdma1-4-chanels-how-to-config-and-run-166198",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeMX",
+                "DMA"
+            ],
+            "published_at": "2026-06-16T07:37:04+00:00",
+            "views": 106,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Well it just went into my mind that I should move the potentiometer that is read correctly to a different channel - and the good reading moved on that channel … 🤣\n\nIt looks that the issue was actually a bad GND connection on the connector used to supply all the other pot’s. The pot that was working has independent/different supply circuit…\n\nI suspect wen I used the multimeter I made a stronger GND connection with the probe - so I measured good values! But when I tucked the probe away ...\n\nYet it is another lesson to trust myself much more !!\n\nThanks for support!",
+            "best_answer_author": "CSand",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi ,\n\nI have a board that has a STM32H562xxx , I have 4 analog inputs mapped on ADC1 IN1, IN14, IN15 and IN18 single ended … ( PA1, PA2, PA3,PA4 ), TRGO TIM8\n\nI have DCACHE1 disabled\n\nHAL\\_ADC\\_ConvHalfCpltCallback - gives a flag the cvt is completed\n\nI have a uint16\\_t dmaBuffer[4]\n\nWhen I run it the variable dmaBuffer[0..2] have values ~220 with small oscillations and only dmaBuffer[3]  with correct values from ADC1\n\nIt’s the first time I used this board and 1st to have CACHE … otherwise I eventually disabled it.\n\nCan anyone help ? What info do I need to provide so I get little help make this work ?\n\nThanks\n\nCristian",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a561683a-bca2-4f9b-a67d-bd7c94b1b3e7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5bb67471-a7a3-4fc9-b97e-ef2aeeb80fc8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7762f288-8df8-488c-9449-ba88fad2949f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e6172afd-205a-4668-a1aa-62992c1ea04e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1da4e1f-e372-4726-a67c-80e6b6f3f096.png"
+            ],
+            "author": "CSand",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I use neither the H7 nor Cube/HAL.</p><p><span style=\"color:#2980b9;\"><em>&gt; HA:_ADC_Conv</em></span><span style=\"color:#c0392b;\"><em><strong>Half</strong></em></span><span style=\"color:#2980b9;\"><em>CpltCallback - gives a flag the cvt i completed</em></span></p><p>This supposedly means half-completed, and IMHO would explain it.</p><p><br/>When using the ADC in a multchannel setup, I usually configure a DMA buffer for multiple samples at once (#of channels x &lt;n&gt;), but this depends on the project.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I edited the post to correct the typo  <span style=\"color:#2980b9;\"><em> HA:_ADC</em></span> I’m sorry …<br/>​<user-mention data-id=\"48557\">@Ozone</user-mention>  <br/>… dmaBuffer[4] <br/>Ok, “Half” may be not ok … <br/>Regards,</p></div>",
+                    "author": "CSand",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Not just a typo, I guess, but the wrong callback.</p><p>My code is often derived from the “old” SPL,  mostly a thinly veiled register level access using ST device header defines.</p><p>ST’s DMA controllers use to have a “half-complete” interrupt option, which I never use or used.<br/>I would recommend to check your respective code, and modify it to “TC” (transmission complete).<br/>Not sure how to do that in Cube/HAL, though ...</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’m so busy to resolve this … you are correct …It’s wrong callback …<br/>Let me intervene , add correct callback then back here </p></div>",
+                    "author": "CSand",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well , it does not matter what callback it is , the callback I’m using just to flag the buffer has fresh values …<br/> </p></div>",
+                    "author": "CSand",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, of course.</p><p><span style=\"color:#2980b9;\"><em>&gt; When I run it the variable dmaBuffer[0..2] have values ~220 with small oscillations and only dmaBuffer[3]  with correct values from ADC1</em></span></p><p>Not sure how you got to that point.<br/>But I recommend to either apply known and different voltage levels to all 4 AINs at once, or to one at a time and GND to the others.<br/>This way you can validate that your timer - ADC - DMA sequence works correctly.<br/>I use to set a breakpoint in the DMA TC interrupt for this purpose, but a respective callback should do as well.</p><p>Keep in mind that DMA keeps overwriting your buffer values as soon as the next sampling sequence starts.<br/>This is fine for static a validation with static inputs, but probably not for the actual application.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ve checked the GPIO PA1..PA4 the voltage is according to the potentiometer position for each PAx - It’s not a harware/wiring issue.</p><p><br/>I assume there is something with this GPDMA1 and may be it’s Linked list … I’m not familiar with these… I think tried everything I knew … I am supposed to just set ADC1 4 channels on a DMA … I’m so frustrated … It’s the 3rd day I’m fighting with this MCU ... <br/> </p></div>",
+                    "author": "CSand",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Not sure about your experience with MCUs in general or STM32s in particular.<br/>But I usually recommend a gradual approach, i.e. verifying one part of a more complex system alone, and only then advance to the next element.<br/>In this case, perhaps try without DMA first, enable the EOC and EOS interrupts of the ADC, and use those to sort out the values.<br/>For 4 channels you would get 4 sequential EOC interrupts for each channel, and an EOS interrupt that the seuence is finished. This EOS interrupt comes probably concurrent with the last EOC interrupt, so your handler code should be prepared for that.</p><p>The H7 ADCs probably require an initial calibration, you can check at this accasion as well.</p><p>As mentioned, I don’t use Cube/Hal generated code, so I can only give more generic hints regarding DMA usage (assuming  the ADC DMA relation is similiar to the F4 devices).<br/>Here a code xample for the F3. It is based upon SPL code, but you should recognize terms and DMA register values :<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a561683a-bca2-4f9b-a67d-bd7c94b1b3e7.png\"/></figure><p>I suppose you get the picture - transfer size must be correct (HalfWord for 12-bit), peripheral increment disabled and memory increment enabled. Circular mode enabled means it repeats until you stop the timer/ADC.<br/>Buffer size is the total number of items per transfer, in the configured data size (Halfword here), not bytes.</p><p>I use to have a multiple data sets transferred back to back (80 in this case), and get notified by the TC interrupt when the buffer is full.</p><p>Your HAL code should do basically the same, I recommend to check it.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Let me share my config … <br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e6172afd-205a-4668-a1aa-62992c1ea04e.png\"/></figure><p><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1da4e1f-e372-4726-a67c-80e6b6f3f096.png\"/></figure><p> </p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5bb67471-a7a3-4fc9-b97e-ef2aeeb80fc8.png\"/></figure><p> </p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7762f288-8df8-488c-9449-ba88fad2949f.png\"/></figure><p> </p></div>",
+                    "author": "CSand",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>Well it just went into my mind that I should move the potentiometer that is read correctly to a different channel - and the good reading moved on that channel … 🤣</p><p>It looks that the issue was actually a bad GND connection on the connector used to supply all the other pot’s. The pot that was working has independent/different supply circuit…  <br/>I suspect wen I used the multimeter I made a stronger GND connection with the probe - so I measured good values! But when I tucked the probe away ...</p><p> </p><p>Yet it is another lesson to trust myself much more !!<br/><br/>Thanks for support!</p><p> </p></div>",
+                    "author": "CSand",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

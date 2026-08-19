@@ -96,7 +96,7 @@ def run_scan() -> dict:
         count = info["count"]
         if isinstance(count, int):
             total_forums += count
-        line = f"  - ID {cat_id:3d} | Items récents : {count:4} | Nom : {info['name']}"
+        line = f"  - ID {cat_id:>3} | Items récents : {count:4} | Nom : {info['name']}"
         print(line)
         report_lines.append(line)
         time.sleep(REQUEST_DELAY_SECONDS)
@@ -114,7 +114,7 @@ def run_scan() -> dict:
         count = info["count"]
         if isinstance(count, int):
             total_kb += count
-        line = f"  - ID {cat_id:3d} | Items récents : {count:4} | Nom : {info['name']}"
+        line = f"  - ID {cat_id:>3} | Items récents : {count:4} | Nom : {info['name']}"
         print(line)
         report_lines.append(line)
         time.sleep(REQUEST_DELAY_SECONDS)

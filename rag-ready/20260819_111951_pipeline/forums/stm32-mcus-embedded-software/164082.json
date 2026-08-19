@@ -1,0 +1,129 @@
+{
+    "forum": [
+        {
+            "id": "164082",
+            "publicId": "164082",
+            "title": "Unimplemented USBX storage SCSI causes stall",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/unimplemented-usbx-storage-scsi-causes-stall-164082",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "AzureRTOS",
+                "STM32H7 series",
+                "USBX"
+            ],
+            "published_at": "2026-03-23T13:30:36+00:00",
+            "views": 779,
+            "reply_count": 10,
+            "best_answer": true,
+            "best_answer_content": "PS. Below is what I added to file **ux\\_device\\_class\\_storage.c** at line 321 to handle the **0x85** SCSI Command.\n\nI am sending back a SENSE\\_KEY\\_ILLEGAL\\_REQUEST for the next Window's REQUEST SENSE.\n\nNow my 'USB Drive' stays connected in Windows Explorer.\n\nThe 0x85 command are still sent, but they don't stall the USBX connection any more.\n\n```\n\n/* Workaround:\n\nWindows/Dell host sends SCSI ATA PASS-THROUGH(16), opcode 0x85.\n\nUSB MSC device does not support ATA pass-through.\n\nReturn ILLEGAL REQUEST / INVALID COMMAND instead of leaving command unhandled.\n\n*/\n\n#ifndef UX_DEVICE_CLASS_STORAGE_SENSE_KEY_ILLEGAL_REQUEST\n\n#define UX_DEVICE_CLASS_STORAGE_SENSE_KEY_ILLEGAL_REQUEST 0x05\n\n#endif\n\ncase 0x85: /* ATA PASS-THROUGH(16) */\n\ncase 0xA1: /* ATA PASS-THROUGH(12) */\n\nstorage -> ux_slave_class_storage_csw_status = UX_SLAVE_CLASS_STORAGE_CSW_FAILED;\n\nstorage -> ux_slave_class_storage_lun[lun].ux_slave_class_storage_request_sense_status =\n\nUX_DEVICE_CLASS_STORAGE_SENSE_STATUS(\n\nUX_DEVICE_CLASS_STORAGE_SENSE_KEY_ILLEGAL_REQUEST,\n\n0x20,\n\n0x00);\n\nbreak;\n\n```\n\nAnd at line 316,\n\n```\n\ncase UX_SLAVE_CLASS_STORAGE_SCSI_MODE_SELECT:\n\ncase 0x15:\t /* ATA MODE SELECT (6) */\n\n_ux_device_class_storage_mode_select(storage, lun, endpoint_in, endpoint_out, cbw_cb);\n\nbreak;\n\n```",
+            "best_answer_author": "David George",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Good day,\n\nWe are using a composite USBX device class combining CDC and MSC over USB Full Speed, built on X\\_CUBE\\_AZRTOS-H7 version 3.3.0 (USBX 6.4). During testing we discovered that a certain Windows PC sends a MODE SELECT(10) command (opcode 0x55) and causes an endpoint stall.\n\nAfter a rather long debugging session, it was found that the USBX source \\_ux\\_device\\_class\\_storage\\_mode\\_select() is explicitly not implemented — it stalls the OUT endpoint, UX\\_FUNCTION\\_NOT\\_SUPPORTED (which is not checked in the thread) and never recovers:\n\n![Application_Middlewares_ST_usbx_common_usbx_device_classes_src_u.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86e70d56-42a7-c5c1-b798-31d0663f9e39.png \"Application_Middlewares_ST_usbx_common_usbx_device_classes_src_u.png\")\n\nThe MODE SELECT(6) SCSI command is not even implemented and the storage thread falls through to the default case, also triggering a endpoint stall.\n\nSo:\n\n- Are there any plans to implement these MODE SELECT(6/10) commands properly in a future USBX release?\n\n- Does anyone already have a workaround for this?\n\n- Wouldn't it be cleaner to reply with an ILLEGAL REQUEST instead of stalling the endpoint?\n\nSystem details:\n\n- MCU: STM32H7\n\n- USBX version: 6.4 (X\\_CUBE\\_AZRTOS-H7 3.3.0)\n\n- USB class: Composite CDC + MSC, Full Speed\n\n- Failing host OS: Windows 11\n\nThanks in advance for your support.\n\nBest regards,\n\nDaniel",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ac426538-7ea9-bbd1-be53-03028e8bfbc7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9eb9cc02-df9a-a34a-9fb8-f457534b473a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/451a22f0-7e37-d2ed-0079-fe5be0dda2ec.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b77f9fcc-0f4f-b8f8-7a79-4dc8ce3712e3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86e70d56-42a7-c5c1-b798-31d0663f9e39.png"
+            ],
+            "author": "DZimm.9",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"50219\">@DZimm.9</user-mention> </p>\n<p>To further narrow down and reproduce the issue on my side, I’d like to ask you to share your minimum project setup. This should include the full project (all source files, configuration files, and middleware), and any custom changes you have made to the USB, MSC, or SCSI handling if applicable.</p>\n<p>Having the full project will allow to replicate your environment and more efficiently identify the root cause of the problem.</p>\n<p>Internal ticket is submitted to dedicated team CDM0060954</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Seems we got same question ,</p><p>when I using MSC with U575, all things is ok with operation with U disk.</p><p>after several minites, 575 recieves SCSI command \"0x15\" or “0x85” from host,which will not implement MODE_SELACT . then PC can not recognize U disk right. </p><p>I tried to add 6 10 mode select definition just now,seems U disk can work well: </p><div><div><span>                            </span><span>case</span> <span>UX_SLAVE_CLASS_STORAGE_SCSI_MODE_SELECT</span><span>:</span></div><div><span>                            </span><span>case</span> <span>UX_SLAVE_CLASS_STORAGE_SCSI_MODE_SELECT_6</span><span>:</span></div><div><span>                            </span><span>case</span> <span>UX_SLAVE_CLASS_STORAGE_SCSI_MODE_SELECT_10</span><span>:</span></div><div><span>                                </span><span>_ux_device_class_storage_mode_select</span><span>(</span><span>storage</span><span>, </span><span>lun</span><span>, </span><span>endpoint_in</span><span>, </span><span>endpoint_out</span><span>, </span><span>cbw_cb</span><span>);</span></div><div><span>                                </span><span>break</span><span>;</span></div><div> </div><div>BUT，when MX regenerate code， wiil clear the line added.</div></div></div>",
+                    "author": "simonkoo",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi</p><p>I already created once a sample project for the NUCLEO-H753ZI. With this project, the issue cna be reproduced and t<span>he code is available on github: </span><a href=\"https://github.com/NoyzZimmi/STM32H7_MSC_CDC\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/NoyzZimmi/STM32H7_MSC_CDC</a></p><p> </p><p>The above project is directly based on the sample project: <br/><a href=\"https://github.com/STMicroelectronics/x-cube-azrtos-h7/tree/main/Projects/STM32H735G-DK/Applications/USBX/Ux_Device_MSC\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/x-cube-azrtos-h7/tree/main/Projects/STM32H735G-DK/Applications/USBX/Ux_Device_MSC</a></p><p>I don't have this development kit, but since the problem seems to be with USBX implementation, it probably can be reproduced directly with that sample project.</p><p>To reproduce the issue you can follow the steps below. If you are working on Linux, it is even simpler:<br/>Optional step on Windows: open Power shell with Admin rights:</p><ol><li>Install usbipd</li><li>usbipd list -&gt; identify the bus ID</li><li>usbipd bind --busid 6-7 --force -&gt; this binds the port</li><li>usbipd attach --wsl --busid 6-7 -&gt; will attach usb port to WSL and start a server</li></ol><p>On Linux / WSL (i choose ubuntu):</p><ol><li>lsusb -&gt; identify you device</li><li>dmesg | tail -20 -&gt; also helps to find the device, for me it is /dev/sg4:<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"2026-03-25 18_08_28-TmpWorkspace - STM32H7_MSC_CDC_Core_Src_main.c - STM32CubeIDE.png\" style=\"width: 400px;\"><img alt=\"2026-03-25 18_08_28-TmpWorkspace - STM32H7_MSC_CDC_Core_Src_main.c - STM32CubeIDE.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ac426538-7ea9-bbd1-be53-03028e8bfbc7.png\" title=\"2026-03-25 18_08_28-TmpWorkspace - STM32H7_MSC_CDC_Core_Src_main.c - STM32CubeIDE.png\"/></span></li><li>time sudo sg_turs -v /dev/sg4 -&gt; will send a test message and should repport that a SD card is present</li><li>time sudo sg_raw -v /dev/sg4 1a 00 00 00 ff 00 -&gt; this will break the MSC and the device is not responding anymore</li></ol><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"2026-03-25 18_10_42-Downloads - File Explorer.png\" style=\"width: 400px;\"><img alt=\"2026-03-25 18_10_42-Downloads - File Explorer.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/451a22f0-7e37-d2ed-0079-fe5be0dda2ec.png\" title=\"2026-03-25 18_10_42-Downloads - File Explorer.png\"/></span></p><p>The second request with SCSI command 0x1A will never complete and the endpoint stalled and does not recover.</p><p>Best regards</p><p>Daniel</p><p> </p></div>",
+                    "author": "DZimm.9",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"50219\">@DZimm.9</user-mention> </p>\n<p>Thank you for your feedback </p>\n<p>According to <span>the </span><strong>USB Mass Storage Class – Bulk‑Only Transport (BOT) specification</strong><span> and the </span><strong>SCSI primary/block command standards</strong><span> that USB MSC is built on, i</span>mplementing MODE SENSE(6) and MODE SENSE(10)  is <strong>mandatory </strong>for a USB MSC device. At least, <span>the device must handle unsupported SCSI commands in a </span><strong>SCSI and BOT compliant way</strong><span>. </span></p>\n<p><span>I found also in UM0424, EP0 is only used to clear the bulk EP status (clear STALL status) and to issue the two class-specific requests: Mass Storage reset and Get Max LUN. Also, as stated in section 6.3.2, <strong>these commands must be implemented and must return the defined data arrays</strong>. </span></p>\n<p><span>So, for me your input is valid. </span></p>\n<p><span>Thanks again and I will try to reproduce on my end.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I had this exact same issue, an <strong>STM32U5G9J-DK2</strong> with a <strong>USBX</strong> / LevelX / NOR Flash file system. (Mounted with FileX when USB is disconnected).<br/><br/>The USB 'drive' would connect to my <strong>DELL</strong> pc fine, I could read/write files normally.  Then after ~5 to 10 minutes the HAL_PCD_ResetCallback would fire and put the USBX into continuous UX_DEVICE_REMOVED, UX_DEVICE_ATTACHED loop that could only be fixed by a hard reset.<br/><br/>It was the '<strong>Unknown or Unsupported SCSI Command</strong>' hitting the switch's fall-through and stalling the USBX.<br/>The unhandled SCSI Command received was <strong>0x85</strong></p><p><em>SCSI command 0x85 corresponds to the ATA PASS-THROUGH (16) command.</em><br/><br/>I can fix it by adding a patch in the <strong>ux_device_class_storage_thread.c</strong> file, but MX will always reset this file when re-Generating code.<br/><br/>So a more permanent solution from STM would really be appreciated.<br/><br/><br/></p></div>",
+                    "author": "David George",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There's a workaround to keep your modifications when STM32CubeMX generates code.</p><p>Create a new folder called src_modified or whatever in Middlewares/ST/usbx/common/usbx_device_classes/</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"DrPi_0-1778919009015.png\" style=\"width: 400px;\"><img alt=\"DrPi_0-1778919009015.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9eb9cc02-df9a-a34a-9fb8-f457534b473a.png\" title=\"DrPi_0-1778919009015.png\"/></span></p><ul><li>Copy the file ux_device_class_storage_thread.c from Middlewares/ST/usbx/common/usbx_device_classes/src to Middlewares/ST/usbx/common/usbx_device_classes/src_modified.</li><li>Exclude Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_thread.c from build : Right-click on the file / Resource configurations / Exclude from build... / check Release and Debug</li><li>Do your modifications in Middlewares/ST/usbx/common/usbx_device_classes/src_modified/ux_device_class_storage_thread.c</li></ul><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"DrPi_1-1778919382882.png\" style=\"width: 400px;\"><img alt=\"DrPi_1-1778919382882.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b77f9fcc-0f4f-b8f8-7a79-4dc8ce3712e3.png\" title=\"DrPi_1-1778919382882.png\"/></span></p><p>Sometimes, you do not need to create a new folder. You can copy the file in the same folder with a new name. But with USBX, unknown files are deleted by STM32CubeMX when generating sources.</p><p> </p></div>",
+                    "author": "DrPi",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2057\">@FBL</user-mention></p><p>Were you able to reproduce this problem? Is there an open ticket we can follow to track whether this issue has been resolved?</p><p>In the meantime, we have fully disabled MSC support and are looking forward to a fix.</p><p>Thanks and best regards,<br/>Daniel</p></div>",
+                    "author": "DZimm.9",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @DZimm.9 <user-mention data-id=\"28807\">@David George</user-mention> </p>\n<p>Thank you again for your valuable help in escalating the issue.</p>\n<p>The ticket has been handed over to the development team, and there are no updates at the moment. We will keep you informed as soon as we receive any feedback.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>PS. Below is what I added to file <strong>ux_device_class_storage.c</strong> at line 321 to handle the <strong>0x85</strong> SCSI Command.<br/>I am sending back a <span>SENSE_KEY_ILLEGAL_REQUEST for the next Window's REQUEST SENSE.</span><br/>Now my 'USB Drive' stays connected in Windows Explorer.<br/>The 0x85 command are still sent, but they don't stall the USBX connection any more.</p><pre class=\"lia-code-sample language-c\"><code>/* Workaround:\n Windows/Dell host sends SCSI ATA PASS-THROUGH(16), opcode 0x85.\n USB MSC device does not support ATA pass-through.\n Return ILLEGAL REQUEST / INVALID COMMAND instead of leaving command unhandled.\n */\n#ifndef UX_DEVICE_CLASS_STORAGE_SENSE_KEY_ILLEGAL_REQUEST\n\t#define UX_DEVICE_CLASS_STORAGE_SENSE_KEY_ILLEGAL_REQUEST 0x05\n#endif\ncase 0x85: /* ATA PASS-THROUGH(16) */\ncase 0xA1: /* ATA PASS-THROUGH(12) */\n\tstorage -&gt; ux_slave_class_storage_csw_status = UX_SLAVE_CLASS_STORAGE_CSW_FAILED;\n\tstorage -&gt; ux_slave_class_storage_lun[lun].ux_slave_class_storage_request_sense_status =\n\t\t\tUX_DEVICE_CLASS_STORAGE_SENSE_STATUS(\n\t\t\t\t\tUX_DEVICE_CLASS_STORAGE_SENSE_KEY_ILLEGAL_REQUEST,\n\t\t\t\t\t0x20,\n\t\t\t\t\t0x00);\n break;</code></pre><p>And at line 316,</p><pre class=\"lia-code-sample language-c\"><code>case UX_SLAVE_CLASS_STORAGE_SCSI_MODE_SELECT:\ncase 0x15:\t /* ATA MODE SELECT (6) */\n _ux_device_class_storage_mode_select(storage, lun, endpoint_in, endpoint_out, cbw_cb);\n break;</code></pre><p> </p><p> </p></div>",
+                    "author": "David George",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks <user-mention data-id=\"75190\">@DrPi</user-mention>  - This works but MX will always add the original source file back to the Build, so you have to remember to do the <span>Resource configurations / Exclude from build...</span><br/><br/>I have just been doing this when MX changes it.<br/><br/></p><pre><span>git restore ux_device_class_storage.c</span></pre><p><br/>David</p></div>",
+                    "author": "David George",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hmmm, I don't have this behavior. </p><p>Maybe this depends on the targetted STM32 and/or the STM32CubeIDE/STM32CubeMX version...</p></div>",
+                    "author": "DrPi",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I tried your suggestion again, an it worked this time.<br/>So <strong>thank you</strong> - that will prevent fiddling around with files around after an MX generate.<br/>A very useful tip to know.</p></div>",
+                    "author": "David George",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ve got the similar question, the USBX MSC + CDC will reset after ~10 min on my DELL PC but works fine on my other PCs. The cause is 0x85 SCSI command. But <a href=\"https://community.st.com/members/david-george-28807\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">David George</a>’s solution doesn’t work for me, and I found another workaround:</p><p>In  <strong>ux_device_class_storage_thread.c</strong>, just comment out the entire while loop below located at the end of the default case.</p><div><div><span style=\"color:#c9d1d9;\">                                </span><span style=\"color:#c586c0;\">while</span><span style=\"color:#c9d1d9;\"> (</span><span style=\"color:#c9d1d9;\">device</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#d4d4d4;\">-&gt;</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#c9d1d9;\">ux_slave_device_state</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#d4d4d4;\">==</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#569cd6;\">UX_DEVICE_CONFIGURED</span><span style=\"color:#c9d1d9;\">)</span></div><div><span style=\"color:#c9d1d9;\">                                { </span></div> <div><span style=\"color:#8b949e;\">                                    /* Check the endpoint state.  */</span></div><div><span style=\"color:#c9d1d9;\">                                    </span><span style=\"color:#c586c0;\">if</span><span style=\"color:#c9d1d9;\"> (</span><span style=\"color:#c9d1d9;\">endpoint_in</span><span style=\"color:#c9d1d9;\"> -&gt; </span><span style=\"color:#c9d1d9;\">ux_slave_endpoint_state</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#d4d4d4;\">==</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#569cd6;\">UX_ENDPOINT_RESET</span><span style=\"color:#c9d1d9;\">)</span></div><div><span style=\"color:#c9d1d9;\">                                    {</span></div> <div><span style=\"color:#8b949e;\">                                        /* Now we set the CSW with failure.  */</span></div><div><span style=\"color:#c9d1d9;\">                                        </span><span style=\"color:#c9d1d9;\">storage</span><span style=\"color:#c9d1d9;\"> -&gt; </span><span style=\"color:#c9d1d9;\">ux_slave_class_storage_csw_status</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#d4d4d4;\">=</span><span style=\"color:#c9d1d9;\"> </span><span style=\"color:#569cd6;\">UX_SLAVE_CLASS_STORAGE_CSW_FAILED</span><span style=\"color:#c9d1d9;\">;</span></div><div><span style=\"color:#c9d1d9;\">                                        </span><span style=\"color:#c586c0;\">break</span><span style=\"color:#c9d1d9;\">;</span></div><div><span style=\"color:#c9d1d9;\">                                    }                                        </span></div> <div><span style=\"color:#c9d1d9;\">                                    </span><span style=\"color:#c586c0;\">else</span></div> <div><span style=\"color:#8b949e;\">                                        /* We must therefore wait a while.  */</span></div><div><span style=\"color:#c9d1d9;\">                                        </span><span style=\"color:#569cd6;\">_ux_device_thread_relinquish</span><span style=\"color:#c9d1d9;\">();</span></div><div><span style=\"color:#c9d1d9;\">                                }</span></div></div><div> </div></div>",
+                    "author": "minm",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "163730",
+            "publicId": "163730",
+            "title": "STM32G4 HRTIM Deadtime Prescaler incorrect setting after driver update",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32g4-hrtim-deadtime-prescaler-incorrect-setting-after-driver-update-163730",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "HRTIM",
+                "STM32G4 series"
+            ],
+            "published_at": "2026-03-12T13:20:04+00:00",
+            "views": 406,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @grmart\n\nA ticket **#0060562** has been escalated to dev team to make CubeMX describe DTPRSC primarily as a dead‑time time‑step (tDTG) multiplier, consistent with the RM:\n\n![RM.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6f3edb0c-c764-849e-d038-533488ad5e4b.png \"RM.png\")\n\nI will keep you posted with updates.\n\nTHX",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "After updating the STM32CubeG4 Firmware Package from version 1.6.1 to 1.6.2, I discovered a bug that causes incorrect deadtime prescaler settings for HRTIM when using the LL driver and CubeMX. As a result, the deadtime value can change to a fraction of the original value without anyone noticing, which can lead to hardware damage.\n\nIf I set in STM32CubeMX 6.17.0:\n\nHRTIM -> Timer x -> Dead Time -> Prescaler = \"fDTG = fHRTIM \\* 2\"\n\nThe generated code contains:\n\nLL\\_HRTIM\\_DT\\_SetPrescaler(HRTIM1, LL\\_HRTIM\\_TIMER\\_x, LL\\_HRTIM\\_DT\\_PRESCALER\\_MUL2);\n\nLL\\_HRTIM\\_DT\\_PRESCALER\\_MUL2 is defined as HRTIM\\_DTR\\_DTPRSC\\_2 -> Register HRTIM\\_DTxR DTPRSC[2:0] = 0x4\n\nThis results in the deadtime value:\n\nt\\_DTG = 2^4 \\* (t\\_HRTIM / 8) = 2 \\* t\\_HRTIM = fHRTIM / 2\n\nSo instead of \"fHRTIM \\* 2\" I get \"fHRTIM / 2\"!\n\nI think the confusion comes from the fact that in CubeMX the prescaler is set as a multiple of the frequency, but in the datasheet and driver the multiple of the period is described.\n\nBefore the driver update, there was an error in both CubeMX and the driver, which led to the correct settings.\n\nIn the mentioned update, the definitions of LL\\_HRTIM\\_DT\\_PRESCALER\\_ were modified/fixed.\n\nProbably as a result of this report:[STM32G4 HRTIM deadtime prescaler defines swapped](https://community.st.com/t5/stm32-mcus-embedded-software/stm32g4-hrtim-deadtime-prescaler-defines-swapped/m-p/820924#M65737)\n\nThe Release Notes for STM32CubeG4 Firmware Package only mention \"HAL HRTIM update, Fix HRTIM\\_Deadtime\\_Prescaler\\_Ratio macro definitions.\"",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6f3edb0c-c764-849e-d038-533488ad5e4b.png"
+            ],
+            "author": "grmart",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"65646\">@grmart</user-mention> </p>\n<p>I'm currently checking this behavior. I will get back to you ASAP.</p>\n<p>It would be useful if you could share your IOC.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"65646\">@grmart</user-mention> </p>\n<p>A ticket <strong>#0060562</strong> has been escalated to dev team to make CubeMX describe DTPRSC primarily as a dead‑time time‑step (tDTG) multiplier, consistent with the RM:</p>\n<div class=\"mceNonEditable lia-copypaste-placeholder\" id=\"tinyMceEditor_f7f9f12bde682GhofraneGSOURI_0\"> </div>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"RM.png\" style=\"width: 999px;\"><img alt=\"RM.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6f3edb0c-c764-849e-d038-533488ad5e4b.png\" title=\"RM.png\"/></span></p>\n<p>I will keep you posted with updates.</p>\n<p>THX</p>\n<p> </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

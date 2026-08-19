@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "164608",
+            "publicId": "164608",
+            "title": "VL53L8CH, VL53L7CH Multi-Sensor Time-of-Flight Fusion",
+            "url": "https://community.st.com/imaging-sensors-49/vl53l8ch-vl53l7ch-multi-sensor-time-of-flight-fusion-164608",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Time of flight"
+            ],
+            "published_at": "2026-04-09T13:24:18+00:00",
+            "views": 294,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi:\n\n[A guide for using the artificial intelligence enabler VL53L7CH and VL53L8CH multizone Time-of-Flight (ToF) sensors - User manual](https://www.st.com/resource/en/user_manual/um3183-a-guide-for-using-the-artificial-intelligence-enabler-vl53l7ch-and-vl53l8ch-multizone-timeofflight-tof-sensors-stmicroelectronics.pdf)\n\nAccording to UM file, a multi-module implementation using several VL53L7CH or VL53L8CH devices is supported at system level.\n\nBoth devices support I²C communication. VL53L8CH also supports SPI.\n\nSection 2.3 states that the I²C address can be changed to avoid conflicts and to facilitate the use of multiple modules for a greater system FoV.\n\nUM3183 also includes reference diagrams for:\n\nMultiple sensors on I²C bus\n\nMultiple sensors on SPI (for VL53L8CH)\n\nTherefore, from a hardware connectivity point of view, using 4 sensors in one system is possible.\n\nHowever, it is important to clarify that this does not create a native single-device 16×16 zone sensor. Each module still operates independently with its own 8×8 output. A larger effective array can only be achieved by host-side stitching / fusion of the four sensor outputs.\n\nIn addition, the resulting FoV extension should not be considered seamless. Based on the module optical structure and orientation behavior described in UM3183, several practical limitations must be taken into account:\n\neach sensor has its own zone orientation\n\nthe effective image is subject to horizontal and vertical flip\n\nmodule mounting orientation must be kept consistent\n\noptical axes may not be perfectly aligned\n\nmechanical tolerances may introduce offsets\n\nadjacent FoVs may overlap or leave gaps\n\nedge zones may not behave exactly like center zones\n\nFor these reasons, a 4-sensor arrangement should be considered as a system-level expanded FoV solution, rather than a perfect mathematically uniform 16×16 grid.\n\nMain limitations\n\nHardware\n\nOn I²C, each device must be assigned a different address, typically by controlling LPn during initialization.\n\nOn SPI (VL53L8CH only), each sensor requires an independent NCS line.\n\nMechanical placement, sensor orientation, FoV overlap, and possible optical interaction between modules must be carefully evaluated.\n\nSoftware\n\nThe ULD does not provide a built-in function to merge 4 sensors into a native 16×16 output.\n\nThe host must handle initialization, synchronization, coordinate remapping, calibration, and data fusion.\n\nUsing 4 sensors increases bus traffic, memory usage, and host processing load.\n\nReference in UM3183\n\nPlease refer to:\n\nSection 2.3 – Schematics and I²C/SPI configuration\n\nFigure 4 – Multiple sensors on I²C bus\n\nFigure 5 – Multiple sensors on SPI\n\nSection 2.2 – Effective orientation\n\nSection 4.15 – External synchronization pin (VL53L8CH only)\n\nBest regards,\n\nBin FAN",
+            "best_answer_author": "Bin",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear ST, For the ToF sensors supported VL53L8CH or VL53L7CH is it possible to make a hardware that depends on 4 x VL53L8CH or 4 x VL53L7CH integrated to increase the number of zones from 8 X 8 to 16 X 16 ?\n\nand if it is possible what would be the limitations in both HW and SW for this system?\n\nalso provide me a reference for this implementation if exists.\n\nThank you.",
+            "images": [],
+            "author": "SelimMuhammed",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi:</p><p><a href=\"https://www.st.com/resource/en/user_manual/um3183-a-guide-for-using-the-artificial-intelligence-enabler-vl53l7ch-and-vl53l8ch-multizone-timeofflight-tof-sensors-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">A guide for using the artificial intelligence enabler VL53L7CH and VL53L8CH multizone Time-of-Flight (ToF) sensors - User manual</a></p><p>According to UM file, a multi-module implementation using several VL53L7CH or VL53L8CH devices is supported at system level.</p><p>Both devices support I²C communication. VL53L8CH also supports SPI.<br/>Section 2.3 states that the I²C address can be changed to avoid conflicts and to facilitate the use of multiple modules for a greater system FoV.<br/>UM3183 also includes reference diagrams for:<br/>Multiple sensors on I²C bus<br/>Multiple sensors on SPI (for VL53L8CH)<br/>Therefore, from a hardware connectivity point of view, using 4 sensors in one system is possible.</p><p>However, it is important to clarify that this does not create a native single-device 16×16 zone sensor. Each module still operates independently with its own 8×8 output. A larger effective array can only be achieved by host-side stitching / fusion of the four sensor outputs.</p><p>In addition, the resulting FoV extension should not be considered seamless. Based on the module optical structure and orientation behavior described in UM3183, several practical limitations must be taken into account:</p><p>    each sensor has its own zone orientation<br/>    the effective image is subject to horizontal and vertical flip<br/>    module mounting orientation must be kept consistent<br/>    optical axes may not be perfectly aligned<br/>    mechanical tolerances may introduce offsets<br/>    adjacent FoVs may overlap or leave gaps<br/>    edge zones may not behave exactly like center zones<br/>For these reasons, a 4-sensor arrangement should be considered as a system-level expanded FoV solution, rather than a perfect mathematically uniform 16×16 grid.</p><p>Main limitations<br/>Hardware</p><p>On I²C, each device must be assigned a different address, typically by controlling LPn during initialization.<br/>On SPI (VL53L8CH only), each sensor requires an independent NCS line.<br/>Mechanical placement, sensor orientation, FoV overlap, and possible optical interaction between modules must be carefully evaluated.<br/>Software</p><p>The ULD does not provide a built-in function to merge 4 sensors into a native 16×16 output.<br/>The host must handle initialization, synchronization, coordinate remapping, calibration, and data fusion.<br/>Using 4 sensors increases bus traffic, memory usage, and host processing load.</p><p>Reference in UM3183<br/>Please refer to:</p><p>Section 2.3 – Schematics and I²C/SPI configuration<br/>Figure 4 – Multiple sensors on I²C bus<br/>Figure 5 – Multiple sensors on SPI<br/>Section 2.2 – Effective orientation<br/>Section 4.15 – External synchronization pin (VL53L8CH only)</p><p>Best regards,<br/>Bin FAN</p></div>",
+                    "author": "Bin",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks, Bin <br/>I really appreciate your words that clarifies all approaches for this configuration </p><p>wish you all the best  </p></div>",
+                    "author": "SelimMuhammed",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Bin",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

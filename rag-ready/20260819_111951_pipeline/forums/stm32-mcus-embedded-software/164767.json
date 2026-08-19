@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "164767",
+            "publicId": "164767",
+            "title": "Firmware crashing after adding sensor FP-SNS-DATALOG2 Steval-STWINBX1",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/firmware-crashing-after-adding-sensor-fp-sns-datalog2-steval-stwinbx1-164767",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32U5 series",
+                "ThreadX"
+            ],
+            "published_at": "2026-04-15T11:08:21+00:00",
+            "views": 217,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n> ---\n\n>\n\n> @George\\_Kryshco wrote:\n\n>\n\n> ### Main Issue\n\n>\n\n> The board operates correctly until it is reset. After reset, I encounter multiple faults, including:\n\n>\n\n> * HardFaults\n\n> * Bus faults\n\n> * Memory management faults\n\n> * Usage faults (forced)\n\n> * Precise data access violations\n\n> * Occasional unaligned access faults\n\n>\n\n> ---\n\n[How to debug a HardFault on an Arm® Cortex®-M STM32](https://community.st.com/t5/stm32-mcus/how-to-debug-a-hardfault-on-an-arm-cortex-m-stm32/ta-p/672235)",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone,\n\nI’m working on a custom version of the FP-SNS-DATALOG2 firmware and attempting to integrate a new sensor, **LSM6DSV320X**, which is available on the STEVAL-SensorTile.Box Pro but not on the STEVAL-STWINBX1.\n\nTo add support for this sensor, I performed the following changes:\n\n* Added Drivers/BSP/Components/lsm6dsv320x/lsm6dsv320x\\_reg.c/.h\n\n* Integrated corresponding PnPL + App Model .c/.h files\n\n* Added that sensor task\n\n* Modified:\n\n+ DatalogAppTask.c/.h\n\n+ App.c/.h\n\n+ sysdebug\\_conf.h\n\n+ SensorManager\\_conf.h\n\n+ HardwareDetect.c/.h\n\n* Updated existing DTM(Device Template Model) from stdatalog-pysdk pnpl module(FP-SNS-DATALOG2-9.json) to include the new sensor\n\n* Removed ism6hg256x from the build\n\nWith these changes, I’m able to start logging using a custom device template, and the sensor appears to work initially. However, the system becomes unreliable after a reset.\n\n### Main Issue\n\nThe board operates correctly until it is reset. After reset, I encounter multiple faults, including:\n\n* HardFaults\n\n* Bus faults\n\n* Memory management faults\n\n* Usage faults (forced)\n\n* Precise data access violations\n\n* Occasional unaligned access faults\n\n(See attached screenshots for details.)\n\n### What I Tried\n\nI suspected a memory issue, so I increased the ThreadX byte pool (TX\\_BYTE\\_POOL) from **565 KB to 570 KB**, but this did not resolve the problem.\n\n### Questions\n\n* Could this be due to incorrect memory configuration or alignment issues?\n\n* Is there some required initialization or configuration step I might be missing?\n\n* Is the system tightly configured for the original onboard sensors in a way that affects adding external ones?\n\nI’ve also attached the project archive with my modifications for reference.\n\nAny insights or suggestions would be greatly appreciated.\n\nThank you in advance,\n\nGeorge Kryshco\n\n![George_Kryshco_0-1776248930173.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bdc2fb6b-aa2c-0ba9-0d36-0df9c9527d86.png \"George_Kryshco_0-1776248930173.png\")\n\n![George_Kryshco_1-1776249010364.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/44bee3ac-4f55-3142-5a32-c82097e8963d.png \"George_Kryshco_1-1776249010364.png\")\n\n![George_Kryshco_2-1776249023475.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd9a5a5c-0759-4c34-8e98-32ef2e536aef.png \"George_Kryshco_2-1776249023475.png\")\n\n![George_Kryshco_3-1776249390424.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c492c294-b348-0d69-c2ef-1b0f69028f1f.png \"George_Kryshco_3-1776249390424.png\")\n\n![George_Kryshco_4-1776249445477.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d45fb94b-a18b-3cad-66e5-fc2a23ae57ac.png \"George_Kryshco_4-1776249445477.png\")\n\n![George_Kryshco_5-1776249491006.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64f302c6-cb15-6660-2ead-7fb26cfcc3f3.png \"George_Kryshco_5-1776249491006.png\")\n\n![George_Kryshco_6-1776251185062.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c61b42aa-2f90-9fae-67c8-86adb457ac64.png \"George_Kryshco_6-1776251185062.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c492c294-b348-0d69-c2ef-1b0f69028f1f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d45fb94b-a18b-3cad-66e5-fc2a23ae57ac.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64f302c6-cb15-6660-2ead-7fb26cfcc3f3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd9a5a5c-0759-4c34-8e98-32ef2e536aef.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c61b42aa-2f90-9fae-67c8-86adb457ac64.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/44bee3ac-4f55-3142-5a32-c82097e8963d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bdc2fb6b-aa2c-0ba9-0d36-0df9c9527d86.png"
+            ],
+            "author": "George_Kryshco",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"105767\">@George_Kryshco</user-mention> wrote:<br/>\n<h3 id=\"toc-hId-1628220769\">Main Issue</h3>\n<p>The board operates correctly until it is reset. After reset, I encounter multiple faults, including:</p>\n<ul>\n<li>HardFaults</li>\n<li>Bus faults</li>\n<li>Memory management faults</li>\n<li>Usage faults (forced)</li>\n<li>Precise data access violations</li>\n<li>Occasional unaligned access faults</li>\n</ul>\n<hr/></blockquote>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-debug-a-hardfault-on-an-arm-cortex-m-stm32/ta-p/672235\" target=\"_blank\"><span>How to debug a HardFault on an Arm® Cortex®-M STM32</span></a></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "167186",
+            "publicId": "167212",
+            "title": "STM32WL55 Power issue",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wl55-power-issue-167212",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Power",
+                "STM32WL series",
+                "LoRa"
+            ],
+            "published_at": "2026-07-24T10:29:10+00:00",
+            "views": 83,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi Somya,\n\nusing a MB1389E Nucleo Board and LoRaWAN\\_AT\\_Slave Application Example, you can get around 21 dBm. If you want to get +22 dBm I suggest you double checking the BOM you are using.\n\nHere are the AT command I used for the test (I set the US band and not the EU to reach that power):\n\nAT+TCONF=868000000:22:50000:50000:4/5:0:0:0:16:25000:2:3\n\nOK\n\nAT+TCONF=?\n\n1: Freq= 868000000 Hz\n\n2: Power= 22 dBm\n\n3: Bandwidth= 50000 Hz\n\n4: FSK datarate= 50000 bps\n\n5: Coding Rate not applicable\n\n6: LNA State= 0\n\n7: PA Boost State= 0\n\n8: modulation FSK\n\n9: Payload len= 16 Bytes\n\n10: FSK deviation= 25000 Hz\n\n11: LowDRopt not applicable\n\n12: FSK gaussian BT product= 3\n\nOK\n\nAT+TTONE\n\n363s378:Tx FSK Test\n\nAT+BAND=?\n\n8:US915\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa11ddae-ceb4-48d6-9fe5-8cdd0608e659.png)\n\nBR,\n\nFilippo",
+            "best_answer_author": "Filippo_Malleo",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am working on STM32WL55 dual core in which the current consumption is as not as expected as according to the datasheet. It is hardcoded for high power only. and the current consumption is coming for +17dBm and +14dBm as expected which is 58mA and 45mA approax but when switching to the +20dBm and +22dBm it is getting capped at 68mA only. It is not going above 68mA at any way. I have hardcoded it to 22dBm but it is still getting capped to 68mA only. I want to do changes in the code in such a way that the current consumption changes. what are the possible reasons of it and what are the functions where the code modification can help in changing the current consumption. Is there that ST has capped it to +18dBm or +17dBM  and will never work above it?\n\n```\n\nvoid SUBGRF_SetTxParams( uint8_t paSelect, int8_t power, RadioRampTimes_t rampTime )\n\n{\n\nuint8_t buf[2];\n\nint32_t max_power;\n\nif (paSelect == RFO_LP)\n\n{\n\nmax_power = RBI_GetRFOMaxPowerConfig(RBI_RFO_LP_MAXPOWER);\n\nif (power > max_power)\n\n{\n\npower = max_power;\n\n}\n\nif (max_power == 14)\n\n{\n\nSUBGRF_SetPaConfig(0x04, 0x00, 0x01, 0x01);\n\npower = 0x0E - (max_power - power);\n\n}\n\nelse if (max_power == 10)\n\n{\n\nSUBGRF_SetPaConfig(0x01, 0x00, 0x01, 0x01);\n\npower = 0x0D - (max_power - power);\n\n}\n\nelse /*default 15dBm*/\n\n{\n\nSUBGRF_SetPaConfig(0x07, 0x00, 0x01, 0x01);\n\npower = 0x0E - (max_power - power);\n\n}\n\nif (power < -17)\n\n{\n\npower = -17;\n\n}\n\nSUBGRF_WriteRegister(REG_OCP, 0x18); /* current max is 80 mA for the whole device*/\n\n}\n\nelse /* rfo_hp*/\n\n{\n\n/* WORKAROUND - Better Resistance of the RFO High Power Tx to Antenna Mismatch, see STM32WL Erratasheet*/\n\nSUBGRF_WriteRegister(REG_TX_CLAMP, SUBGRF_ReadRegister(REG_TX_CLAMP) | (0x0F << 1));\n\n/* WORKAROUND END*/\n\nmax_power = RBI_GetRFOMaxPowerConfig(RBI_RFO_HP_MAXPOWER);\n\nif (power > max_power)\n\n{\n\npower = max_power;\n\n}\n\nif (max_power == 20)\n\n{\n\nSUBGRF_SetPaConfig(0x03, 0x05, 0x00, 0x01);\n\npower = 0x16 - (max_power - power);\n\n}\n\nelse if (max_power == 17)\n\n{\n\nSUBGRF_SetPaConfig(0x02, 0x03, 0x00, 0x01);\n\npower = 0x16 - (max_power - power);\n\n}\n\nelse if (max_power == 14)\n\n{\n\nSUBGRF_SetPaConfig(0x02, 0x02, 0x00, 0x01);\n\npower = 0x0E - (max_power - power);\n\n}\n\nelse /*22dBm*/\n\n{\n\nSUBGRF_SetPaConfig(0x04, 0x07, 0x00, 0x01);\n\npower = 0x16 - (max_power - power);\n\n}\n\nif (power < -9)\n\n{\n\npower = -9;\n\n}\n\nSUBGRF_WriteRegister(REG_OCP, 0x38); /*current max 160mA for the whole device*/\n\n}\n\nbuf[0] = power;\n\nbuf[1] = (uint8_t)rampTime;\n\nSUBGRF_WriteCommand(RADIO_SET_TXPARAMS, buf, 2);\n\n}\n\nstatic void RadioInit( RadioEvents_t *events )\n\n{\n\nRadioEvents = events;\n\nSubgRf.RxContinuous = false;\n\nSubgRf.TxTimeout = 0;\n\nSubgRf.RxTimeout = 0;\n\n/*See STM32WL Errata: RadioSetRxDutyCycle*/\n\nSubgRf.RxDcPreambleDetectTimeout = 0;\n\n#if( RADIO_LR_FHSS_IS_ON == 1 )\n\nSubgRf.lr_fhss.is_lr_fhss_on = false;\n\n#endif /* RADIO_LR_FHSS_IS_ON == 1 */\n\nSUBGRF_Init( RadioOnDioIrq );\n\n/*SubgRf.publicNetwork set to false*/\n\nSubgRf.PublicNetwork.Current = false;\n\nSubgRf.PublicNetwork.Previous = false;\n\nRADIO_IRQ_PROCESS_INIT();\n\nSUBGRF_SetRegulatorMode( );\n\nSUBGRF_SetBufferBaseAddress( 0x00, 0x00 );\n\nSUBGRF_SetTxParams( RFO_HP, 0, RADIO_RAMP_200_US );\n\nSUBGRF_SetDioIrqParams( IRQ_RADIO_ALL, IRQ_RADIO_ALL, IRQ_RADIO_NONE, IRQ_RADIO_NONE );\n\nRadioSleep();\n\n// Initialize driver timeout timers\n\nTimerInit( &TxTimeoutTimer, RadioOnTxTimeoutIrq );\n\nTimerInit( &RxTimeoutTimer, RadioOnRxTimeoutIrq );\n\nTimerStop( &TxTimeoutTimer );\n\nTimerStop( &RxTimeoutTimer );\n\n}\n\n```\n\nWhat are the possibilities in the code for the above situation\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61e9de6f-7fbf-4c11-b5b0-6def596b643d.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/97aa3b7c-8ca3-48a9-9518-b13ba9c5d2e7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1e85f47e-1607-4ba0-b21e-0718bc33d4a8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa11ddae-ceb4-48d6-9fe5-8cdd0608e659.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/61e9de6f-7fbf-4c11-b5b0-6def596b643d.png"
+            ],
+            "author": "Somya",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"101548\">@Somya</user-mention> ,</p><p>1- Your thread is not posted in the correct forum board. Your question is about STM32WL55 device which is a wireless MCU. So “STM32 MCUs Wireless” forum musty be used in your cvase. I’ve already moved it.</p><p>2- Please use Code button to paste your code:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1e85f47e-1607-4ba0-b21e-0718bc33d4a8.png\"/></figure><p>When you started this post you would see this pop-up: did you see it?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/97aa3b7c-8ca3-48a9-9518-b13ba9c5d2e7.png\"/></figure><p>I’ve edited you post to comply with this community rule. Please also read: <a href=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\" rel=\"noreferrer\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></p><p>Thank you for your understanding</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank You so much for clarification. </p></div>",
+                    "author": "Somya",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Somya,</p><p> </p><p>using a MB1389E Nucleo Board and LoRaWAN_AT_Slave Application Example, you can get around 21 dBm. If you want to get +22 dBm I suggest you double checking the BOM you are using.<br/><br/>Here are the AT command I used for the test (I set the US band and not the EU to reach that power):<br/><br/> </p><p>AT+TCONF=868000000:22:50000:50000:4/5:0:0:0:16:25000:2:3</p><p>OK</p><p>AT+TCONF=?</p><p>1: Freq= 868000000 Hz</p><p>2: Power= 22 dBm</p><p>3: Bandwidth= 50000 Hz</p><p>4: FSK datarate= 50000 bps</p><p>5: Coding Rate not applicable</p><p>6: LNA State= 0</p><p>7: PA Boost State= 0</p><p>8: modulation FSK</p><p>9: Payload len= 16 Bytes</p><p>10: FSK deviation= 25000 Hz</p><p>11: LowDRopt not applicable</p><p>12: FSK gaussian BT product= 3</p><p>OK</p><p>AT+TTONE</p><p>363s378:Tx FSK Test</p><p>AT+BAND=?</p><p>8:US915<br/><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa11ddae-ceb4-48d6-9fe5-8cdd0608e659.png\"/></figure><p><br/><br/>BR,<br/>Filippo</p></div>",
+                    "author": "Filippo_Malleo",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ll definitely try it and sure i’ll double check BOM.<br/>Thanks for replying. It is actually helpful.</p></div>",
+                    "author": "Somya",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Filippo_Malleo",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

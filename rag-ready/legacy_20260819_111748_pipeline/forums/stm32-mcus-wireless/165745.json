@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "165745",
+            "publicId": "165745",
+            "title": "STM32WB15CC + FreeRTOS: BLE connection drops when writing configuration to internal Flash",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wb15cc-freertos-ble-connection-drops-when-writing-configuration-to-internal-flash-165745",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "BLE",
+                "Flash",
+                "STM32WB series"
+            ],
+            "published_at": "2026-05-16T12:13:34+00:00",
+            "views": 146,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nHere are some answers\n\n1/ Yes, any write/erase of the Flash stalls both CPU1 and CPU2. There is only one flash shared by both CPU so there is no safe area that could be written without stalling CPU2. If this happen during CPU2 radio operation, the link will be lost.\n\n2/ Yes, this is mandatory and available on all STM32WBx products.\n\n3/ The algorithm to be implemented is specified in AN5289 Chapter 4.7 Flash memory management.\n\nThe best would be to reuse the flash driver that implements this algorithm and is used and available in the project BLE\\_Ota (or any other BLE\\_xxx\\_Ota project).\n\nIt is provided in baremetal framework but can be used as is in OS framework. You may need to adapt to the OS the implementation of FD\\_WaitForSemAvailable() since the default implementation is a polling activity which will block your task instead of making it pending (although this could still be working fine when Time Slicing is used).\n\nRegards.",
+            "best_answer_author": "Christophe Arnal",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hardware: STM32 NUCLEO-WB15CC (STM32WB15CCUX)\n\nRTOS: FreeRTOS\n\nBLE stack: STM32WB WPAN / BLE via CPU2 (M0+)\n\nHi,\n\nWhen writing a small configuration block (~48 bytes) to the internal Flash from CPU1 (M4 FreeRTOS task), the BLE connection drops immediately. The disconnect event is received on the host side with no prior warning, and the firmware logs a HCI\\_DISCONNECTION\\_COMPLETE\\_EVT shortly after the Flash erase/write sequence begins.\n\nThe Flash region used is a dedicated 2 KB NVM page at address 0x0801B000 (defined in the linker script as FLASH\\_NVM):\n\n```\n\nFLASH_NVM (rx) : ORIGIN = 0x0801B000, LENGTH = 2K\n\n```\n\n--- Data Written ---\n\nThe payload written is 48 bytes (already 8-byte aligned), structured as:\n\n```\n\n[magic: uint32_t (4 B)] [Config_t (40 B)] [checksum: uint32_t (4 B)]\n\nThe Config_t struct:\n\ntypedef struct {\n\nuint16_t volume_shown;\n\nuint16_t client_timeout_ms;\n\nuint16_t cup_detection_threshold;\n\nuint16_t flow_timeout_forward_ms;\n\nuint16_t flow_timeout_backward_ms;\n\nuint16_t foam_ms;\n\nuint16_t foam_decay_minutes;\n\nuint16_t foam_ms_after_decay;\n\nuint16_t steps_forward;\n\nuint16_t steps_backward;\n\nuint16_t step_increment;\n\nuint16_t tick;\n\nuint8_t use_hall_positioning;\n\nuint8_t offline_operation;\n\nuint8_t com_mode;\n\nuint8_t integration_zig;\n\nfloat adjust;\n\nchar serial_number[4];\n\nRGB_Color_t led_color; // 3 bytes (r, g, b)\n\n} Config_t; // sizeof = 40 bytes\n\n```\n\n--- Flash Write Code (CPU1 / M4, FreeRTOS task) ---\n\nErase (FlashStorage\\_Erase):\n\n```\n\nFlashStorage_Status_t FlashStorage_Erase(void)\n\n{\n\nFLASH_EraseInitTypeDef erase_config;\n\nuint32_t page_error = 0U;\n\nuint32_t base = storage_base_addr(); // 0x0801B000\n\nuint32_t page = (base - FLASH_BASE) / FLASH_PAGE_SIZE;\n\nHAL_FLASH_Unlock();\n\n__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS);\n\nerase_config.TypeErase = FLASH_TYPEERASE_PAGES;\n\nerase_config.Page = page;\n\nerase_config.NbPages = 1U;\n\nHAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase_config, &page_error);\n\nHAL_FLASH_Lock();\n\nreturn (status == HAL_OK) ? FLASH_STORAGE_OK : FLASH_STORAGE_ERROR_ERASE;\n\n}\n\n```\n\nWrite (FlashStorage\\_Write):\n\n```\n\nFlashStorage_Status_t FlashStorage_Write(uint32_t offset, const void *data, uint32_t size)\n\n{\n\nuint32_t address = storage_base_addr() + offset; // 0x0801B000 + 0\n\nconst uint64_t *src=(const uint64_t *)data;\n\nHAL_FLASH_Unlock();\n\n__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS);\n\nfor (uint32_t i = 0U; i < (size / 8U); i++) {\n\nHAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, address, src[i]);\n\naddress += 8U;\n\n}\n\nHAL_FLASH_Lock();\n\nreturn FLASH_STORAGE_OK;\n\n}\n\n```\n\nCall site (Config\\_SaveToFlash):\n\n```\n\nvoid Config_SaveToFlash(void)\n\n{\n\nuint8_t buf[128];\n\nuint32_t magic = CONFIG_FLASH_MAGIC;\n\nuint32_t new_checksum = compute_config_checksum(&config, sizeof(Config_t));\n\nif (new_checksum == last_saved_checksum) return;\n\nmemset(buf, 0xFF, sizeof(buf));\n\nmemcpy(buf, &magic, 4);\n\nmemcpy(buf + 4, &config, sizeof(Config_t));\n\nmemcpy(buf + 4 + sizeof(Config_t), &new_checksum, 4);\n\nFlashStorage_Erase();\n\nFlashStorage_Write(0, buf, 48);\n\nlast_saved_checksum = new_checksum;\n\n}\n\n```\n\n--- Deferred Save Strategy ---\n\nConfig\\_SaveToFlash() is called from a FreeRTOS task via a deferred mechanism: when a configuration command is received over BLE (GATT write on a custom NUS-style RX characteristic), a pending flag is set and the actual write is delayed by 3000 ms. The task polls Config\\_ProcessPendingSave() periodically:\n\n```\n\nvoid Config_RequestSaveToFlash(void) {\n\nsave_pending = true;\n\nsave_request_tick = xTaskGetTickCount();\n\n}\n\nvoid Config_ProcessPendingSave(void) {\n\nif (!save_pending) return;\n\nif ((xTaskGetTickCount() - save_request_tick) < pdMS_TO_TICKS(3000)) return;\n\nsave_pending = false;\n\nConfig_SaveToFlash();\n\n}\n\n```\n\nEven with this 3-second delay, the BLE connection still drops at the moment HAL\\_FLASHEx\\_Erase() is called.\n\n--- Questions ---\n\n1. On STM32WB15CC, does a Flash erase/write from CPU1 stall CPU2 (M0+) long enough to cause a supervision timeout or HCI timeout? Is the FLASH\\_NVM page at 0x0801B000 in a region shared with the BLE stack firmware?\n\n2. Should SHCI\\_C2\\_FLASH\\_EraseActivity() be called before/after the erase to notify CPU2? Is this function available and applicable on the WB15?\n\n3. Is there a recommended pattern for safely writing to internal Flash while maintaining an active BLE connection on STM32WB15, using FreeRTOS?\n\nAny guidance is appreciated. Thank you.",
+            "images": [],
+            "author": "joaopaulob",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Here are some answers </p><p>1/ Yes, any write/erase of the Flash stalls both CPU1 and CPU2. There is only one flash shared by both CPU so there is no safe area that could be written without stalling CPU2. If this happen during CPU2 radio operation, the link will be lost.</p><p>2/ Yes, this is mandatory and available on all STM32WBx products.</p><p>3/ The algorithm to be implemented is specified in AN5289 Chapter 4.7 Flash memory management.</p><p>The best would be to reuse the flash driver that implements this algorithm and is used and available in the project BLE_Ota (or any other BLE_xxx_Ota project).</p><p>It is provided in baremetal framework but can be used as is in OS framework. You may need to adapt to the OS the implementation of FD_WaitForSemAvailable() since the default implementation is a polling activity which will block your task instead of making it pending (although this could still be working fine when Time Slicing is used).</p><p>Regards.</p><p> </p></div>",
+                    "author": "Christophe Arnal",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Christophe Arnal",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

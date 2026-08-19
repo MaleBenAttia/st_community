@@ -1,0 +1,92 @@
+{
+    "forum": [
+        {
+            "id": "163603",
+            "publicId": "163603",
+            "title": "STM32G030C8TX ADC Issue on PB11 and PB12 Pins",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32g030c8tx-adc-issue-on-pb11-and-pb12-pins-163603",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G0 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-09T11:57:37+00:00",
+            "views": 393,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "Oh, so you probably attempt to use the fully configurable sequencer mode (I don't know how is it called in Cube/CubeMX, I don't use Cube). That has this limitation, as documented in the RM (and CubeMX attempted to prevent you from going against it):\n\n![Clipboard_04-02-2026_01.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf01d368-4e22-f563-2380-4683cee34ba8.png \"Clipboard_04-02-2026_01.png\")\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI am currently working with the STM32G030C8TX microcontroller and I have encountered an issue while reading analog values through the ADC.\n\nWhen I attempt to read ADC values from the **PB11** and **PB12** pins, the measured values are incorrect or unstable. However, when I use other ADC-capable pins on the same microcontroller, the readings appear to be correct and stable.\n\nBecause of this behavior, I am unsure whether:\n\n* PB11 and PB12 pins support ADC functionality on this device/package\n\n* There is a configuration issue on my side\n\n* Or there might be a silicon/production-related issue with the chip\n\nI would appreciate it if you could clarify whether these pins are valid ADC inputs on the STM32G030C8TX and if there are any known limitations or special configurations required.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/31af2b54-a914-a082-dbe4-83e351b58e2e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf01d368-4e22-f563-2380-4683cee34ba8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f560825f-81d6-3b48-32bb-824261c60357.png"
+            ],
+            "author": "EGurd.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Are you sure there is no other hardware connections to these pins apart of ADC connections?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>errata  <a href=\"https://www.st.com/resource/en/errata_sheet/es0486-stm32g030x6x8-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/errata_sheet/es0486-stm32g030x6x8-device-errata-stmicroelectronics.pdf</a></p><p>shows no problem with <span> </span><strong>PB11</strong><span> and </span><strong>PB12</strong><span> pins , </span></p><p>the pins should give correct ADC values :</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bildschirmfoto_2026-03-09_13-10-24.png\" style=\"width: 928px;\"><img alt=\"Bildschirmfoto_2026-03-09_13-10-24.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/31af2b54-a914-a082-dbe4-83e351b58e2e.png\" title=\"Bildschirmfoto_2026-03-09_13-10-24.png\"/></span></p><p>You choose in15 and 16 ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"56133\">@EGurd.1</user-mention> </p>\n<p>Please check if the clock for GPIO PORT B is enabled.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I am currently working with the STM32G030C8TX microcontroller and I have encountered an issue while reading analog values through the ADC.</em></font></p><p><span>And what hardware you are talking about, a commercial board (like Nucleo), or a custom design ?</span></p><p><font color=\"#0000FF\"><em>&gt; When I attempt to read ADC values from the <strong>PB11</strong> and <strong>PB12</strong> pins, the measured values are incorrect or unstable.</em></font></p><p><span>What makes you think that, i.e. what do the results look like ?<br/>Have you tried Vin=0V and Vin=Vref on this inputs ?</span></p><p> </p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\"><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"adc.png\" style=\"width: 200px;\"><img alt=\"adc.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f560825f-81d6-3b48-32bb-824261c60357.png\" title=\"adc.png\"/></span></div><p>As you see on CUBEMX, it can not determine channel number only if PB11 or PB12 is choosen.<br/>Even though CUBEMX cant determine channel number, I rewrite sconfig.channel as for channel 15 (PB11) and channel 16 (PB12).</p><div> </div><pre class=\"lia-code-sample language-c\"><code>/** Configure Regular Channel\n */\n sConfig.Channel = ADC_CHANNEL_16;\n sConfig.Rank = ADC_REGULAR_RANK_1;\n sConfig.SamplingTime = ADC_SAMPLINGTIME_COMMON_1;\n if (HAL_ADC_ConfigChannel(&amp;hadc1, &amp;sConfig) != HAL_OK) {\n Error_Handler();\n }</code></pre><div><span><span> I tried ADC poll for conversion for channel 10,11,15 and 16 seperately with this code. And the result was: channel 10 and 11 works perfectly. Even though channel 15 (PB11) is always 460 (12 bit adc max 4095) and channel 16 (PB12) is always 55. I already see voltage changes with ossiloscope on these pins, i can't see on debug.</span></span></div><pre class=\"lia-code-sample language-c\"><code>HAL_ADC_Start(&amp;hadc1);\n while (1) {\n if (HAL_ADC_PollForConversion(&amp;hadc1, 100) == HAL_OK) {\n adcValues[0] = HAL_ADC_GetValue(&amp;hadc1);\n }\n }</code></pre><p> </p></div>",
+                    "author": "EGurd.1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strike>Measure voltage (using multimeter or oscilloscope) directly at the given pins.</strike></p><p><strike>Read out GPIOB_MODER register content and check if PB10/PB11 are set as Analog.</strike></p><p>[EDIT] see my post below</p><p>JW</p><p> </p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oh, so you probably attempt to use the fully configurable sequencer mode (I don't know how is it called in Cube/CubeMX, I don't use Cube). That has this limitation, as documented in the RM (and CubeMX attempted to prevent you from going against it):</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Clipboard_04-02-2026_01.png\" style=\"width: 707px;\"><img alt=\"Clipboard_04-02-2026_01.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf01d368-4e22-f563-2380-4683cee34ba8.png\" title=\"Clipboard_04-02-2026_01.png\"/></span></p><p>JW</p><p> </p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>the old CHSELRMOD    problem....see :</p><p><a href=\"https://community.st.com/t5/stm32-mcus-products/stm32g030-adc-issue/m-p/316178\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-products/stm32g030-adc-issue/m-p/316178</a></p><p><a href=\"https://community.st.com/t5/image/serverpage/image-id/29730iA12D932F17F7387E/image-size/large?v=v2&amp;px=999\" target=\"_blank\">https://community.st.com/t5/image/serverpage/image-id/29730iA12D932F17F7387E/image-size/large?v=v2&amp;px=999</a></p><p>vs</p><p><a href=\"https://community.st.com/t5/image/serverpage/image-id/29729iDBD05E8CD83CFBA7/image-size/large?v=v2&amp;px=999\" target=\"_blank\">https://community.st.com/t5/image/serverpage/image-id/29729iDBD05E8CD83CFBA7/image-size/large?v=v2&amp;px=999</a></p><p>So set CHSELRMOD = 0 , to select ch 0...18 .</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

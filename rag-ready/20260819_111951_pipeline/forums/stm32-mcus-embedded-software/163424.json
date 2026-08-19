@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "163424",
+            "publicId": "163424",
+            "title": "Unable to erase sector of internal flash using HAL",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/unable-to-erase-sector-of-internal-flash-using-hal-163424",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H5 series",
+                "Flash"
+            ],
+            "published_at": "2026-03-04T10:56:41+00:00",
+            "views": 385,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Thanks for the replies.\n\nBy experimenting and stepping through the code I saw that inside the HAL\\_FLASHEx\\_Erase() the IS\\_FLASH\\_SECURE\\_OPERATION() is evaluated to determine whether the secure or non-secure control register should be used. This resulted always in the secure control registers being used even though I am erasing a sector inside a non-secure region.\n\nTo check if this is why it is failing I added the FLASH\\_NON\\_SECURE\\_MASK flag to the TypeErase property of the EraseInitTypeDef struct like this:\n\n```\n\nFLASH_EraseInitTypeDef erase_init;\n\nerase_init.TypeErase = FLASH_TYPEERASE_SECTORS | FLASH_NON_SECURE_MASK;\n\nerase_init.Sector = first_sector;\n\nerase_init.NbSectors = sector_count;\n\nerase_init.Banks = bank;\n\n```\n\nThis prevented the error and also actually erased the sector, so **it worked**.\n\nI also added the flag to the HAL\\_FLASH\\_Program() function and this made it actually write the data to the sector aswell:\n\n```\n\n// Write to sector\n\nuint32_t written = 0;\n\nwhile(written < words_size) {\n\nif(HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD | FLASH_NON_SECURE_MASK, start_address + (written * 4), (uint32_t)&data[written]) != HAL_OK) {\n\nHAL_FLASH_Lock();\n\nreturn HAL_FLASH_GetError();\n\n}\n\nwritten += 4;\n\n}\n\n```\n\nHowever this is probably not the proper way to implement this, and is definitely a result of me doing something wrong somewhere else.\n\nI believe it has something to do with calling this from the secure world when I need to erase from the non-secure region.\n\nIs there a function that switches the context of the flash or something I need to implement to specify that I want the flash to use the non-secure control registers instead?",
+            "best_answer_author": "CCNConner",
+            "best_answer_author_role": "Associate",
+            "content_text": "Problem:\n\nHAL\\_FLASHEx\\_Erase returns error 0x20000, and HAL\\_FLASH\\_Program does return HAL\\_OK but does not actually write any data to the flash.\n\nGoal: Erase and install new firmware on flash on its own inside the bootloader.\n\nI am developing a bootloader for the STM32H533RET6. I have TrustZone enabled, and configured the secure and non-secure regions. I am trying to erase and write to the non-secure part of the flash, from the bootloader which is secure (and separate from the actual application). I have disabled any write protection that I am aware of inside the option bytes. I also use the Memory Management Tool inside CubeMX to configure the secure and non-secure regions. For the non-secure region of the flash I have set \"Access Permissions\" to \"RW by any privilege level\". I do have a Flash watermark set on bank 1 but this does not cover any of the non-secure flash regions. No watermark is set on bank 2.\n\nBelow is the code I use to erase and write to a sector on the flash:\n\n```\n\nuint32_t Erase_And_Write_Data(uint32_t start_address, uint32_t* data, uint32_t words_size)\n\n{\n\nFLASH_EraseInitTypeDef erase_init;\n\nuint32_t sector_error;\n\nHAL_FLASH_Unlock();\n\n// Determine sectors and bank based on start_address\n\nuint32_t first_sector = (start_address - 0x08000000) / INTERNAL_FLASH_SECTOR_SIZE;\n\nuint32_t last_sector = ((start_address - 0x08000000) + (words_size*4)) / INTERNAL_FLASH_SECTOR_SIZE;\n\nuint32_t sector_count = last_sector - first_sector + 1;\n\nuint32_t bank = start_address < 0x08040000? FLASH_BANK_1 : FLASH_BANK_2;\n\n// Erase sector\n\nerase_init.TypeErase = FLASH_TYPEERASE_SECTORS;\n\nerase_init.Sector = first_sector;\n\nerase_init.NbSectors = sector_count;\n\nerase_init.Banks = bank;\n\nif(HAL_FLASHEx_Erase(&erase_init, &sector_error) != HAL_OK) {\n\nHAL_FLASH_Lock();\n\nreturn HAL_FLASH_GetError();\n\n}\n\n// Write to sector\n\nuint32_t written = 0;\n\nwhile(written < words_size) {\n\nif(HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, start_address + (written * 4), (uint32_t)&data[written]) != HAL_OK) {\n\nHAL_FLASH_Lock();\n\nreturn HAL_FLASH_GetError();\n\n}\n\nwritten += 4;\n\n}\n\nHAL_FLASH_Lock();\n\nreturn 0;\n\n}\n\n```\n\nThe STM32H533 flash consists of 2 banks each being 256Kbytes in size. This then is divided into sectors of 8KB making up 64 total sectors, where 0-31 is bank1 and 32-63 is bank2. I have validated that putting in a start\\_address results in the correct sectors, sector count and bank. I have also just tried hardcoding a sector and a bank, but this all results in the same 0x20000 error.\n\nTo test the HAL\\_FLASH\\_Program I disabled the HAL\\_FLASHEx\\_Erase. I then called the HAL\\_FLASH\\_Program on an address of a sector that I knew was empty, as I erased it using the STM32CubeProgrammer. After executing the HAL\\_FLASH\\_Program, it did infact return a HAL\\_OK, but after checking the data on the address I wrote to, nothing was written and everything was still 0xFFFFFFFF.\n\nAny help or advice is appreciated.",
+            "images": [],
+            "author": "CCNConner",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your sector number formula is probably incorrect for the second bank. The sector numbers start from 0 IN EACH bank, so that the sector at BASE + 256 KiB is sector 0 of the second bank. See figures 25..28 in the RefMan.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the reply.<br/>I have unfortunately tried that already by hardcoding the values in, with the same error as result. Additionally erasing sectors from bank 1 also fails, so the problem is not just limited to the second bank. </p><p>Hard coded example that fails:</p><pre class=\"lia-code-sample language-c\"><code>\t// Erase sector\n\terase_init.TypeErase = FLASH_TYPEERASE_SECTORS;\n\terase_init.Sector = 28;\n\terase_init.NbSectors = 1;\n\terase_init.Banks = FLASH_BANK_2;\n\tif(HAL_FLASHEx_Erase(&amp;erase_init, &amp;sector_error) != HAL_OK) {\n\t\tHAL_FLASH_Lock();\n\t\treturn HAL_FLASH_GetError();\n\t}</code></pre><p> </p></div>",
+                    "author": "CCNConner",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>WRPERR indicates write protection is not disabled.</p><p> </p><p>Edit: The forum software ate the screenshots I posted along with this. I'm sick of this forum software. Fix the bugs ST.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have you set ALL the fields of the structure? Start with this:</p><pre class=\"lia-code-sample language-c\"><code>FLASH_EraseInitTypeDef erase_init = {0};</code></pre><p> Or, better yet, that:</p><pre class=\"lia-code-sample language-c\"><code>FLASH_EraseInitTypeDef erase_init = {\n .TypeErase = FLASH_TYPEERASE_SECTORS,\n .Sector = 28,\n .NbSectors = 1,\n .Banks = FLASH_BANK_2\n};</code></pre><p> </p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the replies.</p><p>By experimenting and stepping through the code I saw that inside the <span>HAL_FLASHEx_Erase() the IS_FLASH_SECURE_OPERATION() is evaluated to determine whether the secure or non-secure control register should be used. This resulted always in the secure control registers being used even though I am erasing a sector inside a non-secure region.<br/>To check if this is why it is failing I added the FLASH_NON_SECURE_MASK flag to the TypeErase property of the EraseInitTypeDef struct like this:<br/></span></p><pre class=\"lia-code-sample language-c\"><code>\tFLASH_EraseInitTypeDef erase_init;\n\terase_init.TypeErase = FLASH_TYPEERASE_SECTORS | FLASH_NON_SECURE_MASK;\n\terase_init.Sector = first_sector;\n\terase_init.NbSectors = sector_count;\n\terase_init.Banks = bank;</code></pre><p><span>This prevented the error and also actually erased the sector, so <strong>it worked</strong>.<br/></span></p><p><span>I also added the flag to the HAL_FLASH_Program() function and this made it actually write the data to the sector aswell:<br/></span></p><pre class=\"lia-code-sample language-c\"><code>\t// Write to sector\n\tuint32_t written = 0;\n\twhile(written &lt; words_size) {\n\t\tif(HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD | FLASH_NON_SECURE_MASK, start_address + (written * 4), (uint32_t)&amp;data[written]) != HAL_OK) {\n\t\t\tHAL_FLASH_Lock();\n\t\t\treturn HAL_FLASH_GetError();\n\t\t}\n\t\twritten += 4;\n\t}</code></pre><p> </p><p><span>However this is probably not the proper way to implement this, and is definitely a result of me doing something wrong somewhere else.<br/>I believe it has something to do with calling this from the secure world when I need to erase from the non-secure region.<br/>Is there a function that switches the context of the flash or something I need to implement to specify that I want the flash to use the non-secure control registers instead?</span></p></div>",
+                    "author": "CCNConner",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

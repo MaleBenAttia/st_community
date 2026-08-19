@@ -1,0 +1,122 @@
+{
+    "forum": [
+        {
+            "id": "166691",
+            "publicId": "166716",
+            "title": "What is the future for STM32 development environment?",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/what-is-the-future-for-stm32-development-environment-166716",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-07-06T14:00:53+00:00",
+            "views": 242,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "To reply on your more specific questions:\n\n> 1. - Switching active configuration (Debug or Release)\n\n> 2. - Flashing the target MCU.\n\n> 3. - Debugging via line-by-line walkthroughs.\n\n> 4. - Set debug levels and optimisations.\n\n> 5. - Set hardware or software floating points.\n\n> 6. - Output .bin firmware\n\nLet’s try to answer on-by-one…\n\n* ***Switching active configuration (Debug or Release)***\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17e75be0-4013-4100-b8b9-c7eda8abfe8d.png)\n\nOr use the keybaord shortcut to run the same command; ***CTRL + SHIFT + P***: >*CMake: Select Configure Preset*\n\n* **Flashing the target MCU.**\n\nWe do not have a button for this yet… We need to invest a bit more in GUIs and make something which can work across multiple debug probes…\n\nFor now you can setup a VS Code task to do this:\n\n```\n\n{\n\n// See https://go.microsoft.com/fwlink/?LinkId=733558\n\n// for the documentation about the tasks.json format\n\n\"version\": \"2.0.0\",\n\n\"tasks\": [\n\n{\n\n\"label\": \"echo\",\n\n\"type\": \"shell\",\n\n\"command\": \"echo Hello\"\n\n},\n\n{\n\n\"label\": \"Flash & Reset (Debug)\",\n\n\"type\": \"shell\",\n\n\"command\": \"/opt/ST/STM32CubeCLT_1.21.0/STM32CubeProgrammer/bin/STM32_Programmer_CLI\",\n\n\"args\": [\n\n\"-c\", \"port=SWD\",\n\n\"-w\", \"${workspaceFolder}/build/Debug/MX_IDE_C0_project.elf\",\n\n\"-v\",\n\n\"-rst\"\n\n],\n\n\"group\": {\n\n\"kind\": \"build\",\n\n\"isDefault\": false\n\n},\n\n\"presentation\": {\n\n\"reveal\": \"always\",\n\n\"panel\": \"shared\"\n\n},\n\n\"problemMatcher\": []\n\n},\n\n{\n\n\"label\": \"Flash & Reset (Release)\",\n\n\"type\": \"shell\",\n\n\"command\": \"/opt/ST/STM32CubeCLT_1.21.0/STM32CubeProgrammer/bin/STM32_Programmer_CLI\",\n\n\"args\": [\n\n\"-c\", \"port=SWD\",\n\n\"-w\", \"${workspaceFolder}/build/Release/MX_IDE_C0_project.elf\",\n\n\"-v\",\n\n\"-rst\"\n\n],\n\n\"group\": \"build\",\n\n\"presentation\": {\n\n\"reveal\": \"always\",\n\n\"panel\": \"shared\"\n\n},\n\n\"problemMatcher\": []\n\n}\n\n]\n\n}\n\n```\n\n* ***Debugging via line-by-line walkthroughs.***\n\n+ I don’t understand the question… Both C-line and assembler instruction stepping is possible!\n\n* ***Set debug levels and optimisations.***\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6acd909-9350-44b3-9d40-48f4cd44f1bd.png)\n\ngcc-arm-none-eabi.cmake line 31-34 in this case...\n\nWe do not have “build GUI” on top of CMake because CMake is a language of its own and building a GUI on top of it would quickly turn into a problematic mess. **instead let CoPilot help you modify build settings!**\n\n* ***Set hardware or software floating points.***\n\nLook at screenshot above, line 25. Does that help you?\n\n* ***Output .bin firmware***\n\nHave a look in the CMakeLists.txt in the project root and at the end add these lines:\n\n```\n\n# Assuming your target is called \"my_app\" and produces my_app.elf\n\nadd_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD\n\nCOMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.bin\n\nCOMMENT \"Generating BIN file\"\n\nVERBATIM\n\n)\n\n```\n\nAgain, CoPilot (or your preferred AI tool) will probably solve know CMake well enough to solve this for you correctly",
+            "best_answer_author": "mattias norlander",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I’ve noticced recently that in CubeIDE 2.x, the MXCube program was separated from CubeIDE and is now a standalone app. I’ve also noticed that the extensions download a more recent C standard for STM32 compiler and MCUFinder is now web-only. This to me signifies a pivot in where STM is going with development environment and my guess is that everything will focus on VSCode extensions. Having said that, I’m inclined to port my whole project in VSCode but I want some reassurance that the platform and its MCUs will get future enhanced support for VSCode extensions and better integration.\n\nSo far, CMake scrips in VSConde aren’t fully fledged, specifically missing out-of-the-box commands and buttons for:\n\n- Switching active configuration (Debug or Release)\n\n- Flashing the target MCU.\n\n- Debugging via line-by-line walkthroughs.\n\n- Set debug levels and optimisations.\n\n- Set hardware or software floating points.\n\n- Output .bin firmware\n\nMy question is. Is this the case and is better for me to port everything to VSCode or I should keep using STMCubeIDE as that is where improvements and bug fixes will be the focus?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17e75be0-4013-4100-b8b9-c7eda8abfe8d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1f19aacb-4ded-4d6b-96bd-ce1b636320cf.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f05fb90b-9162-4668-bdd7-fefe2aac203d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6acd909-9350-44b3-9d40-48f4cd44f1bd.png"
+            ],
+            "author": "George_Grundfos",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The direction of travel is definitely towards VSCode, but it’s still <em>relatively </em>early days yet.</p><p>CubeIDE is still the more mature and feature-rich option; still being maintained and supported.</p><p> </p><p>I haven’t tried the VSCode yet but, from some of the posts I’ve seen, I’m not sure it’s quite ready for “prime time” yet?</p><p>eg, see:</p><oembed url=\"https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/visual-studio-code-adding-c-h-files-to-project-166615?postid=742702#post742702\"></oembed><p> </p><p> </p><p>So I wouldn’t be porting existing stuff yet but, if you’re just starting a new project, it might me worth trying VSCode ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The thing is that I’ve already tried VSCode with STM32 extensions and is alright but definetly missing stuff and I want to be properly invested if that’s where the focus is going to be.</p></div>",
+                    "author": "George_Grundfos",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That’s certainly where it’s going - but it is not there yet.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>Switching active configuration (Debug or Release)</p></blockquote><p> </p><p>I’d like to add that switching compilers is also not fully there. It requires generating some files again or manually modifying them. In my opinion the build process should be independent of compilers and should not have hardcoded paths.<br/> </p><oembed url=\"https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/changing-toolchain-by-running-project-setup-again-fails-159572\"></oembed><p>Perhaps things are better now.</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"27597\">@unsigned_char_array</user-mention> </p><p> </p><p>Some comments on switching compilers… A topic which would be nice to solve easily. But life is complicated ;-)</p><p>The CMake structure is split into several files to keep a “separation of concern”.</p><ul><li>$(PROJECT_ROOT)/CMakeLists.txt.           High-level project description. You own it!</li> <li>$(PROJECT_ROOT)/CMakePresets.json.   Build configurations / Presets, contains this line:\t<ul><li> <div> <div><span style=\"color:#7ee787;\">\"toolchainFile\"</span><span style=\"color:#bbbebf;\">: </span><span style=\"color:#a5d6ff;\">\"${sourceDir}/cmake/gcc-arm-none-eabi.cmake\"</span><span style=\"color:#bbbebf;\">,</span></div> </div> </li> </ul></li> <li>$(PROJECT_ROOT)/cmake/gcc-arm-none-eabi.cmake.       Your file with build settings if you use GCC</li> <li>$(PROJECT_ROOT)/cmake/starm-clang.cmake.                  Your file with build settings if you use CLang</li> <li>$(PROJECT_ROOT)/cmake/stm32cubemx/CMakeLists.txt.  DONT TOUCH! MX managed...</li> <li>$(PROJECT_ROOT)/cmake/touchgfx/CMakeLists.txt.           DONT TOUCH! TGFX managed (if used)...</li></ul><p>The compiler description file <em>gcc-arm-none-abie.cmake</em> abstracts the toolchain definition. So far so good! :-) </p><p>But switching compiler requires more than only that abstracting the toolchain...</p><ol><li>Re-point inside CMakePresets.json to point at CLang instead of GCC if you want that…<br/>\t </li> <li>… But that does not install CLang on your system. Use the <em>Bundle Manager View</em> to download/install and lock the CLang toolchain to be used inside the project.<br/>\t </li> <li>And lastly the most complicated part.... We have 3 toolchains… <em>GCC</em>, <em>hybrid Clang</em> and <em>full CLang</em>. CubeIDE only allows moving between GCC and hybrid CLang which are quite similar. Hence we can solve that in CubeIDE/Eclipse with 1-click solution. The <em>full CLang</em> toolchain comes with a new linker and c library… It may lead to a bit of manual porting. A 1-click solution would not help most users. A migration guide would be better.</li></ol><p> </p><p>Hope this shines some light on this topic too. Feel free to ask!</p></div>",
+                    "author": "mattias norlander",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My point is that some users (like me), want to test clang vs gcc. Changing presets is not enough. You need to start TouchGFX designer and have it regenerate <strong>cmake/touchgfx/CMakeLists.txt</strong>. It also shows up in git, while presets can be excluded. My proposed change in <strong>cmake/touchgfx/CMakeLists.txt</strong> is using the tool chain definition in the path so it chooses the right <span>libtouchgfx based on the selected toolchain so that the file doesn’t need to be regenerated.<br/>TLDR; generating </span><strong>cmake/touchgfx/CMakeLists.txt</strong> again can be avoided and would make switching toolchains less costly for users.</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi George,</p><p> </p><p>Let me shine some lights on some of your questions. We will continue to develop/maintain both CubeIDEs (Eclipse and VS Code). The Eclipse version will continue to support new STM32 MCUs. In VS Code we will ouf course support all MCUs, but we will also put extra focus on trying to close the gap on <em><strong>debug features.</strong></em></p><p> </p><p>Some thoughts/recommendations if you want to move from Eclipse to VS Code:</p><ul><li>Which IDE to use? Use the one you feel give you the best efficiency!</li> <li>If you want to move to VS Code there is now a “project converter” from Eclipse to CMake:</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f05fb90b-9162-4668-bdd7-fefe2aac203d.png\"/><figcaption>project converter</figcaption></figure><ul><li>If you are missing any debug feature from CubeIDE/Eclipse, then keep CubeIDE/Eclipse as a stand-alone debugger. \t<figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1f19aacb-4ded-4d6b-96bd-ce1b636320cf.png\"/></figure><p> </p> </li> <li>This dual-use means you use <em><strong>CubeIDE for VS Code</strong></em> and CMake for <em><strong>Edit</strong></em>, <em><strong>Compile</strong></em> and <em><strong>simple debug.</strong></em><br/>\tAnd <em><strong>CubeIDE/Eclipse</strong></em> for <em><strong>advanced debug</strong></em>.</li></ul><p> </p><p>These recommendations should minimize your porting work (some manual steps may be needed) and if you need advanced debug features you are not stuck waiting for us to add these featues in VS Code. Have a try if you want!</p></div>",
+                    "author": "mattias norlander",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>To reply on your more specific questions:</p><p> </p><blockquote><ol><li>- Switching active configuration (Debug or Release)</li> <li>- Flashing the target MCU.</li> <li>- Debugging via line-by-line walkthroughs.</li> <li>- Set debug levels and optimisations.</li> <li>- Set hardware or software floating points.</li> <li>- Output .bin firmware</li></ol></blockquote><p> </p><p>Let’s try to answer on-by-one…</p><p> </p><ul><li><em><strong>Switching active configuration (Debug or Release)</strong></em></li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/17e75be0-4013-4100-b8b9-c7eda8abfe8d.png\"/></figure><p>Or use the keybaord shortcut to run the same command; <em><strong>CTRL + SHIFT + P</strong></em>: &gt;<em>CMake: Select Configure Preset</em></p><p> </p><ul><li><strong>Flashing the target MCU.</strong></li></ul><p>We do not have a button for this yet… We need to invest a bit more in GUIs and make something which can work across multiple debug probes…</p><p>For now you can setup a VS Code task to do this:</p><pre><code class=\"language-json\">{<br/>    // See https://go.microsoft.com/fwlink/?LinkId=733558<br/>    // for the documentation about the tasks.json format<br/>    \"version\": \"2.0.0\",<br/>    \"tasks\": [<br/>        {<br/>            \"label\": \"echo\",<br/>            \"type\": \"shell\",<br/>            \"command\": \"echo Hello\"<br/>        },<br/>        {<br/>            \"label\": \"Flash &amp; Reset (Debug)\",<br/>            \"type\": \"shell\",<br/>            \"command\": \"/opt/ST/STM32CubeCLT_1.21.0/STM32CubeProgrammer/bin/STM32_Programmer_CLI\",<br/>            \"args\": [<br/>                \"-c\", \"port=SWD\",<br/>                \"-w\", \"${workspaceFolder}/build/Debug/MX_IDE_C0_project.elf\",<br/>                \"-v\",<br/>                \"-rst\"<br/>            ],<br/>            \"group\": {<br/>                \"kind\": \"build\",<br/>                \"isDefault\": false<br/>            },<br/>            \"presentation\": {<br/>                \"reveal\": \"always\",<br/>                \"panel\": \"shared\"<br/>            },<br/>            \"problemMatcher\": []<br/>        },<br/>        {<br/>            \"label\": \"Flash &amp; Reset (Release)\",<br/>            \"type\": \"shell\",<br/>            \"command\": \"/opt/ST/STM32CubeCLT_1.21.0/STM32CubeProgrammer/bin/STM32_Programmer_CLI\",<br/>            \"args\": [<br/>                \"-c\", \"port=SWD\",<br/>                \"-w\", \"${workspaceFolder}/build/Release/MX_IDE_C0_project.elf\",<br/>                \"-v\",<br/>                \"-rst\"<br/>            ],<br/>            \"group\": \"build\",<br/>            \"presentation\": {<br/>                \"reveal\": \"always\",<br/>                \"panel\": \"shared\"<br/>            },<br/>            \"problemMatcher\": []<br/>        }<br/>    ]<br/>}</code></pre><p> </p><ul><li><em><strong>Debugging via line-by-line walkthroughs.</strong></em> <ul><li>I don’t understand the question… Both C-line and assembler instruction stepping is possible!</li> </ul></li></ul><p> </p><ul><li><em><strong>Set debug levels and optimisations.</strong></em></li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6acd909-9350-44b3-9d40-48f4cd44f1bd.png\"/></figure><p>gcc-arm-none-eabi.cmake line 31-34 in this case...</p><p>We do not have “build GUI” on top of CMake because CMake is a language of its own and building a GUI on top of it would quickly turn into a problematic mess. <strong>instead let CoPilot help you modify build settings!</strong></p><p> </p><ul><li><em><strong>Set hardware or software floating points.</strong></em></li></ul><p>Look at screenshot above, line 25. Does that help you?</p><p> </p><ul><li><em><strong>Output .bin firmware</strong></em></li></ul><p>Have a look in the CMakeLists.txt in the project root and at the end add these lines:</p><pre><code class=\"language-c\"># Assuming your target is called \"my_app\" and produces my_app.elf<br/>add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD<br/>    COMMAND ${CMAKE_OBJCOPY} -O binary $&lt;TARGET_FILE:${CMAKE_PROJECT_NAME}&gt; ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.bin<br/>    COMMENT \"Generating BIN file\"<br/>    VERBATIM<br/>)</code></pre><p>Again, CoPilot (or your preferred AI tool) will probably solve know CMake well enough to solve this for you correctly</p></div>",
+                    "author": "mattias norlander",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for your reply. So my understanding is that VSCode Extensions isn’t as feature complete as CubeIDE but it will eventually get there. Sweet. In the meantime I will keep using CubeIDE as productivity-wise, it’s the more complete and quick IDE and I’m not really in the mood to create my own CMake scripts just yet. Will leave it to you guys ;) I’m just wondering if CubeIDE will eventually be deprecated and which IDE has the newer compiler versions as new EU CRA regulations mandate that all firmware must be vulnerability free so packages and copiler versions need to be up-to-date.</p></div>",
+                    "author": "George_Grundfos",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"George_Grundfos\"><div class=\"content-quote-content\"> <p>... regulations mandate that all firmware must be vulnerability free ...</p> </div></content-quote><p>That’s the funniest thing I’ve read all morning, thanks!  “Vulnerability free”.  Met any reality lately?  Oh, wait...EU.  Now I get it.  🙄</p></div>",
+                    "author": "David Littell",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Or maybe i should rephrase it to “minimise vulnerabilities by keeping everything up-to-date”</p></div>",
+                    "author": "George_Grundfos",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt;  “minimise vulnerabilities by keeping everything up-to-date”</p><p>Neither CubeIDE nor VS Code has this functionality of managing and checking dependencies by itself - but you can bring your own as external tool or add-on. ST provides SBOMs for their new software components. </p><p>As for the future - it is the AI, of course, replacing the whole team with just a few .md skill files. No  IDE, compilers and buggy libraries will be needed at all. Binary files will be generated directly from specifications and data sheets, complete with a test suite.</p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mattias norlander",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "mattias norlander",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "mattias norlander",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

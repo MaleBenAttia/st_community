@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "167395",
+            "publicId": "167423",
+            "title": "STM32N645I0H VDDCORE and SMPS wiring",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/stm32n645i0h-vddcore-and-smps-wiring-167423",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "Power",
+                "ST boards",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-08-03T07:30:24+00:00",
+            "views": 46,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@HMüll.4\n\nFor the STM32N6, please refer to UM3417, Chapter 7.4.3: “MCU power supply: Internal or external SMPS”. In the external SMPS configuration, **VDDSMPS and VDDA1V8PMU should be shorted to VSS.**\n\nThe current schematics do not follow the recommendation in AN5967 and should be updated accordingly. The component values are not specified in the documents quoted above, so please refer to the reference schematic\n\nFor internal reference, this issue is already being investigated under ticket CDM0062264.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I try to do power wirign for the STM32N645 but unfortunately the AN and the User Guide are not perfectly clear and somewhat incomplete.\n\nWhen I understand it correct, the STM32N6 generates the VDDCORE voltage of 0,89V internally, so all I have to do with the VDDCORE-pins is to connect them with each other and to couple each of them with 100 nF to ground, right?\n\nFor this I need a specific SMPS configuration which lets the MCU generate this voltage. Here I have a description in the AN and the User Guide which shows some wiring scheme named “Configuration when using SMPS (option 1)” that consists of two inductances and a capacitor and external 1.8V feed into VDDSMPS input.\n\nMy problem here: the wiring scheme of the development board of that MCU is completely different to what the documentations say. And: neither in the AN nor in the User Guide there are any values for these components. So the question is: what wiring should i use with which component values to let the MCU generate the VDDCORE-voltage?\n\nThanks!",
+            "images": [],
+            "author": "HMüll.4",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"21359\">@HMüll.4</user-mention> </p><p>For the STM32N6, please refer to UM3417, Chapter 7.4.3: “MCU power supply: Internal or external SMPS”. In the external SMPS configuration, <strong>VDDSMPS and VDDA1V8PMU should be shorted to VSS.</strong></p><p>The current schematics do not follow the recommendation in AN5967 and should be updated accordingly. The component values are not specified in the documents quoted above, so please refer to the reference schematic</p><p>For internal reference, this issue is already being investigated under ticket CDM0062264.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the quick response!</p><p>I can not find CDM0062264, could you please share a link to that ticket so that I can follow it?</p></div>",
+                    "author": "HMüll.4",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"HMüll.4\"><div class=\"content-quote-content\"> <p>I can not find CDM0062264, </p> </div></content-quote><p>You won’t: as ​<user-mention data-id=\"2057\">@FBL</user-mention> said, it is an <strong>internal</strong> reference - not visible outside ST.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

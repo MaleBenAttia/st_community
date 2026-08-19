@@ -1,0 +1,39 @@
+{
+    "forum": [
+        {
+            "id": "164561",
+            "publicId": "164561",
+            "title": "HAL_NVIC_SystemReset() don't work on STM32H755",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/hal-nvic-systemreset-don-t-work-on-stm32h755-164561",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-08T10:24:39+00:00",
+            "views": 174,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Are option bytes set up so that core boots to that address? You will need to change them with STM32CubeProgrammer or similar.\n\n*> #define FLASH\\_BANK1\\_BASE 0x08010000U*\n\nThis is not correct. Bank 1 starts at 0x08000000.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "hello ST Community,\n\nI'm developing the bootloader for the STM32H755 microcontroller from a specific flash memory address of 0x08010000. I also modified the USER\\_VECT\\_TAB\\_ADDRESS definition in the file 'system\\_stm32h7xx\\_dualcore\\_boot\\_cm4\\_cm7.c', as follows:\n\n```\n\n/************************* Miscellaneous Configuration ************************/\n\n/* Note: Following vector table addresses must be defined in line with linker\n\nconfiguration. */\n\n/*!< Uncomment the following line if you need to relocate the vector table\n\nanywhere in FLASH BANK1 or AXI SRAM, else the vector table is kept at the automatic\n\nremap of boot address selected */\n\n#define USER_VECT_TAB_ADDRESS\n\n#define FLASH_BANK1_BASE 0x08010000U\n\n#if defined(USER_VECT_TAB_ADDRESS)\n\n#if defined(CORE_CM4)\n\n/*!< Uncomment the following line if you need to relocate your vector Table\n\nin D2 AXI SRAM else user remap will be done in FLASH BANK2. */\n\n/* #define VECT_TAB_SRAM */\n\n#if defined(VECT_TAB_SRAM)\n\n#define VECT_TAB_BASE_ADDRESS D2_AXISRAM_BASE /*!< Vector Table base address field.\n\nThis value must be a multiple of 0x400. */\n\n#define VECT_TAB_OFFSET 0x00000000U /*!< Vector Table base offset field.\n\nThis value must be a multiple of 0x400. */\n\n#else\n\n#define VECT_TAB_BASE_ADDRESS FLASH_BANK2_BASE /*!< Vector Table base address field.\n\nThis value must be a multiple of 0x400. */\n\n#define VECT_TAB_OFFSET 0x00000000U /*!< Vector Table base offset field.\n\nThis value must be a multiple of 0x400. */\n\n#endif /* VECT_TAB_SRAM */\n\n#elif defined(CORE_CM7)\n\n/*!< Uncomment the following line if you need to relocate your vector Table\n\nin D1 AXI SRAM else user remap will be done in FLASH BANK1. */\n\n/* #define VECT_TAB_SRAM */\n\n#if defined(VECT_TAB_SRAM)\n\n#define VECT_TAB_BASE_ADDRESS D1_AXISRAM_BASE /*!< Vector Table base address field.\n\nThis value must be a multiple of 0x400. */\n\n#define VECT_TAB_OFFSET 0x00000000U /*!< Vector Table base offset field.\n\nThis value must be a multiple of 0x400. */\n\n#else\n\n#define VECT_TAB_BASE_ADDRESS FLASH_BANK1_BASE /*!< Vector Table base address field.\n\nThis value must be a multiple of 0x400. */\n\n#define VECT_TAB_OFFSET 0x00000000U /*!< Vector Table base offset field.\n\nThis value must be a multiple of 0x400. */\n\n#endif /* VECT_TAB_SRAM */\n\n#else\n\n#error Please #define CORE_CM4 or CORE_CM7\n\n#endif /* CORE_CM4 */\n\n#endif /* USER_VECT_TAB_ADDRESS */\n\n/******************************************************************************/\n\n```\n\nWhen the software starts, it starts correctly from address 0x08010000, as per the following build analyzer analysis.\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5b465f0c-ecd0-c963-f5f1-282afcc239c6.png \"image.png\")\n\nBut when I press reset and then call the function HAL\\_NVIC\\_SystemReset(), it doesn't restart. I'm afraid it won't restart from address 0x08010000, I'm afraid I've incorrectly defined USER\\_VECT\\_TAB\\_ADDRESS. What's wrong and what else is missing to make resetting and rebooting from work correctly?\n\nthanks for supports",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5b465f0c-ecd0-c963-f5f1-282afcc239c6.png"
+            ],
+            "author": "Domy_ST",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are option bytes set up so that core boots to that address? You will need to change them with STM32CubeProgrammer or similar.</p><p> </p><p><em>&gt; #define FLASH_BANK1_BASE 0x08010000U</em></p><p>This is not correct. Bank 1 starts at 0x08000000.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

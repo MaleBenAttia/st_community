@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "164606",
+            "publicId": "164606",
+            "title": "ST67W611M1 QConn_Flash failure",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/st67w611m1-qconn-flash-failure-164606",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "Documentation",
+                "Bootloader",
+                "USB",
+                "UART-USART",
+                "Flash",
+                "ST67W series"
+            ],
+            "published_at": "2026-04-09T12:55:53+00:00",
+            "views": 248,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "We faced similar problems; it turned out that USB/TTL converter matters. Have you tried a different one?\n\nIt looks like the UART interface in this module is very \"fussy\" in this regard (timing issues?).\n\nWe tested a few models; some were unstable (50/50), some didn't work at all.\n\nWe ended up using the FTDI FT232RL, which works reliably.",
+            "best_answer_author": "SlawekN",
+            "best_answer_author_role": "Associate",
+            "content_text": "Dear all,\n\nI have designed a custom board using the STM32H563ZIT6 as the host MCU and the ST67W611M1 as the NCP.\n\nAs part of the initial bring-up, I am attempting to flash the ST67W611M1 using the QConn\\_Flash\\_Cmd-ubuntu tool in standalone mode. For this, I have connected a USB-to-TTL converter directly to the NCP UART interface.\n\nThe BOOT and CHIP\\_EN pins of the ST67 are controlled by the host MCU, which toggles them in the required sequence to place the NCP into UART (flash) mode (see below code). I use the same sequence given in the NCP\\_Loader Example.\n\n```\n\nif (flash)\n\n{\n\nLL_GPIO_SetOutputPin(BOOT_GPIO_Port, BOOT_Pin);\n\n}\n\nelse\n\n{\n\nLL_GPIO_ResetOutputPin(BOOT_GPIO_Port, BOOT_Pin);\n\n}\n\n/* RESET NCP CHIP */\n\nLL_GPIO_ResetOutputPin(CHIP_EN_GPIO_Port, CHIP_EN_Pin);\n\nHAL_Delay(100);\n\nLL_GPIO_SetOutputPin(CHIP_EN_GPIO_Port, CHIP_EN_Pin);\n\nif (flash)\n\n{\n\n/* CLEAR BOOT */\n\nHAL_Delay(100);\n\nLL_GPIO_ResetOutputPin(BOOT_GPIO_Port, BOOT_Pin);\n\n}\n\n```\n\nI verified the BOOT and CHIP\\_EN signals on an oscilloscope, and they appear to follow the expected sequence. However, when I run the QConn\\_Flash\\_Cmd-ubuntu tool to flash the Mission 1 or 2 binary, the process fails during the handshake phase with the NCP. The tool reports the following output:\n\n```\n\n❯ ./QConn_Flash/QConn_Flash_Cmd-ubuntu --port /dev/ttyUSB0 --config ./NCP_Binaries/mission_t02_flash_prog_cfg.ini --efuse NCP_Binaries/efusedata.bin\n\n[17:46:22.644] - Serial port is /dev/ttyUSB0\n\n[17:46:22.644] - ==================================================\n\n[17:46:22.645] - FW get address from partiton file /home/gandhi/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-ST67W61/1.2.0/Projects/ST67W6X_Scripts/Binaries/NCP_Binaries/./partition.bin\n\n[17:46:22.645] - Address=0x10000\n\n[17:46:22.645] - FW get size from partiton file /home/gandhi/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-ST67W61/1.2.0/Projects/ST67W6X_Scripts/Binaries/NCP_Binaries/./partition.bin\n\n[17:46:22.645] - Size=1785856\n\n[17:46:22.646] - Program Start\n\n[17:46:22.646] - ========= eflash loader cmd arguments =========\n\n[17:46:22.647] - serial port is /dev/ttyUSB0\n\n[17:46:22.647] - cpu_reset=False\n\n[17:46:22.854] - com speed: 2000000\n\n[17:46:22.854] - ========= Interface is uart =========\n\n[17:46:22.855] - Bootrom load\n\n[17:46:22.855] - ========= get_boot_info =========\n\n[17:46:22.855] - ========= image get bootinfo =========\n\n[17:46:23.108] - tx rx and power off, press the machine!\n\n[17:46:23.108] - cutoff time is 0.05\n\n[17:46:23.158] - power on tx and rx\n\n[17:46:24.063] - reset cnt: 0, reset hold: 0.05, shake hand delay: 0.1\n\n[17:46:24.063] - clean buf\n\n[17:46:24.064] - send sync\n\n[17:46:24.165] - ack is b''\n\n[17:46:24.165] - retry\n\n[17:46:24.416] - tx rx and power off, press the machine!\n\n[17:46:24.416] - cutoff time is 0.05\n\n[17:46:24.467] - power on tx and rx\n\n[17:46:25.372] - reset cnt: 0, reset hold: 0.05, shake hand delay: 0.1\n\n[17:46:25.372] - clean buf\n\n[17:46:25.372] - send sync\n\n[17:46:25.473] - ack is b''\n\n[17:46:25.474] - retry\n\n[17:46:25.725] - tx rx and power off, press the machine!\n\n[17:46:25.725] - cutoff time is 0.05\n\n[17:46:25.775] - power on tx and rx\n\n[17:46:26.680] - reset cnt: 0, reset hold: 0.05, shake hand delay: 0.1\n\n[17:46:26.680] - clean buf\n\n[17:46:26.680] - send sync\n\n[17:46:26.781] - ack is b''\n\n[17:46:26.781] - retry\n\n[17:46:26.781] - shake hand fail\n\n[17:46:26.781] - shake hand fail\n\n[17:46:26.782] - ========= ChipID: =========\n\n[17:46:26.782] - Get bootinfo time cost(ms): 3927.554443359375\n\n[17:46:26.782] - {\"ErrorCode\": \"0050\",\"ErrorMsg\":\"CHIP IMG LOAD SHAKEHAND FAIL\"}\n\n[17:46:26.782] - Burn Retry\n\n[17:46:26.782] - Burn return with retry fail\n\n```\n\nAny help is greatly appreciated!\n\nThanks a lot!",
+            "images": [],
+            "author": "KushalGandhi108",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Similar: <span><a href=\"https://community.st.com/t5/interface-and-connectivity-ics/unable-to-bring-up-st67/m-p/891241/highlight/true#M12427\" target=\"_blank\"><em>Unable to bring up ST67</em></a> ?</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>We faced similar problems; it turned out that USB/TTL converter matters. Have you tried a different one?<br/>It looks like the UART interface in this module is very \"fussy\" in this regard (timing issues?).<br/>We tested a few models; some were unstable (50/50), some didn't work at all.<br/>We ended up using the FTDI FT232RL, which works reliably.</p></div>",
+                    "author": "SlawekN",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

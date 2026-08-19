@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163467",
+            "publicId": "163467",
+            "title": "STM32WB05: Can Eddystone UID be updated remotely over GATT",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wb05-can-eddystone-uid-be-updated-remotely-over-gatt-163467",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32CubeIDE",
+                "BLE",
+                "STM32WB series"
+            ],
+            "published_at": "2026-03-05T06:42:20+00:00",
+            "views": 300,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @burak\\_Guzeller,\n\nto your questions:\n\n1) Yes, advertising data can be changed dynamically.\n\n2) Yes, you have to. Updating your local arrays is not sufficient\n\n3) No, there is not, since when the device is connected, it cannot advertise\n\n4) Yes, as it is said in [Bluetooth® Low Energy stack v4.x programming guidelines](https://www.st.com/resource/en/programming_manual/pm0274-bluetooth-low-energy-stack-v4x-programming-guidelines-stmicroelectronics.pdf):\n\n*The content of the buffer containing the advertising/scan response data is directly accessed by the stack, hence it\n\nshould not change when device is advertising.*\n\n5) I am not aware of any example where the adv data would change, but you can refer to the programming guidelines above or to [Introduction to the STM32WB0 Bluetooth® LE wireless interface](https://www.st.com/resource/en/application_note/an6142-introduction-to-the-stm32wb0-bluetooth-le-wireless-interface-stmicroelectronics.pdf)\n\nHope this helps\n\nBest regards\n\ngrohmano",
+            "best_answer_author": "grohmano",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am using **NUCLEO-WB05KN1** development board with the embedded **STM32WB05KN** MCU.\n\nMy goal is to advertise in **Eddystone** UID frame format.\n\nCurrently I generate the advertising packet manually and insert:\n\n* 10-byte Namespace ID\n\n* 6-byte Instance ID\n\nAdvertising works correctly.\n\n---\n\n### :question\\_mark:What I Want To Achieve\n\nI want to be able to change:\n\n* Namespace ID\n\n* Instance ID\n\nremotely from a mobile phone using **nRF Connect** (by writing to a custom GATT characteristic).\n\nThis is important because we will deploy many devices in the field and updating IDs over BLE would be very useful.\n\n---\n\n### :white\\_heavy\\_check\\_mark:What I Implemented\n\nI created a custom GATT service with two writable characteristics:\n\nuint16\\_t my\\_service\\_handle = 0;\n\nuint16\\_t ns\\_char\\_handle = 0;\n\nuint16\\_t inst\\_char\\_handle = 0;\n\nuint8\\_t Namespace\\_ID[10];\n\nuint8\\_t Instance\\_ID[6];\n\n```\n\naci_gatt_srv_attribute_modified_event()\n\n```\n\nI handle write events using:\n\naci\\_gatt\\_srv\\_attribute\\_modified\\_event()\n\n```\n\n```\n\nWhen I receive new data:\n\n* I update Namespace\\_ID / Instance\\_ID\n\n* Then I restart advertising after disconnection\n\nAdvertising packet is generated using:\n\n```\n\nPrepare_Eddystone_UID_Adv_Data()\n\n```\n\n---\n\n### :warning:The Problem\n\nEven though the characteristic write event works and my arrays are updated, the advertising data does NOT seem to change properly after restart.\n\nQuestions:\n\n1. Is it officially supported to dynamically change Eddystone UID fields during runtime?\n\n2. Do I need to call aci\\_gap\\_set\\_advertising\\_data() again explicitly after modifying the arrays?\n\n3. Is there any limitation in STM32WB05 stack regarding advertising data update while connected?\n\n4. Is stopping advertising → updating data → restarting the correct approach?\n\n5. Is there any ST example demonstrating dynamic advertising data update?\n\n---\n\n### :wrench:Expected Behavior\n\nAfter writing new Namespace/Instance ID via GATT:\n\n* Device disconnects\n\n* Advertising restarts\n\n* New advertising packet contains updated UID\n\n---\n\nAny guidance or reference example would be greatly appreciated.\n\nThank you.",
+            "images": [],
+            "author": "burak_Guzeller",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is urgent, can you please help?  <user-mention data-id=\"33131\">@Tesla DeLorean</user-mention>   <user-mention data-id=\"96521\">@grohmano</user-mention>  <user-mention data-id=\"1898\">@Aziz BRIGUI</user-mention> </p></div>",
+                    "author": "burak_Guzeller",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"61845\">@burak_Guzeller</user-mention>,</p><p>to your questions:<br/>1) Yes, advertising data can be changed dynamically. </p><p>2) Yes, you have to. Updating your local arrays is not sufficient</p><p>3) No, there is not, since when the device is connected, it cannot advertise</p><p><span>4) Yes, as it is said in <a href=\"https://www.st.com/resource/en/programming_manual/pm0274-bluetooth-low-energy-stack-v4x-programming-guidelines-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">Bluetooth® Low Energy stack v4.x programming guidelines</a>:<br/><em>The content of the buffer containing the advertising/scan response data is directly accessed by the stack, hence it<br/>should not change when device is advertising.</em></span></p><p><span>5) I am not aware of any example where the adv data would change, but you can refer to the programming guidelines above or to <a href=\"https://www.st.com/resource/en/application_note/an6142-introduction-to-the-stm32wb0-bluetooth-le-wireless-interface-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">Introduction to the STM32WB0 Bluetooth® LE wireless interface</a> </span></p><p> </p><p><span>Hope this helps</span></p><p><span>Best regards</span></p><p><span>grohmano</span></p></div>",
+                    "author": "grohmano",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "grohmano",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

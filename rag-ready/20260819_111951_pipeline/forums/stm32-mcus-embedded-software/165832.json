@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "165832",
+            "publicId": "165832",
+            "title": "Function AFERead16BitBuffer() function in afe_config.c does not return a status",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/function-aferead16bitbuffer-function-in-afe-config-c-does-not-return-a-status-165832",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F4 series",
+                "SPI",
+                "HAL"
+            ],
+            "published_at": "2026-05-20T13:15:00+00:00",
+            "views": 180,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "In AFERead16BitBuffer(), it looks like the receive result is getting ignored. You set status from HAL\\_SPI\\_Transmit(), but HAL\\_SPI\\_Receive() runs without assigning its return value back to status.\n\nSo this line:\n\nHAL\\_SPI\\_Receive(&hSPI, (uint8\\_t \\*)&pData[0], 2 \\* numSamples, SPI\\_TIMEOUT);\n\ncould probably be:\n\nstatus = HAL\\_SPI\\_Receive(&hSPI, (uint8\\_t \\*)&pData[0], 2 \\* numSamples, SPI\\_TIMEOUT);\n\nThat would make the function report a receive failure properly, same as the 32-bit version. Also worth being careful with the endian swap and debug print after a failed receive, since the buffer may not contain valid data in that case.\n\nPavel’s point about CRC is worth checking too, but the missing status assignment in the 16-bit path does look like a real bug either way.",
+            "best_answer_author": "Amy323",
+            "best_answer_author_role": "Visitor II",
+            "content_text": "I am running the Analog Devices EVAL-ADE9430 board and noticed if I enable CRC checking reading 32 bit registers fail while 16-bit registers always pass.\n\nI trace it down to the  AFERead16BitBuffer() function not returning a status after reading the register over the SPI bus. This allows 16 bit register reads to work all the time while 32 Bit registers fail all the time (that's another story).\n\nSee line 12 below:     HAL\\_SPI\\_Receive(&hSPI, (uint8\\_t \\*)&pData[0], 2 \\* numSamples, SPI\\_TIMEOUT);\n\n```\n\nuint32_t AFERead16BitBuffer(uint16_t addr, uint16_t numSamples, uint16_t *pData)\n\n{\n\nint32_t status = SYS_STATUS_SUCCESS;\n\ncmdBuffer[0] = (addr >> 4);\n\ncmdBuffer[1] = ((addr & 0x0F) << 4) + 8;\n\nHAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);\n\nstatus = HAL_SPI_Transmit(&hSPI, (uint8_t *)&cmdBuffer, 2, SPI_TIMEOUT);\n\nif (status == 0)\n\n{\n\nHAL_SPI_Receive(&hSPI, (uint8_t *)&pData[0], 2 * numSamples,\n\nSPI_TIMEOUT);\n\n}\n\nHAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);\n\nSwapEndian16Bit(&pData[0], numSamples);\n\nDEBUG_MSG(\"REG16RD,0x%x,0x%x\", addr, pData[0]);\n\nreturn status;\n\n}\n\n```\n\nCompare this to the uint32\\_t AFERead32BitBuffer(), line 17 below which returns a status.\n\n```\n\nuint32_t AFERead32BitBuffer(uint16_t addr, uint16_t numSamples, uint32_t *pData)\n\n{\n\nint32_t status = SYS_STATUS_SUCCESS;\n\ncmdBuffer[0] = (addr >> 4);\n\ncmdBuffer[1] = ((addr & 0x0F) << 4) + 8;\n\nHAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);\n\nstatus = HAL_SPI_Transmit(&hSPI, (uint8_t *)&cmdBuffer, 2, SPI_TIMEOUT);\n\n/* FIXME : Handling SPI_Transmit error*/\n\nif (status != 0)\n\n{\n\nstatus = HAL_SPI_Transmit(&hSPI, (uint8_t *)&cmdBuffer, 2, SPI_TIMEOUT);\n\n}\n\nif (status == 0)\n\n{\n\nstatus = HAL_SPI_Receive(&hSPI, (uint8_t *)&pData[0], 4 * numSamples,\n\nSPI_TIMEOUT);\n\n}\n\nHAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);\n\nSwapEndian32Bit(&pData[0], numSamples);\n\nDEBUG_MSG(\"REG32RD,0x%x,0x%x\", addr, pData[0]);\n\nreturn status;\n\n}\n\n```\n\nThanks - mike",
+            "images": [],
+            "author": "mike_m",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are you sure that the CRC algo of the STM32 SPI matches the CRC algo of the AD device? Would it be better to do the CRC in software?</p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Pavel,</p><p>Thanks, the CRC does not match but that is not what the problem is. The problem is the AFERead16Bitbuffere() function is never returning a status.  </p><p>Best Regards - mike</p></div>",
+                    "author": "mike_m",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In AFERead16BitBuffer(), it looks like the receive result is getting ignored. You set status from HAL_SPI_Transmit(), but HAL_SPI_Receive() runs without assigning its return value back to status.</p><p>So this line:</p><p>HAL_SPI_Receive(&amp;hSPI, (uint8_t *)&amp;pData[0], 2 * numSamples, SPI_TIMEOUT);</p><p>could probably be:</p><p>status = HAL_SPI_Receive(&amp;hSPI, (uint8_t *)&amp;pData[0], 2 * numSamples, SPI_TIMEOUT);</p><p>That would make the function report a receive failure properly, same as the 32-bit version. Also worth being careful with the endian swap and debug print after a failed receive, since the buffer may not contain valid data in that case.</p><p>Pavel’s point about CRC is worth checking too, but the missing status assignment in the 16-bit path does look like a real bug either way.</p></div>",
+                    "author": "Amy323",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Amy323,</p><p>Thanks, the CRC does not match but as you know I am writing about the bug in the code where the AFERead16Bitbuffere() function is never returning a status. Hopefully this is the proper place to write about bugs? </p><p>Best Regards - mike</p></div>",
+                    "author": "mike_m",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"107138\">@mike_m</user-mention> </p>\n<p>What happens during step-by-step execution of the code? Does it stop at a particular instruction?</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

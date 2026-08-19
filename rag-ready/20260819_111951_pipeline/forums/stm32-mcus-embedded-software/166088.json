@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "166074",
+            "publicId": "166088",
+            "title": "STM32N6 HPDMA + ADC",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-hpdma-adc-166088",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "DMA",
+                "ADC",
+                "STM32 Security",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-06-11T15:42:10+00:00",
+            "views": 97,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "I’ll answer my questions in case someone stumbles on the same problem as I. First of all, do not use HPDMA for peripherals, GPDMA is plenty enough and wrks flawlessly. The ADC clock does need to be at 70MHz and you acheive that with a /16 IC7 clock source going into the ADC, a /1 going into IC7 from PLL2, PLL2 comes from HSI with a /2 DIVM2 and x35 DIVN2. However, beware of the fact that in 12bit resolution the ADC will trigger at a max frequency of roughly 1.88 MHz by timer trigger, if you wish for more speed you will need to set it in continuous mode. Also beware of hardware limitations, the Nucleo board ADC amplifier circuits are designed for low speed applications such as voltage monitoring or others. You will need to swap out the current opamps (TSZ122IST) with high speed ones (TSV792 for example). Also the voltage divider resistors going into the opamps are too big and end up causing a low pass filter writh a cutoff frequency of roughly 100khz depending on the capacitance of the traces, so swap the 470kR for a 4.7kR and the 560kR with a 5.6kR.",
+            "best_answer_author": "LorenzoCL",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello, I have been having a ton of trouble setting up a simple ADC + DMA on the new STM32N6 Nucleo board. I have confirmed that my adc is sampling by looking into the data register of my ADC. However, the only way I got the HPDMA to write in my adc buffer was through DTCM as I followed the reccomendation of [this topic](https://community.st.com/stm32-mcus-products-25/data-transfer-from-sai-to-dtcm-using-hpdma-not-working-160237?postid=718009#post718009), in order to avoid the hassle with S and NS domains. However I wish to sample at 2.5 MSPS and through DWT and the Cplt\\_Callback of the HPDMA I found that my data actually came through at 1.44MSPS. The ADCs of this STM are rated for 5MSPS.\n\nCan anyone help me make it so that I can sample at the desired rate and actually get a hold on that data at the desired rate. Also if you know of a better fix than cranking the CID to 11 I’d happily take it.\n\nThanks,\n\nLorenzo",
+            "images": [],
+            "author": "LorenzoCL",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107364\">@LorenzoCL</user-mention> </p><p>The 5MSPS can only be reached at 70MHz on ADC. (For 12bits, refer to datasheet).</p><p>Increasing the ADC clock freq will increase the sample frequency  (Timer should be configured accordingly) </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ll answer my questions in case someone stumbles on the same problem as I. First of all, do not use HPDMA for peripherals, GPDMA is plenty enough and wrks flawlessly. The ADC clock does need to be at 70MHz and you acheive that with a /16 IC7 clock source going into the ADC, a /1 going into IC7 from PLL2, PLL2 comes from HSI with a /2 DIVM2 and x35 DIVN2. However, beware of the fact that in 12bit resolution the ADC will trigger at a max frequency of roughly 1.88 MHz by timer trigger, if you wish for more speed you will need to set it in continuous mode. Also beware of hardware limitations, the Nucleo board ADC amplifier circuits are designed for low speed applications such as voltage monitoring or others. You will need to swap out the current opamps (TSZ122IST) with high speed ones (TSV792 for example). Also the voltage divider resistors going into the opamps are too big and end up causing a low pass filter writh a cutoff frequency of roughly 100khz depending on the capacitance of the traces, so swap the 470kR for a 4.7kR and the 560kR with a 5.6kR.</p></div>",
+                    "author": "LorenzoCL",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>PS. Do not set up pin PC10 as it will tamper with PA9 and mess up all measurements. If nonetheless you need PC10 then de-solder solder bridge 8, which is the second solder bridge from the top next to the analog pin headers, note that doing so will disconnect the morpho pin adjacent to PA1.</p></div>",
+                    "author": "LorenzoCL",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

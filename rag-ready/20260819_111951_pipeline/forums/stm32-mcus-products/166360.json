@@ -1,0 +1,94 @@
+{
+    "forum": [
+        {
+            "id": "166339",
+            "publicId": "166360",
+            "title": "STM32H743VIH VDDLDO Pin connected to VDD on TFBGA100 package",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h743vih-vddldo-pin-connected-to-vdd-on-tfbga100-package-166360",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Power",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-06-23T08:32:15+00:00",
+            "views": 59,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "How did you do the continuity test? With a flying chips or soldered chips?\n\nI did a continuity test on a flying TFBGA-240 package: **VDDLDO and VDD are not connected**. Unfortunately I don’t have TFBGA100 package to test but I’m pretty sure it has the same configuration as TFBGA-240.\n\nOtherwise, you need to contact your local FAE to check that behavior.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi, according STM32H743 datasheet VDDLDO pin in BGA packages can be supplied independently from VDD pins.\n\nThe problem is that on STM32H743VIH BGA package VDDLDO and VDD physically shorted in the package. Is the datasheet misleading or I’m missing  something?\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c469651d-fefa-41a7-a0ba-d8c89a577ca4.jpg)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/733e3308-bdd8-47f1-bf65-8cae6cbc4d2d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03308c39-950a-4d38-b9f9-a07056aedd4d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c469651d-fefa-41a7-a0ba-d8c89a577ca4.jpg"
+            ],
+            "author": "DonDon",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>VDDLDO pin is available on the TFBGA100: </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/733e3308-bdd8-47f1-bf65-8cae6cbc4d2d.png\"/><figcaption>In CubeMx:<br/> </figcaption></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03308c39-950a-4d38-b9f9-a07056aedd4d.png\"/></figure><p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I know that VDDLDO pin is available, unfortunately it is available only in datasheet. <br/>In the current design VDD bus is powered by 3.3V and VDDLDO by 1.8V. Once the system is powered, the 1.8V rail is bypassed by 3.3V rail, becauce VDD and VDDLDO pins are internally shorted inside BGA package (I measured connection on the multiple packages) even datasheet says differently. </p></div>",
+                    "author": "DonDon",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><blockquote><p>becauce VDD and VDDLDO pins are internally shorted inside BGA package (I measured connection on the multiple packages)</p></blockquote><p> </p><p>How did you measure that and on which pin(s)?  please describe the procedure.. and what do you mean by the 1.8V rail is bypassed by 3.3V rail? how did you conclude that?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>While the system is powered I can measure 3.3V instead 1.8V on VDDLDO bulk capacitor, my first thought was that something is messed up with PCB layout, but that was ruled out, if MCU is removed of PCB, both power rails work as it should, 1.8V and 3.3V are present.</p><p>I took couple of new stms and with ohmmeter measured continuity between VDDLDO and any VDD pin, it is shorted (0 ohm).</p></div>",
+                    "author": "DonDon",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>How did you do the continuity test? With a flying chips or soldered chips?</p><p>I did a continuity test on a flying TFBGA-240 package: <strong>VDDLDO and VDD are not connected</strong>. Unfortunately I don’t have TFBGA100 package to test but I’m pretty sure it has the same configuration as TFBGA-240.</p><p>Otherwise, you need to contact your local FAE to check that behavior.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am reassuring continuity on a bare chip.</p><p> </p><p>That’s another similar question from someone from 6 years ago without any answer.</p><oembed url=\"https://community.st.com/stm32-mcus-products-25/is-the-stm32h743vih6-vddldo-pin-connected-internally-to-vdd-48986?tid=48986&amp;fid=25\"></oembed><p> </p><p>Could someone from ST confirm that on TFBGA100 package VDD and VDDLDO pins are internally connected and  datasheet is incorrect or vice versa.</p></div>",
+                    "author": "DonDon",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Again I’m from ST and I confirm LDO and VDDLDO are separated. So as I said previously please contact your local FAE.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

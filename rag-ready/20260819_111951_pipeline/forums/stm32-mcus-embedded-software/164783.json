@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "164783",
+            "publicId": "164783",
+            "title": "DMA2D Transfer Complete (TCIF=1) but destination AXI SRAM is always 0",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/dma2d-transfer-complete-tcif-1-but-destination-axi-sram-is-always-0-164783",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "DMA2D",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-15T16:06:16+00:00",
+            "views": 259,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello all,\n\nThe issue is most likely the DMA2D CID, not DMA2D itself and not AXISRAM1.\n\nOn STM32N6, AXI transactions carry a compartment ID, or CID, and RISAF filters memory accesses based on that CID. The CPU always issues AXI accesses with CID = 1, but DMA2D is a separate AXI initiator, so its CID comes from the RIMC configuration. That means it is entirely possible for CPU writes to the destination buffer to work as you have noticed while DMA2D writes to the same buffer are blocked.\n\nIn the reported code, DMA2D was configured with **RIF\\_CID\\_0**. In my reproduction, changing DMA2D to **RIF\\_CID\\_1**made the transfer work. That matches [RM0486](https://www.st.com/resource/en/reference_manual/rm0486-stm32n647657xx-armbased-32bit-mcus-stmicroelectronics.pdf) *section 3.5.4 Multi-tenancy*: the memory-access policy on that path is accepting CID = 1 traffic, while DMA2D was emitting CID = 0 traffic. So DMA2D could run and report transfer complete, but the AXI fabric could still reject its writes to the destination RAM.\n\nPlease let us know how it works out for you,\n\nKind regards,\n\nDHIF Khaled",
+            "best_answer_author": "Khaled_DHIF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi everyone,\n\nI am currently developing an image capture project using the STM32N657 (Cortex-M55) and have encountered an extremely bizarre DMA2D write issue (a silent failure).\n\n* **Goal:** Use DMA2D (M2M\\_PFC) to convert an RGB565 buffer to RGB888 and write it to CPUAXI\\_RAM1 (0x34080000).\n\n**[Problem Description]** I wrote a \"minimal isolation test\" to bypass all camera/GPDMA variables. I forced the CPU to fill the source buffer with pure white (0xFFFFFFFF), and then manually triggered the DMA2D to transfer it to the destination buffer. **The Result:** The DMA2D finishes successfully. The DMA2D->ISR register reads 0x00000002 (the TCIF Transfer Complete Interrupt Flag is set, and there are NO Transfer Errors). **However, the destination buffer remains completely filled with 0x00000000.**\n\n**[Troubleshooting Done]** To isolate the issue, I have verified the following, but the problem persists:\n\n1. **CPU Read/Write Test (Pass):** Before triggering the DMA2D, I forced the CPU to write 0xDEADBEEF to the destination address and read it back. It worked perfectly. This proves the AXI SRAM clock is enabled and the physical memory is alive.\n\n2. **MPU & Cache (Verified):** The destination address is covered by MPU Region 15 configured as Non-cacheable. To be absolutely certain, I am calling SCB\\_CleanInvalidateDCache\\_by\\_Addr() on both buffers before the transfer, and SCB\\_InvalidateDCache\\_by\\_Addr() after the transfer to force the CPU to read physical memory.\n\n3. **RIF/RISAF Security Framework (Configured):** \\* I configured the DMA2D's RIMC attributes to NSEC | PRIV to align with the memory access level.\n\n* I set the RISAF (SRAM firewall) filtering to DISABLE (and also tried setting Read/Write Whitelist to 0xFF), ensuring the hardware firewall is not blocking the write.\n\n4. **Register State (Verified):** By pausing the program right after the transfer, I verified that OMAR and FGMAR contain the exact, correctly aligned physical addresses of my buffers. No pointer casting issues are present.\n\nDespite the hardware reporting a successful transfer and all permissions seemingly being granted, absolutely no data is written to the AXI SRAM by the DMA2D.\n\nAre there any hidden AXI Interconnect mechanisms, TrustZone/RIF blind spots, or Cortex-M55 specific coherency rules in the STM32N6 architecture that would cause a DMA2D write to be \"silently dropped\" while still returning a TCIF?\n\n1. Buffer Declarations & DMA2D Init (dma2d.c):\n\n```\n\nuint32_t full_frame_buf[57600] __attribute__((section(\".noncacheable\"), aligned(32)));\n\nuint32_t line_buf[2560] __attribute__((section(\".non_cacheable_data\"), aligned(32)));\n\n// DMA2D configured as M2M_PFC, Output: RGB888, Input: RGB565\n\nhdma2d.Init.Mode = DMA2D_M2M_PFC;\n\nhdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;\n\nhdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;\n\nhdma2d.LayerCfg[1].InputAlpha = 0xff;\n\n```\n\n2. Isolation Test inside main():\n\n```\n\n// ================= Ultimate Isolation Test =================\n\n__disable_irq();\n\n// 1. Force source buffer to white\n\nfor(int i = 0; i < 2560; i++) {\n\nline_buf[i] = 0xFFFFFFFF;\n\n}\n\nSCB_CleanInvalidateDCache();\n\n// 2. Clear BUSY lock and start DMA2D\n\nhdma2d.State = HAL_DMA2D_STATE_READY;\n\nDMA2D->CR &= ~DMA2D_CR_START;\n\nuint32_t test_src=(uint32_t)&line_buf[0];\n\nuint32_t test_dest = (uint32_t)full_frame_buf;\n\nvolatile HAL_StatusTypeDef start_res = HAL_DMA2D_Start(&hdma2d, test_src, test_dest, 320, 8);\n\n// 3. Wait for hardware transfer to finish\n\nwhile((DMA2D->CR & DMA2D_CR_START) != 0) {\n\n__NOP();\n\n}\n\n// 4. Check ISR (Result is 2 -> TCIF is set!)\n\nvolatile uint32_t debug_isr = DMA2D->ISR;\n\n// 5. Explicitly invalidate D-Cache\n\nSCB_InvalidateDCache_by_Addr((uint32_t *)full_frame_buf, 7680);\n\n// 6. Read result (Truth value is still 0x00000000)\n\nvolatile uint32_t truth_val = full_frame_buf[0];\n\n__NOP();\n\n__enable_irq();\n\n// ===========================================================\n\n```\n\n3. RIF/RISAF & MPU Configurations:\n\n```\n\n/* RIMC Configuration for DMA2D */\n\nRIMC_MasterConfig_t RIMC_master = {0};\n\nRIMC_master.MasterCID = RIF_CID_0;\n\nRIMC_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV;\n\nHAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_DMA2D, &RIMC_master);\n\n/* RISAF Configuration for AXI RAM */\n\nRISAF_BaseRegionConfig_t risaf_base_config;\n\nrisaf_base_config.EndAddress = 0x3ffff;\n\nrisaf_base_config.Filtering = RISAF_FILTER_ENABLE;\n\nrisaf_base_config.ReadWhitelist = 255;\n\nrisaf_base_config.WriteWhitelist = 255;\n\nrisaf_base_config.Secure = RIF_ATTRIBUTE_SEC;\n\nrisaf_base_config.PrivWhitelist = 255;\n\nrisaf_base_config.StartAddress = 0x0000;\n\nHAL_RIF_RISAF_ConfigBaseRegion(RISAF3, RISAF_REGION_1, &risaf_base_config); // CPUAXI_RAM1\n\nHAL_RIF_RISAF_ConfigBaseRegion(RISAF2, RISAF_REGION_1, &risaf_base_config); // CPUAXI_RAM0\n\n/* MPU Configuration */\n\nMPU_InitStruct.Enable = MPU_REGION_ENABLE;\n\nMPU_InitStruct.Number = MPU_REGION_NUMBER15;\n\nMPU_InitStruct.BaseAddress = 0x34080000;\n\nMPU_InitStruct.LimitAddress = 0x340C0000;\n\nMPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;\n\nMPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;\n\n// MPU Attribute 0 is configured as INNER_OUTER(MPU_NOT_CACHEABLE)\n\n```\n\nAny guidance on why DMA2D successfully completes but leaves the physical SRAM empty would be greatly appreciated. Thank you!",
+            "images": [],
+            "author": "Jason32",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106005\">@Jason32</user-mention> ,</p>\n<p> </p>\n<p>Do you get the same behavior when using <span><a href=\"https://github.com/STMicroelectronics/STM32CubeN6/tree/main/Projects/STM32N6570-DK/Examples/DMA2D/DMA2D_MemToMemWithPFC\" rel=\"nofollow noopener noreferrer\" target=\"_self\">DMA2D_MemToMemWithPFC</a> example?</span></p>\n<p> </p>\n<p><span>Thank you.</span></p>\n<p><span>Kaouthar</span></p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello all, </p><p>The issue is most likely the DMA2D CID, not DMA2D itself and not AXISRAM1.</p><p>On STM32N6, AXI transactions carry a compartment ID, or CID, and RISAF filters memory accesses based on that CID. The CPU always issues AXI accesses with CID = 1, but DMA2D is a separate AXI initiator, so its CID comes from the RIMC configuration. That means it is entirely possible for CPU writes to the destination buffer to work as you have noticed while DMA2D writes to the same buffer are blocked.</p><p>In the reported code, DMA2D was configured with<span> <strong>RIF_CID_0</strong></span>. In my reproduction, changing DMA2D to <strong>RIF_CID_1 </strong>made the transfer work. That matches <a href=\"https://www.st.com/resource/en/reference_manual/rm0486-stm32n647657xx-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">RM0486</a> <em>section 3.5.4 Multi-tenancy</em>: the memory-access policy on that path is accepting CID = 1 traffic, while DMA2D was emitting CID = 0 traffic. So DMA2D could run and report transfer complete, but the AXI fabric could still reject its writes to the destination RAM.</p><p>Please let us know how it works out for you,</p><p>Kind regards, </p><p>DHIF Khaled</p><p> </p></div>",
+                    "author": "Khaled_DHIF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Khaled_DHIF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

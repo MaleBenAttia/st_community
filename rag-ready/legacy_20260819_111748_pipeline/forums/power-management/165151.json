@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "165151",
+            "publicId": "165151",
+            "title": "Thermal and SOA protection of L78M05AB regulator ?",
+            "url": "https://community.st.com/power-management-53/thermal-and-soa-protection-of-l78m05ab-regulator-165151",
+            "category": "Power management",
+            "tags": [
+                "DC-DC conversion"
+            ],
+            "published_at": "2026-04-27T09:35:35+00:00",
+            "views": 258,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "1. Which event is supposed to change the value of the fixed internal R11?\n\n2. We have reached a point where you should please show the schematics of the immediate surroundings of the L78M05 (or better the whole schematics of the power supply) so that a proper answer can be given.\n\n3. This is an interesting question that presupposes the acceptability of the answer to the question of the meaning of **Absolute Maximum Ratings**.\n\nSo: the Absolute Maximum Ratings in the [datasheet of the L78M05](https://www.st.com/resource/en/datasheet/l78m.pdf) define the highest allowable electrical and environmental limits the device can tolerate without immediate catastrophic damage. They are not normal operating limits and should not be used for regular design margins. If these limits are even exceeded for a short time, the component must be regarded as defective and no longer capable of performing its normal function.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have some questions regarding the L78M05AB regulator IC.\n\n![sususu_0-1777282352680.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/08c4f419-a9f3-809f-8310-4e4912041de8.png \"sususu_0-1777282352680.png\")\n\n1. Could you please investigate the temperature at which this IC's the thermal protection actually activates?\n\n2. I have been informed that the thermal protection mechanism shuts down the output voltage.\n\nHowever, when we applied heat, we observed behavior suggesting that the output appears to remain at a constant level.\n\nIf the temperature is kept at a specific value, will the output remain constant (for example, 3V)?\"\n\n3. Could you please clarify the behavior when SOA protection is triggered?\n\nDoes the circuit limit the output, or does it enter a shutdown state?\n\n4. Related to SOA protection, is there any case where the voltage is reduced and latched at a certain level?\n\n5. Are there any restrictions or specifications regarding harmonics or noise on the input voltage of the regulator IC?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e7e7e08-efe1-65b9-6f5c-b333d3a356eb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/08c4f419-a9f3-809f-8310-4e4912041de8.png"
+            ],
+            "author": "sususu",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><ol>\n<li>Which event is supposed to change the value of the fixed internal R11?</li>\n<li>We have reached a point where you should please show the schematics of the immediate surroundings of the L78M05 (or better the whole schematics of the power supply) so that a proper answer can be given.</li>\n<li>This is an interesting question that presupposes the acceptability of the answer to the question of the meaning of <strong>Absolute Maximum Ratings</strong>.<br/>So: the Absolute Maximum Ratings in the <a href=\"https://www.st.com/resource/en/datasheet/l78m.pdf\" rel=\"noopener noreferrer\" target=\"_self\">datasheet of the L78M05</a> define the highest allowable electrical and environmental limits the device can tolerate without immediate catastrophic damage. They are not normal operating limits and should not be used for regular design margins. <font color=\"#FF0000\">If these limits are even exceeded for a short time, the component must be regarded as defective and no longer capable of performing its normal function.</font></li>\n</ol>\n<p><font color=\"#000000\">Regards<br/>/Peter</font></p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"106449\">@sususu</user-mention>, to the community!</p>\n<ol>\n<li>The thermal shutdown typ. activates when the junction temperature reaches appr. 150°C</li>\n<li>When thermal protection is triggered, the output is no longer in normal regulation. It may drop, be limited, or appear to remain at a quasi-steady level depending on load, test conditions, and thermal cycling. A constant value such as 3V is not guaranteed regulation.</li>\n<li>When SOA protection is triggered, the device generally enters a protection mode with output current limiting and/or output voltage reduction. It is not intended to operate normally in that state.</li>\n<li>There is usually no true latch at a fixed reduced voltage; observed behaviour is more often due to current limiting or thermal cycling.</li>\n<li>For input harmonics/noise, there is no special harmonics requirement as such, but the input must remain within the absolute maximum ratings and should avoid excessive ripple, spikes, or HF noise. Please use decoupling capacitors at the input.</li>\n</ol>\n<p>Does it answer your questions?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for respoce.</p><p>I have additional questions regarding the L78M05AB regulator IC.</p><p> </p><p>1. I assume that Q14 controls the thermal protection,but Is it correct that, when certain conditions are met, the regulator IC output voltage may be fixed at 3 V?</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"sususu_0-1777359176166.png\" style=\"width: 400px;\"><img alt=\"sususu_0-1777359176166.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e7e7e08-efe1-65b9-6f5c-b333d3a356eb.png\" title=\"sususu_0-1777359176166.png\"/></span></p><p> </p><p>2. I have additional question regarding Answer #4.<br/>In the case where the regulator IC enters a latched state due to current limiting or thermal protection,<br/>does the output voltage remain unchanged even if the current or temperature subsequently changes?</p><p> </p><p>Thank you</p></div>",
+                    "author": "sususu",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear <user-mention data-id=\"106449\">@sususu</user-mention>,</p>\n<ol>\n<li>The L78M05AB is not specified to hold the output at a fixed voltage under thermal protection conditions. If protection is triggered, the output may drop, be limited, or appear to remain at an intermediate level. This is not a guaranteed operating point.</li>\n<li>In case of current limiting or thermal protection, the device is generally not expected to remain latched at an unchanged output voltage. The output can change again if the current, input conditions, or junction temperature change. If the overload or overtemperature condition is removed, the device may return to normal operation.</li>\n</ol>\n<p>When the L78M05 was developed in the last millennium, the primary focus was on low cost, simple voltage regulation, and overload limiting. It is probably time for you to explain what behaviour you want to achieve?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

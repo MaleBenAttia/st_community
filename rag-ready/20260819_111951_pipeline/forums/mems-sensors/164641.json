@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "164641",
+            "publicId": "164641",
+            "title": "LIS2DUX12 WHO_AM_I returns 0x0C",
+            "url": "https://community.st.com/mems-sensors-48/lis2dux12-who-am-i-returns-0x0c-164641",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Developers corner",
+                "Accelerometers"
+            ],
+            "published_at": "2026-04-10T13:45:37+00:00",
+            "views": 223,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "**tl;dr** - SDO drive strength is weaker than anticipated\n\nOkay, so after trying setting up the STEVAL-MKI238A to a NUCLEO-U575ZI-Q and seeing the exact same problem I reverted to an older setup method using a spring loaded bread board and jumper wires in stead of direct jumper wires from eval kit to mcu. And to my surprise the bread board setup was able to get 0x47 from the WHO\\_AM\\_I register! To see how the bread board affected the signal I hooked up my Saleae Logic Pro 8 again, just to find that the register read-back now returned to 0x0C...\n\nSo to conclude:\n\n- Direct wires from eval kit to mcu for some reason seems to fail (as this was the initial only change from a working setup to a non-working setup)\n\n- Stuffing the eval kit onto a breadboard and jumping from it seems better (unlikely but though proven to work better)\n\n- Connecting the passive probe of the Saleae Logic Pro 8 apparently loads the SDO line to the point where it is no longer able to maintain the signal level. However the drive strength of the mcu MOSI line is stronger, so that was probably what masked the Saleae as loading the line(s) too much\n\nI will definitely be looking into getting some analyzer with active probes after this ordeal.",
+            "best_answer_author": "kay-la",
+            "best_answer_author_role": "Associate",
+            "content_text": "I am using the STEVAL-MKI238A kit with the LIS2DUX12 chip. This is connected to an NRF52840DK and interfaced using Zephyr's lis2dux12 driver. The eval kit is connected to the SPI3 device using its default settings. I am running an SPI clock of 1Mhz and the VDD and VDIO pins are supplied 1.85V+GND from a shared power supply with the nrf52840dk. The Zephyr lis2dux12 driver is hard coded to use SPI mode 3, so CPOL+CPHA.\n\nThe lis2dux12 driver fails its INIT sequence by mismatch of the WHO\\_AM\\_I readback. The device seemingly returns 0x0C.\n\nI have connected a logic analyzer to the pins of the eval kit shows this sequence:\n\n- 0x01 is written to register 0x3E to wake the device up from sleep\n\n- Once the CS signal is disabled, 50ms passes before the next CS enable to allow the sensor to wake up\n\n- A read request is made to register 0x8F (bit 7 read + 0x0F)\n\n- The clock idles for 48.5µs before pulsing for the response\n\n- The sensor effectively pulses 0000.1100b\n\n- However the sensor seems to attempt to set a bit after the second clock falling edge that falls short of the minimum high level voltage of 0.7xVDD, which dies out before the clock rising edge where the master reads the line.\n\nI have studied the datasheet, but am running out of ideas on why this is happening. Just to note, I have also attempted:\n\n- Another STEVAL-MKI238A\n\n- VDD and VDIO of 2.55V and 3.30V\n\n- Supplying VDD/VDIO/GND from NRF52840DK header\n\n- 125kHz, 500kHz, 1MHz, 5MHz, 10Mhz SPI frequencies\n\n- SPI2 device on nrf\n\n- Different pin mappings than default\n\n- Disconnecting the SDA line from the eval kit does not affect the reading on the logic analyzer so interference from the nrf dk MISO pin is unlikely\n\nAny of the attempts listed returns the exact same result (but the SDA voltage ≃ VDIO, expect the small initial ~0.5V pulse which is the same regardless of VDD/VDIO).\n\nAny help will be greatly appreciated.",
+            "images": [],
+            "author": "kay-la",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>tl;dr</strong> - SDO drive strength is weaker than anticipated</p><p>Okay, so after trying setting up the STEVAL-MKI238A to a NUCLEO-U575ZI-Q and seeing the exact same problem I reverted to an older setup method using a spring loaded bread board and jumper wires in stead of direct jumper wires from eval kit to mcu. And to my surprise the bread board setup was able to get 0x47 from the WHO_AM_I register! To see how the bread board affected the signal I hooked up my Saleae Logic Pro 8 again, just to find that the register read-back now returned to 0x0C...</p><p>So to conclude:</p><p>- Direct wires from eval kit to mcu for some reason seems to fail (as this was the initial only change from a working setup to a non-working setup)</p><p>- Stuffing the eval kit onto a breadboard and jumping from it seems better (unlikely but though proven to work better)</p><p>- Connecting the passive probe of the Saleae Logic Pro 8 apparently loads the SDO line to the point where it is no longer able to maintain the signal level. However the drive strength of the mcu MOSI line is stronger, so that was probably what masked the Saleae as loading the line(s) too much</p><p>I will definitely be looking into getting some analyzer with active probes after this ordeal.</p></div>",
+                    "author": "kay-la",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

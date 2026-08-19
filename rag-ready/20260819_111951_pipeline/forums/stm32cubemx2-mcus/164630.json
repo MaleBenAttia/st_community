@@ -1,0 +1,83 @@
+{
+    "forum": [
+        {
+            "id": "164630",
+            "publicId": "164630",
+            "title": "Clock configuration",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/clock-configuration-164630",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32C5 series",
+                "HAL2"
+            ],
+            "published_at": "2026-04-10T09:55:16+00:00",
+            "views": 396,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "@gil\\_dobjanschi, **RCC** is disabled. Please enable it and test one more time.",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI have a problem verifying the HCLK frequency for Nucleo-C562RE. I configure the clock to 144MHz (see image below).\n\n![Screenshot from 2026-04-10 12-32-56.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23b10401-e022-d6ec-7c8d-335b4956b4c9.png \"Screenshot from 2026-04-10 12-32-56.png\")\n\nWhen I start the application I print the HCLK frequency:\n\n```\n\nSEGGER_RTT_printf(\"---- MCU started at %lu[Hz] ----\\n\", HAL_RCC_GetHCLKFreq());\n\n```\n\nI get 48MHz:\n\n```\n\n---- MCU started at 48000000[Hz] ----\n\n```\n\nWhile stepping through the HAL\\_Init code I see that the code thinks that the clock source is LL\\_RCC\\_SYS\\_CLKSOURCE\\_STATUS\\_HSIDIV3 (48MHz)\n\n```\n\nuint32_t HAL_RCC_GetSYSCLKFreq(void)\n\n{\n\nuint32_t sysclockfreq;\n\nuint32_t sysclk_source;\n\nsysclk_source = LL_RCC_GetSysClkSource();\n\nif (sysclk_source == LL_RCC_SYS_CLKSOURCE_STATUS_HSIS)\n\n{\n\n/* HSIS used as system clock source */\n\nsysclockfreq = HSI_VALUE;\n\n}\n\nelse if (sysclk_source == LL_RCC_SYS_CLKSOURCE_STATUS_HSIDIV3)\n\n{\n\n/* HSIS used as system clock source */\n\nsysclockfreq = HSI_VALUE / 3U;\n\n}\n\n#if defined(HSE_VALUE)\n\nelse if (sysclk_source == LL_RCC_SYS_CLKSOURCE_STATUS_HSE)\n\n{\n\n/* HSE used as system clock source */\n\nsysclockfreq = HSE_VALUE;\n\n}\n\n#endif /* HSE_VALUE */\n\nelse\n\n{\n\nsysclockfreq = HAL_RCC_GetPSIClockFreq();\n\n}\n\nreturn sysclockfreq;\n\n}\n\n```\n\nHowever the clock diagram indicates HSIS as the source of clock for System Mux.\n\nHelp would be appreciated,\n\nGil\n\n![gil_dobjanschi_0-1775813742862.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01b70d2c-820b-c81b-32f4-2269c059ab36.png \"gil_dobjanschi_0-1775813742862.png\")\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01b70d2c-820b-c81b-32f4-2269c059ab36.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23b10401-e022-d6ec-7c8d-335b4956b4c9.png"
+            ],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>HSIDIV3 is the default after reset. Is it possible the clock has not been changed yet in your code? Where are you calling HAL_RCC_GetHCLKFreq in relation to clock being set? Including your IOC or code may help.</span></p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi TDK,</p><p>I called it before <span>mx_system_init and after mx_system_init </span>in the while(1) loop of the application. It always prints 48MHz. I attached the zipped ioc2 file. </p><p> </p><p>Thanks,</p><p>Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention></p>\n<p style=\"background: white; margin: 7.5pt 0in 0in 0in;\"><span>Thank you for bringing this issue to our attention.</span></p>\n<p style=\"background: white; box-sizing: border-box; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; word-spacing: 0px; margin: 7.5pt 0in 0in 0in;\"><span>I reported this internally.</span></p>\n<p style=\"background: white; box-sizing: border-box; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; word-spacing: 0px; margin: 7.5pt 0in 0in 0in;\"><span>Internal ticket number<strong>: CDM0061602.</strong></span></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention>, and welcome to ST Community!</p>\n<p>Let me check this and get back to you.</p>\n<p>Best regards</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"105834\">@gil_dobjanschi</user-mention>,<span> </span><strong>RCC</strong><span> </span>is disabled. Please enable it and test one more time.</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93235\">@STackPointer64</user-mention>,</p><p>I confirm that by simply activating RCC the clock value is now correct. Specifically it is 48MHz on startup, before  invoking <span>mx_system_init,</span> and 144MHz right after <span>mx_system_init. Thank you for the help!</span></p><p> </p><p><user-mention data-id=\"1684\">@Saket_Om</user-mention>, I'm glad I can help! </p><p> </p><p>Regards,</p><p>Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

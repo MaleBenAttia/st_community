@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "164722",
+            "publicId": "164722",
+            "title": "STM32F469 + AS4C4M16SA SDRAM – Read Returns Last Value with MSB Duplication Issue",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32f469-as4c4m16sa-sdram-read-returns-last-value-with-msb-duplication-issue-164722",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32F4 series"
+            ],
+            "published_at": "2026-04-14T07:10:46+00:00",
+            "views": 307,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Issue resolved.\n\nAfter reviewing the STM32F469 errata sheet, it was identified that PA7 does not support the FMC\\_SDNWEN alternate function. However, during code generation, PA7 was configured for FMC\\_SDNWEN, which was misleading.\n\nAfter reconfiguring FMC\\_SDNWEN to a valid pin as mentioned in the errata sheet, the SDRAM started working correctly.\n\nAttached the errata reference image for clarity.\n\n![Screenshot 2026-05-08 153221.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a17f73cc-246a-9970-0264-54722a1cb929.png \"Screenshot 2026-05-08 153221.png\")",
+            "best_answer_author": "Shubha_99",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi all,\n\nI am working with STM32F469ZIT6 and external SDRAM AS4C4M16SA-6TIN SDRAM using FMC (Bank1).\n\nSetup\n\n* HCLK = 180 MHz\n\n* SDRAM clock configurations tested:\n\n+ HCLK/2 (90 MHz) → Refresh count = `0x056A`\n\n+ HCLK/3 (60 MHz) → Refresh count = `0x0395`\n\n* Data width: 16-bit\n\n* Internal banks: 4\n\n* CAS latency : 2\n\nSDRAM clock has been verified using an oscilloscope and matches expected frequencies.\n\n**Test Code**\n\nI am writing a pattern to SDRAM and reading it back:\n\n- Write pattern: `0xA1234567 + index`\n\n- Base address: `0xC0000000`\n\n```\n\nfor (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)\n\n{\n\n*(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + 4*uwIndex) = aTxBuffer[uwIndex];\n\n}\n\n```\n\nRead back:\n\n```\n\nfor (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)\n\n{\n\naRxBuffer[uwIndex] = *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + 4*uwIndex);\n\n}\n\n```\n\n* **Issue (Observed Behavior)**\n\n- The read operation does not return the correct written data\n\n- Instead:\n\n* It often returns the previous/last written value.\n\n* The data pattern shows MSB duplication (upper bits repeated), e.g.: 0xA123A123.\n\n**Initialization Sequence**\n\n```\n\nstatic void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command)\n\n{\n\n__IO uint32_t tmpmrd =0;\n\n/* Step 3: Configure a clock configuration enable command */\n\nCommand->CommandMode \t\t\t = FMC_SDRAM_CMD_CLK_ENABLE;\n\nCommand->CommandTarget \t\t = FMC_SDRAM_CMD_TARGET_BANK1;\n\nCommand->AutoRefreshNumber \t = 1;\n\nCommand->ModeRegisterDefinition = 0;\n\n/* Send the command */\n\nHAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);\n\n/* Step 4: Insert 200uS delay */\n\nHAL_Delay(1);\n\n/* Step 5: Configure a PALL (precharge all) command */\n\nCommand->CommandMode \t\t\t = FMC_SDRAM_CMD_PALL;\n\nCommand->CommandTarget \t = FMC_SDRAM_CMD_TARGET_BANK1;\n\nCommand->AutoRefreshNumber \t = 1;\n\nCommand->ModeRegisterDefinition = 0;\n\n/* Send the command */\n\nHAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);\n\n/* Extended Mode Register Set — required for AS4C4M16SA (drive strength: Full = A1=0) */\n\nCommand->CommandMode = FMC_SDRAM_CMD_LOAD_MODE;\n\nCommand->CommandTarget = FMC_SDRAM_CMD_TARGET_BANK1;\n\nCommand->AutoRefreshNumber = 1;\n\nCommand->ModeRegisterDefinition = 0x0000; /* Extended MRS: BA0=1 drives bank select; Full drive strength */\n\nHAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);\n\n/* Program the external memory mode register */\n\ntmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_1 |\n\nSDRAM_MODEREG_BURST_TYPE_SEQUENTIAL |\n\nSDRAM_MODEREG_CAS_LATENCY_2 |\n\nSDRAM_MODEREG_OPERATING_MODE_STANDARD |\n\nSDRAM_MODEREG_WRITEBURST_MODE_SINGLE;\n\nCommand->CommandMode = FMC_SDRAM_CMD_LOAD_MODE;\n\nCommand->CommandTarget \t\t = FMC_SDRAM_CMD_TARGET_BANK1;\n\nCommand->AutoRefreshNumber \t = 1;\n\nCommand->ModeRegisterDefinition = tmpmrd;\n\n/* Send the command */\n\nHAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);\n\n/* Step 6 : Configure a Auto-Refresh command */\n\nCommand->CommandMode \t\t\t = FMC_SDRAM_CMD_AUTOREFRESH_MODE;\n\nCommand->CommandTarget \t\t = FMC_SDRAM_CMD_TARGET_BANK1;\n\nCommand->AutoRefreshNumber \t = 8;\n\nCommand->ModeRegisterDefinition = 0;\n\n/* Send the command */\n\nHAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);\n\nHAL_Delay(1);\n\n/* Step 6 : Configure a Auto-Refresh command */\n\nCommand->CommandMode \t\t\t = FMC_SDRAM_CMD_AUTOREFRESH_MODE;\n\nCommand->CommandTarget \t\t = FMC_SDRAM_CMD_TARGET_BANK1;\n\nCommand->AutoRefreshNumber \t = 8;\n\nCommand->ModeRegisterDefinition = 0;\n\n/* Send the command */\n\nHAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);\n\n/* Step 8: Set the refresh rate counter */\n\n/* (15.62 us x Freq) - 20 */\n\n/* Set the device refresh counter */\n\nHAL_SDRAM_ProgramRefreshRate(hsdram, REFRESH_COUNT);\n\n}\n\n```\n\n**Observations**\n\nSame behavior across:\n\n1. Different SDRAM clock settings (90 MHz / 60 MHz)\n\n2. Different CAS latencies (2, 3)\n\n3. Read burst tested with enabled and disabled\n\n4. SDRAM clock verified on oscilloscope\n\n5. Write completes without fault\n\n6. Read returns incorrect/repeated data pattern\n\nQuestions\n\n1. Is the Extended Mode Register step valid for this SDRAM?\n\n2. Does this symptom (last value + MSB duplication) indicate:\n\n* FMC timing issue?\n\n* Data bus wiring/width issue?\n\n* SDRAM not properly initialized?\n\n3. Any known working configuration for this SDRAM with STM32F469?\n\nAttached Files\n\nFull project files are attached (FMC config + test code):\n\nAny insights or debugging suggestions would be greatly appreciated.\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a17f73cc-246a-9970-0264-54722a1cb929.png"
+            ],
+            "author": "Shubha_99",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Hello,</p>\n<blockquote><hr/><span>Attached Files</span>\n<p>Full project files are attached (FMC config + test code):</p>\n<p> </p>\n</blockquote>\n<p> Just to warn you that there is nothing attached to your post.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for informing me! I realized the attachment was missing earlier. I’m attaching the content in this chat now.</p></div>",
+                    "author": "Shubha_99",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Issue resolved.</span></p><p class=\"\"><span>After reviewing the STM32F469 errata sheet, it was identified that PA7 does not support the FMC_SDNWEN alternate function. However, during code generation, PA7 was configured for FMC_SDNWEN, which was misleading.</span></p><p class=\"\"><span>After reconfiguring FMC_SDNWEN to a valid pin as mentioned in the errata sheet, the SDRAM started working correctly.</span></p><p><span>Attached the errata reference image for clarity.</span></p><p><span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-05-08 153221.png\" style=\"width: 647px;\"><img alt=\"Screenshot 2026-05-08 153221.png\" height=\"187\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a17f73cc-246a-9970-0264-54722a1cb929.png\" title=\"Screenshot 2026-05-08 153221.png\" width=\"647\"/></span></span></p></div>",
+                    "author": "Shubha_99",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Thank you for the update.</p>\n<blockquote><hr/><user-mention data-id=\"89938\">@Shubha_99</user-mention> wrote:<br/>\n<p class=\"\"><span>However, during code generation, PA7 was configured for FMC_SDNWEN, which was misleading.</span></p>\n<hr/></blockquote>\n<p>Could you please share your ioc file on which PA7 is enabled for <span>FMC_SDNWEN by CubeMx by default</span>?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Hello,</span></p><p class=\"\"><span>I am currently unable to share the .ioc file, but the issue can be reproduced with the following steps:</span></p><ol><li><span>Create a new project for STM32F469ZIT6.</span></li><li><span>Enable SYS and RCC.</span></li><li><span>Enable LTDC.</span></li><li><span>Enable I2C1.</span></li><li><span>Enable FMC.</span></li></ol><p class=\"\"><span>After enabling FMC, PA7 gets assigned for FMC_SDNWE.</span></p><p><span>Thank you for the support.</span></p></div>",
+                    "author": "Shubha_99",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

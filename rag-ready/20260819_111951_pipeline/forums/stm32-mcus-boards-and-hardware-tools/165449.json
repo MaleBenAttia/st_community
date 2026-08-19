@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "165449",
+            "publicId": "165449",
+            "title": "stm32g070rb ST-Link troubleshooting",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32g070rb-st-link-troubleshooting-165449",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "STM32G0 series"
+            ],
+            "published_at": "2026-05-06T17:11:22+00:00",
+            "views": 169,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @AFE123x wrote:\n\n>\n\n> Info : STLINK V2J31M21 (API v2) VID:PID 0483:374B\n\n> **Info : Target voltage: 0.018873**\n\n> **Error: target voltage may be too low for reliable debugging**\n\n>\n\n> ---\n\nThere's your problem!\n\nYou need a Vtarget connection to the ST-Link\n\n**PS:**\n\nFrom the Nucleo board's User Manual:\n\n![AndrewNeil_0-1778093307076.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f945ca9-690e-a3c9-fe05-343ec0bcda07.png \"AndrewNeil_0-1778093307076.png\")\n\n<https://www.st.com/resource/en/user_manual/um2324-stm32-nucleo64-boards-mb1360-stmicroelectronics.pdf#page=16>\n\n*via: <https://www.st.com/en/evaluation-tools/nucleo-g070rb.html#documentation>*",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "I'm back, and working with the stm32g070rb chip. I did prototyping on a nucleo board based on the same chip (split the st link and nucleo board), and wired the ST Link to the microcontroller with the following connections\n\n![AFE123x_0-1778087139725.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5b07d8b5-66a9-0734-4b4e-a496c1cf38ac.png \"AFE123x_0-1778087139725.png\")\n\nI used open-ocd for flashing code to the nucleo, and it worked flawlessly. Based on the wiring, I made the assumption that this'd translate directly when developing the PCB.\n\n(picture of the PCB and the schematic)\n\n![AFE123x_1-1778087269730.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/38358d3b-03bf-c82b-8ef5-8960681b9684.png \"AFE123x_1-1778087269730.png\")\n\n![AFE123x_2-1778087339438.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b548814d-fb59-f0d8-747c-caa5de46ad50.png \"AFE123x_2-1778087339438.png\")\n\nWhen I tried to make the same connections, and tried to flash, I'd get the following issue\n\n```bash\n\nInfo : auto-selecting first available session transport \"hla\\_swd\". To override use 'transport select <transport>'.\n\nInfo : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD\n\nInfo : clock speed 2000 kHz\n\nInfo : STLINK V2J31M21 (API v2) VID:PID 0483:374B\n\nInfo : Target voltage: 0.018873\n\nError: target voltage may be too low for reliable debugging\n\nError: init mode failed (unable to connect to the target) # I got this same error with the nucleo, but it worked\n\nin procedure 'program'\n\n\\*\\* OpenOCD init failed \\*\\*\n\nshutdown command invoked\n\nmake: \\*\\*\\* [flash] Error 1\n\n```\n\nIn the case above, it recognizes the device, but doesn't flash.\n\nI'm unsure about how to start diagnosing. Is there anything in the schematic that's missing? I understand this is a lot to ask, but I'd appreciate any insight!\n\nCheers!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/38358d3b-03bf-c82b-8ef5-8960681b9684.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b548814d-fb59-f0d8-747c-caa5de46ad50.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5b07d8b5-66a9-0734-4b4e-a496c1cf38ac.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f945ca9-690e-a3c9-fe05-343ec0bcda07.png"
+            ],
+            "author": "AFE123x",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"103497\">@AFE123x</user-mention> wrote:<br/><p>Info : STLINK V2J31M21 (API v2) VID:PID 0483:374B<br/><font color=\"#FF0000\"><strong>Info : Target voltage: 0.018873</strong></font><br/><font color=\"#FF0000\"><strong>Error: target voltage may be too low for reliable debugging</strong></font></p><hr/></blockquote><p>There's your problem!</p><p>You need a Vtarget connection to the ST-Link</p><p> </p><p><strong><u>PS</u>:</strong></p><p>From the Nucleo board's User Manual:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AndrewNeil_0-1778093307076.png\" style=\"width: 999px;\"><img alt=\"AndrewNeil_0-1778093307076.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f945ca9-690e-a3c9-fe05-343ec0bcda07.png\" title=\"AndrewNeil_0-1778093307076.png\"/></span></p><p><a href=\"https://www.st.com/resource/en/user_manual/um2324-stm32-nucleo64-boards-mb1360-stmicroelectronics.pdf#page=16\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/user_manual/um2324-stm32-nucleo64-boards-mb1360-stmicroelectronics.pdf#page=16</a></p><p><em>via: <a href=\"https://www.st.com/en/evaluation-tools/nucleo-g070rb.html#documentation\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/nucleo-g070rb.html#documentation</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

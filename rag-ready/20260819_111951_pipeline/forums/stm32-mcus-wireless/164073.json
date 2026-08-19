@@ -1,0 +1,116 @@
+{
+    "forum": [
+        {
+            "id": "164073",
+            "publicId": "164073",
+            "title": "PA0 WakeUp from Deep stop unreliable on STM32WL31",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/pa0-wakeup-from-deep-stop-unreliable-on-stm32wl31-164073",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32WL3 series",
+                "Sub-GHz"
+            ],
+            "published_at": "2026-03-23T09:18:08+00:00",
+            "views": 686,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "I experienced the same issue. It was caused by using my own linker script, which corrupted the AppBase variable.\n\nThe AppBase variable is described on page 50 of the RM0511 Reference Manual.",
+            "best_answer_author": "xy3dg12",
+            "best_answer_author_role": "Visitor II",
+            "content_text": "Good day.\n\nI am using STM32WL31 on a custom board.\n\nDeepStop mode entry works correctly, but wakeup from PA0 (WakeUp pin) is not reliable or does not work. I used the example code in project:\n\nSTM32Cube\\_FW\\_WL3\\_V1.3.1\\Projects\\NUCLEO-WL33CC\\Examples\\PWR\\PWR\\_DEEPSTOP\n\nThe same code I use in my custom board works correctly on NUCLEO-WL33CC2 board (I have tested succefull the code on the NUCLEO-WL33CC2). In my opinion the difference from my custom bord + my code and the NUCLEO-WL33CC2 is the microcontroller; the NUCLEO-WL33CC2 mount the STM32WL33, my board mount the STM32WL31.\n\nCode sequence foe enter in deep stop:\n\n1. Enable wakeup pin (PA0, PA11 used as wakeup pins are connected by a button to GND). Internal pull-up enabled using LL\\_PWR\\_EnableGPIOPullUp on PA0 e PA11\n\n2. Clear WUF flags\n\n3. Enter DeepStop\n\nWhen I press PA0 or PA11 buttons the MCU does not resume execution OR behaves inconsistently, it look like as the micro is in an undefined state.\n\nAfter programmed the micro it seam to enter in deep stop and when I press the wakeup pin it exit from deep stop, execute the main and go back in deep stop. If I wakeup again by the IO pin it not exit from deep stop but look like in an udefined state.\n\nIn this conversation:\n\n<https://community.st.com/t5/stm32-mcus-wireless/stm32wl31-fails-to-exit-deepstop-from-rtc-wakeup/m-p/887400#M27790>\n\nThe user @marvdm report a similar behaver on the same MCU (STM32WL31)\n\nThis is my main.c:\n\n```\n\nint main(void)\n\n{\n\n/* USER CODE BEGIN 1 */\n\n/* USER CODE END 1 */\n\n/* MCU Configuration--------------------------------------------------------*/\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n\nHAL_Init();\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* Configure the system clock */\n\nSystemClock_Config();\n\n/* Configure the peripherals common clocks */\n\nPeriphCommonClock_Config();\n\n/* USER CODE BEGIN SysInit */\n\n/* USER CODE END SysInit */\n\n/* Initialize all configured peripherals */\n\n// MX_GPIO_Init();\n\n// MX_TIM2_Init();\n\n// MX_USART1_UART_Init();\n\n/* USER CODE BEGIN 2 */\n\nGPIO_InitTypeDef GPIO_InitStruct = {0};\n\n//\n\n// /* GPIO Ports Clock Enable */\n\n__HAL_RCC_GPIOA_CLK_ENABLE();\n\n__HAL_RCC_GPIOB_CLK_ENABLE();\n\n//\n\n// /*Configure GPIO pins : OUT_FREQUENCE_SELECT_Pin RE_485_Pin DE_485_Pin DL3_Pin\n\n// DEBUG_1_Pin DL2_Pin */\n\nGPIO_InitStruct.Pin = DL3_Pin;\n\nGPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nGPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;\n\nHAL_GPIO_Init(GPIOB, &GPIO_InitStruct);\n\nLL_PWR_EnableGPIOPullUp( LL_PWR_GPIO_B, DL3_Pin);\n\n//LL_PWR_EnableGPIOPullUp( LL_PWR_GPIO_A, GPIO_PIN_0);\n\n/* Check if the system was resumed from Deepstop mode */\n\nif (__HAL_PWR_GET_FLAG(PWR_FLAG_DEEPSTOPF) != RESET)\n\n{\n\n/* Clear Deepstop flag */\n\n__HAL_PWR_CLEAR_FLAG(PWR_FLAG_DEEPSTOPF);\n\n/* Check and Clear the Wakeup flag */\n\n// if (__HAL_PWR_GET_FLAG(PWR_FLAG_WUFB0) != RESET)\n\n// {\n\n// __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUFB0);\n\n// }\n\n/* Check and Clear the Wakeup flag */\n\nif (__HAL_PWR_GET_FLAG(PWR_FLAG_WUFA0) != RESET)\n\n{\n\n__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUFA0);\n\n}\n\n//HAL_GPIO_WritePin(DL2_GPIO_Port, DL2_Pin, GPIO_PIN_SET);\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_SET);\n\nHAL_Delay(3000);\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_RESET);\n\n/* Wait that user release the USER push-button */\n\n//NVIC_SystemReset();\n\n}\n\nfor (uint16_t i=0; i<10; i++)\n\n{\t//Lampeggi il led\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_SET);\n\nHAL_Delay(250);\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_RESET);\n\nHAL_Delay(250);\n\n}\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_RESET);\n\n//HAL_GPIO_WritePin(DL2_GPIO_Port, DL2_Pin, GPIO_PIN_SET);\n\nLL_PWR_EnableGPIOPullUp( LL_PWR_GPIO_A, PWR_WAKEUP_PIN0);\t//LL_PWR_DisableGPIOPullUp( LL_PWR_GPIO_A, PWR_WAKEUP_PIN0);\n\nLL_PWR_EnableGPIOPullUp( LL_PWR_GPIO_B, PWR_WAKEUP_PIN10);\t//LL_PWR_DisableGPIOPullUp(LL_PWR_GPIO_B, PWR_WAKEUP_PIN10); //\n\n/* Enable WakeUp Pin PWR_WAKEUP_PIN0 connected to */\n\nHAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PORTA, PWR_WAKEUP_PIN0, PWR_WUP_FALLEDG );\n\nHAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PORTB, PWR_WAKEUP_PIN10, PWR_WUP_FALLEDG );\t//PB10 = B_APRI_Pin\n\n/* Clear all related wakeup flags*/\n\n//__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUF_ALL); // Pulisce tutti i flag di Wakeup\n\n//__HAL_PWR_CLEAR_FLAG(PWR_FLAG_DEEPSTOPF);\n\n//__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUF_ALL);\n\n__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUFA0);\n\n__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUFB10);\n\n//MODIFY_REG_FIELD(PWR->DBGR, PWR_DBGR_DEEPSTOP2, 1);\n\n//sConfigDEEPSTOP.deepStopMode = PWR_DEEPSTOP_WITH_SLOW_CLOCK_ON;\n\nsConfigDEEPSTOP.deepStopMode = PWR_DEEPSTOP_WITH_SLOW_CLOCK_OFF;\n\n/* Enter the Deepstop mode */\n\nHAL_PWR_ConfigDEEPSTOP(&sConfigDEEPSTOP);\n\nHAL_PWR_EnterDEEPSTOPMode();\n\nwhile (1)\n\n{\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_SET);\n\nHAL_Delay(1000);\n\nHAL_GPIO_WritePin(DL3_GPIO_Port, DL3_Pin, GPIO_PIN_RESET);\n\nHAL_Delay(1000);\n\n}\n\n/* USER CODE END 2 */\n\n/* Infinite loop */\n\n/* USER CODE BEGIN WHILE */\n\n/* USER CODE END WHILE */\n\n/* USER CODE BEGIN 3 */\n\n//\t}\n\n/* USER CODE END 3 */\n\n}\n\n```\n\nQuestion:\n\nIs there any known limitation or required sequence for STM32WL31 DeepStop wakeup from GPIO?\n\nAre there differences vs STM32WL33?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23adfdbc-c699-344f-6bbb-8cbd1ef387ed.png"
+            ],
+            "author": "sbelcatronic",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"93598\">@sbelcatronic</user-mention> ,</p>\n<p><span>Make sure that all configuration steps and conditions mentioned in the <a href=\"https://www.st.com/resource/en/datasheet/stm32wl31c8.pdf\" rel=\"noopener noreferrer\" target=\"_self\">Datasheet</a> (page 14 - section: <em>3.6.2 Deepstop mode</em>) are followed:</span></p>\n<ul>\n<li>The radio (MR_SUBG) and CPU are sleeping (WFI with SLEEPDEEP bit set).</li>\n</ul>\n<ul>\n<li>No unmasked wake-up sources are active (PWRC_CR1.LPMS = 0).</li>\n<li>The system is clocked on RC64MPLL (HSI or PLL locked mode).</li>\n<li>...</li>\n<li><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"WL31.png\" style=\"width: 700px;\"><img alt=\"WL31.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23adfdbc-c699-344f-6bbb-8cbd1ef387ed.png\" title=\"WL31.png\"/></span></li>\n</ul></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Imen.d </p><p><span class=\"\"><span class=\"\"><span class=\"\">I checked all the points</span></span></span>.</p><p>1-' <span class=\"\">the radio (MR_SUBGHz) is sleeping' :  I do not configure the MR_SUBGHz, so it is in sleep.</span></p><p><span class=\"\">2-' The CPU is sleeping (WFI with SLEEPDEEP bit activated)' : I call the function <span>HAL_PWR_EnterDEEPSTOPMode();</span> so it set proply the bits.</span></p><p><span class=\"\">3-' No unmasked wake-up sources are active (including those from a previous wakeup sequence for which the software did not clear the associated flag after wakeup) the PWRC_CR1.LPMS bit is equal to 0': again I call the function <span>HAL_PWR_EnterDEEPSTOPMode() and this do the calls:</span></span></p><pre class=\"lia-code-sample language-c\"><code> /* Clear all the wake-up pin flags */\n LL_PWR_ClearInternalWakeupSource(LL_PWR_WAKEUP_ALL);\n LL_PWR_ClearWakeupSource(PWR_WAKEUP_PORTA, LL_PWR_WAKEUP_ALL);\n LL_PWR_ClearWakeupSource(PWR_WAKEUP_PORTB, LL_PWR_WAKEUP_ALL);</code></pre><p> </p><p><span class=\"\">4-'The system is clocked on RC64MPLL (HSI or PLL locked mode)' : My SystemClock_Config() is</span></p><pre class=\"lia-code-sample language-c\"><code>void SystemClock_Config(void)\n{\n RCC_OscInitTypeDef RCC_OscInitStruct = {0};\n RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};\n\n /** Initializes the RCC Oscillators according to the specified parameters\n * in the RCC_OscInitTypeDef structure.\n */\n RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;\n if (HAL_RCC_OscConfig(&amp;RCC_OscInitStruct) != HAL_OK)\n {\n Error_Handler();\n }\n\n /** Configure the SYSCLKSource and SYSCLKDivider\n */\n RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;\n RCC_ClkInitStruct.SYSCLKDivider = RCC_RC64MPLL_DIV1;\n\n if (HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_WAIT_STATES_1) != HAL_OK)\n {\n Error_Handler();\n }\n}</code></pre><p> I use HSI clock source as required.</p><p>5-' <span class=\"\">Reset PWRC_CR5.GPIORET bit when PWRC_DBGR.DEEPSTOP2 bit is set, otherwise set PWRC_CR5.GPIORET bit':</span></p><p><span class=\"\">the flag PWRC_CR5.GPIORET do not exist (I guess is a datasheet error) but I set the bit  PWRC_CR2.GPIORET by adding the function call <span>HAL_PWREx_EnableGPIORetention();</span> before enter deep stop.</span></p><p> </p><p>I think I have respected all the requirement in 3.6.2, but the problem still.</p><p> </p><p>Thank </p></div>",
+                    "author": "sbelcatronic",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I forgot the last point:</p><p>5-' <span class=\"\">If SMPS clock variable rate multiplier is enabled RCC_KRMR.KRMEN=1 (see </span><span class=\"\">SMPS </span><span class=\"\">clock variable rate multiplier register (RCC_KRMR)</span><span class=\"\">), in order to guarantee a good </span><span class=\"\">SMPS startup at next wakeup, its mandatory to put RCC_CFGR.SMPSDIV=0 ':</span></p><p>I verified by the debugger the flag <span class=\"\">RCC_KRMR.KRMEN=</span>0 so the clear the flag <span class=\"\">RCC_CFGR.SMPSDIV=0</span> is not mandatory.</p><p> </p><p>sbelcatronic</p></div>",
+                    "author": "sbelcatronic",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p><span class=\"\">when the cpu wakeup, maybe the CPU enter in internal serial boot loader? I read in the datasheet:</span></p><p><span class=\"\"> </span></p><p><em><span class=\"\">The bootloader is activated by hardware by forcing PA10 high during hardware reset, otherwise, application residing in flash memory is launched</span></em></p><p><span class=\"\"> </span></p><p><span class=\"\">I installed a pull down resistor in PA10 pin, but this not resolve my problem. </span></p><p><span class=\"\"> </span></p><p><span class=\"\">In the reference manual rm0511 is written:</span></p><p><span class=\"\"> </span></p><p><em><span class=\"\">ST provides a boot loader executed after each CPU reboot. This boot loader has its own documentation.</span></em></p><p><em><span class=\"\">STM32WL30xx/31xx/33xx devices latch the PA8 / PA9 / PA10 / PA11 / PB12 / PB13 / PB14/ PB15 pads value at POR. The information is available in PWRC_SR2 register (see Statusregister 2 (PWRC_SR2)). One of those eight I/Os can be used by the boot loader as bootindication between a normal boot or a boot on serial interface.</span></em></p><p><span class=\"\"> </span></p><p><span class=\"\">PA10 pin is the only pin used for enter in boot mode or are used for this even the pin </span><em><span class=\"\">PA8 / PA9 / PA10 / PA11 / PB12 / PB13 / PB14/ PB15 ?</span></em></p><p> </p><p><span class=\"\"> </span></p><p><em><span class=\"\">Simone</span></em></p></div>",
+                    "author": "sbelcatronic",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93598\">@sbelcatronic</user-mention> ,</p>\n<p>Only the PA10 is used for entering in boot mode.</p>\n<p><li-wrapper><i></i></li-wrapper></p>\n<p><span>The bootloader is activated by hardware when PA10 is set high during a hardware reset. </span><span>Otherwise, the application in flash memory launches. </span></p>\n<p><li-wrapper><i></i></li-wrapper></p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Imen</p><p>for safety I added an external pull down resistor on PA10 so I'm sure it does not enter in bootloader on wakeup, but this not resolve my problem. The STM32WL31 still in undefined state on wakeup.</p><p>I have activated the debugger by the instruction:</p><pre class=\"lia-code-sample language-c\"><code>HAL_PWREx_EnableDEEPSTOP2();\t//equivale a MODIFY_REG_FIELD(PWR-&gt;DBGR, PWR_DBGR_DEEPSTOP2, 1);</code></pre><p>When the micro wakeup and enter in the undefined state I receve this message from the debugger:</p><p> </p><p><i>Break at address \"0x100004ee\" with no debug information available, or outside of program code.</i></p><p> </p><p>The addrss 0x100004ee is in reseved area. What mean this message?</p><p>Thanks</p><p>Simone</p></div>",
+                    "author": "sbelcatronic",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93598\">@sbelcatronic</user-mention> </p>\n<p>Can you please update and use the latest release of <a href=\"https://www.st.com/en/embedded-software/stm32cubewl3.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeWL3 </a>MCU package version 1.4.0 which contains enhancement and bug fixes. I hope this is helpful.</p>\n<p> </p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Imen,</p><p>I update to the Firmware Package STM32Cube FW_WL3 V1.4.0, but still not working. I have the same problem, at wakeup the micro enter in undefined state.</p><p>Simone.</p><p> </p></div>",
+                    "author": "sbelcatronic",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"\">I experienced the same issue. It was caused by using my own linker script, which corrupted the<span> </span></span>AppBase<span class=\"\"><span> </span>variable.</span></p><p><span class=\"\">The<span> </span>AppBase<span> </span>variable is described on page 50 of the RM0511 Reference Manual.</span></p></div>",
+                    "author": "xy3dg12",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you xy3dg12,</p><p>as reported this: <a href=\"https://community.st.com/t5/stm32-mcus-wireless/stm32wl31-fails-to-exit-deepstop-from-rtc-wakeup/m-p/857987#M27001\" target=\"_self\">https://community.st.com/t5/stm32-mcus-wireless/stm32wl31-fails-to-exit-deepstop-from-rtc-wakeup/m-p/857987#M27001</a></p><p>You suggestion is correct, writing the AppBase by this line:</p><pre>*(uint32_t*)0x20000014 = 0x10040000;</pre><p>I solved my problem. I experienced the problem with the original linker script, so I don’t agree that it’s an AppBase variable corruption. I believe this is a bug in the microcontroller, since it should not enter the bootloader when waking up from DeepStop.</p><p>Simone</p><p>   </p></div>",
+                    "author": "sbelcatronic",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93598\">@sbelcatronic</user-mention>, <user-mention data-id=\"105807\">@xy3dg12</user-mention> </p>\n<p>After internally deep check with wireless team, it seems that STM32CubeMX generates incorrect linker file which places RAM_VR data structure in wrong place.</p>\n<p>This issue will be fixed in the coming releases of STM32CubeMX.</p>\n<p>So, as proper solution is either to wait the fix with STM32CubeMX, or as <span>workaround</span> you can use the corresponding linker file for STM32WL33.</p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

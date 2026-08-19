@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "165081",
+            "publicId": "165081",
+            "title": "Two OSPI usage in STM32U599",
+            "url": "https://community.st.com/stm32-mcus-products-25/two-ospi-usage-in-stm32u599-165081",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "OctoSPI",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-04-24T09:57:15+00:00",
+            "views": 217,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello, my code was like (cubeMX created that)\n\n```\n\nsOspiManagerCfg.ClkPort = 1;\n\nsOspiManagerCfg.NCSPort = 1;\n\nsOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n\nif (HAL_OSPIM_Config(&hospi1, &sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\n```\n\nsOspiManagerCfg.ClkPort = 2;\n\nsOspiManagerCfg.NCSPort = 2;\n\nsOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_HIGH;\n\nif (HAL_OSPIM_Config(&hospi2, &sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\nI added only  sOspiManagerCfg.IOHighPort = HAL\\_OSPIM\\_IOPORT\\_1\\_HIGH; to OSPI1 init like below\n\n```\n\nsOspiManagerCfg.ClkPort = 1;\n\nsOspiManagerCfg.NCSPort = 1;\n\nsOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n\nsOspiManagerCfg.IOHighPort = HAL_OSPIM_IOPORT_1_HIGH;\n\nif (HAL_OSPIM_Config(&hospi1, &sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\nand it works fine .\n\nThanks",
+            "best_answer_author": "Epamuk",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello,\n\nIs it possible to use two OSPI with below configuration.  I can make this configuration in cubeMx but whiel debugging ospi1 is not working after ospi2 initialize.\n\n![Epamuk_1-1777024547409.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e4e74f0c-41e3-fbfa-3a5f-948784c0350c.png \"Epamuk_1-1777024547409.png\")![Epamuk_2-1777024564617.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/acf133a4-2cf5-45dc-8cc3-b859a6692e84.png \"Epamuk_2-1777024564617.png\")![Epamuk_3-1777024580076.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b55ad3ec-f9cf-0fa7-6ca6-064364dce3cf.png \"Epamuk_3-1777024580076.png\")\n\n![Epamuk_4-1777024592601.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eaa4b096-cef6-e836-7cfb-1afba546de00.png \"Epamuk_4-1777024592601.png\")\n\n![Epamuk_5-1777024603515.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1cbb40c8-7a08-3f00-987b-7ccd74512e2b.png \"Epamuk_5-1777024603515.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e4e74f0c-41e3-fbfa-3a5f-948784c0350c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b55ad3ec-f9cf-0fa7-6ca6-064364dce3cf.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eaa4b096-cef6-e836-7cfb-1afba546de00.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/acf133a4-2cf5-45dc-8cc3-b859a6692e84.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1cbb40c8-7a08-3f00-987b-7ccd74512e2b.png"
+            ],
+            "author": "Epamuk",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"46832\">@Epamuk</user-mention> ;</p>\n<p> </p>\n<p>First of all thank you for sharing this behavior in the community.</p>\n<p>Could you please look at this issue <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/octospi-hal-ospim-config/td-p/772939\" target=\"_blank\">Solved: OCTOSPI: HAL_OSPIM_Config() - STMicroelectronics Community.</a> I think you are experiencing the same issue.</p>\n<p> </p>\n<p>To solve the issue could you please try to modify these code lines in octospi.c file</p>\n<div class=\"copyToClipboard\"> </div>\n<p> </p>\n<pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 1;\n sOspiManagerCfg.NCSPort = 1;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n if (HAL_OSPIM_Config(&amp;hospi1, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre>\n<div class=\"copyToClipboard\"> </div>\n<p> </p>\n<pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 2;\n sOspiManagerCfg.NCSPort = 2;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_HIGH;\n if (HAL_OSPIM_Config(&amp;hospi2, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre>\n<p> </p>\n<p>by</p>\n<p> </p>\n<pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 1;\n sOspiManagerCfg.NCSPort = 1;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n sOspiManagerCfg.IOHighPort = HAL_OSPIM_IOPORT_1_HIGH;\n sOspiManagerCfg.DQSPort = 1;\n if (HAL_OSPIM_Config(&amp;hospi1, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre>\n<p> </p>\n<div class=\"copyToClipboard\"> </div>\n<p><li-wrapper></li-wrapper></p>\n<pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 2;\n sOspiManagerCfg.NCSPort = 2;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n sOspiManagerCfg.IOHighPort = HAL_OSPIM_IOPORT_1_HIGH;\n sOspiManagerCfg.DQSPort = 2;\n if (HAL_OSPIM_Config(&amp;hospi2, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre>\n<p> </p>\n<p>Please let me know if the issue is solved or not?</p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, my code was like (cubeMX created that)</p><pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 1;\n sOspiManagerCfg.NCSPort = 1;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n if (HAL_OSPIM_Config(&amp;hospi1, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre><p> </p><pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 2;\n sOspiManagerCfg.NCSPort = 2;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_HIGH;\n if (HAL_OSPIM_Config(&amp;hospi2, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre><p>I added only  sOspiManagerCfg.IOHighPort = HAL_OSPIM_IOPORT_1_HIGH; to OSPI1 init like below</p><pre class=\"lia-code-sample language-c\"><code> sOspiManagerCfg.ClkPort = 1;\n sOspiManagerCfg.NCSPort = 1;\n sOspiManagerCfg.IOLowPort = HAL_OSPIM_IOPORT_1_LOW;\n sOspiManagerCfg.IOHighPort = HAL_OSPIM_IOPORT_1_HIGH;\n if (HAL_OSPIM_Config(&amp;hospi1, &amp;sOspiManagerCfg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)\n {\n Error_Handler();\n }</code></pre><p> and it works fine .  </p><p>Thanks</p></div>",
+                    "author": "Epamuk",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"46832\">@Epamuk</user-mention> ,</p>\n<p> </p>\n<p>Glad to know that the issue is solved.</p>\n<p>This issue is already reported internally to STM32CubeMX for more investigation and fixing.</p>\n<p><i>Internal ticket number: </i><strong>203289 </strong><i>(<u>This is an internal tracking number and is not accessible or usable by customers</u>) </i></p>\n<p> </p>\n<p>Please click on  <strong>Accept as Solution</strong> on the reply which solved your issue.</p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

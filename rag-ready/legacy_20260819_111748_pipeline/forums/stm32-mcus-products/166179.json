@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "166238",
+            "publicId": "166179",
+            "title": "STM32F427 DMA2D FIFO depth and FMC behavior",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f427-dma2d-fifo-depth-and-fmc-behavior-166179",
+            "category": "STM32 MCUs Products",
+            "tags": [],
+            "published_at": "2026-06-15T12:19:09+00:00",
+            "views": 49,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The query about burst size has been answered in the original thread at\n\n<https://community.st.com/stm32-mcus-products-25/stm32f427-dma2d-fifo-size-166173?postid=741132#post741132>\n\nThe bursts are 8 32-bit words.",
+            "best_answer_author": "cstocks",
+            "best_answer_author_role": "Associate II",
+            "content_text": "*Split from this [post](https://community.st.com/stm32-mcus-products-25/stm32f427-dma2d-fifo-size-166173).*\n\nI’ve just tried testing the out FIFO depth.\n\nThe STM32F427 is operating at 179.8MHz.\n\nThe DMA2D is configured for memory-to-memory transfers (so only the out FIFO is used - this is how I intend to configure the peripheral to drive the DAC).\n\nThe DMA2D dead time is configured for the maximum value (255), which allows one AHB transfer to the DMA2D every 1.4 microseconds.\n\nThe timer generating the NWAIT signal is held low for several hundred microseconds after the DMA2D is enabled and then generates NWAIT pulses that allow the FMC to write a value every 8 HCLK cycles (every 44.45ns).\n\nThis is the resulting output on the FMC NWE signal, with the controlling NWAIT signal (from the timer) also shown:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6e28b18-e432-453f-9b17-7f74cfbb1669.jpg)\n\nThis suggests the FIFO depth is 48 (16-bit) words.\n\nBut what happens next raises another question.  This screenshot shows the first burst of 48 writes to the FMC, followed by the next 3 bursts:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6d046658-a6b3-4dd3-9256-47cff61e5332.jpg)\n\nThe subsequent bursts are only 16 writes long, and the time between them (the first interval is about 1.4 microseconds, subsequent intervals are about 2.8 microseconds) shouldn’t be long enough for enough data to be available in the FIFO to write 16 data values to the FMC (the dead time limitation only permits one AHB access each 1.4 microseconds).\n\nDoes that indicate that an AHB access by the DMA2D isn’t a single data value, but is a burst of (16?) data values?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6d046658-a6b3-4dd3-9256-47cff61e5332.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6e28b18-e432-453f-9b17-7f74cfbb1669.jpg"
+            ],
+            "author": "cstocks",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Please separate questions here.</p><p>The original question is about STM32F427 DMA2D FIFO Size. Which I’ve already raised it internally.</p><p>Further question = New thread (you can link to this post).</p><p>I will split it then ..</p><p>Thank you for your understanding.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The query about burst size has been answered in the original thread at </p><oembed url=\"https://community.st.com/stm32-mcus-products-25/stm32f427-dma2d-fifo-size-166173?postid=741132#post741132\"></oembed><p>The bursts are 8 32-bit words.</p></div>",
+                    "author": "cstocks",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The ‘tests’ described at the start of this thread probably aren’t very illuminating.  They don’t account for the FIFOs in the FMC, which will be buffering 16 words of output data.</p></div>",
+                    "author": "cstocks",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

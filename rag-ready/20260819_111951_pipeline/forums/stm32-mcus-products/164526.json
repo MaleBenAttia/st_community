@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "164526",
+            "publicId": "164526",
+            "title": "SysTick Timer Configuration",
+            "url": "https://community.st.com/stm32-mcus-products-25/systick-timer-configuration-164526",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "SysTick",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-07T11:53:41+00:00",
+            "views": 320,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nNot sure what do you want to do! Have you the intention to measure all these timings with system tick timer i.e.  the WE, Setup time, ALE time? if yes I don't know how you plan to do so!\n\nMeanwhile, FMC kernel clock can be derived from the following clock sources:\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c6112813-430d-ab5a-2f85-5b03a41e7ba5.png \"screenshot.png\")\n\nWhile the system tick clock is derived from the system clock source:\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e094167e-aa96-221a-dbc0-02ad7d9550bc.png \"screenshot.png\")",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "How to configure the sysTick\\_Handler(), when we are setting the HCLK 386MHz in CubeMX and systemClock() is generated, but while configuring sysTick(),\n\nuint32\\_t SystemCoreClock = 64000000; already there in system\\_stm32h7xx\\_dualcore\\_boot\\_cm7\\_cm4.c\n\n(void)SysTick\\_Config((SystemCoreClock) / 10000);\n\nWill it effect mine overall MCU speed and performance, because after all I'm using FMC NAND Flash to communicate with the external Micron Flash, because there I need to calculate the clock cycles need to the write enable (WE), Setup time, Address Latch Enable (ALE) time etc, will be effected, or it is completely independent, should I only consider FMC\\_CLK which is coming from PLL clock source 2.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c6112813-430d-ab5a-2f85-5b03a41e7ba5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e094167e-aa96-221a-dbc0-02ad7d9550bc.png"
+            ],
+            "author": "Lucifer37",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Clock cycles of the FMC are independent of SysTicks. You should only consider the frequency of the FMC clock.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Not sure what do you want to do! Have you the intention to measure all these timings with system tick timer i.e. <span> the WE, Setup time, ALE time</span>? if yes I don't know how you plan to do so!</p>\n<p>Meanwhile, FMC kernel clock can be derived from the following clock sources:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 400px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c6112813-430d-ab5a-2f85-5b03a41e7ba5.png\" title=\"screenshot.png\"/></span></p>\n<p>While the system tick clock is derived from the system clock source:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 400px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e094167e-aa96-221a-dbc0-02ad7d9550bc.png\" title=\"screenshot.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> <user-mention data-id=\"8205\">@TDK</user-mention> </p><p>I took reference from this knowledge notes for calulate the timing / cycles for my MT29F1280AJAAA (I'm using STM32H745ZIT3) In Asynchronous mode - 5, which is saying ~50Mhz in the datasheet. But I'm running FMC at 131MHz clcok, what ever the calculation I have calculated are as per this knowledge notes, </p><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-the-fmc-peripheral-to-interface-an-stm32-mcu/ta-p/705805\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/how-to-configure-the-fmc-peripheral-to-interface-an-stm32-mcu/ta-p/705805</a></p><p>So help me debug the issue using CRO hardware or Software timing calculation, What I'm observing is that in middle some pages data integrity is failing, after writing page 25m sec delay I'm reading back. its failing what ever the content I have written on to that page.</p><p>My calculations, I also tried changing values by incrementing then, last or first byte is coming 0xFF</p><p>TCLRSETUPTIME = 3<br/>TARSETUPTIME = 3</p><p>STEUPTIME = 2<br/>WAITSETUOTIME = 3<br/>HOLDSETUPTIME = 2<br/>HIZSETUPTIME = 4</p><p><strong>Question : Is Common space timing and Attribute space timing should be same  or diffrent, whats the significance of it ?</strong></p><p>please help me find out the issue.</p></div>",
+                    "author": "Lucifer37",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>This is a new question. </p>\n<p>Please make sure to ask one question per thread. Your original question was about measuring the timings using system tick timer. Your new question is about how to configure the memory interface and memory <span>data integrity issue.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

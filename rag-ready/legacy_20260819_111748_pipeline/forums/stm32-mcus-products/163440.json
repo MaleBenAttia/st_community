@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "163440",
+            "publicId": "163440",
+            "title": "STM32H7 Injected ADC timing discrepancy",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h7-injected-adc-timing-discrepancy-163440",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "HRTIM",
+                "STM32H7 series",
+                "Interrupt",
+                "ADC"
+            ],
+            "published_at": "2026-03-04T14:38:57+00:00",
+            "views": 2754,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Interestingly enough the case is exactly the same if switching clock mode, such that the AHB peripheral clock drives the ADC. I still get exactly half the expected conversion frequency given what the AHB clock is set to. It is as if the ADC itself is applying an internal, hidden prescaler of 2",
+            "best_answer_author": "MrPylonz",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi!\n\nI am experiencing some confusing behaviour on an STM32H743 series chip:\n\nI am running an injected ADC channel on ADC2, with trigger from the HRTIM. The HRTIM is triggering at 8000 Hz (200 MHz clock, prescaler div-2 and period = 12500). The ADC generates an interrupt at injected end-of-conversion, with 64.5 cycles per sample in 16-bit mode. The ADC clock is running at 80 MHz, with prescaler div-4, i.e. 20 MHz.\n\nWhen setting an oversampling ratio such that the conversion time becomes longer than the time between the trigger pulses, I always get **half** the expected frequency for the generated interrupts.\n\nFor example, with oversampling ratio 64, I can calculate the conversion time as:\n\nt\\_conv = (64.5 + 8.5) \\* (1 / (20\\*1e6)) \\* 64 = 0.2336 ms\n\nwhere the 8.5 extra cycles come from the fact that we are in 16-bit mode as per documentation.\n\nFrom this, the ratio between the conversion time and the time between two consecutive trigger pulses is about 2, i.e. for each conversion I should miss one trigger pulse, and the expected measured frequency would be 4000 Hz. I however measure 2000 Hz instead. I am toggling the measured pin on and off immediately in the interrupt handler, so it's not a matter of accidentally only toggling it half of the time.\n\nThis behaviour is consistent regardless of the following which I've tested:\n\nChanging the oversampling ratio, the ADC clock prescaler, single-ended/differential mode, regular vs injected conversion and HRTIM trigger sources.\n\nSo for example, with oversampling ratio 1024 I should theoretically get interrupts at 266.66 Hz from my calculations, but I get them at 133.333 Hz, and so on. If I turn oversampling off, and set 1.5 cycles I get 8 kHz as expected, so this only occurs when the conversion time is longer than the time between the trigger pulses.\n\nI do not do any changes to the HRTIM or ADC registers in code. Where is the extra factor 1/2 coming from, and what am I missing?\n\nThanks!",
+            "images": [],
+            "author": "MrPylonz",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>How are you setting oversampling? Sounds like you may be off by one on the setting. A look at the ADC registers would be the best place to confirm.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the reply! </p><p>It indeed seems like this might be the case. </p><p>I used CubeMX for the initilization and setting up the oversampling, with the relevant initialization code looking like this:</p><p> </p><p>sConfigInjected.InjecOversampling.Ratio = 64;<br/>sConfigInjected.InjecOversampling.RightBitShift = ADC_RIGHTBITSHIFT_4;</p><p> </p><p>(of course some more code before and after, specifically enabling the injected oversampling and such)</p><p>Thanks!</p></div>",
+                    "author": "MrPylonz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>x64 oversampling should be shifted by 6 bits (2⁶ = 64). Unless you have some special idea - or that required for the 16 bit resolution?</p><p>But as TDK said: check the registers - do<span>n't trust CubeMx.</span></p><p> </p><p>I had this factor of 2 also missing in some STM32 ADC sampling rate calculation, can't remember if it was the bus clock that was actually half, or some pre-scaler thingy.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks! Yes, the 4-bit shift is a remnant of testing, but thanks for the suggestion, I will see if I can somehow measure or figure out the actual bus clock. Good to hear that you experienced the same - changing the prescalers has not had any effect so may indeed be that the bus clock is then 40 MHz instead of 80 as CubeMX indicates</p></div>",
+                    "author": "MrPylonz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Really running out of ideas here. The crystal used as clock source for the HSE, that I am in turn running as clock source for the PLL, which in turn drives the ADC has a frequency of 32 MHz. If I \"manually\" calculate with all of the prescalers which are set in code (not CubeMX), I, just as CubeMX also end up at 80 MHz as the ADC kernel clock. We know that the HSE is truly providing 32 MHz, and everything else on the MCU driven by the same clock source behaves exactly as we expect, it is just the ADC that is consistently running at half the frequency. I've tried disabling every other channel, and ADC, as ADC1 and 2 share prescaler, for example, but the problem persists. I've disabled the external trigger and am at this point just running continuous conversions over DMA, with oversampling. Is the ADC kernel clock prescaled by an extra factor 2 somewhere for the H7? I've really tried to RTFM, but unable to find anything that would indicate that this should be the case</p></div>",
+                    "author": "MrPylonz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Interestingly enough the case is exactly the same if switching clock mode, such that the AHB peripheral clock drives the ADC. I still get exactly half the expected conversion frequency given what the AHB clock is set to. It is as if the ADC itself is applying an internal, hidden prescaler of 2</p></div>",
+                    "author": "MrPylonz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Apparently, this is supposed to be the case. I was missing a factor of two in the clock diagram for the ADC. See:<br/><br/><a href=\"https://community.st.com/t5/stm32-mcus-products/stm32h743-adc-wrong-sampling-rate/td-p/581729\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-products/stm32h743-adc-wrong-sampling-rate/td-p/581729</a></p></div>",
+                    "author": "MrPylonz",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

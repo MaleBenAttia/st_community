@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "165969",
+            "publicId": "165981",
+            "title": "PSSI with DMA on the STM32H7A",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/pssi-with-dma-on-the-stm32h7a-165981",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "PSSI",
+                "STM32H7 series",
+                "DMA"
+            ],
+            "published_at": "2026-06-09T19:08:35+00:00",
+            "views": 91,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Thinking that perhaps this is a memory access issue, I added the following;\n\nTo sram.icf :\n\ndefine region D2\\_SRAM\\_region = mem:[from 0x30000000 to 0x3003FFFF];\n\nplace in D2\\_SRAM\\_region { section .dop\\_buffer};\n\nTo main.h:\n\n#define DOP\\_BUFFER \\_\\_attribute\\_\\_((section(\".dop\\_buffer\")))\n\nTo main.c\n\n// Input buffer\n\nDOP\\_BUFFER short dop[INPUT\\_BUFFER\\_SIZE];\n\nUnfortunately, there was no change.  I still get the DMA Transfer error.\n\nI need to allocate a 20K byte buffer.  The AHB SRAM seems like a good place for this.\n\nCorrection:\n\nI relocated define region D2\\_SRAM\\_region = mem:[from 0x30000000 to 0x3003FFFF];\n\nplace in D2\\_SRAM\\_region { section .dop\\_buffer};\n\nto flash.icf and the Transfer error has gone away and DMA appears to work.\n\nCorrect to my previous correction:\n\nI am now getting both the Transfer complete and Error interrupts.  Both the DMA and PSSI error codes are 0.",
+            "best_answer_author": "Neuraleanus",
+            "best_answer_author_role": "Associate II",
+            "content_text": "After an aborted attempt to get the PSSI interface on the STM32N6 to work with DMA, I have decided to try a different part, the STM32H7A.  Running into a similar problem attempting to get the DMA to work.\n\nHere is a snap-shot of what I see:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b41c12f4-f268-4ade-b70e-0890331e60f7.png)\n\nAfter receiving HAL\\_OK from HAL\\_PSSI\\_Receive\\_DMA(). I get the error interrupt with an error code of 0.  As may be seen, there is a DMA Transfer error.  This is running on the Nucleo-H7A3ZI-Q board.  The clock tree has been changed to increase the clock speed:![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1dde485a-625f-41ba-9656-8f2e1b2f46a1.png)\n\nThe PSSI clock is produced by a PWM Timer and set to a frequency of 10MHz.  Data is from a 12 bit ADC with an active high Ready.  DE is not used.  I have a pull-up on Ready.  With HAL\\_PSSI\\_Receive\\_DMA() in a loop from a frame timer, each call returns HAL\\_OK followed by the error interrupt.\n\nThe PSSI setup:![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83cdd98c-9f76-408d-bdf6-9d74a628194a.png)The DMA setup:![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4401335-2542-404d-bf30-cd2dc6ee12c4.png)\n\nI’ve been studying the examples given on this board for both the H5 and the H7.  Whereas the N6 produced an immediate error response to multiple PSSI DMA attempts, the H7A does not.  The DMA controller fails on both.  What is preventing the DMA from working?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4401335-2542-404d-bf30-cd2dc6ee12c4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b41c12f4-f268-4ade-b70e-0890331e60f7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1dde485a-625f-41ba-9656-8f2e1b2f46a1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83cdd98c-9f76-408d-bdf6-9d74a628194a.png"
+            ],
+            "author": "Neuraleanus",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thinking that perhaps this is a memory access issue, I added the following;</p><p>To sram.icf :</p><p>define region D2_SRAM_region = mem:[from 0x30000000 to 0x3003FFFF];<br/>place in D2_SRAM_region { section .dop_buffer};</p><p>To main.h:</p><p>#define DOP_BUFFER __attribute__((section(\".dop_buffer\")))</p><p>To main.c</p><p>// Input buffer<br/>DOP_BUFFER short dop[INPUT_BUFFER_SIZE];</p><p>Unfortunately, there was no change.  I still get the DMA Transfer error.</p><p>I need to allocate a 20K byte buffer.  The AHB SRAM seems like a good place for this.</p><p>Correction: </p><p>I relocated define region D2_SRAM_region = mem:[from 0x30000000 to 0x3003FFFF];<br/>place in D2_SRAM_region { section .dop_buffer};</p><p>to flash.icf and the Transfer error has gone away and DMA appears to work.</p><p>Correct to my previous correction:</p><p>I am now getting both the Transfer complete and Error interrupts.  Both the DMA and PSSI error codes are 0.</p></div>",
+                    "author": "Neuraleanus",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, this issue appears to have been resolved.  STM Micro needs to do a better job documenting the memory architecture.  Namely, what peripherals may communicate to which memories.  To the programmer, it looks like the memory is organized as a single block, but it is actually anything but.</p></div>",
+                    "author": "Neuraleanus",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

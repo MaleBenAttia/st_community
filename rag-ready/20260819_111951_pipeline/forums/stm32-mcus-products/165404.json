@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "165404",
+            "publicId": "165404",
+            "title": "Using VREFINT on STM32C071K8U6 for battery measurement with variable VDDA",
+            "url": "https://community.st.com/stm32-mcus-products-25/using-vrefint-on-stm32c071k8u6-for-battery-measurement-with-variable-vdda-165404",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "ADC",
+                "STM32C0 series"
+            ],
+            "published_at": "2026-05-05T21:38:01+00:00",
+            "views": 219,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "I haven't used this particular device, but I believe that your method is mostly correct. Reading VREFINT and using that to calculate the actual voltage of other ADC samples seems to be the way to go.\n\nOne very minor mistake I can see is that 4095 in your formula should be 4096, as a single ADC count is the reference voltage divided by 4096, not by 4095.\n\nIf you haven't already, you may want to read chapter 16.10, \"Temperature sensor and internal reference voltage\" in the manual, as this explains your exact situation.\n\nRegarding sampling time, with your resistors, I wouldn't go below 350 ns.",
+            "best_answer_author": "EThom.3",
+            "best_answer_author_role": "Senior II",
+            "content_text": "Hi,\n\nI need to measure a 4.2V battery while my MCU's supply varies between 2.0V and 3.3V. Since VDDA is the ADC reference, raw ADC counts will drift as the supply changes.\n\nIs this the correct method?\n\nMy plan:\n\n1. Feed the battery voltage through a 10K/7K5 divider into one ADC channel (scaled to stay below VDDA\\_min = 2.0V).\n\n2. Read VREFINT on a second ADC channel.\n\n3. Use VREFINT (whose true value is known from the factory calibration in system memory) to back-calculate the actual VDDA, then convert the battery channel's raw count into volts.\n\nThe formula being:\n\nV\\_battery = 3.0 V × (VREFINT\\_CAL / VREFINT\\_DATA) × (ADC\\_battery / 4095) × ((R1 + R2) / R2)\n\nIs this the correct approach for getting a supply-independent battery reading on this part?\n\nAnything I'm missing... sampling time for VREFINT, divider impedance vs. ADC sample-and-hold, or calibration register quirks specific to the C0 series?\n\nThank you",
+            "images": [],
+            "author": "Ricko",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>I hope it’s okay to bump this. I’d be grateful if anyone could take a look or share any suggestions. :)</p><p>Thank you</p></div>",
+                    "author": "Ricko",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I haven't used this particular device, but I believe that your method is mostly correct. Reading VREFINT and using that to calculate the actual voltage of other ADC samples seems to be the way to go.</p><p>One very minor mistake I can see is that 4095 in your formula should be 4096, as a single ADC count is the reference voltage divided by 4096, not by 4095.</p><p>If you haven't already, you may want to read chapter 16.10, \"Temperature sensor and internal reference voltage\" in the manual, as this explains your exact situation.</p><p>Regarding sampling time, with your resistors, I wouldn't go below 350 ns.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you <user-mention data-id=\"57654\">@EThom.3</user-mention> </p></div>",
+                    "author": "Ricko",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

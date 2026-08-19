@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "166899",
+            "publicId": "166917",
+            "title": "STM32N6 diffrent behaviour Run and Debug config",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-diffrent-behaviour-run-and-debug-config-166917",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Debug",
+                "TouchGFX",
+                "STM32N6 series",
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-07-14T04:28:10+00:00",
+            "views": 116,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I found the issue.\n\nIt was caused by \\_\\_WIF() call inside the DMA to FMC transfer-function.\n\nIt was blocking in run mode so i replaced it with an HAL\\_Delay() now it works just perfekt.\n\nNot sure why \\_\\_WIF() was optiized out by the Debugger.\n\nMany Thanks MGogr.1",
+            "best_answer_author": "mz1",
+            "best_answer_author_role": "Associate",
+            "content_text": "I'm facing a very strange issue on my custom hardware based on the STM32N6 when trying to run my application using the Run configuration in STM32CubeIDE.\n\nMy setup consists of a secure-only application with an FSBL and a separate application. The project is generated with STM32CubeMX, built in STM32CubeIDE, and uses TouchGFX. The build completes successfully.\n\nDebugging the application works perfectly, and I don't encounter any issues. However, as soon as I try to launch the exact same application using the Run configuration, it stops working. Both the Run and Debug configurations use the same build and the same \".launch\" settings.\n\nThe behavior is as follows:\n\n1. I power-cycle the board while it is in development mode.\n\n2. I start the application using the Run configuration.\n\n3. The application does not produce any output on the display.\n\n4. After a few seconds, the watchdog expires, the board resets, and it ends up in a boot failure state.\n\nInterestingly, if I instead:\n\n1. Power-cycle the board.\n\n2. Launch the application in Debug mode.\n\n3. Stop the debugger.\n\n4. Program the application again using the Run configuration.\n\n...the application runs correctly.\n\nHowever, after the next power cycle, the problem returns: launching with Run again results in no display output, followed by a watchdog reset and boot failure.\n\nI have also tried different compiler optimization levels, including -O0, but the behavior remains unchanged.\n\nHas anyone experienced similar behavior or has any idea what could cause the Run configuration to behave differently from Debug, even though they use the same binary and launch settings?",
+            "images": [],
+            "author": "mz1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You can try by commenting the watchdog code for time being and see if Run Configuration works properly.</p><p>If it works properly then their is some mistake in implementing watchdog.</p></div>",
+                    "author": "MGogr.1",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I commented the watchdog. Now I don’t get an reset anymore.</p><p>The application still hangs.</p><p> </p><p>Some more information:</p><ul><li>The application uses FreeRTOS task to run my statemachine and also the TouchGFX Task.</li> <li>I can observe that during debug the display is showing the correct ui.</li> <li>When I run directly in Run mode the display is not showing anything.</li> <li>As soon as i change something in the Task Prios I get the screen initialized but still no grafics on the screen.</li> <li>And when i let it run the Watchdog hits somewhen.</li></ul><p>It somehow seems that during debugging CubeIDE is placing some settings which aren’t placed during Run.</p><p> </p></div>",
+                    "author": "mz1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The best to way to check for bug will be comment out all peripherals and uncomment one by one and find out which part of the code/peripheral works properly in RUN mode.</p><p>Then uncomment code part by part and check which peripheral/code starts to give problems.</p><p>Keep Watchdog commented out for whole session.</p></div>",
+                    "author": "MGogr.1",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found the issue.</p><p> </p><p>It was caused by __WIF() call inside the DMA to FMC transfer-function. </p><p>It was blocking in run mode so i replaced it with an HAL_Delay() now it works just perfekt.</p><p>Not sure why __WIF() was optiized out by the Debugger.</p><p> </p><p>Many Thanks MGogr.1</p></div>",
+                    "author": "mz1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"mz1\"><div class=\"content-quote-content\"> <p>It was caused by __WIF() call i</p> </div></content-quote><p>Did you mean <code>__WFI()</code> ?</p><p> </p><blockquote><p>Not sure why __WIF() was optiized out by the Debugger</p></blockquote><p><code>__WFI()</code>  puts the processor to sleep - the behaviour under the debugger can be different ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "164961",
+            "publicId": "164961",
+            "title": "MEMS Studio FSM how to use Long Counter",
+            "url": "https://community.st.com/mems-sensors-48/mems-studio-fsm-how-to-use-long-counter-164961",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Accelerometers",
+                "MEMS Studio"
+            ],
+            "published_at": "2026-04-21T12:10:29+00:00",
+            "views": 180,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @LPetr.1 ,\n\nHello,\n\nWe checked your configuration and we mostly agree on what you did.\n\nWe would like to provide additional details on your configuration and explain the behavior you observed:\n\n* Timer 3 value 55 if FSM ODR is set to 25 Hz corresponds to 3.4s as shown into GUI not 5s\n\n* As you stated if any programs makes use of the long counter the FIFO must be enabled in continuous mode, this should be done inside your configuration adding 15h register write request with value 0x06 before writing FSMs configuration (see image attached and I will send you the updated configuration file in private message)\n\n![FedericaBossi_0-1777447639864.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/168c058c-1f43-ef5a-9434-158c6d44259d.png \"FedericaBossi_0-1777447639864.png\")\n\n* Once FIFO is enabled you will no more see INT2 signal latched, instead once max long counter value is reached, INT2 will go high, on every INT status data read it will go down and again up until RSTLC command is executed.\n\nBest regards",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am using STEVAL-MKI109D + STEVAL-MKI238A. I have evaluated motion-stationary FSM example as it seemed closest to what we want to use for our application. It seems to work fine, however it is too sensitive and needs some upgrades.\n\nWhat I want to achieve:\n\nSetup timer (TI3) to some value such such as 5 seconds. During this 5 second period, I want to detect specific number of events above certain threshold (GNTH1). If specific number of events were detected during 5 second period, generate an interrupt and repeat over and over again. If specific number of events were not detected during that 5 seconds period, just reset the counter and repeat.\n\nMy cofiguration:\n\n![LPetr1_3-1776773120172.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ecad903-a022-71f8-d2ee-7d68096c6dec.png \"LPetr1_3-1776773120172.png\")\n\nIt sounds like a simple requirement but I cannot achieve it using FSM.I tried to achieve this using 2 FSM's:\n\n**FSM1:**\n\n![LPetr1_1-1776772661939.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/df83978a-1ae3-0439-5a03-6a0c895dd6d1.png \"LPetr1_1-1776772661939.png\")\n\nFSM1 is responsible for incrementing long counter everytime the GNTH1 is reached.\n\n**FSM2:**\n\n![LPetr1_2-1776772700006.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4f24aa65-d732-843a-adf8-d2862895ac67.png \"LPetr1_2-1776772700006.png\")\n\nFSM2 is responsible for resetting long counter. I don't really understand why the MEMS Studio forces me to put STOP command at the end of the FSM2. Will it halt the FSM2 and could that cause any issues? I have tried to remove this command and click \"Write FSM configuration to sensor\"  but then the STOP command automatically appears again at the end...\n\nThe results are below:\n\n![LPetr1_0-1776770840109.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/74a7923a-7c5c-7da0-13a8-b3e00df28dc2.png \"LPetr1_0-1776770840109.png\")\n\nFor some reason, the INT2 latches and does not reset. I cannot wrap my head around why it does not reset even though my FSM2 has RSTLC.\n\nI also notice this in the datasheet:\n\n*If any of the programs makes use of the long counter through the commands described above, the FIFO must be*\n\n*enabled in continuous mode. Refer to AN5909 for more details on the FIFO buffer*\n\nDoes that mean I need to use FIFO?\n\n![LPetr1_5-1776773240783.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/47c38699-da28-a27a-ec84-0f29344bb082.png \"LPetr1_5-1776773240783.png\")\n\n![LPetr1_7-1776773288114.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9b7a518f-68aa-340a-c9e2-f6771ac26ba1.png \"LPetr1_7-1776773288114.png\")\n\nI have tried to enable and select Continuous mode. When I go to FSM Testing tab and move the device and Read the FSM\\_LONG\\_COUNTER register value, I see its stuck at 0014 and its not being reset back to 0 after period so it seems that its also not working\n\n![LPetr1_0-1776773680259.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/981847bb-cadf-13de-9c1e-006af405c746.png \"LPetr1_0-1776773680259.png\")\n\nI am also attaching FSM\\_files.zip if you want to check my FSM configuration.\n\nSo to summarize my question:\n\n1. Why the INT2 latches when the Long counter reaches its threshold value and why does my FSM2 **RSTLC**\n\nnot able to reset it?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/df83978a-1ae3-0439-5a03-6a0c895dd6d1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/981847bb-cadf-13de-9c1e-006af405c746.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/168c058c-1f43-ef5a-9434-158c6d44259d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4f24aa65-d732-843a-adf8-d2862895ac67.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ecad903-a022-71f8-d2ee-7d68096c6dec.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9b7a518f-68aa-340a-c9e2-f6771ac26ba1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/74a7923a-7c5c-7da0-13a8-b3e00df28dc2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/47c38699-da28-a27a-ec84-0f29344bb082.png"
+            ],
+            "author": "LPetr.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"20660\">@LPetr.1</user-mention> ,</p>\n<p>Hello,</p>\n<p>We checked your configuration and we mostly agree on what you did.</p>\n<p>We would like to provide additional details on your configuration and explain the behavior you observed:</p>\n<p> </p>\n<ul>\n<li>Timer 3 value 55 if FSM ODR is set to 25 Hz corresponds to 3.4s as shown into GUI not 5s</li>\n<li>As you stated if any programs makes use of the long counter the FIFO must be enabled in continuous mode, this should be done inside your configuration adding 15h register write request with value 0x06 before writing FSMs configuration (see image attached and I will send you the updated configuration file in private message)<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FedericaBossi_0-1777447639864.png\" style=\"width: 400px;\"><img alt=\"FedericaBossi_0-1777447639864.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/168c058c-1f43-ef5a-9434-158c6d44259d.png\" title=\"FedericaBossi_0-1777447639864.png\"/></span>\n<p> </p>\n</li>\n<li>Once FIFO is enabled you will no more see INT2 signal latched, instead once max long counter value is reached, INT2 will go high, on every INT status data read it will go down and again up until RSTLC command is executed. </li>\n</ul>\n<p>Best regards</p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

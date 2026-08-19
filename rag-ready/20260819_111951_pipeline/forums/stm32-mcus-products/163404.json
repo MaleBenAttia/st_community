@@ -1,0 +1,96 @@
+{
+    "forum": [
+        {
+            "id": "163404",
+            "publicId": "163404",
+            "title": "OBD2 request frames rejection issues",
+            "url": "https://community.st.com/stm32-mcus-products-25/obd2-request-frames-rejection-issues-163404",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-03-04T05:56:13+00:00",
+            "views": 1586,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Indeed you are using HSI. It’s recommended to use HSE and a crystal for CAN communication. I don’t have my PC now (i’m posting with my phone) but the disco board has already a crystal (crystal oscillator **XO**).\n\nSo please use it instead of HSI:\n\n![IMG_4830.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/711f43ff-4409-fc79-a27b-a57f5b6e9bbf.png \"IMG_4830.png\")\n\nYou shoud select HSE in bypass mode and set the crystal value to 25MHz in the clock view.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I tried doing an OBD2 request via Car's OBD2 port.\n\nI am able to see the CAN BUS traffic using an oscilloscope , just my request frames are rejected by car. I am using STM32h735G-DK development board to send OBD2 requests. It consists of an inbuilt FDCAN transceiver.\n\nSettings are fine (removed termination resistor as car already has two), baudrate is 500kbps  with 87.5% sample point. I am using the following code to send OBD2 request frames:\n\nI am able to receive CAN frames and able to log CAN frame frames it is just that frames sent are rejected. What am i doing wrong here?\n\nFDCAN Code excerpt:\n\n```\n\n/* ============ 500 kbit/s Bit Timing Derivation ============\n\n*\n\n* Step 1: FDCAN Kernel Clock\n\n* fCAN = 80 MHz (from Clock Configuration)\n\n*\n\n* Step 2: Prescaler\n\n* Prescaler = 10\n\n*\n\n* Step 3: Time Quantum (tq)\n\n* tq = Prescaler / fCAN\n\n* tq = 10 / 80,000,000 Hz = 0.125 µs = 125 ns\n\n*\n\n* Step 4: Bit Segments (in TQ)\n\n* Sync Segment = 1 TQ (fixed, always 1)\n\n* Time Segment 1 = 12 TQ (Prop_Seg + Phase_Seg1)\n\n* Time Segment 2 = 3 TQ (Phase_Seg2)\n\n*\n\n* Step 5: Total Time Quanta per Bit\n\n* Total TQ = Sync + TS1 + TS2 = 1 + 12 + 3 = 16 TQ\n\n*\n\n* Step 6: Bit Time\n\n* Bit Time = Total TQ × tq = 16 × 125 ns = 2000 ns = 2 µs\n\n*\n\n* Step 7: Nominal Bit Rate\n\n* Bit Rate = 1 / Bit Time = 1 / 2 µs = 500 kbit/s\n\n*\n\n* Step 8: Sample Point\n\n* Sample Point = (Sync + TS1) / Total TQ = (1 + 13) / 16 = 87.5%\n\n*\n\n*/\n\n----------------\n\nMX_FDCAN2_Init();\n\n-----------------\n\nFDCAN_FilterTypeDef sFilterConfig;\n\nsFilterConfig.IdType = FDCAN_STANDARD_ID;\n\nsFilterConfig.FilterIndex = 0;\n\nsFilterConfig.FilterType = FDCAN_FILTER_MASK; /* Classic ID + mask mode */\n\nsFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0; /* Matching frames → RX FIFO 0 */\n\nsFilterConfig.FilterID1 = 0x7E8; /* Expected ECU response base ID */\n\nsFilterConfig.FilterID2 = 0x7F8; /* Mask: match 0x7E8 – 0x7EF */\n\nif (HAL_FDCAN_ConfigFilter(&hfdcan2, &sFilterConfig) != HAL_OK) {\n\nError_Handler();\n\n}\n\n/* Reject all non-matching frames (no global accept) */\n\nif (HAL_FDCAN_ConfigGlobalFilter(&hfdcan2, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE) != HAL_OK) {\n\nError_Handler();\n\n}\n\nif (HAL_FDCAN_Start(&hfdcan2) != HAL_OK) {\n\nError_Handler();\n\n}\n\n-----------------\n\nstatic void MX_FDCAN2_Init(void) {\n\n/* USER CODE BEGIN FDCAN2_Init 0 */\n\n/* USER CODE END FDCAN2_Init 0 */\n\n/* USER CODE BEGIN FDCAN2_Init 1 */\n\n/* USER CODE END FDCAN2_Init 1 */\n\nhfdcan2.Instance = FDCAN2;\n\nhfdcan2.Init.FrameFormat = FDCAN_FRAME_CLASSIC;\n\nhfdcan2.Init.Mode = FDCAN_MODE_NORMAL;\n\nhfdcan2.Init.AutoRetransmission = ENABLE;\n\nhfdcan2.Init.TransmitPause = DISABLE;\n\nhfdcan2.Init.ProtocolException = DISABLE;\n\nhfdcan2.Init.NominalPrescaler = 10;\n\nhfdcan2.Init.NominalSyncJumpWidth = 1;\n\nhfdcan2.Init.NominalTimeSeg1 = 13;\n\nhfdcan2.Init.NominalTimeSeg2 = 2;\n\nhfdcan2.Init.DataPrescaler = 1;\n\nhfdcan2.Init.DataSyncJumpWidth = 1;\n\nhfdcan2.Init.DataTimeSeg1 = 1;\n\nhfdcan2.Init.DataTimeSeg2 = 1;\n\nhfdcan2.Init.MessageRAMOffset = 0x000;\n\nhfdcan2.Init.StdFiltersNbr = 1;\n\nhfdcan2.Init.ExtFiltersNbr = 0;\n\nhfdcan2.Init.RxFifo0ElmtsNbr = 32;\n\nhfdcan2.Init.RxFifo0ElmtSize = FDCAN_DATA_BYTES_8;\n\nhfdcan2.Init.RxFifo1ElmtsNbr = 0;\n\nhfdcan2.Init.RxFifo1ElmtSize = FDCAN_DATA_BYTES_8;\n\nhfdcan2.Init.RxBuffersNbr = 0;\n\nhfdcan2.Init.RxBufferSize = FDCAN_DATA_BYTES_8;\n\nhfdcan2.Init.TxEventsNbr = 0;\n\nhfdcan2.Init.TxBuffersNbr = 0;\n\nhfdcan2.Init.TxFifoQueueElmtsNbr = 32;\n\nhfdcan2.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;\n\nhfdcan2.Init.TxElmtSize = FDCAN_DATA_BYTES_8;\n\nif (HAL_FDCAN_Init(&hfdcan2) != HAL_OK) {\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN FDCAN2_Init 2 */\n\n/* USER CODE END FDCAN2_Init 2 */\n\n}\n\n-----------------\n\n/* This callback is triggered by TIM1 overflow every 1 second to send an OBD-II RPM request frame */\n\nvoid HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {\n\nif (htim->Instance == TIM1) {\n\nFDCAN_TxHeaderTypeDef TxHeader;\n\nuint8_t TxData[DATA_LEN] = {0};\n\nTxHeader.Identifier = 0x7E0; // OBD-II request ID for Engine ECU, cycled through 0x7E0-0x7E7 for different ECUs, same rejection issue\n\nTxHeader.IdType = FDCAN_STANDARD_ID;\n\nTxHeader.TxFrameType = FDCAN_DATA_FRAME;\n\nTxHeader.DataLength = FDCAN_DLC_BYTES_8;\n\nTxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;\n\nTxHeader.BitRateSwitch = FDCAN_BRS_OFF;\n\nTxHeader.FDFormat = FDCAN_CLASSIC_CAN;\n\nTxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;\n\nTxHeader.MessageMarker = 0;\n\nTxData[0] = 0x02; // SF, 2 data bytes\n\nTxData[1] = 0x01; // Service 01\n\nTxData[2] = 0x0C; // PID 0C — RPM\n\nHAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, TxData);\n\n}\n\n}\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/711f43ff-4409-fc79-a27b-a57f5b6e9bbf.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3477d5c3-8312-287b-ebe2-3776d2f1198b.png"
+            ],
+            "author": "MR17",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Indeed you are using HSI. It’s recommended to use HSE and a crystal for CAN communication. I don’t have my PC now (i’m posting with my phone) but the disco board has already a crystal (crystal oscillator <strong>XO</strong>). <br/>So please use it instead of HSI:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"IMG_4830.png\" style=\"width: 2532px;\"><img alt=\"IMG_4830.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/711f43ff-4409-fc79-a27b-a57f5b6e9bbf.png\" title=\"IMG_4830.png\"/></span></p>\n<p>You shoud select HSE in bypass mode and set the crystal value to 25MHz in the clock view.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I am able to see the CAN BUS traffic using an oscilloscope , just my request frames are rejected by car. </em></font></p><p><span>You need to be more specific here. What does \"rejected by car\" look like ?</span></p><p><span>I don't know OBD specifics, but this is basically the higher protocol transported via CAN.<br/>Does the physical layer cause errors, or does your application violate OBD protocol ?<br/>If the former is the case, the CAN error counters (TEC and REC) should indicate that.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Please see the file attached , filter ID column with 7E and select all. You will see that DLC 0 and DATA empty and CRC invalid , not  ACKed and Valid 0. <br/><br/>TEC increased more than 127 , goes to error passive after a few milliseconds. </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"OBD2 request frames.png\" style=\"width: 400px;\"><img alt=\"OBD2 request frames.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3477d5c3-8312-287b-ebe2-3776d2f1198b.png\" title=\"OBD2 request frames.png\"/></span></p><p> 02 01 0C with first byte 02 means it is a request for RPM in live mode (show current data). I don't even flood the bus since my requests are periodic with 1s , and i address it to each physical address from 7E0-7E7 and 7DF(broadcasting to all ECUs)</p></div>",
+                    "author": "MR17",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; TEC increased more than 127 , goes to error passive after a few milliseconds. </em></font></p><p><span>Which means you almost certainly have a problem with the physical signal, either wiring, or missing/improper termination resistance.</span></p><p><span>As said, I don't know OBD, but Wikipedia states :</span></p><p><font color=\"#993366\"><em>  - ISO 15765 CAN (250 kbit/s or 500 kbit/s).</em></font></p><p><span>Have you tried 250kbit/s ?</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104695\">@MR17</user-mention> and welcome to the ST community,</p>\n<p>As you are receiving well the CAN frames sent by the car, the communication is fine as well as your hardware. If your car is not accepting your frames (especially when they were acknowledged) that means the CAN IDs are dropped by the car. So we cannot help you at this stage as we are not OBD specification experts here. You need to check it again and verify the correct IDs and the data content needed for that communication.</p>\n<p>Good luck!</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Perhaps this example by <user-mention data-id=\"97918\">@Gretchev</user-mention> can help you: <span><a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/simple-classic-can-freertos-demo-simulating-obd-and-a-vehicle/m-p/838746\" target=\"_blank\"><em>Simple Classic CAN + FreeRTOS Demo simulating OBD and a vehicle</em></a> ?</span></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>will definitely have a look</p></div>",
+                    "author": "MR17",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Still not clear:</p><p>Do you receive the car's messages on the bus in the STM32 ?</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/><p>Still not clear:</p><p>Do you receive the car's messages on the bus in the STM32 ?</p><hr/></blockquote><p><br/>yes, i do !<br/>Seems like clock source might be the issue like <user-mention data-id=\"499\">@mƎALLEm</user-mention> mentioned. As receiving frames are different from sending frames on the CAR's CAN Bus as slight drift cannot be tolerated.</p></div>",
+                    "author": "MR17",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

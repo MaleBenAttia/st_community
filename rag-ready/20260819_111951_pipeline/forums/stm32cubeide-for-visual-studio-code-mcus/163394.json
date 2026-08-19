@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "163394",
+            "publicId": "163394",
+            "title": "Solved: \"Go to definition\" in source files outside the workspace",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/solved-go-to-definition-in-source-files-outside-the-workspace-163394",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-03T19:38:09+00:00",
+            "views": 451,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "**Solution**\n\nPress Ctrl+Shift+P and select \"Preferences: Open Workspace Settings (JSON)\" to open \".vscode/settings.json\".  Add this line to the top-level object:\n\n```\n\n\"cmake.copyCompileCommands\": \"${workspaceFolder}/compile_commands.json\",\n\n```\n\nThen add this string inside \"stm32cube-ide-clangd.arguments\":\n\n```\n\n\"--compile-commands-dir=${workspaceFolder}\",\n\n```\n\nAt the end, your settings.json should look something like this:\n\n```\n\n{\n\n\"cmake.cmakePath\": \"cube-cmake\",\n\n\"cmake.configureArgs\": [\n\n\"-DCMAKE_COMMAND=cube-cmake\"\n\n],\n\n\"stm32cube-ide-clangd.path\": \"cube\",\n\n\"stm32cube-ide-clangd.arguments\": [\n\n\"starm-clangd\",\n\n\"--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc.exe\",\n\n\"--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-g++.exe\",\n\n\"--compile-commands-dir=${workspaceFolder}\",\n\n],\n\n\"cmake.copyCompileCommands\": \"${workspaceFolder}/compile_commands.json\",\n\n\"cmake.preferredGenerators\": [\n\n\"Ninja\"\n\n]\n\n}\n\n```",
+            "best_answer_author": "DavidEGrayson",
+            "best_answer_author_role": "Associate II",
+            "content_text": "**Intro**\n\nWhen I'm using the \"STM32CubeIDE for Visual Studio Code\" extension, I often want to edit C source files outside of my workspace, which are listed in my CMakeLists.txt and get compiled into the firmware just like any other C file.  Unfortunately, with the default setup, the language server (clangd) cannot find some of the headers I include, and it doesn't know the right compilation options, so intelligent features like inlay hints (red squiqqlies) and the \"Go to definition\" command do not work properly.\n\nThe ST extension attempts to communicate this kind of information to the language server by putting a \".clangd\" file at the root of my workspace folder which has a line in it like \"CompilationDatabase: build\\_release\".  But clangd won't consider that file when looking at source files outside of the workspace.\n\n**Motivation**\n\nI have multiple STM32 projects that share some common libraries, so my folder structure looks like:\n\nlib/lib1/lib1.c\n\nlib/lib1/lib1.h\n\nlib/lib2/lib2.c\n\nlib/lib2/libc2.h\n\nproject1/CMakeLists.txt\n\nproject1/CMakePresets.json\n\nproject1/src/project1.c\n\nAs far as I know, I have to set my workspace folder to \"project1\" meaning that all the library code is outside of the workspace.  I want a good experience while editing those libraries.\n\n*Edit: Moved the solution to separate post, at the request of ST.*",
+            "images": [],
+            "author": "DavidEGrayson",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hi <user-mention data-id=\"91347\">@DavidEGrayson</user-mention> </p>\n<p>thanks for the sharing will be forwarded to the team</p></div>",
+                    "author": "Nawres GHARBI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>Solution</strong></p><p>Press Ctrl+Shift+P and select \"Preferences: Open Workspace Settings (JSON)\" to open \".vscode/settings.json\".  Add this line to the top-level object:</p><pre class=\"lia-code-sample language-python\"><code>\"cmake.copyCompileCommands\": \"${workspaceFolder}/compile_commands.json\",</code></pre><p>Then add this string inside \"stm32cube-ide-clangd.arguments\":</p><div> </div><pre class=\"lia-code-sample language-javascript\"><code>\"--compile-commands-dir=${workspaceFolder}\",</code></pre><p><br/>At the end, your settings.json should look something like this:<br/><br/></p><pre class=\"lia-code-sample language-python\"><code>{\n \"cmake.cmakePath\": \"cube-cmake\",\n \"cmake.configureArgs\": [\n \"-DCMAKE_COMMAND=cube-cmake\"\n ],\n \"stm32cube-ide-clangd.path\": \"cube\",\n \"stm32cube-ide-clangd.arguments\": [\n \"starm-clangd\",\n \"--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc.exe\",\n \"--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-g++.exe\",\n \"--compile-commands-dir=${workspaceFolder}\",\n ],\n \"cmake.copyCompileCommands\": \"${workspaceFolder}/compile_commands.json\",\n \"cmake.preferredGenerators\": [\n \"Ninja\"\n ]\n}</code></pre><p> </p></div>",
+                    "author": "DavidEGrayson",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Nawres GHARBI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,68 @@
+{
+    "forum": [
+        {
+            "id": "164449",
+            "publicId": "164449",
+            "title": "CubeAI Studio: E200 ValidationError with Audio Event Detection from model zoo",
+            "url": "https://community.st.com/edge-ai-134/cubeai-studio-e200-validationerror-with-audio-event-detection-from-model-zoo-164449",
+            "category": "Edge AI",
+            "tags": [
+                "ST Edge AI Core",
+                "Model zoo",
+                "STM32CubeAI Studio"
+            ],
+            "published_at": "2026-04-03T10:04:03+00:00",
+            "views": 329,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @dineshsaravanan,\n\nThe issue is caused by MX, it seems that the clock config was wrong for some reason.\n\nHere is a fix that should slove it.\n\nPease go to: C:\\ST\\STM32Cube AI Studio\\STM32Cube-AI-Studio\\resources\\stedgeai-desktop-backend\\dependencies\\\n\nand open to edit: boardExternalMem.xml\n\nThen look for the die id 481, around line 3800 and replace the current config by this:\n\n```\n\n<die id=\"481\">\n\n<testOptimal>\n\nRCC.HCLKFreq_Value=160000000\n\n</testOptimal>\n\n<optimalParameters>\n\nRCC.SYSCLKSource=RCC_SYSCLKSOURCE_PLLCLK\n\nRCC.PLLM=1\n\nRCC.PLLN=80\n\nRCC.PLL1R=2\n\nRCC.PLL2FRACN=0\n\nRCC.PLL3FRACN=0\n\nRCC.PLLFRACN=0\n\nRCC.PLLSourceVirtual=\n\nRCC.HSE_VALUE=16000000\n\nRCC.MSIClockRange=RCC_MSIRANGE_4\n\nRCC.SYSCLKFreq_VALUE=160000000\n\nRCC.VCOInputFreq_Value=4000000\n\nRCC.VCOInput2Freq_Value=4000000\n\nRCC.VCOInput3Freq_Value=4000000\n\nRCC.USBPHYCLockSelection=RCC_USBPHYCLKSOURCE_HSE\n\nRCC.Mode=HSE-External-Oscillator\n\n</optimalParameters>\n\n</die>\n\n```\n\nYou should have something like this:\n\n![JulianE_0-1776345065017.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b36591f2-6f01-9670-b677-ea15f556ffad.png \"JulianE_0-1776345065017.png\")\n\nThis will be fixed in the next release of CubeAI Studio but please edit it manually if you need it before that.\n\nLet me know if this helped.\n\nHave a good day,\n\nJulian",
+            "best_answer_author": "Julian E.",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "#### **Hardware**\n\n* Board: **NUCLEO‑U5A5ZJ‑Q**\n\n* MCU: **STM32U5A5**\n\n* ST‑LINK\n\n#### **Software / Tools**\n\n* ST Edge AI (via STM32CubeAI Studio)\n\n* Target: **STM32U5**\n\n* Model source: **STM32 AI Model Zoo**\n\n* Model used:\n\nminiresnetv2\\_s1\\_64x50\\_tl\\_int8.tflite\n\n(Audio Event Classification → ESC‑10)\n\n#### **Steps Followed**\n\n1. Imported the miniresnetv2\\_s1\\_64x50\\_tl\\_int8.tflite model into **STM32CubeAI Studio**\n\n2. Selected **NUCLEO‑U5A5ZJ‑Q** as the target board\n\n3. Kept **default settings** in all steps\n\n4. **Run on Target**\n\nGenerated code, built, flashed, and attempted **(Step 4 – Validate) failed**\n\n---\n\n#### **Observed Issue**\n\nDuring **Run on Target**, validation fails with the following error:\n\n```\n\nRun failed: Error: validate error:\n\nE200 (ValidationError):\n\nTARGET: Unable to bind the ST.AI runtime with \"network\" c-model\n\nE801 (HwIOError): Invalid firmware - COM8:115200\n\n```\n\nI have attached the **complete validation failure log** for reference.\n\n#### **Additional Observation**\n\nDuring **Step 1 (Code Generation)**, I consistently receive the following warning from STM32CubeMX:\n\n> **Warning: Code Generation**\n\n> Main Config: These peripherals still have some not configured or wrong parameter values:\n\n> **[Clock]**\n\nI proceeded with code generation despite the warning.\n\nAny guidance or suggestions to resolve this issue would be greatly appreciated.\n\nThank you in advance for your support.\n\nBest regards,\n\n**Dinesh**",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b36591f2-6f01-9670-b677-ea15f556ffad.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5cc218e2-c838-442f-ab0c-b1e4c0ccba00.png"
+            ],
+            "author": "dineshsaravanan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"100122\">@dineshsaravanan</user-mention>,</p>\n<p> </p>\n<p>I confirm the issue. I am looking internally for information</p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"100122\">@dineshsaravanan</user-mention>,</p>\n<p> </p>\n<p>The issue is caused by MX, it seems that the clock config was wrong for some reason.</p>\n<p>Here is a fix that should slove it.</p>\n<p> </p>\n<p>Pease go to: <span data-teams=\"true\">C:\\ST\\STM32Cube AI Studio\\STM32Cube-AI-Studio\\resources\\stedgeai-desktop-backend\\dependencies\\ </span></p>\n<p><span data-teams=\"true\">and open to edit: boardExternalMem.xml</span></p>\n<p> </p>\n<p><span data-teams=\"true\">Then look for the die id 481, around line 3800 and replace the current config by this:</span></p>\n<pre class=\"lia-code-sample language-markup\"><code> &lt;die id=\"481\"&gt;\n &lt;testOptimal&gt;\n RCC.HCLKFreq_Value=160000000\n &lt;/testOptimal&gt;\n &lt;optimalParameters&gt;\n RCC.SYSCLKSource=RCC_SYSCLKSOURCE_PLLCLK\n RCC.PLLM=1\n RCC.PLLN=80\n RCC.PLL1R=2\n RCC.PLL2FRACN=0\n RCC.PLL3FRACN=0\n RCC.PLLFRACN=0\n RCC.PLLSourceVirtual=\n RCC.HSE_VALUE=16000000\n RCC.MSIClockRange=RCC_MSIRANGE_4\n RCC.SYSCLKFreq_VALUE=160000000\n RCC.VCOInputFreq_Value=4000000\n RCC.VCOInput2Freq_Value=4000000\n RCC.VCOInput3Freq_Value=4000000\n RCC.USBPHYCLockSelection=RCC_USBPHYCLKSOURCE_HSE\n RCC.Mode=HSE-External-Oscillator\n &lt;/optimalParameters&gt;\n &lt;/die&gt;</code></pre>\n<p> </p>\n<p>You should have something like this:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JulianE_0-1776345065017.png\" style=\"width: 400px;\"><img alt=\"JulianE_0-1776345065017.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b36591f2-6f01-9670-b677-ea15f556ffad.png\" title=\"JulianE_0-1776345065017.png\"/></span></p>\n<p> </p>\n<p>This will be fixed in the next release of CubeAI Studio but please edit it manually if you need it before that.</p>\n<p> </p>\n<p>Let me know if this helped.</p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div><p><strong>Thanks for the support.</strong><br/>After applying the suggested steps, I’m now able to see the <strong>Inference Report during AED model validation on target</strong>. The issue is resolved.</p><p>Appreciate the help!</p></div></div>",
+                    "author": "dineshsaravanan",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>@<a href=\"https://community.st.com/members/julian-e-2125\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">Julian E.</a> </p><p>I am facing the similar issue.</p><p> </p><p>my cube ai studio version/cubemx/cubeide  are the latest windows version downloaded yesterday.</p><p>hardware is  N6 DK board.  the .tflite file is from model zoo.</p><p>It succeed run on host, only failed on target.</p><p>but there is no &lt;die id=\"481\"&gt;  in my boardExternalMem.xml.</p><p> </p><p>Running the ST.AI c-model (AI RUNNER)...(name=network, mode=TARGET)</p><p>                                                       </p><p>E200(ValidationError): TARGET: Unable to bind the ST.AI runtime with \"network\" c-model: []<br/> E801(HwIOError): Invalid firmware - COM38:115200<br/> INFO: Created TensorFlow Lite XNNPACK delegate for CPU.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5cc218e2-c838-442f-ab0c-b1e4c0ccba00.png\"/></figure><p> </p></div>",
+                    "author": "avijit126",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

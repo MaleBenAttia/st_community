@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "164360",
+            "publicId": "164360",
+            "title": "Need very slow ADC readings on STM32G474",
+            "url": "https://community.st.com/stm32-mcus-products-25/need-very-slow-adc-readings-on-stm32g474-164360",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G4 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-31T21:10:55+00:00",
+            "views": 481,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> Oversampling didn't work correctly.*\n\nThen you didn't do it right.\n\nx = (x0 + x1) / 2",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "I'm using the STM32G474 at 170MHz.\n\nIs it possible to simulate hadc1.Init.ClockPrescaler = ADC\\_CLOCK\\_ASYNC\\_DIV512; since the G474  only recognizes up to ADC\\_CLOCK\\_ASYNC\\_DIV256;\n\nI need very slow readings from the ADC.\n\nThank you\n\nValter",
+            "images": [],
+            "author": "ValterMatos",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sure, slow down the ADC clock or use software oversampling. Note that there is a minimum FADC requirement of 140 kHz that you need to be at/above. You can use software oversampling to achieve lower effective values.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Use a timer to trigger the ADC readings.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Not yet. I've tried several programming alternatives and still haven't been able to solve it. Oversampling didn't work correctly.<br/>I'll try a timer to trigger the ADC readings.<br/>I need to simulate a 512 pressscaler on the ADC readings because the G474 only accepts up to 256.<br/>I wouldn't like to reduce the clock speed.</p></div>",
+                    "author": "ValterMatos",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>G474 has an option to choose clock for ADC, </p><pre class=\"lia-code-sample language-c\"><code> RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};\n\n PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC12;\n //PeriphClkInit.Adc12ClockSelection = RCC_ADC12CLKSOURCE_SYSCLK;\n PeriphClkInit.Adc12ClockSelection = RCC_ADC12CLKSOURCE_PLL;</code></pre><p> Using PLL instead of SYSCLK allows to generate any clock, simply changing M and N PLL's settings.</p><p>I tested this mode not for lower, but higher speed, overdriving ADC up to 168 MHz. And it works.</p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; Oversampling didn't work correctly.</em></p><p>Then you didn't do it right.</p><p>x = (x0 + x1) / 2</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

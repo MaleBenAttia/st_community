@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163899",
+            "publicId": "163899",
+            "title": "USB OTG FS in low power mode",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/usb-otg-fs-in-low-power-mode-163899",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "OpenSTLinux",
+                "USB",
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-03-17T17:12:27+00:00",
+            "views": 249,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @Christophe Guibout ,\n\nThanks for your help :)\n\nI checked VddUSB and it is disabled when in suspend.\n\nI also checked the application note you gave me and it made me go further into the USB operation mode. This helped me to find the source of the problem.\n\nThe culprit is the VBUS that stays connected in suspend. Indeed, I use a STPMIC to power the system and I use its PWR\\_SW output to power the VBUS signal of USB devices. As I understand, because my **usb\\_otg** node is forced in **host,** the dwc2 driver enables PWR\\_SW at boot, but never disables it again because it needs it to do autodetection on USB line. When I disabled the **USB\\_OTG** node, the VUSB is not needed for detection so it is disabled at suspend.\n\nIf I go further in dwc2 driver, when going in suspend in Linux, it goes to suspend for the USB OTG also and does not disable the VUSB. It only disables it if the driver goes through the \"stop\" path.\n\nI tried to force PWR\\_SW to be disabled at suspend but without success. Indeed, I added\n\n```\n\n&vbus_sw {\n\nstandby-ddr-sr {\n\nregulator-off-in-suspend;\n\n};\n\nstandby-ddr-off {\n\nregulator-off-in-suspend;\n\n};\n\n};\n\n```\n\nin my ATF DT and removed the default **wakeup-source** property present in the OTG device node but VBUS is still enabled in suspend.\n\nI even tried to remove the **vbus-supply** property from the node (I also use the same supply for the two other USB ports, so it's enabled at boot but they don't keep it enabled in suspend as they don't do auto-detect). It works when entering in suspend for the first time but when trying to resume it crashes without any logs...\n\nBTW, the initial topic problem is solved, Thank you again for your help :)\n\nBest regards,\n\nGabriel",
+            "best_answer_author": "g_marques",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi,\n\nI'm using a STM32MPU157C with linux 6.6, uboot, OP-TEE 4.0 and TF-A 2.10 and I have a Device Tree (for linux and uboot) which declares the USB OTG node as following :\n\n```\n\n&usbotg_hs {\n\ncompatible = \"st,stm32mp15-fsotg\", \"snps,dwc2\";\n\npinctrl-names = \"default\";\n\ndr_mode = \"host\";\n\npinctrl-0 = <&usbotg_hs_pins &usbotg_fs_dp_dm_pins>;\n\nvbus-supply = <&vbus_sw>;\n\n/delete-property/ wakeup-source;\n\n};\n\nusbotg_hs_pins: usbotg-hs-0 {\n\npins {\n\npinmux = <STM32_PINMUX('A', 10, ANALOG)>; /* OTG_ID */\n\n};\n\n};\n\nusbotg_fs_dp_dm_pins: usbotg-fs-dp-dm-0 {\n\npins {\n\npinmux = <STM32_PINMUX('A', 11, ANALOG)>, /* OTG_FS_DM */\n\n<STM32_PINMUX('A', 12, ANALOG)>; /* OTG_FS_DP */\n\n};\n\n};\n\n```\n\nI explicitly use it in FS as a Host and remove the **wakeup-source** declared by the **stm32mpu151.dtsi.**\n\nMy problem is that I can see that when entering in suspend, there is a difference of ~4-5mW in power consumption depending on if the USB node is enabled or not in the device tree. I can't figure out why. (and I'm sure the MPU goes into **STM32\\_PM\\_CSTOP\\_ALLOW\\_STANDBY\\_DDR\\_SR**)\n\nIf I understand well, default pins are already in their lowest power mode (ANALOG) and the linux **dwc2** driver do handle all deactivation of clocks and power rails.\n\nDid I miss something ?\n\nAny help is more than welcome,\n\nThanks in advance",
+            "images": [],
+            "author": "g_marques",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <span style=\"background: var(--ck-color-mention-background); color: var(--ck-color-mention-text);\"><user-mention data-id=\"100870\">@g_marques</user-mention></span>,</p>\n<p> </p>\n<p>According to my understanding, pins are set in analog in STOP mode, but are OFF is STANDBY. Here, it seems you are in STANDBY as you confirmed the SoC mode is STM32_PM_CSTOP_ALLOW_STANDBY_DDR_SR.</p>\n<p> </p>\n<p>According with <a href=\"https://www.st.com/resource/en/application_note/dm00564136.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5260 Application note</a>, \"VDD_USB is enabled in Run, LP-stop and LPLV-stop modes if a USB peripheral is connected to the application. It can be disabled if no USB peripheral is connected. VDD_USB is disabled in Standby and in Off mode.\"</p>\n<p> </p>\n<p>Do you have a peripheral connected on it ?</p>\n<p>I would suggest to check if VddUSB is still there in STANDBY to confirm if the issue comes from here.</p>\n<p>Feel free to have a look into AN5260, you could find some informations that I miss.</p>\n<p> </p>\n<p>BR,</p>\n<p>Christophe</p></div>",
+                    "author": "Christophe Guibout",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"809\">@Christophe Guibout</user-mention> ,</p><p>Thanks for your help :) </p><p>I checked VddUSB and it is disabled when in suspend.</p><p>I also checked the application note you gave me and it made me go further into the USB operation mode. This helped me to find the source of the problem.</p><p>The culprit is the VBUS that stays connected in suspend. Indeed, I use a STPMIC to power the system and I use its PWR_SW output to power the VBUS signal of USB devices. As I understand, because my <strong>usb_otg</strong> node is forced in <strong>host,</strong> the dwc2 driver enables PWR_SW at boot, but never disables it again because it needs it to do autodetection on USB line. When I disabled the <strong>USB_OTG</strong> node, the VUSB is not needed for detection so it is disabled at suspend.</p><p>If I go further in dwc2 driver, when going in suspend in Linux, it goes to suspend for the USB OTG also and does not disable the VUSB. It only disables it if the driver goes through the \"stop\" path.</p><p>I tried to force PWR_SW to be disabled at suspend but without success. Indeed, I added</p><pre class=\"lia-code-sample language-c\"><code>&amp;vbus_sw {\n\tstandby-ddr-sr {\n\t\tregulator-off-in-suspend;\n\t};\n\tstandby-ddr-off {\n\t\tregulator-off-in-suspend;\n\t};\n};</code></pre><p>in my ATF DT and removed the default <strong>wakeup-source</strong> property present in the OTG device node but VBUS is still enabled in suspend. </p><p>I even tried to remove the <strong>vbus-supply</strong> property from the node (I also use the same supply for the two other USB ports, so it's enabled at boot but they don't keep it enabled in suspend as they don't do auto-detect). It works when entering in suspend for the first time but when trying to resume it crashes without any logs...</p><p>BTW, the initial topic problem is solved, Thank you again for your help :) </p><p>Best regards, </p><p>Gabriel </p><p> </p><p> </p><p> </p><p> </p></div>",
+                    "author": "g_marques",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Christophe Guibout",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

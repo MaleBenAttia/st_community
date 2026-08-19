@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "165715",
+            "publicId": "165715",
+            "title": "STM32WL SBSFU fails to write header during SFU_IMG_Validation",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32wl-sbsfu-fails-to-write-header-during-sfu-img-validation-165715",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "SBSFU"
+            ],
+            "published_at": "2026-05-15T08:19:55+00:00",
+            "views": 91,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Well... had been working on this for a full day yesterday before deciding to open a topic. But in the end I now did resolve it only an hour after opening up the topic after all.. Meh.\n\nLooking at the logs I noticed that the firmware swapping was way too fast for my flash chip (see the log timestamps). Turns out that the external flash erase wasn't setting bytes to 0xFF but to 0x00 which in turn meant that the trailer bytes looked like \"SWAPPED\" instead of \"NOT\\_SWAPPED\" which resulted in the firmware images not getting swapped.\n\nI'm not sure why it resulted in such a hard fault during the header write, but with the erase now setting bytes to 0xFF it succeeds :)\n\nSolved...",
+            "best_answer_author": "bns",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi folks,\n\nI am working on integrating SBSFU with my application. I've got one internal slot and one external slot. The update file is received fine, the header is written to the swap area to be installed after the reset. The reset occurs, SBSFU finds the header, decrypts the update file and swaps the file.\n\nHowever.. it gets stuck at SFU\\_IMG\\_Validation, writing the `pTestHeader` to `SLOT\\_ACTIVE\\_1\\_HEADER` address and triggers `SFU\\_IMG\\_FLASH\\_WRITE\\_FAILED` in `sfu\\_fwimg\\_common.c`.\n\nI assume that this part of flash is write protected? But I cannot find any mention of this in the SBSFU guides or files. It would be great if someone can help me figure out how to finalize this.\n\n```\n\n09:35:13.652 > = [SBOOT] RuntimeProtections: 0\n\n09:35:46.801 > 74640 bytes of ciphertext decrypted.\n\n09:35:54.301 > Image preparation done.\n\n09:35:54.301 > Swapping the firmware images..................................\n\n09:35:54.397 > Address = 0801D000, FwSize = 74640, len = 192 <-- added debug info\n\n09:35:54.397 > Abnormal error 2 at line 962 in C:/Users/steve/STM32Cube/Repository/STM32Cube_FW_WL_V1.5.0/Projects/STM32WLE5JC/Applications/LoRaWAN_FUOTA_ExtFlash/1_Image_BFU/BFU/App/sfu_fwimg_common.c - BLOCK\n\n```",
+            "images": [],
+            "author": "bns",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well... had been working on this for a full day yesterday before deciding to open a topic. But in the end I now did resolve it only an hour after opening up the topic after all.. Meh.</p><p>Looking at the logs I noticed that the firmware swapping was way too fast for my flash chip (see the log timestamps). Turns out that the external flash erase wasn't setting bytes to 0xFF but to 0x00 which in turn meant that the trailer bytes looked like \"SWAPPED\" instead of \"NOT_SWAPPED\" which resulted in the firmware images not getting swapped.</p><p>I'm not sure why it resulted in such a hard fault during the header write, but with the erase now setting bytes to 0xFF it succeeds :) </p><p>Solved...</p></div>",
+                    "author": "bns",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

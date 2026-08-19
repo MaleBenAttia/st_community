@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164787",
+            "publicId": "164787",
+            "title": "LTDC reading random value on all registers on STM32H747",
+            "url": "https://community.st.com/stm32-mcus-products-25/ltdc-reading-random-value-on-all-registers-on-stm32h747-164787",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "LCD-LTDC",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-15T17:22:42+00:00",
+            "views": 481,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nI ran the example: [Projects\\STM32H745I-DISCO\\Examples\\LTDC\\LTDC\\_Display\\_2Layers](https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H745I-DISCO/Examples/LTDC/LTDC_Display_2Layers) provided in STM32CubeH7 on STM32H745I-DISCO and checked the address 0x50001000 and nothing special occurred:\n\n![mALLEm_0-1776415560100.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7f19a0e0-3ac5-03db-5172-e93327dbcfb3.png \"mALLEm_0-1776415560100.png\")\n\nThere are some values are changing but I think this is normal: some internal registers are changing according to what the application is doing at run time and what the current status of the LTDC registers, but didn't see at any time that \"all zeroed\" LTDC region or that \"?\" character.\n\nPerhaps, you need to simplify your code as much as possible by just running LTDC, remove all the remaining stuff..\n\nIt could be something in your code performing an unwanted access to that LTDC registers region by another DMA or another CPU access ...\n\nCheck also if the LTDC enable bit is always set in RCC\\_APB3ENR register and nothing doing an access to that register disabling it at run time.\n\nPS: STM32H745 and STM32H747 (share the same die).",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello, we are seeing a weird symptom in our application in which all LTDC registers are reading back the same seemingly random number.  This is during a debugging session via system viewer (we are using Keil 5.40 and compiler 5), OR when reading and printing out values to serial at runtime.  The LTDC seems to be operating properly (mostly, working through various issues but it's displaying graphics at least.  I'm stumped, and so are the AIs I use.  Any ideas as to why this might be?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7f19a0e0-3ac5-03db-5172-e93327dbcfb3.png"
+            ],
+            "author": "Chris Rice",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"38162\">@Chris Rice</user-mention> wrote:<br/>\n<p>all LTDC registers are reading back the same seemingly random number.  </p>\n<hr/></blockquote>\n<p>What do you mean by this? could you please provide more details? registers content continuously changing without any access from your side? which registers are changing? Perhaps they are supposed to change at runtime according to what you are doing in your application!</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, for context we are developing a display pipeline, LTDC reading from two SDRAM framebuffers, configured to drive a DSI wrapper and host to send via adapted command mode to a CO5300. I have to debug frequently, obviously, and can get register values from all other peripherals (DSI, RCC, FMC, etc) that make sense.  Except for LTDC.  Whether I look at that in system viewer, if I grab them in code and print them out over UART, even if I look at the values in memory viewer starting at the LTDC address (0x50001000), I see LTDC register values that don't make sense. Most often all zeroes, but sometimes the same random (?) value in each register.<br/><br/>That said, the LTDC is working (sort of)!  We are getting (slightly corrupted -- not sure if related) graphics on the screen from the framebuffers via the LTDC.</p><p>So, it's some sort of peripheral-specific readback error?  Or something by design, cant read anything while enabled, maybe?<br/><br/>All in all very weird.  It'd sure help my troubleshooting if I could inspect LTDC register settings.<br/> </p></div>",
+                    "author": "Chris Rice",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>I ran the example: <a href=\"https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H745I-DISCO/Examples/LTDC/LTDC_Display_2Layers\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">Projects\\STM32H745I-DISCO\\Examples\\LTDC\\LTDC_Display_2Layers</a> provided in STM32CubeH7 on STM32H745I-DISCO and checked the address <span>0x50001000 and nothing special occurred:</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776415560100.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776415560100.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7f19a0e0-3ac5-03db-5172-e93327dbcfb3.png\" title=\"mALLEm_0-1776415560100.png\"/></span></p>\n<p>There are some values are changing but I think this is normal: some internal registers are changing according to what the application is doing at run time and what the current status of the LTDC registers, but didn't see at any time that \"all zeroed\" LTDC region or that \"?\" character.</p>\n<p>Perhaps, you need to simplify your code as much as possible by just running LTDC, remove all the remaining stuff.. </p>\n<p>It could be something in your code performing an unwanted access to that LTDC registers region by another DMA or another CPU access ...</p>\n<p>Check also if the LTDC enable bit is always set in RCC_APB3ENR register and nothing doing an access to that register disabling it at run time. </p>\n<p>PS: STM32H745 and STM32H747 (share the same die).</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

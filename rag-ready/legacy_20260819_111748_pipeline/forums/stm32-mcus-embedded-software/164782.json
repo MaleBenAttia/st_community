@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "164782",
+            "publicId": "164782",
+            "title": "STM32G4 I2C Slave AF Error on Normal Transaction Completion",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32g4-i2c-slave-af-error-on-normal-transaction-completion-164782",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G4 series",
+                "I2C"
+            ],
+            "published_at": "2026-04-15T15:42:30+00:00",
+            "views": 309,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "*> The AF error is a HAL implementation characteristic, not a real protocol error?*\n\nRight.\n\n*> Is there any way to prevent this AF error, or is the only solution to implement custom logic in HAL\\_I2C\\_ErrorCallback() to silently ignore the AF flag during normal transaction completion?*\n\nYou can either modify HAL or implementing this logic inside your error handler.\n\n*> Is this the recommended approach for STM32 HAL I2C slave mode?*\n\nI would add a flag which ignores AF only when the condition happens--all 9 bytes have been sent. Unless you don't care if fewer bytes are sent.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "**Hardware:** STM32G473QETX\n\n**HAL Version:** STM32G4 HAL\n\n**I2C Mode:** Slave mode using HAL\\_I2C\\_Slave\\_Seq\\_Receive\\_IT()\n\n**Application:** DS1307 RTC emulation\n\n**Issue Description**\n\nWhen implementing an I2C slave device (DS1307 RTC emulation), we observe that HAL\\_I2C\\_ErrorCallback() is consistently called with error code HAL\\_I2C\\_ERROR\\_AF (0x00000004 - Acknowledge Failure) at the end of successful write transactions from the I2C master\n\n**Transaction Flow**\n\nMaster sends START + Address (0x68) + WRITE\n\nSlave ACKs (address match detected)\n\nMaster sends data bytes (8 bytes total)\n\nSlave receives all bytes correctly via HAL\\_I2C\\_SlaveRxCpltCallback()\n\nMaster sends NACK (to signal end of write)\n\nMaster sends STOP\n\nHAL\\_I2C\\_ErrorCallback() is called with HAL\\_I2C\\_ERROR\\_AF\n\nHAL\\_I2C\\_ListenCpltCallback() is also called\n\n**Expected Behavior**\n\nAccording to I2C protocol, the master sending NACK at the end of a write transaction is normal behavior to signal \"I don't want to send more data.\" This should not be reported as an error.\n\n**Actual Behavior**\n\nThe STM32 HAL reports this as HAL\\_I2C\\_ERROR\\_AF and calls HAL\\_I2C\\_ErrorCallback(), even though:\n\nAll data was received correctly\n\nThe transaction completed successfully\n\nThe master's behavior is per I2C specification\n\n**Questions**\n\nIs this the expected behavior of the STM32 HAL I2C slave implementation?\n\nIs there a way to configure the HAL to not report AF errors for normal NACK conditions?\n\nShould we rely on HAL\\_I2C\\_ListenCpltCallback() for transaction completion instead of treating AF errors as failures?\n\n**Additional Information**\n\nBoth HAL\\_I2C\\_ErrorCallback() and HAL\\_I2C\\_ListenCpltCallback() are called for each transaction\n\nThe error callback is called first, then the listen complete callback\n\nData processing works correctly when done in HAL\\_I2C\\_ListenCpltCallback()\n\nThis behavior is consistent across all I2C write transactions",
+            "images": [],
+            "author": "JohnFrancis",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In a Master-Transmitter transaction it's the Slave side that issues ACKs/NACKs. In this case, the Slave is permitted to NACK, but my experience is that this is rare -- rather the Slave is typically designed to deal gracefully with any extra bytes.</p><p>In a Master-Receiver transaction it is indeed the Master that issues ACKs/NACKs, and the Master must indicate the end of the transaction with a NACK, in order to wrest control of SDA so that it can issue a STOP.</p><p>Are you actually describing a Master-Receiver transaction rather than Master-Transmitter? Or is there some case where your Slave will issue a NACK?</p></div>",
+                    "author": "bmckenney",
+                    "role": "Explorer II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>when Master-Transmitter (AF error happens here)</p></div>",
+                    "author": "JohnFrancis",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your observations are perfectly valid here.</p><p>That is how it's always been handled in HAL.</p><p>The hardware does raise an AF flag in this case. Which is perfectly valid because an AF appears in the transaction.</p><p> </p><p>I suggest implementing your own logic in the error handler to silently ignore the AF flag during this scenario when the transaction completes. Expecting a breaking change to HAL seems unlikely.</p><p> </p><p>There are more than a few other threads on this if you do enough digging.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the clarification.</p><p>In my I2C slave implementation, the master sends 9 bytes of data. After receiving each byte, including the 9th byte, the HAL_I2C_SlaveRxCpltCallback() is called, and I prepare for the next byte by calling:</p><p>HAL_I2C_Slave_Seq_Receive_IT(hi2c, &amp;s_rx_byte, 1, I2C_NEXT_FRAME);<br/><br/>Since I2C slave mode doesn't know in advance how many bytes will come (it receives byte-by-byte until the master sends STOP), the HAL prepares for a 10th byte. However, the master sends STOP after the 9th byte, causing the HAL to report an AF error even though all 9 bytes were successfully transmitted and received.</p><p>My understanding:</p><p>The I2C transaction completes successfully (all bytes ACKed, STOP received)<br/>The AF error is a HAL implementation characteristic, not a real protocol error?<br/>The HAL was \"optimistically\" waiting for another byte when STOP arrived<br/><br/>My question: Is there any way to prevent this AF error, or is the only solution to implement custom logic in HAL_I2C_ErrorCallback() to silently ignore the AF flag during normal transaction completion?</p><p>Currently, I filter AF errors in my error handler like this:</p><pre class=\"lia-code-sample language-c\"><code>void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)\n{\n uint32_t error_code = HAL_I2C_GetError(hi2c);\n\n /* Only count non-AF errors (AF is expected at end of transaction) */\n if ((error_code &amp; HAL_I2C_ERROR_AF) == 0U)\n {\n ++s_error_count;\n }\n\n /* Let HAL_I2C_ListenCpltCallback handle transaction cleanup */\n}</code></pre><p><br/>Is this the recommended approach for STM32 HAL I2C slave mode?</p><hr/><p><font color=\"#FF0000\"><strong><em>Edited to apply source code formatting - please see <a href=\"https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413\" target=\"_blank\">How to insert source code</a> for future reference.</em></strong></font></p></div>",
+                    "author": "JohnFrancis",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; The AF error is a HAL implementation characteristic, not a real protocol error?</em></p><p>Right.</p><p><em>&gt; Is there any way to prevent this AF error, or is the only solution to implement custom logic in HAL_I2C_ErrorCallback() to silently ignore the AF flag during normal transaction completion?</em></p><p>You can either modify HAL or implementing this logic inside your error handler.</p><p><em>&gt; Is this the recommended approach for STM32 HAL I2C slave mode?</em></p><p>I would add a flag which ignores AF only when the condition happens--all 9 bytes have been sent. Unless you don't care if fewer bytes are sent.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

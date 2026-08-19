@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "164124",
+            "publicId": "164124",
+            "title": "VREFBUF configuring based on GPIO state with CubeMx",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/vrefbuf-configuring-based-on-gpio-state-with-cubemx-164124",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32G4 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-24T21:25:29+00:00",
+            "views": 373,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @DNYAR.1 wrote:\n\n>\n\n> I do not see where the appropriate cubeMX code is created. It is not in my main.c file (like the other peripheral initializations).\n\n>\n\n> Is there another file i need to look into for that?\n\n>\n\n> Thanks\n\n>\n\n> ---\n\nA thread related to the same subject you've already created in 2023 [Example code to configure internal Vrefbuf on STM32G474RE (Nucleo -G474RE)](https://community.st.com/t5/stm32-mcus-boards-and-hardware/example-code-to-configure-internal-vrefbuf-on-stm32g474re-nucleo/td-p/604006) ;)\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d5cd057-e30f-d85c-dd2b-b17afeada085.png \"screenshot.png\")",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am using a G474RE nucleo board and i have 2 separate interface boards which i ca connect to it.\n\nOne board requires a VREFBUS of 2.5V and the other  2.90 .\n\nCurrently i modify the .IOC file and select the appropriate VREFBUS, compile the code. So currently i have 2 separate .elf files, one for each scenario.\n\nI will want a single code version so that on start up based on the status of a switch connected to a GPIO,\n\nit will configure the correct VREFBUF value.\n\nThe attachment shows my setup for the 2.90V internal voltage reference.\n\nThanks\n\nDavid![g474re_vrefbuf_2900mv.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e18df6d9-ede2-2c34-300b-3f1759ef1396.jpg \"g474re_vrefbuf_2900mv.jpg\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d5cd057-e30f-d85c-dd2b-b17afeada085.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e18df6d9-ede2-2c34-300b-3f1759ef1396.jpg"
+            ],
+            "author": "DNYAR.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"58516\">@DNYAR.1</user-mention> wrote:<br/>\n<p>I do not see where the appropriate cubeMX code is created. It is not in my main.c file (like the other peripheral initializations).</p>\n<p>Is there another file i need to look into for that?</p>\n<p>Thanks</p>\n<hr/></blockquote>\n<p><span>A thread related to the same subject you've already created in 2023 </span><a href=\"https://community.st.com/t5/stm32-mcus-boards-and-hardware/example-code-to-configure-internal-vrefbuf-on-stm32g474re-nucleo/td-p/604006\" target=\"_blank\"><span>Example code to configure internal Vrefbuf on STM32G474RE (Nucleo -G474RE)</span></a> ;)</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 870px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d5cd057-e30f-d85c-dd2b-b17afeada085.png\" title=\"screenshot.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>That's not possible to set two configurations for two different voltage reference in CubeMx.</p>\n<p>You need to do that in the user code i.e. configure the VREFBUF in the user code section based on the GPIO state.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry i did not come across clearly. What i want is user code to set that up using a GPIO pin to select between the</p><p>2 possible internal buffer voltages.</p><p> </p></div>",
+                    "author": "DNYAR.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In the user code:</p>\n<pre class=\"lia-code-sample language-c\"><code>if (GPIO_pin_status == SET)\n{\nconfigure VREF_Buff to 2.5\n}\nelse\n{\nconfigure VREF_Buff to 2.9\n}\n </code></pre>\n<p>Generate the code with cubeMx for both configurations and paste the VREFBUF config related code in the respective condition.</p>\n<p>And here is a thread related to the same subject you've already created in 2023 <a href=\"https://community.st.com/t5/stm32-mcus-boards-and-hardware/example-code-to-configure-internal-vrefbuf-on-stm32g474re-nucleo/td-p/604006\" target=\"_blank\"><span>Example code to configure internal Vrefbuf on STM32G474RE (Nucleo -G474RE)</span></a></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I do not see where the appropriate cubeMX code is created. It is not in my main.c file (like the other peripheral initializations).</p><p>Is there another file i need to look into for that?</p><p>Thanks</p></div>",
+                    "author": "DNYAR.1",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

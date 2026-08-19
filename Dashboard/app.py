@@ -12,9 +12,10 @@ Propose les endpoints nécessaires pour :
 import os
 import sys
 import json
+import re
 import subprocess
 from pathlib import Path
-from flask import Flask, request, jsonify, Response, send_from_directory
+from flask import Flask, request, jsonify, Response, send_file, send_from_directory
 
 app = Flask(__name__)
 # Chemin vers le dossier racine du projet
@@ -36,46 +37,121 @@ def get_stats():
             return jsonify(json.load(f))
     return jsonify({"error": "No stats found yet. Please run the pipeline."}), 404
 
+RUN_NAME_RE = re.compile(r"^\d{8}_\d{6}_pipeline$")
+RUN_FILES = ("run.log", "ErrorLog.txt", "stats.json", "scan_report.txt", "extracted_ids.txt")
+RUN_FILE_MIME = {
+    "stats.json": "application/json",
+    "run.log": "text/plain; charset=utf-8",
+    "ErrorLog.txt": "text/plain; charset=utf-8",
+    "scan_report.txt": "text/plain; charset=utf-8",
+    "extracted_ids.txt": "text/plain; charset=utf-8",
+}
+
+def _run_folders():
+    return sorted(LOGS_DIR.glob("*_pipeline"), reverse=True)
+
+def _count_errors(folder):
+    ep = folder / "ErrorLog.txt"
+    if not ep.exists():
+        return 0
+    try:
+        return sum(1 for line in open(ep, encoding="utf-8") if line.strip())
+    except Exception:
+        return 0
+
+def _read_run_log(folder):
+    lp = folder / "run.log"
+    if not lp.exists():
+        return ""
+    try:
+        return lp.read_text(encoding="utf-8")
+    except Exception:
+        return ""
+
+def _read_run_stats(folder):
+    sp = folder / "stats.json"
+    if not sp.exists():
+        return {}
+    try:
+        with open(sp, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _name_to_iso(name):
+    """Convertit un nom de dossier '20260818_145517_pipeline' en ISO si possible."""
+    m = RUN_NAME_RE.match(name or "")
+    if not m:
+        return None
+    date_part, time_part = name.replace("_pipeline", "").split("_")
+    return f"{date_part[0:4]}-{date_part[4:6]}-{date_part[6:8]}T{time_part[0:2]}:{time_part[2:4]}:{time_part[4:6]}"
+
+def _run_summary(folder):
+    stats = _read_run_stats(folder)
+    info = stats.get("pipeline_run_info", {}) or {}
+    start = info.get("start_time") or _name_to_iso(folder.name)
+    return {
+        "name": folder.name,
+        "start_time": start,
+        "total_duration_seconds": info.get("total_duration_seconds"),
+        "errors": _count_errors(folder),
+        "has_stats": bool(stats),
+    }
+
 @app.route("/api/runs")
-def get_last_run():
-    """Renvoie uniquement le DERNIER run du pipeline (dossier logs/<ts>_pipeline)."""
-    folders = sorted(LOGS_DIR.glob("*_pipeline"), reverse=True)
+def list_runs():
+    """Renvoie TOUS les runs du pipeline (logs/<ts>_pipeline), du plus récent au plus ancien."""
+    folders = _run_folders()
     if not folders:
         return jsonify({"error": "No run found yet. Please run the pipeline."}), 404
+    return jsonify({"runs": [_run_summary(f) for f in folders]})
 
-    folder = folders[0]
-
-    stats = {}
-    sp = folder / "stats.json"
-    if sp.exists():
-        try:
-            with open(sp, "r", encoding="utf-8") as f:
-                stats = json.load(f)
-        except Exception:
-            stats = {}
-
-    errors = 0
-    ep = folder / "ErrorLog.txt"
-    if ep.exists():
-        try:
-            errors = sum(1 for line in open(ep, encoding="utf-8") if line.strip())
-        except Exception:
-            errors = 0
-
-    log_text = ""
-    lp = folder / "run.log"
-    if lp.exists():
-        try:
-            log_text = lp.read_text(encoding="utf-8")
-        except Exception:
-            log_text = ""
-
+@app.route("/api/runs/<name>")
+def get_run(name):
+    """Renvoie le détail d'un run précis (stats, erreurs, fin de log)."""
+    if not RUN_NAME_RE.match(name):
+        return jsonify({"error": "Invalid run name."}), 404
+    folder = LOGS_DIR / name
+    if not folder.is_dir():
+        return jsonify({"error": "Run not found."}), 404
     return jsonify({
         "name": folder.name,
-        "stats": stats,
-        "errors": errors,
-        "log": log_text[-30000:],
+        "stats": _read_run_stats(folder),
+        "errors": _count_errors(folder),
+        "log": _read_run_log(folder)[-30000:],
     })
+
+@app.route("/api/runs/<name>/files")
+def list_run_files(name):
+    """Renvoie la liste des fichiers disponibles d'un run (stats, log, erreurs...)."""
+    if not RUN_NAME_RE.match(name):
+        return jsonify({"error": "Invalid run name."}), 404
+    folder = LOGS_DIR / name
+    if not folder.is_dir():
+        return jsonify({"error": "Run not found."}), 404
+    files = []
+    for fn in RUN_FILES:
+        fp = folder / fn
+        if fp.is_file():
+            try:
+                size = fp.stat().st_size
+            except Exception:
+                size = 0
+            files.append({"name": fn, "size": size})
+    return jsonify({"files": files})
+
+@app.route("/api/runs/<name>/files/<filename>")
+def get_run_file(name, filename):
+    """Sert le fichier brut d'un run (nom validé par liste blanche)."""
+    if not RUN_NAME_RE.match(name) or filename not in RUN_FILES:
+        return jsonify({"error": "Invalid run name or file."}), 404
+    folder = LOGS_DIR / name
+    if not folder.is_dir():
+        return jsonify({"error": "Run not found."}), 404
+    fp = folder / filename
+    if not fp.is_file():
+        return jsonify({"error": "File not found."}), 404
+    return send_file(fp, mimetype=RUN_FILE_MIME.get(filename, "text/plain; charset=utf-8"), as_attachment=False)
 
 @app.route("/api/run", methods=["POST"])
 def run_pipeline():

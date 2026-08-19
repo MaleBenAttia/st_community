@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164600",
+            "publicId": "164600",
+            "title": "L073 strange behaviour after 2nd bootloader jump to app",
+            "url": "https://community.st.com/stm32-mcus-products-25/l073-strange-behaviour-after-2nd-bootloader-jump-to-app-164600",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L0 series"
+            ],
+            "published_at": "2026-04-09T10:52:05+00:00",
+            "views": 205,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "\"Again what learned\" as they say in Germany...\n\nI just took the big hammer and disabled the ADC by setting CR = 0 and disabling the peripheral clock.\n\nNow I found out there's this ADDIS bit to be set and wait for ADEN = 0.\n\nAnd lo and behold, no more delay!",
+            "best_answer_author": "LCE",
+            "best_answer_author_role": "Principal II",
+            "content_text": "Heyho,\n\nplaying with the L073, partitioned the flash for bootloader \"BL\" (bank 1) and application (bank 2).\n\nNo writing of app yet, just testing jumping back and forth.\n\nI just added a no-init variable for communication between BL and app, mainly to tell the BL to not jump back to app if the app requested so.\n\n* at power up / reset, the uninitialized variable \"u32AppRqstBootloader\" is 0, so the BL jumps to the app, and just for checking: before the jump the BL sets u32AppRqstBootloader = 0xB0072ABB\n\n* in the app u32AppRqstBootloader is printed via UART, and it shows the expected 0xB0072ABB, the printf is done immediately and takes ~ 2 ticks (1 tick = 1 ms)\n\n* now I let the app jump to BL, before the jump the app sets u32AppRqstBootloader = 0xABB1B007 so the BL does not jump\n\nSo far so good...\n\nBut when the BL now jumps back to the app, all of a sudden in the app there's a ~ **1 second delay** before u32AppRqstBootloader is printed - everything else is working fine - or so I think... (the next printf requested via UART user interface of that variable is quick again).\n\nIf it jumps more often back and forth, it behaves the same: BL prints quickly, the app has the 1 s delay.\n\nI don't find that the application is doing anything differently than after the 1st jump.\n\nI cannot debug this via ST-Link / SWD, it seems the debugger has problems with the jumping between the projects.\n\nAny ideas?\n\nPS: here's a copy of the terminal\n\n```\n\n// 1st start:\n\n**************\n\n* BOOTLOADER *\n\n...\n\nTick 37\n\nu32AppRqstBootloader 00000000\n\nTick 39\n\njump to APP...\n\nџ\n\n// jump okay, now we're in...\n\n***************\n\n* APPLICATION *\n\n...\n\nTick 37\n\nu32AppRqstBootloader B0072ABB\n\nTick 40 // <<< quick printf after 1st start / jump\n\n// user input via terminal:\n\n> cw Sboot\n\njump to BL...\n\nџ\n\n// we're back in...\n\n**************\n\n* BOOTLOADER *\n\n...\n\nTick 37\n\nu32AppRqstBootloader ABB1B007\n\nTick 39\n\n// user input to jump back to app\n\n> cw Sjapp\n\njump to APP...\n\n// and we're back in app:\n\n***************\n\n* APPLICATION *\n\n...\n\nTick 37\n\n// ###### and HERE is the delay, see tick below #######\n\nu32AppRqstBootloader B0072ABB\n\nTick 1040\n\n```",
+            "images": [],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It seems I make the mistake far before the printf... checking stuff between the tick outputs...</p><p>Still strange that this only happens after 1st start.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Almost got it:</p><p>the app's ADC's internal calibration times out.</p><p>But why? Let's find out...</p><p>The bootloader does not use the ADC, so it has something to do with the ADC de-init when leaving the app.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>\"Again what learned\" as they say in Germany...</p><p>I just took the big hammer and disabled the ADC by setting CR = 0 and disabling the peripheral clock.</p><p>Now I found out there's this ADDIS bit to be set and wait for ADEN = 0.</p><p>And lo and behold, no more delay!</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

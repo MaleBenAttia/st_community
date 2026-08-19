@@ -1,0 +1,68 @@
+{
+    "forum": [
+        {
+            "id": "167668",
+            "publicId": "167699",
+            "title": "STM32H563 use DMA for RX and IT for TX on a UART",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h563-use-dma-for-rx-and-it-for-tx-on-a-uart-167699",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "DMA",
+                "STM32H5 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-08-14T00:54:14+00:00",
+            "views": 94,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@geneM, hope you are well.\n\n> Does it make sense, or will it even work to use DMA for the RX side of a UART (for example) and IT for the TX side?\n\nIt will work. The HAL UART code is written in such a way that this will work. Write to registers and updates of relevant state variables are done in an atomic fashion.\n\n> I’m still curious if anyone has an opinion about if using DMA for the RX side and IT for TX side of a UART xfer in order to save DMA channels is just another one of my dumb ideas.\n\nDo you need to save DMA channels or do you prefer that way to do it? Then do it. Else, don’t. There is no best here. IT is conceptually and programming-wise easier but comes at the cost of (typically negligible) CPU cycles.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "I’m just starting a new project using the STM32H563. It has 16 channels of DMA, 8 in GPDMA1 and 8 in GPDMA2. I have at least 11 peripherals I’d like to use DMA for, UARTs, I2C and CAN. That means 22 channels of DMA if I want to use DMA for RX and TX. Does it make sense, or will it even work to use DMA for the RX side of a UART (for example) and IT for the TX side?\n\nMy goal is to eliminate or at least minimize blocking in my program. I care more about DMA on the RX side since I often don’t know how many bytes will be in the message from the peripheral. I’ve used character match on the STM32H7A3 to deal with that in the past and the H563 is supposed to support character match also. TX is easier since I always know how many bytes I’m sending. I understand I’m still using CPU cycles to TX in IT mode but I don’t think that will cause any significant issues (I hope).",
+            "images": [],
+            "author": "geneM",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>I care more about DMA on the RX side since I often don’t know how many bytes will be in the message from the peripheral.</p></blockquote><p> </p><p>This is exactly the case *against* using DMA.</p><p>OTOH, Tx-ing using DMA is almost trivial, as you know beforehand how many characters are going to be transferred.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>My goal is to eliminate or at least minimize blocking in my program</p></blockquote><p>You can do that with interrupts - you don’t <em>need</em> DMA just for that ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Be aware that DMA is not available for the CAN peripheral.</p><p>You must use interrupts to read the FIFO contents.</p><p>You can of course use any DMA channel from the CAN Rx ISR to copy the FIFO content to another memory place, or use the DMA to copy a CAN Tx frame to the Tx FIFO, but you will have to start the frame transmission by yourself.</p></div>",
+                    "author": "Kraal",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> - I agree, it’s the character match functionality that some (many?) of the STM32 microcontrollers offer that makes DMA with UARTs so useful for me. Using CM, I just set up a DMA xfer for more than the maximum number of bytes I expect in the message and the DMA controller ends the xfer whenever the usual LF terminating character arrives.</p><p>​<user-mention data-id=\"35659\">@Andrew Neil</user-mention> - I agree. I use IT for UARTs when I run out of DMA channels. I just check for the usual LF terminating character in the IRQ handler. But I have to IT one byte at a time. So, DMA should save CPU cycles and and a lot of interrupt operations. If there’s another way to do this, I’d be happy to hear about it.</p><p>I’m still curious if anyone has an opinion about if using DMA for the RX side and IT for TX side of a UART xfer in order to save DMA channels is just another one of my dumb ideas.</p><p> </p></div>",
+                    "author": "geneM",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"geneM\"><div class=\"content-quote-content\"> <p>​But I have to IT one byte at a time. .</p> </div></content-quote><p>Don’t the STM32H563 UARTs have FIFOs?</p><p> </p><blockquote><p>So, DMA should save CPU cycles and and a lot of interrupt operations.</p></blockquote><p>Sure.</p><p>But is that really a significant overhead in your particular case?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"100715\">@geneM</user-mention>, hope you are well.</p><blockquote><p>Does it make sense, or will it even work to use DMA for the RX side of a UART (for example) and IT for the TX side?</p></blockquote><p>It will work. The HAL UART code is written in such a way that this will work. Write to registers and updates of relevant state variables are done in an atomic fashion.</p><blockquote><p>I’m still curious if anyone has an opinion about if using DMA for the RX side and IT for TX side of a UART xfer in order to save DMA channels is just another one of my dumb ideas.</p></blockquote><p>Do you need to save DMA channels or do you prefer that way to do it? Then do it. Else, don’t. There is no best here. IT is conceptually and programming-wise easier but comes at the cost of (typically negligible) CPU cycles.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

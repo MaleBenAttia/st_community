@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164685",
+            "publicId": "164685",
+            "title": "STUSB4500 Reference Design using STL6P3LLH6",
+            "url": "https://community.st.com/power-management-53/stusb4500-reference-design-using-stl6p3llh6-164685",
+            "category": "Power management",
+            "tags": [
+                "Power supply management"
+            ],
+            "published_at": "2026-04-13T07:31:17+00:00",
+            "views": 241,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "In your sink-only USB-C design, using two back-to-back MOSFETs is safe and often the more robust choice. The main reason is reverse current: if your system has an internal battery or another supply rail, current could flow back through the body diode of a single MOSFET. Two MOSFETs in anti-series block conduction in both directions. If your product is purely a USB PD sink with no sourcing and no possibility of backfeed from an internal supply, a single MOSFET can be sufficient. The only thing you must account for is the higher combined Rdson and therefore higher conduction losses.\n\nSo, for your case:\n\n* Single MOSFET: acceptable if reverse current is **impossible**\n\n* Two MOSFETs: recommended if you want extra protection against backfeed or future design changes\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi\n\nI have a question regarding use of STL6P3LLH6 MOSFET in the reference design as shown in [EVAL-SCS001V1](https://www.st.com/en/evaluation-tools/eval-scs001v1.html). In this reference, there is only one STL6P3LLH6(T1) used as shown below:\n\n![Circuit_0-1776064972194.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d675807-bdb2-d2ad-8024-c0d931d0d86c.png \"Circuit_0-1776064972194.png\")\n\nBut in the datasheet of STUSB4500, Fig 10 shows use of 2 such MOSFETs as shown below. What is the advantage of using 2 of these?\n\n![Circuit_2-1776065090824.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4351620e-8c55-0961-29b1-9ab033906ba5.png \"Circuit_2-1776065090824.png\")\n\nIn my design, i will use STUSB4500 to negotiate only fixed 20V, 2.5A. So, wondering if i need to put 2 MOSFETs or would it be OK with only one?\n\nThanks!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4351620e-8c55-0961-29b1-9ab033906ba5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d675807-bdb2-d2ad-8024-c0d931d0d86c.png"
+            ],
+            "author": "Circuit",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For applications with a single current direction, a single MOSFET is sufficient.</p>\n<p>However, if current can flow in both directions, the parasitic diode in standard MOSFETs would start to conduct, making it impossible to switch the circuit off. For this reason, two MOSFETs are connected in anti-series.<br/>Does it answer your question?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In which cases Current may flow in both directions if i may ask?</p><p> </p><p>In my design USB-C receptable along with this STUSB4500 used for USB 2.0 Full Speed Communications and Power Delivery  Power sinking 20V, 2.5A. So, it won't be used for sourcing current.</p><p>So, if i put both these MOSFETs it won't hurt as i understand, correct?</p></div>",
+                    "author": "Circuit",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In your sink-only USB-C design, using two back-to-back MOSFETs is safe and often the more robust choice. The main reason is reverse current: if your system has an internal battery or another supply rail, current could flow back through the body diode of a single MOSFET. Two MOSFETs in anti-series block conduction in both directions. If your product is purely a USB PD sink with no sourcing and no possibility of backfeed from an internal supply, a single MOSFET can be sufficient. The only thing you must account for is the higher combined Rdson and therefore higher conduction losses.</p>\n<p>So, for your case:</p>\n<ul>\n<li>Single MOSFET: acceptable if reverse current is <strong>impossible</strong></li>\n<li>Two MOSFETs: recommended if you want extra protection against backfeed or future design changes</li>\n</ul>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,80 @@
+{
+    "forum": [
+        {
+            "id": "163560",
+            "publicId": "163560",
+            "title": "Unions and flash access",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/unions-and-flash-access-163560",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32L4 series"
+            ],
+            "published_at": "2026-03-07T14:28:14+00:00",
+            "views": 540,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "@gbm I felt this was getting a bit too off-topic for the OP which is concerned about flash endurance so I posted a new questions and answer here:\n\n[How atomic are the STRD/LDRD instructions on Corte... - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus-embedded-software/how-atomic-are-the-strd-ldrd-instructions-on-cortex-m4/td-p/884526)\n\nLet me know if I've misinterpreted the result.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "I am wishing to write two floating point values to flash memory at time.  I understand it is best to write 64 bits at a time, hence my writing two floats at once.\n\nThis question is about using a union to structure the data. This code won't compile for the STM32L412KB.  Could someone please show me where I am going wrong? error on line 17.  Thanks.\n\n```\n\nstruct dual {\n\nfloat v1;\n\nfloat v2;\n\n};\n\nstruct dual two_readings = {1.23, 4.56};\n\nunion gemini\n\n{\n\nstruct dual left;\n\nuint64_t right;\n\n};\n\nunion gemini value;\n\nvalue.right=0;\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ac49b1c-e332-6af3-2c1e-1c754fafd6d8.PNG"
+            ],
+            "author": "Clyde_S",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p><user-mention data-id=\"4148\">@gbm</user-mention> I felt this was getting a bit too off-topic for the OP which is concerned about flash endurance so I posted a new questions and answer here:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/how-atomic-are-the-strd-ldrd-instructions-on-cortex-m4/td-p/884526\" target=\"_blank\">How atomic are the STRD/LDRD instructions on Corte... - STMicroelectronics Community</a></p><p>Let me know if I've misinterpreted the result.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are you doing \"value.right = 0\" at the global scope? That won't work. It needs to be within a function. Otherwise the code is fine. Global variables get initialized to 0 by default so the statement is not needed.</p><p>If you want to assign it explicitly at the global scope, do so in the definition:</p><pre class=\"lia-code-sample language-c\"><code>union gemini value = { .right = 0 };</code></pre><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you.  I have read conflicting statements on the internet about writing to a union.  I shall give this a try.</p><p> </p><p>Am I correct that I should write 64 bits at a time to flash?  That is, won't writes of two single 32 bit sized floats count as two writes from an endurance standpoint?</p></div>",
+                    "author": "Clyde_S",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>&gt; Am I correct that I should write 64 bits at a time to flash?</span></p><p><span>Kind of. The f</span><span>lash page size is 64 bits and it has ECC. Writing the entire flash page \"at once\" is the only option. However, the actual write operation is done as 2x 32bit writes. Splitting it into a union is not necessary here.</span></p><p><a href=\"https://github.com/STMicroelectronics/stm32l4xx-hal-driver/blob/f8e66b7f8db10809f91a4360c154b6304fab06ba/Src/stm32l4xx_hal_flash.c#L705\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32l4xx-hal-driver/Src/stm32l4xx_hal_flash.c at f8e66b7f8db10809f91a4360c154b6304fab06ba · STMicroelectronics/stm32l4xx-hal-driver</a></p><p> </p><p>This isn't an endurance thing. What you can't do is write 32 bits, then go off and do something else, then write 32 bits later on.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>use:</p><pre class=\"lia-code-sample language-c\"><code>*ptr = value.right; // write to flash</code></pre><p> </p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I recall reading in documentation, perhaps rm0432,  that the flash is 64 bits wide.  I would prefer to do a single write of a float value 32 bits.  The <em>only </em>reason I went to 64 bits at a crack was (possibly in error) because of endurance.  </p><p> </p><p>I shall work some more at this.  Thanks.</p></div>",
+                    "author": "Clyde_S",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>from google...<span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"flash.PNG\" style=\"width: 991px;\"><img alt=\"flash.PNG\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ac49b1c-e332-6af3-2c1e-1c754fafd6d8.PNG\" title=\"flash.PNG\"/></span></p></div>",
+                    "author": "Clyde_S",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Situation with STM32L4 seems more complicated as it supports \"fast programming mode\".</p><p>Simple 64-bit programming is demonstrated in the HAL library (function FLASH_Program_DoubleWord):</p><p><a href=\"https://github.com/STMicroelectronics/stm32l4xx-hal-driver/blob/f8e66b7f8db10809f91a4360c154b6304fab06ba/Src/stm32l4xx_hal_flash.c#L705\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32l4xx-hal-driver/blob/f8e66b7f8db10809f91a4360c154b6304fab06ba/Src/stm32l4xx_hal_flash.c#L705</a></p><p>It splits the uint64 data to two uint32 and writes them successfully (of course no STRD's there). Looks like the flash controller has internal buffer which accumulates the 64-bit value before programming.</p><p>But then there's function <a href=\"https://github.com/STMicroelectronics/stm32l4xx-hal-driver/blob/f8e66b7f8db10809f91a4360c154b6304fab06ba/Src/stm32l4xx_hal_flash.c#L724\" rel=\"nofollow noopener noreferrer\" target=\"_self\">FLASH_Program_Fast</a>, it writes 32 or 64 64-bit words, depending on the STM32L4 model, at once, with interrupts disabled. Also without STRD's.</p><p>Not sure how useful this can be to the OP.</p><p>/* BTW in github you can mark a source line or few lines, click on the copilot icon - and it will explain the code. It does this **** *****ing well. Impressive. Requires logging in */</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

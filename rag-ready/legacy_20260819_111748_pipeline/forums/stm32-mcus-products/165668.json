@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "165668",
+            "publicId": "165668",
+            "title": "STM32U3C5 HSP - results not the same for RFFT in ACC vs SEQ operation",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u3c5-hsp-results-not-the-same-for-rfft-in-acc-vs-seq-operation-165668",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32U3 series"
+            ],
+            "published_at": "2026-05-13T23:15:14+00:00",
+            "views": 144,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "OK, I've figured it out: I needed to wait for the process list to run to completion. Although the HSP\\_SEQ\\_RunTask() function docs suggest that it's a blocking call, it actually starts the process list and returns quickly. It's then necessary to have the process list set a flag and the CPU needs to poll for that flag before using the outputs. So the code will look like this:\n\n```\n\nHSP_SEQ_StartRecordPL(&hmw, 1);\n\nHSP_SEQ_VectMul_f32(&hmw, FFT_Buffer, Window, FFT_Buffer, HSP_BLKSZ, HSP_SEQ_IOTYPE_DEFAULT);\n\nHSP_SEQ_Rfft_f32(&hmw, FFT_Buffer, HSP_LOG2NBP_512, 0U, 1U, HSP_RFFT_TYPE_2, HSP_SEQ_IOTYPE_DEFAULT);\n\nHSP_SEQ_SetFlag(&hmw, 0); // assert flag 0\n\nHSP_SEQ_StopRecordPL(&hmw);\n\n--snip--\n\nHSP_SEQ_RunTask(&hmw, 1, 100);\n\nwhile((HSP1->PFCTEVT_ISR & 1) != 1U);\t// wait for flag 0\n\nHSP1->PFCTEVT_ICR = 1U;\t// clear flag 0\n\n```\n\nThere are higher-level functions in HAL to poll for events and flags, but this example is simple and fast.\n\nSo - asked and answered.",
+            "best_answer_author": "ebrombaugh1",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I'm working with an STM32U3C5RIT6 using the HSP to do some FFT-based audio DSP with the HSP Engine middleware. I've got it working correctly using direct mode and I'm trying to squeeze out a bit more performance using process lists but for some reason the RFFT output isn't the same when used in a process list.\n\nHere's the code I use for accelerator / direct mode which works correctly:\n\n```\n\nHSP_ACC_VectMul_f32(&hmw, FFT_Buffer, Window, FFT_Buffer, HSP_BLKSZ);\n\nHSP_ACC_Rfft_f32(&hmw, FFT_Buffer, HSP_LOG2NBP_512, 0U, 1U, HSP_RFFT_TYPE_2);\n\n```\n\nI then create a process list using the SEQ versions of the same operations:\n\n```\n\nHSP_SEQ_StartRecordPL(&hmw, PROC_IN);\n\nHSP_SEQ_VectMul_f32(&hmw, FFT_Buffer, Window, FFT_Buffer, HSP_BLKSZ, HSP_SEQ_IOTYPE_DEFAULT);\n\nHSP_SEQ_Rfft_f32(&hmw, FFT_Buffer, HSP_LOG2NBP_512, 0U, 1U, HSP_RFFT_TYPE_2, HSP_SEQ_IOTYPE_DEFAULT);\n\nHSP_SEQ_StopRecordPL(&hmw);\n\n--snip--\n\nHSP_SEQ_RunTask(&hmw, PROC_IN, PRC_TIMEOUT);\n\n```\n\nand the results are not the same. If I delete the RFFT operations from both, leaving just the VectMul then I do get identical results which tells me that the RFFTs are behaving differently between accelerator and sequencer modes.\n\nAny suggestions? Are there differences in the parameters between the ACC and SEQ versions of the RFFT function that I need to be aware of?",
+            "images": [],
+            "author": "ebrombaugh1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK, I've figured it out: I needed to wait for the process list to run to completion. Although the HSP_SEQ_RunTask() function docs suggest that it's a blocking call, it actually starts the process list and returns quickly. It's then necessary to have the process list set a flag and the CPU needs to poll for that flag before using the outputs. So the code will look like this:</p><pre class=\"lia-code-sample language-c\"><code>HSP_SEQ_StartRecordPL(&amp;hmw, 1);\nHSP_SEQ_VectMul_f32(&amp;hmw, FFT_Buffer, Window, FFT_Buffer, HSP_BLKSZ, HSP_SEQ_IOTYPE_DEFAULT);\nHSP_SEQ_Rfft_f32(&amp;hmw, FFT_Buffer, HSP_LOG2NBP_512, 0U, 1U, HSP_RFFT_TYPE_2, HSP_SEQ_IOTYPE_DEFAULT);\nHSP_SEQ_SetFlag(&amp;hmw, 0); // assert flag 0\nHSP_SEQ_StopRecordPL(&amp;hmw);\n\n--snip--\n\nHSP_SEQ_RunTask(&amp;hmw, 1, 100);\nwhile((HSP1-&gt;PFCTEVT_ISR &amp; 1) != 1U);\t// wait for flag 0\nHSP1-&gt;PFCTEVT_ICR = 1U;\t// clear flag 0</code></pre><p> </p><p>There are higher-level functions in HAL to poll for events and flags, but this example is simple and fast.</p><p>So - asked and answered.</p><p> </p></div>",
+                    "author": "ebrombaugh1",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "165283",
+            "publicId": "165283",
+            "title": "jump to bootloader failed in stm32f765",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/jump-to-bootloader-failed-in-stm32f765-165283",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-05-01T04:42:05+00:00",
+            "views": 327,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Jumping into , dont work on MCUs with empty flash checks. I dont test 765, but other require before jump erase flash part 0. How you try this ? First step is test with hw way .\n\n![MM1_0-1777618366383.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2117d7e3-4b9b-d501-0dfc-641864f0effb.png \"MM1_0-1777618366383.png\")\n\nafter this work, do jump from app.",
+            "best_answer_author": "MM..1",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi all,\n\nI am trying to develop a bootloader software for STM32F765.\n\nI requires two features in it.\n\n1) jumping from Bootloader to Application\n\n2) jumping from Application to Bootloader\n\nI could make jump from Bootloader to Application very easily.\n\nBut I am suffering with jumping from Application to Bootloader for 4-5 days now.\n\nThe final code I tried is given below:\n\n```\n\nvoid Bootloader_JumpToBootloader_Program(void)\n\n{\n\nvoid (*app_reset_handler)(void);\n\n__disable_irq();\n\nSysTick->CTRL = 0 ;\n\nSysTick->LOAD = 0;\n\nSysTick->VAL = 0;\n\nHAL_RCC_DeInit();\n\nHAL_DeInit();\n\n/* 2) disable all enabled interrupts */\n\nNVIC->ICER[ 0 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 1 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 2 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 3 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 4 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 5 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 6 ] = 0xFFFFFFFF ;\n\nNVIC->ICER[ 7 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 0 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 1 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 2 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 3 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 4 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 5 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 6 ] = 0xFFFFFFFF ;\n\nNVIC->ICPR[ 7 ] = 0xFFFFFFFF ;\n\n// Set embedded bootloader vector table base offset\n\nWRITE_REG(SCB->VTOR, SCB_VTOR_TBLOFF_Msk & 0x00000000);\n\n__enable_irq();\n\n// Instruction synchronization barrier\n\n__ISB();\n\nuint32_t msp_val = *(uint32_t *)SYSTEM_START_ADDRESS;////SYSTEM_START_ADDRESS\n\n__set_MSP(msp_val);\n\n__DSB(); // Data synchronization barrier\n\n__ISB(); // Instruction synchronization barrier\n\nuint32_t reset_handler_address = *(uint32_t *)(SYSTEM_START_ADDRESS + 4);////SYSTEM_START_ADDRESS\n\n/* assign the reset handler address to reset handler */\n\napp_reset_handler = (void *)reset_handler_address;\n\napp_reset_handler = (void (*) (void))reset_handler_address;\n\n/* Jump to reset handler of the User Application */\n\napp_reset_handler();\n\n}\n\n```\n\nPlease share your valuable suggestions to solve the issue.\n\nSajeevan.K",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2117d7e3-4b9b-d501-0dfc-641864f0effb.png"
+            ],
+            "author": "sajeevan",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Jumping into , dont work on MCUs with empty flash checks. I dont test 765, but other require before jump erase flash part 0. How you try this ? First step is test with hw way .</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MM1_0-1777618366383.png\" style=\"width: 775px;\"><img alt=\"MM1_0-1777618366383.png\" height=\"248\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2117d7e3-4b9b-d501-0dfc-641864f0effb.png\" title=\"MM1_0-1777618366383.png\" width=\"775\"/></span></p><p>after this work, do jump from app.</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi MM,</p><p>I have gone through the following link:</p><p><a href=\"https://community.st.com/t5/stm32-mcus/empty-check-mechanism-on-stm32/ta-p/49369\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/empty-check-mechanism-on-stm32/ta-p/49369</a></p><p>This says Empty check mechanism need to be done only for the following series:</p><p>F0, C0, G0, L0, L4, U0, WL &amp; WB. </p><p>The series I am using is F7. I think Empty Check Mechanism is not applicable for STM32F765. </p></div>",
+                    "author": "sajeevan",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Empty check is only in system bootloaders. Your own bootloader is normal application here... RESET jump to it one line of code. Call NVIC Reset or start watchdog = reset.</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>do you mean you want to jump from the application to the bootloader software you are writing? the bootloader here means the software you are writing or the bootloader inside the <span>STM32F765 system memory and flashed in the manufacture?</span></p></div>",
+                    "author": "Shirley.Ye",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The OP says: \"embedded bootloader\". That's system memory.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"76552\">@sajeevan</user-mention> </p>\n<p>Please refer to the article below for inspiration. </p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424\" target=\"_blank\">How to jump to system bootloader from application ... - STMicroelectronics Community</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Shirley.Ye",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

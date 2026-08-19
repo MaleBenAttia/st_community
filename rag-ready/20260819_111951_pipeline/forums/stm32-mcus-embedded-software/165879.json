@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "165879",
+            "publicId": "165879",
+            "title": "Bare-Metal OS for STM32F746 with Dynamic ELF Loader",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/bare-metal-os-for-stm32f746-with-dynamic-elf-loader-165879",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F7 series"
+            ],
+            "published_at": "2026-05-21T19:05:30+00:00",
+            "views": 174,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @EmbSoft3 and welcome to the ST community and thank you for your sharing.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4629e163-38ff-42c5-a5e5-21380d83579b.bmp)\n\nHi everyone,\n\nI wanted to share a project I’ve been building over the last few years. It’s called **Mk**, an operating system built entirely from scratch for the **STM32F746G-DISCO** and **STM32F746G-Eval2** boards.\n\nThese boards are powered by an ARM Cortex-M7 running at 216MHz. Initially, my goal was just to implement a small scheduler, but I stacked layers one after another to make it as complete as possible. Currently, I think I've added enough layers to claim it as a functional, lightweight OS.\n\nMk features:\n\n**A Kernel**\n\n* Preemptive, priority-based multitasking scheduler (fixed-priority, O(1) selection via hardware CLZ instruction)\n\n* Trusted Execution Environment (TEE) using the Cortex-M7 **MPU** (privileged and unprivileged mode isolation)\n\n* Synchronization primitives: mutex, semaphore, event flags, mailbox\n\n* Fixed-size memory pools\n\n* Synchronous and asynchronous callback execution system\n\n**A Dynamic ELF Loader** Mk can load and execute external .elf binaries at runtime, relocated dynamically into 64 KB pages of the external SDRAM. Programs reference Mk's own API symbols directly via extern . The full kernel symbol table is embedded in the firmware at a fixed address meaning external applications require no copy of the kernel API in their own binary. See the [sym2srec](https://github.com/EmbSoft3/Sym2srec/wiki) tool for details on the symbol embedding mechanism.\n\n**A File System**\n\n* FAT32 with multi-partition support\n\n* Concurrent access management from multiple tasks (per-volume mutex)\n\n* Full POSIX-like API for file and directory manipulation\n\n* Supports SD/MMC cards and USB Mass Storage Class (MSC) devices\n\n**A USB Stack**\n\n* Multitasking USB host stack built directly on the STM32F7 OTG peripheral\n\n* Supported device classes: HUB, HID (keyboard, mouse, joystick, gamepad), MSC\n\n**A Graphics Engine**\n\n* Hardware-accelerated 2D rendering pipeline using the **LTDC** and **ChromART (DMA2D)** accelerators\n\n* Drawing primitives (rectangles, circles, lines, arcs), BMP 24/32-bit image rendering\n\n* Full Unicode text rendering (UTF-8/16/32)\n\n* UI widget library: buttons, text fields, edit fields, graphs, cursors, layers\n\n**A Shell** Built-in interactive shell with support for both native and dynamically loaded commands.\n\n### Codebase & Links\n\n* **Mk Repository:** <https://github.com/EmbSoft3/Mk>\n\n* **Sym2srec:** <https://github.com/EmbSoft3/Sym2srec>\n\n* **Short Demo Video:** <https://www.youtube.com/watch?v=cj7DHqhJ5gc>\n\nFor those who'd like to dig into how it works, here are the key files and entry points:\n\n**Boot sequence:** The system enters the assembly [ResetHandler()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Peripherals/vectors/mk_peripheral_vector_ResetHandler.asm) routine. The system is then initialized in [mk\\_system\\_init()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Bsp/System/boot/mk_system_init.c), which calls [mk\\_main()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/mk_main.c), responsible for launching the kernel and all other subsystems.\n\n**Kernel core:** The kernel lives under these [sources](https://github.com/EmbSoft3/Mk/tree/main/Mk/Sources/Mcu/Stm32f74xxx/Kernel) and [includes](https://github.com/EmbSoft3/Mk/tree/main/Mk/Includes/Mcu/Stm32f74xxx/Kernel) directories. Every system call is dispatched through the SVC exception, handled in [mk\\_scheduler\\_handle()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Kernel/Scheduler/mk_scheduler_handle.c).\n\n**Application prototype:** A minimal application example can be found [here](https://github.com/EmbSoft3/BlinkLed) (a simple BlinkLed). It must be paired with a [linker script](https://github.com/EmbSoft3/BlinkLed/blob/main/BlinkLed/Make/linker.ld), an application descriptor ([mk\\_application\\_data](https://github.com/EmbSoft3/BlinkLed/blob/main/BlinkLed/Sources/mk_application_data.c)) and compiled with the following flags: -fPIC -shared. Symbol resolution at runtime is handled in [mk\\_application\\_loadDynamic()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Bsp/Engine/Application/mk_application_loadDynamic.c) and in this [sources](https://github.com/EmbSoft3/Mk/tree/main/Mk/Sources/Loader) directory. Other example applications can be found here: a [Pong game](https://github.com/EmbSoft3/Pong) and the built-in [Shell](https://github.com/EmbSoft3/Shell).\n\n**Graphics Engine:** The graphics engine is composed of several tasks that execute painting callbacks, input-listening callbacks, and process drawing requests submitted by applications. Each module is isolated and interactions between components go through asynchronous requests. The rendering pipeline entry point is [mk\\_display\\_painter()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Bsp/Engine/Display/mk_display_painter.c), the listening entry point is [mk\\_display\\_listener()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Bsp/Engine/Display/mk_display_listener.c) and the request manager entry point is [mk\\_display\\_handler()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/Mcu/Stm32f74xxx/Bsp/Engine/Display/mk_display_handler.c).\n\n**File System:** The file system layer is handled by multiple tasks running in parallel. One dedicated task is responsible for managing concurrent accesses to a given file. Each access is performed through synchronous or asynchronous requests, handled in [mk\\_file\\_handle()](https://github.com/EmbSoft3/Mk/blob/main/Mk/Sources/FileSystem/Handler/mk_file_handle.c).\n\nAn early version of the documentation can be found [here](https://github.com/EmbSoft3/Mk/tree/main/docs).\n\nI hope you find this project interesting! I'd be happy to answer any questions or discuss any part of the low-level implementation.\n\nThanks for reading!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4629e163-38ff-42c5-a5e5-21380d83579b.bmp"
+            ],
+            "author": "EmbSoft3",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"107172\">@EmbSoft3</user-mention> and welcome to the ST community and thank you for your sharing.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

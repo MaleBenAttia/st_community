@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "166126",
+            "publicId": "166140",
+            "title": "Core supply for STM32H563MIY3Q",
+            "url": "https://community.st.com/stm32-mcus-products-25/core-supply-for-stm32h563miy3q-166140",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H5 series"
+            ],
+            "published_at": "2026-06-13T08:22:34+00:00",
+            "views": 146,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Second ,\n\nFirst of all I apologize for my late reply.\n\nAfter checking internally,  the “Startup with VCORE provided from an external supply (Bypass)” section in RM0481 concerns only the LDO parts. Therefore, this section will be update to cover the SMPS parts in the coming reference manual revision. So thank you for bringing this issue to our attention.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dee9f605-854c-4db5-a7a4-70e7f89230c3.png)\n\nThe SMPS and LDO regulators are exclusive and are enabled by hardware during POR. Therefore, SMPS mode is the default state after power on for STM32H563 parts that support only SMPS mode.\n\nIn bypass mode, the SMPS block is powered down, and VCORE is supplied by an external power source. In this mode, VDDSMPS and VSSSMPS should be connected according to the recommended bypass configuration, while VLXSMPS must be left floating.\n\nInternal ticket number CDM0063881 (This is an internal tracking number and is not accessible or usable by customers).\n\nI hope this answer your request.\n\nThank you.\n\nKaouthar",
+            "best_answer_author": "KDJEM.1",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "1. STM32H563MIY3Q is not available in LDO, is it available in Bypass mode ? Can an external LDO be used to power the core?\n\n2. Since there is no internal LDO inside the chip, is it unnecessary to keep the external Core voltage at 1.1 V before the VDD reach the POR threshold level? Do VDD and external core supply have timing sequence constraints?\n\n3. If an external LDO is used, can the VDDSMPS pin be connected to GND? Is there a reference schematic available?\n\n4. How should the software be configured when we use an external LDO for core power supply on this chip?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64405d90-692d-452c-b407-07af9928ec0d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dee9f605-854c-4db5-a7a4-70e7f89230c3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/30e4c3f8-8219-4673-9f22-5685827e805a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0c04072a-6352-437d-8e9b-44e110fe5e0e.png"
+            ],
+            "author": "Second",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107427\">@Second</user-mention> ;</p><p> </p><p>The SMPS package only supports the SMPS mode and does not support LDO mode.</p><p>The product supports SMPS bypass mode, please find attached the figure showing the system's supply configurations in <a href=\"https://www.st.com/resource/en/application_note/an5930-guidelines-for-power-management-on-stm32h5-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN5930</a> and <a href=\"https://www.st.com/resource/en/reference_manual/rm0481-stm32h52333xx-stm32h56263xx-and-stm32h573xx-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">RM0481</a> section Startup with VCORE provided from an external supply (Bypass)</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/30e4c3f8-8219-4673-9f22-5685827e805a.png\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/64405d90-692d-452c-b407-07af9928ec0d.png\"/></figure><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot for your reply.</p><p>The STM32H563MIY3Q microcontroller does not support LDO mode. Does this MCU default to SMPS mode after power-up? I have reviewed the schematic for SMPS Bypass mode, where the VDDSMPS pin is tied to GND. In this configuration, when no power is supplied to Vcore, can the firmware boot and execute normally? Is it possible to switch to Bypass mode via register configuration?</p></div>",
+                    "author": "Second",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107427\">@Second</user-mention> ;</p><p> </p><p>The SMPSEN bit and LDOEN bit in PWR supply configuration control register (PWR_SCCR) register are set by hardware when the package uses the SMPS regulator or LDO regulator. These bits are read only.</p><p>For BYPASS: power management unit bypass bit, in same register PWR_SCCR, is written once after POR. Written-once mechanism locks the register and any further write access is ignored. The system must be power cycled before writing a new value.</p><p>BYPASS: power management unit bypass</p><p>0: Power management unit normal operation. Use the internal regulator.</p><p>1: Power management unit bypassed. Use the external power (voltage monitoring still active)</p><p>According to the<a href=\"https://www.st.com/resource/en/datasheet/stm32h562ag.pdf\" rel=\"noreferrer noopener\" target=\"_blank\"> datasheet</a> Table 20. General operating conditions, when Regulator OFF: external VCORE voltage must be supplied from external regulator on VCAP pin. </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0c04072a-6352-437d-8e9b-44e110fe5e0e.png\"/></figure><p> </p><p>Is my answer your request?</p><p> </p><p>Thank you.</p><p>Kaouthar</p><p> </p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot for your reply.</p><p>For the STM32H563MIY3Q chip, which supports only an internal SMPS, must the SMPS be guaranteed to function properly during MCU Power-On Reset (POR)? Can the registers be operated to switch to Bypass mode only after the POR is complete? Therefore, the SMPS pin cannot be connected to GND and must have an external inductor and capacitor connected, correct?</p><p> </p></div>",
+                    "author": "Second",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107427\">@Second</user-mention> ,</p><p> </p><p>First of all I apologize for my late reply.</p><p>After checking internally,  the “Startup with VCORE provided from an external supply (Bypass)” section in RM0481 concerns only the LDO parts. Therefore, this section will be update to cover the SMPS parts in the coming reference manual revision. So thank you for bringing this issue to our attention.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dee9f605-854c-4db5-a7a4-70e7f89230c3.png\"/></figure><p>The SMPS and LDO regulators are exclusive and are enabled by hardware during POR. Therefore, SMPS mode is the default state after power on for STM32H563 parts that support only SMPS mode. </p><p> In bypass mode, the SMPS block is powered down, and VCORE is supplied by an external power source. In this mode, VDDSMPS and VSSSMPS should be connected according to the recommended bypass configuration, while VLXSMPS must be left floating.</p><p> </p><p>Internal ticket number CDM0063881 (This is an internal tracking number and is not accessible or usable by customers).</p><p>I hope this answer your request.</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

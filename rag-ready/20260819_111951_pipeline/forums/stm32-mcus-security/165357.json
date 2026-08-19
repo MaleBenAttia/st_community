@@ -1,0 +1,91 @@
+{
+    "forum": [
+        {
+            "id": "165357",
+            "publicId": "165357",
+            "title": "Boot pin with RDP level",
+            "url": "https://community.st.com/stm32-mcus-security-36/boot-pin-with-rdp-level-165357",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "RDP",
+                "Documentation",
+                "Bootloader",
+                "STM32H7 series",
+                "Flash"
+            ],
+            "published_at": "2026-05-04T13:48:15+00:00",
+            "views": 338,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hello ,\n\nLooking at RM0399 and other , I cannot find evidence that BOOT0 pin is no more used when RDP2 is enabled.\n\nI think this is a missing information.\n\nIn fact, in all STM32 the BOOT0 pin is no more fetched in RDP Level 2.\n\nThe RDP2 can be seen as a boot lock feature, meaning you can only boot in address provided in ADD0.\n\nThe behaviour you see when enabling RDP Level 2 is expected.\n\nI will ask internally to add this information to the reference manual.\n\nBest regards\n\nJocelyn",
+            "best_answer_author": "Jocelyn RICARD",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am working on the boot process and security of the STM32H757.\n\nFor my tests, I have placed the two boot addresses for the two cores (ADD0 and ADD1 for CM7 and CM4) in the internal flash memory, with an ISR vector at each boot address :\n\nADD0: standard ISR vector calling the standard Reset\\_Handler, which in turn calls the main function\n\n```\n\ng_pfnVectors:\n\n.word __initial_spTop /* Use internal RAM for stack for calling SystemInit. */\n\n.word Reset_Handler\n\n.word NMI_Handler\n\n.word HardFault_Handler\n\n.word MemManage_Handler\n\n.word BusFault_Handler\n\n.word UsageFault_Handler\n\n...\n\n```\n\nand ADD1: virtually the same ISR vector but calling BootPin\\_Handler instead of Reset\\_Handler\n\n```\n\ng_bootPinVectors:\n\n.word __initial_spTop\n\n.word BootPin_Handler\n\n.word NMI_Handler\n\n.word HardFault_Handler\n\n.word MemManage_Handler\n\n.word BusFault_Handler\n\n.word UsageFault_Handler\n\n...\n\n```\n\nEverything seems to be working properly, at least up until the security test.\n\nWhen RDP is set to level 0 or 1, everything is fine and everything seems to work, but when I set the RDP level to 2, it no longer works; the programme still launches at ADD0.\n\nI’ve tried to find a link between the two in the documentation, but either I can’t find it or I don’t understand it.\n\nCan anyone help me?\n\nTo set level 2, I download the program in the device and then switch to level 1 then to level 2. In option byte I only changed boot address and RDP level. Maybe I have missed a step ?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ca6f1206-9cd6-0b98-1901-4c606a105e3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/249a4cc0-a974-241f-7683-a701c16070dd.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d613f136-afa0-e9f3-b6b5-4c71929a7a2f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/237d069c-a3fd-f9f8-974f-e9efdc672ed5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8040cf3e-5466-9730-5246-242bbe0c9bbe.png"
+            ],
+            "author": "MA4",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>RDP2  closes the chip against any external access - irreversible.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AScha3_0-1777903226729.png\" style=\"width: 999px;\"><img alt=\"AScha3_0-1777903226729.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/237d069c-a3fd-f9f8-974f-e9efdc672ed5.png\" title=\"AScha3_0-1777903226729.png\"/></span></p><p>...read in rm.</p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AScha3_1-1777903292245.png\" style=\"width: 999px;\"><img alt=\"AScha3_1-1777903292245.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/249a4cc0-a974-241f-7683-a701c16070dd.png\" title=\"AScha3_1-1777903292245.png\"/></span></p><p>..from RM0433.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"34409\">@AScha.3</user-mention> <br/><br/>Ok, I don't think I quite understand that sentence. I thought we could still boot from internal flash (that’s why I put two addresses in the internal flash (all BOOT address are between <span>0x08000000 and 0x08100000</span>). So It's note RAM neither ST system Flash (which is between 0x1FF00000 and 0x1FF1FFFF)</p><p>Does that mean the BOOT Pin feature can’t be used at all on RDP at level 2?</p></div>",
+                    "author": "MA4",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So maybe you accept what Ai is telling (sidekick here):</p><h3 id=\"toc-hId-1628336056\">Function of the BOOT Pin in RDP Level 2</h3><p>The BOOT pin is typically used to select the boot target (main flash, system bootloader, or SRAM) by latching its value on the fourth rising edge of SYSCLK after reset release. However,<span> </span><strong>when RDP level 2 is active, the BOOT pin has no effect</strong><span> </span>on the boot source:</p><ul><li>The device will always boot from main flash memory, regardless of the BOOT pin configuration.</li><li>The built-in system bootloader is permanently disabled, and you cannot use the BOOT pin to access it or SRAM.</li></ul><h3 id=\"toc-hId--923820905\">Irreversibility and Firmware Updates</h3><p>Setting RDP level 2 is an<span> </span><strong>irreversible action</strong>. Once set:</p><ul><li>The system bootloader is permanently disabled.</li><li>If you require firmware updates, you must implement your own bootloader within the user flash, as the built-in one cannot be accessed anymore.</li></ul><hr/><h4 id=\"toc-hId-622475925\"><strong>Summary</strong></h4><ul><li><strong>Booting by using the BOOT pin to access the bootloader or SRAM is not possible in RDP2.</strong></li><li><strong>Only boot from main flash memory is allowed, regardless of BOOT pin state.</strong></li><li><strong>System bootloader and SRAM boot are permanently disabled in RDP2.</strong></li></ul><p><strong>+</strong></p><p><strong>from rm:</strong></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AScha3_0-1777907648564.png\" style=\"width: 999px;\"><img alt=\"AScha3_0-1777907648564.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d613f136-afa0-e9f3-b6b5-4c71929a7a2f.png\" title=\"AScha3_0-1777907648564.png\"/></span></p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hello <user-mention data-id=\"28213\">@MA4</user-mention> </span></p>\n<p><span>In RDP level 2, on boot for user flash is allowed so b</span><span>ooting from System memory and RAM is disabled.</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"Onizuka09_0-1777906535548.png\" style=\"width: 999px;\"><img alt=\"Onizuka09_0-1777906535548.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ca6f1206-9cd6-0b98-1901-4c606a105e3e.png\" title=\"Onizuka09_0-1777906535548.png\"/></span><span><br/>The Boot pin feature enables the selection of 2 boot areas :  </span></p>\n<p><span>1- you are using RDP level 2, setting <strong>BOOT_PIN </strong>= 1 is no more possible  ( CM7 boots to TCM-RAM or system bootloader and CM4 boots to SRAM1)  only <strong>BOOT_PIN </strong>= 0 is possible (boot to user flash  ).</span></p>\n<p><span>2- When changing the default starting boot address in linker script, you should have also to update the option bytes (BCM7_ADD0 and BCM7_ADD0 ) with the new addresses, or you can setup in the linker script with the default boot address that is already set for both cores.<br/></span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"Onizuka09_0-1777907290364.png\" style=\"width: 999px;\"><img alt=\"Onizuka09_0-1777907290364.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8040cf3e-5466-9730-5246-242bbe0c9bbe.png\" title=\"Onizuka09_0-1777907290364.png\"/></span></p>\n<p> </p>\n<p><span>3- Even though, you set <strong>BOOT_ADD1</strong> in the option bytes ( this points to RAM), in RDP level 2 this is considered invalid and the system will forcefully boot to the default address which is ADD0.     </span></p>\n<p><span>Please check <strong>RM0399 section 2.6 Boot Configuration</strong> for more information.</span></p>\n<p><span><br/>Best Regards </span></p></div>",
+                    "author": "Moktar SELLAMI",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Can you confirm / deny <br/>In RDP2, can we use BOOT_PIN to both from alternative address that is configured <strong>in user flash memory </strong>(in range 0x8000000-0x81FFFF) <strong><br/><br/></strong>(working in RPD0 and RDP1)</p></div>",
+                    "author": "MA4",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ,</p>\n<p>Looking at RM0399 and other , I cannot find evidence that BOOT0 pin is no more used when RDP2 is enabled.</p>\n<p>I think this is a missing information.</p>\n<p>In fact, in all STM32 the BOOT0 pin is no more fetched in RDP Level 2.</p>\n<p>The RDP2 can be seen as a boot lock feature, meaning you can only boot in address provided in ADD0.</p>\n<p>The behaviour you see when enabling RDP Level 2 is expected.</p>\n<p>I will ask internally to add this information to the reference manual.</p>\n<p>Best regards</p>\n<p>Jocelyn</p>\n<p> </p></div>",
+                    "author": "Jocelyn RICARD",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"278\">@Jocelyn RICARD</user-mention> Thank you for your answer.</p></div>",
+                    "author": "MA4",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Moktar SELLAMI",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Jocelyn RICARD",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

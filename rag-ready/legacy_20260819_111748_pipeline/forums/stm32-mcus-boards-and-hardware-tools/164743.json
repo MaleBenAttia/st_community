@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "164743",
+            "publicId": "164743",
+            "title": "STM32G491 USB for data only",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32g491-usb-for-data-only-164743",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32G4 series",
+                "Other boards"
+            ],
+            "published_at": "2026-04-14T16:54:10+00:00",
+            "views": 299,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "There's no reason why it can't work. The reason that it isn't is going to be specific to your setup. Maybe NRST is held low, or the firmware doesn't pass a certain stage, or it is miswired.\n\nThere are no issues in the posted schematics.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi,\n\nI'm developing a custom STM32G491CEU6 board with USB-C and pins for external ST-LINK programmer. Board is powered from external source. I connected only D+, D- and GND from on USB-C to MCU, because I wanted to use this only for debug. Right now the USB-C communication works only if ST-LINK is connected (had no idea about VBUS sensing). Can i override it somehow? Schematics below\n\n![ErKaTech_0-1776185532867.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e1b48aec-d47c-85e7-fe1e-4a741968e11a.png \"ErKaTech_0-1776185532867.png\")![ErKaTech_1-1776185559615.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5d77bb12-4fe9-8f85-7a36-e8f349250404.png \"ErKaTech_1-1776185559615.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5d77bb12-4fe9-8f85-7a36-e8f349250404.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6bcabe17-6998-7436-9686-906b47f96592.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e1b48aec-d47c-85e7-fe1e-4a741968e11a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f586040b-cd53-71f2-ac26-2a95eb89ac24.png"
+            ],
+            "author": "ErKaTech",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What type of debug you mean? If USB CDC printing you require implement it in your code... USB pins isnt debug interface .</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I meant CDC printing, not classic Debug. More important for me is why it's not working without ST-LINK. I was looking for a solution, but couldn't find one.</p></div>",
+                    "author": "ErKaTech",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Perhaps the ST-LINK is providing a GND connection to your PC.</p></div>",
+                    "author": "Chris21",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There's no reason why it can't work. The reason that it isn't is going to be specific to your setup. Maybe NRST is held low, or the firmware doesn't pass a certain stage, or it is miswired.</p><p>There are no issues in the posted schematics.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You were right, I had NRST floating, I connected it via 10k resistor to 3,3V and it works like a charm. TY all.</p></div>",
+                    "author": "ErKaTech",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106100\">@ErKaTech</user-mention> wrote:<br/>\n<p>I had NRST floating, I connected it via 10k resistor to 3,3V and it works like a charm. TY all.</p>\n<hr/></blockquote>\n<p>That's weird. There is an internal pull-up resistor inside the chip. Refer to the reference manual <a href=\"https://www.st.com/content/ccc/resource/technical/document/reference_manual/group0/7c/b0/25/29/1b/a2/42/b2/DM00355726/files/DM00355726.pdf/jcr:content/translations/en.DM00355726.pdf\" rel=\"noopener noreferrer\" target=\"_self\">RM0440</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776252280943.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776252280943.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f586040b-cd53-71f2-ac26-2a95eb89ac24.png\" title=\"mALLEm_0-1776252280943.png\"/></span></p>\n<p>It should work without adding an external pull-up resistor on NRST pin!</p>\n<p>However you need instead to add a filtering capacitor of 100nF on NRST connected to the ground:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1776252629309.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1776252629309.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6bcabe17-6998-7436-9686-906b47f96592.png\" title=\"mALLEm_1-1776252629309.png\"/></span></p>\n<p>Please refer to the reference design in <a href=\"https://www.st.com/resource/en/application_note/an5093-getting-started-with-stm32g4-series--hardware-development-boards-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AN5093</a> \"Getting started with STM32G4 Series hardware development boards\" / Figure 8.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

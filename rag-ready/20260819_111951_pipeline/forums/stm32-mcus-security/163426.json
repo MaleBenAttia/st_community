@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "163426",
+            "publicId": "163426",
+            "title": "Best practices for generating SBOM",
+            "url": "https://community.st.com/stm32-mcus-security-36/best-practices-for-generating-sbom-163426",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32 Security"
+            ],
+            "published_at": "2026-03-04T11:11:58+00:00",
+            "views": 618,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello Yahya,\n\nFor our firmware packages we use Black Duck to generate the SBOM.\n\nThe ST Cube SBOM is a reference to help you accurately describe ST‑provided components; it does not replace your project SBOM. You can reuse the needed information from ST’s SBOM (component name, version, license, origin) for the libraries you actually use, instead of recreating it.\n\nI hope my answer has been helpful. When your question is resolved, please mark this topic as the solution. This will help others find the answer more quickly.\n\nThank you for your contribution.\n\nBest regards,\n\nDor\\_RH",
+            "best_answer_author": "Dor_RH",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi everyone,\n\nI am trying to generate a professional SBOM for my project.\n\nI have a few questions regarding the best workflow:\n\n* **Tooling & Detection:** What the best tool to generate the SBOM.\n\nI tried using **ScanCode**, but it didn't find any component in my project (e.g., FreeRTOS). I had to manually add .about files to the folder to get results. Is there a better tool that can generate the SBOM with minimal manual intervention?\n\n* **ST Cube SBOM :** The Cube MCU packages contain dozens of libraries (FatFS, FreeRTOS, USB\\_Host, etc.). If my project only uses FatFS, the package JSON still lists everything. **Do I have to manually extract the components I use from the ST JSON?**how to get use of the ST SBOM?\n\nI’d love to hear if anyone has a script or a specific toolchain that automates this without the manual \"copy-paste\" from the ST manifests\n\nThank you!\n\nYahya",
+            "images": [],
+            "author": "YahyaYozo",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Yahya,</p><p>For our firmware packages we use Black Duck to generate the SBOM.</p><p>The ST Cube SBOM is a reference to help you accurately describe ST‑provided components; it does not replace your project SBOM. You can reuse the needed information from ST’s SBOM (component name, version, license, origin) for the libraries you actually use, instead of recreating it.</p><p>I hope my answer has been helpful. When your question is resolved, please mark this topic as the solution. This will help others find the answer more quickly.</p><p>Thank you for your contribution.</p><p>Best regards,<br/>Dor_RH</p></div>",
+                    "author": "Dor_RH",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Yahya,</p><p>On the first question: ScanCode works off license texts and package manifests, so it struggles with embedded C/C++ where components like FreeRTOS are just vendored source folders with no manifest. That's why you had to add .about files by hand. Take a look at lynkctl (disclosure: I work on it at Interlynk) or bomtique, which is open source. Both are built for embedded projects and fingerprint vendored source directly, so FreeRTOS and similar components get picked up without any manual annotation.</p><p> </p><p>On the ST Cube question: the package JSON lists everything in the Cube distribution, not what your firmware actually uses, so copying from it by hand will always overstate your SBOM. The way to solve this automatically is with a tool that analyzes your build output, the linker map file and the binary itself, to determine which libraries actually made it into the image. If only FatFS is linked in, only FatFS shows up in the SBOM. That gives you an accurate list without touching the ST manifests at all.</p><p> </p><p>Hope that helps.</p></div>",
+                    "author": "sbom-expert",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Dor_RH",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

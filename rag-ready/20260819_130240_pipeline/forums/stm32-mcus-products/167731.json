@@ -1,0 +1,149 @@
+{
+    "forum": [
+        {
+            "id": "167699",
+            "publicId": "167731",
+            "title": "The EXTI STM32H7R7I8t6 is not working.",
+            "url": "https://community.st.com/stm32-mcus-products-25/the-exti-stm32h7r7i8t6-is-not-working-167731",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "GPIO-EXTI",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-08-16T17:50:24+00:00",
+            "views": 127,
+            "reply_count": 11,
+            "best_answer": true,
+            "best_answer_content": "if sbs setting has effect, set in Cube:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/985cb9ca-4e71-4243-a085-e8625412facb.png)\n\n...should do it.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello everyone.\n\nMy fight with STM32H7R7 continues.\n\nI'm trying to get the simplest example of triggering the EXTI interrupt on an STM32H7R7I8T6. I've run this thousands of times on other H7 series MCUs and never had any problems. I have a button and an LED connected to the MCU as shown in the diagram.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5d9ab908-a49a-4793-a7e1-0bc2154e804d.jpg)\n\nPin PC11 configured as below:\n\n```\n\n/*Configure GPIO pin : PC11 */\n\nGPIO_InitStruct.Pin = GPIO_PIN_11;\n\nGPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nHAL_GPIO_Init(GPIOC, &GPIO_InitStruct);\n\n/* EXTI interrupt init*/\n\nHAL_NVIC_SetPriority(EXTI11_IRQn, 0, 0);\n\nHAL_NVIC_EnableIRQ(EXTI11_IRQn);\n\n```\n\nI added to the Callback code as always:\n\n```\n\n/* USER CODE BEGIN 4 */\n\nvoid HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)\n\n{\n\nif(GPIO_Pin == GPIO_PIN_11)\n\n{\n\nHAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12);\n\n}\n\n}\n\n/* USER CODE END 4 */\n\n```\n\nOptionally, I also added lines in the Callback itself:\n\n```\n\n/* USER CODE BEGIN 4 */\n\nvoid HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)\n\n{\n\nif(GPIO_Pin == GPIO_PIN_11)\n\n{\n\nHAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12);\n\n__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_11);\n\n}\n\n}\n\n/* USER CODE END 4 */\n\n```\n\nWhile debugging, I can see that the registers respond correctly to pressing and releasing the button:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f7aab69-4c88-48fd-8040-cb6c5bf4a338.jpg)\n\nWhen the button is pressed.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01f30e64-9d76-43da-956a-9798f3e20d3f.jpg)\n\nWhen the button is released.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6eacde35-26b6-48e4-bdd2-9f31659e14db.jpg)\n\nI tried reconnecting the key to different pins. Same result. The main loop definitely works. Interrupts are enabled... I tried with different priorities. The EXTI handler isn't called. I'm using the latest STM32CubeIde and STM32CubeMX. The project is attached.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01f30e64-9d76-43da-956a-9798f3e20d3f.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/985cb9ca-4e71-4243-a085-e8625412facb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03e9159f-5828-4281-920e-d8f3a1404c2a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5d9ab908-a49a-4793-a7e1-0bc2154e804d.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b86a5628-55e1-4602-b9e8-86cc22f79a70.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ecea19f-af34-4bbf-a7f4-acd44371faeb.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b9becec9-e1ea-41f6-81a1-1ab17d7fefcd.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7eeb052f-8414-48ef-b906-b7f8c7444962.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa2d1164-8f30-484d-8dbe-4fe60ce21f61.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ddd4afe7-8054-4dde-a2b2-436ea86cf590.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/515f2e68-9228-4d99-b0eb-2da928fd5b55.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f7aab69-4c88-48fd-8040-cb6c5bf4a338.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4ae69a93-228d-4ff7-8949-407fca198691.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6eacde35-26b6-48e4-bdd2-9f31659e14db.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d29cc4a2-7447-4bd5-9517-76ff7cb1e94c.jpg"
+            ],
+            "author": "Procek",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Do other interrupts work in your projects? Systick for one?</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>All other interrupts work. I have a UART that works with interrupts. I launched the TouchGFX project on the same PCB where the LTDC interrupts are. Now I was supposed to add a touch controller that uses EXTI. But EXTI didn't work, so I created a clean project with just EXTI to find the error... but so far I can't find it. I uploaded the same code to three other MCUs: the H743, H563, and H750, and it worked on all of them. Considering that in the previous version, the STM32CubeMX ST had a rather serious bug with the STM32H743ZIT6, preventing it from setting the clock to 480MHz, which has been reported by many users on the forum, I wonder if a bug hasn't crept in here too...</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>try: put the LED toggle direct  in the INT call, to check : the INT is enabled and executed.</p><p> - &gt;</p><pre><code class=\"language-c\">void EXTI11_IRQHandler(void)<br/>{<br/>  /* USER CODE BEGIN EXTI11_IRQn 0 */<br/>\tHAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12);<br/>  /* USER CODE END EXTI11_IRQn 0 */<br/>  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);<br/>  /* USER CODE BEGIN EXTI11_IRQn 1 */<br/><br/>  /* USER CODE END EXTI11_IRQn 1 */<br/>}</code></pre><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've already tried that...No success.</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>ok..just whats different here from my generated code :</p><p>the project setting in Cube : (i am on Linux system)</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03e9159f-5828-4281-920e-d8f3a1404c2a.png\"/></figure><p> </p><p>...under root !?   I would try it… but i dont know it has effect or not here.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I tried that too.</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is the EXTI register in the STM32F446. The IMR register is set in it.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b86a5628-55e1-4602-b9e8-86cc22f79a70.jpg\"/></figure><p> </p><p>For some reason the STM32H7R7 doesn't do this and this is probably the reason.</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I set the register manually.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ecea19f-af34-4bbf-a7f4-acd44371faeb.jpg\"/></figure><p> </p><p>And the IMR1 register is still set to zero. I don't understand this.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ddd4afe7-8054-4dde-a2b2-436ea86cf590.jpg\"/></figure><p> </p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>try: ena SBS clk + exti call ...15_10</p><pre><code class=\"language-c\">_HAL_RCC_SBS_CLK_ENABLE(); <br/><br/>GPIO_InitStruct.Pin = GPIO_PIN_11;<br/>GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;<br/>GPIO_InitStruct.Pull = GPIO_NOPULL;<br/>HAL_GPIO_Init(GPIOC, &amp;GPIO_InitStruct);<br/><br/>/* EXTI interrupt init - Jetzt auf dem korrekten Gruppen-Vektor */<br/>HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);<br/>HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);</code></pre><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This won't work.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b9becec9-e1ea-41f6-81a1-1ab17d7fefcd.jpg\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4ae69a93-228d-4ff7-8949-407fca198691.jpg\"/></figure><p> </p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><ul><li>just put the sbs clk enable  -- then ?</li></ul></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In debug mode, I've initialized the GPIO. But when I enter the \"HAL_GPIO_Init(GPIOC, &amp;GPIO_InitStruct);\" instruction, the debugger redirects me to the HAL_GPIO_Init function in the BOOT section, not the Application section. And these pins aren't initialized in the Boot section. So I also added the configuration to the Boot section, but that didn't help either.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d29cc4a2-7447-4bd5-9517-76ff7cb1e94c.jpg\"/></figure><p> </p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>if sbs setting has effect, set in Cube:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/985cb9ca-4e71-4243-a085-e8625412facb.png\"/></figure><p>...should do it.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did this and it helped!!!! Thank you so much!!!</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7eeb052f-8414-48ef-b906-b7f8c7444962.jpg\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/515f2e68-9228-4d99-b0eb-2da928fd5b55.jpg\"/></figure><p> </p><p> </p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This option is probably for external memories powered by 1.8V?? I have an MX25LM51245G powered by 3.3V.</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It would be good if someone from ST commented and gave some tips.</p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I wanted to view the .ioc file with the EXTI configuration in the examples from the NUCLEO-H7S3L8 repositories, but it turns out that it is a clean configuration.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa2d1164-8f30-484d-8dbe-4fe60ce21f61.jpg\"/></figure><p> </p><p> </p></div>",
+                    "author": "Procek",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

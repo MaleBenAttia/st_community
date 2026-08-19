@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "164642",
+            "publicId": "164642",
+            "title": "STM32F303K8, write to SYSCFG register has no effect",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f303k8-write-to-syscfg-register-has-no-effect-164642",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "DAC",
+                "DMA",
+                "STM32F3 series"
+            ],
+            "published_at": "2026-04-10T13:51:14+00:00",
+            "views": 327,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Is it possible that you forgot to enable the SYSCFG peripheral clock?\n\nIf the SYSCFG clock is not enabled, register writes can appear to succeed but have no effect.\n\n```\n\nRCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;\n\n```\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I got another strange issue with a STM32F3, as usual related to DMA.\n\nThe problem relates to an \"old\" DAC / DMA example I tried to port to a different MCU.\n\nThe original is called \"DMA\\_RAM\\_DAC\", and is part of the V1.1.0 firmware package for the F303 discovery board.\n\n(.../STM32F3-Discovery\\_FW\\_V1.1.0/Project/Peripheral\\_Examples/DMA\\_RAM\\_DAC)\n\nBuilding and running it on this target, it works fine.\n\nHowever, my actual target hardware is the F3 Nucleo32. This board has a STM32F303K8T, instead of the 'huge'  STM32F303VCT on the F3-Discovery.\n\nThe relevant difference here is, the mentioned example uses DMA2 channel3, which does not exist on smaller devices like the STM32F303K8. According to the reference manual, the relevant DMA request can be mapped to DMA1, by setting corresponding bits in SYSCFG (RM0316 Rev.10, page 267, 269).\n\nTo do this DMA request mapping, bit 13 in SYSCFG->CFGR1 needs to be set.\n\nAnd here is were the problem starts.\n\nNo attempt to write to this register seems to have any effect, being it (SPL) library calls, register access (SYSCFG->CFGR1), or directly accessing it by address.\n\nThe reference manual, IDE register-map file, ST's \\*.SVD and the toolchain agree on 0x40010000 for SYSCFG, with CFGR1 at offset 0.\n\nI checked the instructions and the core register values in the debugger, and everything looks ok.\n\nOnly the final write access (str r2, [r3]) has no effect, but causes no errors either.\n\n```\n\nSYSCFG->CFGR1 |= 0x00002000;\n\n2300 movs r3, #0\n\nF2C40301 movt r3, #0x4001\n\n681A ldr r2, [r3]\n\nF4425200 orr r2, r2, #0x2000\n\n601A str r2, [r3]\n\n```\n\nConsequently, there is no output from the DAC.\n\nReplacing all instances of \"DMA2\" with \"DMA1\" and adding the access to SYSCFG are the only changes to the source code of the original project (and changing the target MCU, of course).\n\nAccessing the DAC via timer and interrupt work fine, this is not the issue either.\n\nAnd when stepping beyond the DMA enable, all the expected flags are set, and no error flag.\n\nConfiguring a DMA TC interrupt for testing, it doesn't fire either.\n\nThe toolchain / IDE used is SeggerES (Embedded Studio), with the latest being V8.22a.\n\nThe build for the F3-Discovery target was done with SeggerES as well, so there seems no inherent problem.\n\nTrying Segger's freestanding \"Ozone\" debugger (unrelated to my moniker !) revealed no further insights.\n\nThe only issue I see with SeggerES so far is that the SYSCFG peripheral registers CFGR3 and CFGR4 are missing in the debug view.\n\nI am overlooking something here, or is anybody aware of issues related to accessing SYSCFG ?\n\nAll bits in SYSCFG->CFGR1 are marked as \"rw\" in reference manual, is that correct ?\n\nOtherwise i'm running out of ideas.",
+            "images": [],
+            "author": "Ozone",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Is it possible that you forgot to enable the SYSCFG peripheral clock?<br/>If the SYSCFG clock is not enabled, register writes can appear to succeed but have no effect.</p>\n<pre class=\"lia-code-sample language-c\"><code>RCC-&gt;APB2ENR |= RCC_APB2ENR_SYSCFGEN;\n</code></pre>\n<p>Regards<br/>/Peter </p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You are right, enabling SYSCFG in the first place helped.<br/>I don't know why I assumed it was on automatically, I probably mixed that up with SCB ...</p><p>And I wonder why there is no error reaction.<br/>I remember quite well that Cortex M devices from other vendors throw hardfaults in this case.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

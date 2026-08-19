@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "163740",
+            "publicId": "163740",
+            "title": "Use __attribute__((interrupt)) for exception handler with GCC on STM32H7",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/use-attribute-interrupt-for-exception-handler-with-gcc-on-stm32h7-163740",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-12T16:33:56+00:00",
+            "views": 563,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Cortex-M3/4/7 provide automatic 8-byte stack alignment in hardware upon interrupt, see SCB\\_CCR.STKALIGN bit, which is by default set (and also see the stacked xPSR's bit 9).\n\nIn other words, in the normal setting there's no need for the extended prologue/epilogue providing the alignment in software.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI am wondering why the STmicro example code (STM32CubeH7) does not use the interrupt attribute for defining exception handlers.\n\nThe difference I have noted  when using this attribute is that it forces the stack alignement to 8 bytes:\n\nExample:\n\n```\n\nvoid f(void);\n\nvoid handler(void)\n\n{\n\nreturn f();\n\n}\n\n```\n\ncompiles with arm-none-eabi-gcc 10.2.1 and -O1 -mthumb -mcpu=cortex-m7 in:\n\n```\n\nhandler():\n\npush {r3, lr}\n\nbl f()\n\npop {r3, pc}\n\n```\n\nwhereas if I add the attribute \"interrupt\":\n\n```\n\nhandler():\n\nmov r0, sp\n\nbic r1, r0, #7\n\nmov sp, r1\n\npush {r0, lr}\n\nbl f()\n\npop {r0, lr}\n\nmov sp, r0\n\nbx lr\n\n```\n\nOne can see the difference is in the 3 first instructions that align the stack to 8 bytes. Indeed the stack is not always aligned to 8 bytes inside a function.  From the Procedure Call Standard:\n\n```\n\n6.2.1.1 Universal stack constraints\n\nAt all times the following basic constraints must hold:\n\nStack-limit ≤ SP ≤ stack-base. The stack pointer must lie within the extent of the stack.\n\nSP mod 4 = 0. The stack must at all times be aligned to a word boundary.\n\nA process may only store data in the closed interval of the entire stack delimited by [SP, stack base - 1] (where SP is the value of register r13).\n\nNote\n\nThis implies that instructions of the following form can fail to satisfy the stack discipline constraints, even when reg points within the extent of the stack.\n\nldmxx reg, {..., sp, ...} // reg != sp\n\nIf execution of the instruction is interrupted after sp has been loaded, the stack extent will not be restored, so restarting the instruction might violate the third constraint.\n\n6.2.1.2 Stack constraints at a public interface\n\nThe stack must also conform to the following constraint at a public interface:\n\nSP mod 8 = 0. The stack must be double-word aligned.\n\n```\n\nSo my questions are:\n\n1) why the interrupt attribute is not used in STMicro code ?\n\n2) is there a functional impact to this potentiel bad alignment ?",
+            "images": [],
+            "author": "Gpeti",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I though it was one of the key design features of Cortex-M that it does <em>not</em> require any special attributes for interrupt handlers - they are just plain C functions ?</p><p>Do you see other manufacturers doing this ?</p><p> </p><p><strong><u>PS</u>:</strong></p><p>See also: <a class=\"\" href=\"https://stackoverflow.com/questions/76432711/usage-of-attributeinterrupt-of-arm-none-eabi-gcc-for-exception-handlers\" rel=\"noopener nofollow noreferrer\" target=\"_blank\"><em>Usage of __attribute((interrupt)) of arm-none-eabi-gcc for exception handlers</em></a></p><p>And: <a href=\"https://stackoverflow.com/a/70657952\" rel=\"noopener nofollow noreferrer\" target=\"_blank\"><em>https://stackoverflow.com/a/70657952</em></a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Cortex-M3/4/7 provide automatic 8-byte stack alignment in hardware upon interrupt, see SCB_CCR.STKALIGN bit, which is by default set (and also see the stacked xPSR's bit 9).</p><p>In other words, in the normal setting there's no need for the extended prologue/epilogue providing the alignment in software.</p><p>JW </p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I misunderstood the meaning of this bit STKALIGN, thank you for clarifying.</p></div>",
+                    "author": "Gpeti",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Simple explanation: the code must have been originally written for STM32F1 series which, (only if not fixed with a proper startup code), exhibits a little problem present in the very first version of Cortex-M3 core. The problem is not present in any other Cortex-M core.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"4148\">@gbm</user-mention></p><p>&gt; problem present in the very first version of Cortex-M3 core</p><p>Can you please elaborate?</p><p>Thanks,</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>STM32F1  are based on  earlier edytion of core where STKALIGN=0  by default, </p><p> </p></div>",
+                    "author": "Radosław",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Even if the startup aligns the stack on 8 bytes, interrupt can occur after any 4-byte push instruction. So the automatic stack alignment is very helpful.  Cortex-M0 cannot do automatic stack alignment, but it does not have the demanding data types &amp; instructions as well.</p><p>So why attribute(interrupt) exists in the ARM Cortex compiler? Maybe it was intended for other non-compliant chips. Or a tiny bug of the compiler: maybe it should ignore this attribute for -mcpu=cortex-m7 , but no one cared to test this.</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"37189\">@Pavel A.</user-mention> wrote:<br/><p>So why attribute(interrupt) exists in the ARM Cortex compiler? </p><hr/></blockquote><p>Maybe its just a remnant from pre-Cortex days?</p><p>Much like the <font face=\"courier new,courier\">register</font> qualifier in C?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

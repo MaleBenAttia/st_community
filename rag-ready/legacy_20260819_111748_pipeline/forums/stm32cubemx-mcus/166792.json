@@ -1,0 +1,87 @@
+{
+    "forum": [
+        {
+            "id": "166768",
+            "publicId": "166792",
+            "title": "LED label in STM32CubeMX may be incorrect for NUCLEO64 STM32G431",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/led-label-in-stm32cubemx-may-be-incorrect-for-nucleo64-stm32g431-166792",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-07-09T06:18:52+00:00",
+            "views": 171,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Backflip and welcome to the community,\n\nFor your question:\n\n> The same pin is used for input to an OP-AMP. Would it be possible to use it if you disconnect the SB6 jumper?\n\nYes you can use that GPIO for the OPAMP input while removing SB6.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c996f4c5-62f4-4c10-b273-21039878c537.png)\n\nFor the CubeMx, I’ll escalate internally for analysis and fix (internal ticket for follow-up: ***CDM0064210***) as in the schematic the reference is LD2:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ff2ede6-bc31-45af-8521-2c40c8a14a4e.png)\n\nThank you ​@Peter BENSCH for the notification.\n\nHope that helps.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello Community\n\nThis is my first post here, and I have started learning about the STM32G4xx processors. So I might very well have got something wrong here. I like to ask about a detail in the pin-out picture of the STM32G431 Nucleo64 board in STM32CubeMX software.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/21764103-9473-4d9f-93a9-bc446f339370.png)\n\nWhen I look at the schematics for this Nucleo board, it seems that the PA5 pin can activate the LD2 LED and not the LD1. I guess, that for the typical beginner start blink software, you normally use LD2. When I look at the same picture for the NUCLEO64 STM32G474 board, this PA5 pin activate LD2.\n\nThe same pin is used for input to an OP-AMP. Would it be possible to use it if you disconnect the SB6 jumper?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c996f4c5-62f4-4c10-b273-21039878c537.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/21764103-9473-4d9f-93a9-bc446f339370.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ff2ede6-bc31-45af-8521-2c40c8a14a4e.png"
+            ],
+            "author": "Backflip",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome ​<user-mention data-id=\"108094\">@Backflip</user-mention>, to the community!</p><p>It is always advisable to first take a look at the basic rules of forum boards. In the community’s case, you can find them right on the first page at the top right under “Ready to get started?” under <strong>Tips on posting</strong>:</p><p><oembed url=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\"></oembed></p><p>In your case, I am missing the versions of the software and firmware used and the steps to create your project. If I create an empty project for a NUCLEO-G474RE using the current CubeMX 6.18.0 and the current firmware STM32Cube_FW_G4_V1.6.3, the correct LD2 is found on PA5.</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Peter</p><p>Thanks for the advise.</p><p>Actually, before I posed my question, I updated to the 6.18.0, and it seems that I got the same issue than the previous version. </p><p>Yes, for the NUCLEO-G474RE the Pin label seems correct. It is the NUCLEO-G431RB that I am asking about in the CubeMX Pinout wiew. You see the screen dump above with a red marking ring around the issue. I think this marking should have been (LD2) like for the G474RE.<br/><br/>Regards /Backflip</p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You caught me - I should not only have skimmed your question, but read it properly.</p><p>This appears to be another typo going back at least as far as CubeMX 6.16.1, as I was able to confirm after a brief check. The cause turned out to be two XML files located in the CubeMX installation folder under:</p><p>db\\plugins\\boardmanager\\boards\\bsp</p><ul><li>NUCLEO-G431RB_Configs.xml  </li> <li>NUCLEO-G431RB_Modes.xml</li></ul><p>You can edit them with a text editor and replace every occurrence of the string <strong>LD1</strong> with <strong>LD2</strong>, then your pinout will be generated correctly.</p><p>I’ll also inform ​<user-mention data-id=\"499\">@mƎALLEm</user-mention>  so that the behaviour is corrected in the next version.</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"108094\">@Backflip</user-mention> and welcome to the community,</p><p>For your question:</p><blockquote><p>The same pin is used for input to an OP-AMP. Would it be possible to use it if you disconnect the SB6 jumper?</p></blockquote><p>Yes you can use that GPIO for the OPAMP input while removing SB6.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c996f4c5-62f4-4c10-b273-21039878c537.png\"/></figure><p>For the CubeMx, I’ll escalate internally for analysis and fix (internal ticket for follow-up: <em><strong>CDM0064210</strong></em>) as in the schematic the reference is LD2: </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ff2ede6-bc31-45af-8521-2c40c8a14a4e.png\"/></figure><p>Thank you ​<user-mention data-id=\"2379\">@Peter BENSCH</user-mention> for the notification.</p><p>Hope that helps.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your replies. Good for me to know, that this marking should have been LD2. I wondered that, I may had got something else wrong about this.</p><p>It seems to me, that CubeMX assumes, that the SB6 jumper is installed, so you cannot use CubeMX to set the PA5 as input for OPAMP2. But I guess, that you can use some HAL function to do it. Am I right?<br/><br/> </p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"Backflip\"><div class=\"content-quote-content\"> <p>Thank you for your replies. Good for me to know, that this marking should have been LD2. I wondered that, I may had got something else wrong about this.</p> <p>It seems to me, that CubeMX assumes, that the SB6 jumper is installed, so you cannot use CubeMX to set the PA5 as input for OPAMP2. But I guess, that you can use some HAL function to do it. Am I right?<br/><br/>\t </p> </div></content-quote><p>CubeMx doesn’t care if SB6 is soldered or not. So remove SB6 and configure PA5 for OPAMP function either in CubeMx or using directly the HAL.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

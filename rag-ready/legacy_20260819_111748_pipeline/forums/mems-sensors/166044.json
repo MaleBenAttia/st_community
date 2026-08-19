@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "166033",
+            "publicId": "166044",
+            "title": "GNSS time synchronization support for IIS3DWBG1/IIS3DWBG1TR and AIS25BA/AIS25BATR",
+            "url": "https://community.st.com/mems-sensors-48/gnss-time-synchronization-support-for-iis3dwbg1-iis3dwbg1tr-and-ais25ba-ais25batr-166044",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "MEMS sensors"
+            ],
+            "published_at": "2026-06-10T17:35:28+00:00",
+            "views": 74,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@TANGQ1 ,\n\nNeither IIS3DWBG1/IIS3DWBG1TR nor AIS25BA/AIS25BATR provides a native GNSS timestamp directly inside the sensor.\n\nRegarding the TDM interface of AIS25BA/AIS25BATR, your interpretation is correct: TDM\\_WCLK is derived from the clocking scheme provided by the host microcontroller to the sensor, and it defines the effective ODR at which the host receives new data from the sensor.\n\nBoth sensors provide an internal timestamp capability, typically used together with data acquisition and FIFO storage. This means that sensor data can be stored in the FIFO and, depending on the configuration, timestamp information can also be captured with a defined cadence or after a given number of samples. However, this timestamp is not synchronized to GNSS time; it is generated from the sensor’s internal clock domain. As a result, its resolution is on the order of the internal clock LSB, approximately 10 µs, and it should be considered as the sensor’s local time reference rather than an absolute GNSS-aligned timebase.\n\nTherefore, if GNSS-aligned timestamps are required, the conversion to GNSS time must be performed on the host side, i.e. in the microcontroller, processor, or data acquisition system.\n\nFor GNSS-based time correlation, we can suggest two possible approaches:\n\nUse AIS25BA/AIS25BATR in TDM mode, where you provide the reference clock to the sensor. In this configuration, you know the acquisition cadence from the supplied clock, but you still need to implement the timestamp logic in software, since the TDM peripheral itself does not provide an absolute GNSS timestamp.\n\nAlternatively, if you need a sensor solution with support for an external clock reference, we can suggest LIS2DUX12. This device supports the possibility of applying an external clock to the sensor, so the timestamp can be synchronized to the clock provided to the sensor rather than relying solely on the internal clock domain. We recommend referring to [AN5909](https://www.st.com/resource/en/application_note/an5909-lis2dux12-ultralowpower-3axis-smart-accelerometer-with-antialiasing-filter-artificial-intelligence-and-advanced-digital-features-stmicroelectronics.pdf), section 3.5.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am evaluating IIS3DWBG1/IIS3DWBG1TR and AIS25BA/AIS25BATR for a data acquisition system where sensor data timestamps need to be aligned with GNSS time.\n\nI would like to ask whether these devices support any GNSS-related time synchronization interface or equivalent mechanism, such as GNSS/GPS 1PPS or PPS input, UTC/NMEA time reference input, PTP/IEEE1588 synchronization, external sync input, external reference clock input, FSYNC/CLKIN/EXTCLK, or any pin/register mechanism that can reset, latch, align, or discipline the internal timestamp counter using an external timing signal.\n\nBased on my review of the publicly available ST documentation and product pages, IIS3DWBG1/IIS3DWBG1TR appear to provide an internal timestamp counter and FIFO timestamp function, but I have not found any clearly documented pin, register, or configuration mechanism to align this timestamp to GNSS 1PPS/PPS or UTC time.\n\nFor AIS25BA/AIS25BATR, the publicly available documentation shows TDM interface signals such as TDM\\_MCLK, TDM\\_BCLK, TDM\\_WCLK and TDM\\_SDOUT. My current understanding is that TDM\\_WCLK is a TDM word/frame synchronization signal, not an absolute GNSS/PPS time synchronization input.\n\nIf GNSS-aligned timestamps are required, my current understanding is that timestamp alignment may need to be implemented externally in the host MCU, processor, or data acquisition system, for example by timestamping DRDY/FIFO readout using a GNSS/UTC/1PPS reference.\n\nCould anyone from the community or ST moderators help check whether this understanding is correct?\n\nAlso, if there are any application notes, reference designs, or recommended implementation methods for GNSS-synchronized timestamping with these devices, I would appreciate the guidance.\n\nThank you.",
+            "images": [],
+            "author": "TANGQ1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107338\">@TANGQ1</user-mention> ,</p><p>Neither IIS3DWBG1/IIS3DWBG1TR nor AIS25BA/AIS25BATR provides a native GNSS timestamp directly inside the sensor.</p><p> </p><p>Regarding the TDM interface of AIS25BA/AIS25BATR, your interpretation is correct: TDM_WCLK is derived from the clocking scheme provided by the host microcontroller to the sensor, and it defines the effective ODR at which the host receives new data from the sensor.</p><p> </p><p>Both sensors provide an internal timestamp capability, typically used together with data acquisition and FIFO storage. This means that sensor data can be stored in the FIFO and, depending on the configuration, timestamp information can also be captured with a defined cadence or after a given number of samples. However, this timestamp is not synchronized to GNSS time; it is generated from the sensor’s internal clock domain. As a result, its resolution is on the order of the internal clock LSB, approximately 10 µs, and it should be considered as the sensor’s local time reference rather than an absolute GNSS-aligned timebase.</p><p> </p><p>Therefore, if GNSS-aligned timestamps are required, the conversion to GNSS time must be performed on the host side, i.e. in the microcontroller, processor, or data acquisition system.</p><p> </p><p>For GNSS-based time correlation, we can suggest two possible approaches:</p><p> </p><p>Use AIS25BA/AIS25BATR in TDM mode, where you provide the reference clock to the sensor. In this configuration, you know the acquisition cadence from the supplied clock, but you still need to implement the timestamp logic in software, since the TDM peripheral itself does not provide an absolute GNSS timestamp.</p><p> </p><p>Alternatively, if you need a sensor solution with support for an external clock reference, we can suggest LIS2DUX12. This device supports the possibility of applying an external clock to the sensor, so the timestamp can be synchronized to the clock provided to the sensor rather than relying solely on the internal clock domain. We recommend referring to <a href=\"https://www.st.com/resource/en/application_note/an5909-lis2dux12-ultralowpower-3axis-smart-accelerometer-with-antialiasing-filter-artificial-intelligence-and-advanced-digital-features-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN5909</a>, section 3.5.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Federica,</p><p>Thank you very much for the clear and detailed explanation.</p><p>Your answer confirms my understanding: IIS3DWBG1/IIS3DWBG1TR and AIS25BA/AIS25BATR do not provide a native GNSS-aligned timestamp inside the sensor, and their internal timestamp should be treated as a local sensor time reference rather than an absolute GNSS timebase.</p><p>It is also helpful to know that AIS25BA/AIS25BATR in TDM mode can provide a known acquisition cadence from the host-supplied clock, but the absolute GNSS timestamping still needs to be implemented on the host MCU/processor/data acquisition system side.</p><p>Thank you also for suggesting LIS2DUX12 and AN5909 section 3.5 as a possible reference for external clock support. I will review those materials.</p><p>Best regards,<br/>TANGQ1</p></div>",
+                    "author": "TANGQ1",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

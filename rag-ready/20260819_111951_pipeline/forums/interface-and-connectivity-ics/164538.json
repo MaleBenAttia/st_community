@@ -1,0 +1,97 @@
+{
+    "forum": [
+        {
+            "id": "164538",
+            "publicId": "164538",
+            "title": "Unable to bring up ST67",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/unable-to-bring-up-st67-164538",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "ST67W series"
+            ],
+            "published_at": "2026-04-07T15:50:29+00:00",
+            "views": 613,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hello @JohnWick1,\n\nIt seems there is an issue on your SPI configuration. MOSI, MISO and CLK pins seems not configured correctly.\n\nYou can refer to the ST67W6X\\_CLI project (Firmware\\Projects\\NUCLEO-H7S3L8\\Applications\\ST67W6X\\ST67W6X\\_CLI\\Appli) provided in the X-CUBE-ST67W61 v1.2.0 package, to compare to your SPI configuration.\n\nRegards",
+            "best_answer_author": "Louis AUDOLY",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\n1. [Part Number] STM32H7R7I8T6\n\n2. [Environment] x-cube-st67 1.2 version and latest cube IDE.\n\n3. [Schematics] If it is a custom board --> Share the schematics using “Attach file” option or inserting some image.\n\n4. [Details]\n\nI am using STM32H7R7I8T6 MCU and integrate the x-cube-st67 related codes.\n\nBut i am facing this error: **sem\\_if\\_ready not received**.\n\nxReturned = xSemaphoreTake( mdm->sem\\_if\\_ready, pdMS\\_TO\\_TICKS(time\\_ms) ); if (xReturned != pdPASS) { SYS\\_LOG\\_ERROR(\"sem\\_if\\_ready not received\\n\"); return W61\\_STATUS\\_ERROR; }\n\ni compared the h7r3 example included ioc file, no idea what's difference.\n\nMeanwhile, I also update the ST67 firmware by this command:\n\n.\\QConn\\_Flash\\QConn\\_Flash\\_Cmd.exe --port COM11 --config .\\NCP\\_Binaries\\mission\\_t01\\_flash\\_prog\\_cfg\\_v2.0.89.ini --efuse .\\NCP\\_Binaries\\efusedata.bin\n\nBut still got the issue.\n\nThe CS pin, RDY PIN, EN pin are all Hi. boot pin is low.\n\nSPI CLK no output.\n\nAny ideas? codes  is in attached.\n\n5. [Expected behavior] We should get \"ready\" from ST67, but timeout.\n\n6. [How to reproduce] Just pull up chip en and pull low boot pin.\n\n7. [Occurrence] 100%.\n\n8. [Sanity checks]\n\nI have compared st67 example on h7s3, the only diff is spi bus and we have external power control \"wifi\\_sleep\" to pull low to supply 3.3v.\n\nThanks a lot for the support.\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86f85045-4992-a9b8-2037-9d640cd076a6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a1dda56-ffff-c005-5264-ec8e75a61a5c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8b63ebc-d007-a414-e6c1-cfcd23a6b141.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7b1a8b13-6655-2400-389b-bc5b39385032.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/22106102-484d-8886-913a-62cb68f6da74.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ecd0c503-7f7f-812a-cb81-5f1e92c85398.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bafc1184-ae6f-59fc-d271-b2089b160d8a.png"
+            ],
+            "author": "JohnWick1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum.</p><p> </p><p>Please give more details of your setup - see: <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" target=\"_blank\" title=\"How to write your question to maximize your chances to find a solution\">How to write your question to maximize your chances to find a solution</a></em></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>okay, updated.</p><p>BTW, I just measured that the SPI no CLK and not sure why the MISO keep hi around 1 sec then pull down.</p><p>Then nothing happened.</p></div>",
+                    "author": "JohnWick1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"105855\">@JohnWick1</user-mention> <br/><br/>I am facing exactly the same issue. I have made a custom board using stmh563zit6 and st67w611m1 as the NCP. While initializing the AT Modem, it fails to receive the semaphore (w61_at_sys.c:W61_WaitForReady)<br/><br/></p><pre class=\"lia-code-sample language-c\"><code> xReturned = xSemaphoreTake(mdm-&gt;sem_if_ready, pdMS_TO_TICKS(time_ms));\n if (xReturned != pdPASS)\n {\n SYS_LOG_ERROR(\"sem_if_ready not received\\n\");\n return W61_STATUS_ERROR;\n }</code></pre><p><br/>Also, how do we update the firmware on ST67 in linux. I have the scripts in X-CUBE-ST67W61, (NCP_update_mission_profile_t01.sh and similar), but these scripts fail to recognize the custom board.   <br/><br/></p></div>",
+                    "author": "KushalGandhi108",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have ever update FW by script on h7rs mcu, after I have integrated NCP_Loader example inside SDK.</p><p>so maybe you need do something similar like NCP_Loader.</p></div>",
+                    "author": "JohnWick1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1875\">@Louis AUDOLY</user-mention> <br/><br/>I tried flashing the ST67 NCP using Qconn_Flash_Cmd-ubuntu in standalone mode, after putting the ncp in flash mode. But the shake hand fails between NCP and the host.<br/><br/></p><pre class=\"lia-code-sample language-c\"><code>❯ ./QConn_Flash/QConn_Flash_Cmd-ubuntu --port /dev/ttyUSB0 --config ./NCP_Binaries/mission_t02_flash_prog_cfg.ini --efuse NCP_Binaries/efusedata.bin\n\n[17:46:22.644] - Serial port is /dev/ttyUSB0\n[17:46:22.644] - ==================================================\n[17:46:22.645] - FW get address from partiton file /home/gandhi/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-ST67W61/1.2.0/Projects/ST67W6X_Scripts/Binaries/NCP_Binaries/./partition.bin\n[17:46:22.645] - Address=0x10000\n[17:46:22.645] - FW get size from partiton file /home/gandhi/STM32Cube/Repository/Packs/STMicroelectronics/X-CUBE-ST67W61/1.2.0/Projects/ST67W6X_Scripts/Binaries/NCP_Binaries/./partition.bin\n[17:46:22.645] - Size=1785856\n[17:46:22.646] - Program Start\n[17:46:22.646] - ========= eflash loader cmd arguments =========\n[17:46:22.647] - serial port is /dev/ttyUSB0\n[17:46:22.647] - cpu_reset=False\n[17:46:22.854] - com speed: 2000000\n[17:46:22.854] - ========= Interface is uart =========\n[17:46:22.855] - Bootrom load\n[17:46:22.855] - ========= get_boot_info =========\n[17:46:22.855] - ========= image get bootinfo =========\n[17:46:23.108] - tx rx and power off, press the machine!\n[17:46:23.108] - cutoff time is 0.05\n[17:46:23.158] - power on tx and rx\n[17:46:24.063] - reset cnt: 0, reset hold: 0.05, shake hand delay: 0.1\n[17:46:24.063] - clean buf\n[17:46:24.064] - send sync\n[17:46:24.165] - ack is b''\n[17:46:24.165] - retry\n[17:46:24.416] - tx rx and power off, press the machine!\n[17:46:24.416] - cutoff time is 0.05\n[17:46:24.467] - power on tx and rx\n[17:46:25.372] - reset cnt: 0, reset hold: 0.05, shake hand delay: 0.1\n[17:46:25.372] - clean buf\n[17:46:25.372] - send sync\n[17:46:25.473] - ack is b''\n[17:46:25.474] - retry\n[17:46:25.725] - tx rx and power off, press the machine!\n[17:46:25.725] - cutoff time is 0.05\n[17:46:25.775] - power on tx and rx\n[17:46:26.680] - reset cnt: 0, reset hold: 0.05, shake hand delay: 0.1\n[17:46:26.680] - clean buf\n[17:46:26.680] - send sync\n[17:46:26.781] - ack is b''\n[17:46:26.781] - retry\n[17:46:26.781] - shake hand fail\n[17:46:26.781] - shake hand fail\n[17:46:26.782] - ========= ChipID: =========\n[17:46:26.782] - Get bootinfo time cost(ms): 3927.554443359375\n[17:46:26.782] - {\"ErrorCode\": \"0050\",\"ErrorMsg\":\"CHIP IMG LOAD SHAKEHAND FAIL\"}\n[17:46:26.782] - Burn Retry\n[17:46:26.782] - Burn return with retry fail</code></pre><p> </p><p>I have connected usb to ttl converter to directly flash the NCP using QConn in the standalone mode over UART. To bring the NCP in flash mode I use stm32h563zit6 host to toggle the boot and chip_en pin.<br/>any idea what's going wrong? or what other things I can try?</p></div>",
+                    "author": "KushalGandhi108",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I just found that the magic seem incorrect: it will run into line 297...any ideas? :(</p><div class=\"\"><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"1.jpg\" style=\"width: 680px;\"><img alt=\"1.jpg\" height=\"316\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8b63ebc-d007-a414-e6c1-cfcd23a6b141.jpg\" title=\"1.jpg\" width=\"680\"/></span></div><div class=\"\"> </div><div class=\"\">And what i got is 0xAA54</div><div class=\"\"><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"1.jpg\" style=\"width: 0px;\"><img alt=\"1.jpg\" height=\"0\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7b1a8b13-6655-2400-389b-bc5b39385032.jpg\" title=\"1.jpg\" width=\"0\"/></span></div><div class=\"\"> </div><div class=\"\">But most of time, i got 0x00 magic number,  i just double checked the SPI/GPDMA setting in ioc, just follow this page:</div><div class=\"\"><a href=\"https://wiki.st.com/stm32mcu/wiki/Connectivity:ST67W611M1_spi\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mcu/wiki/Connectivity:ST67W611M1_spi</a></div><div class=\"\"> </div><div class=\"\">Still no luck ...</div></div>",
+                    "author": "JohnWick1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105855\">@JohnWick1</user-mention>,</p><p> </p><p>It seems there is an issue on your SPI configuration. MOSI, MISO and CLK pins seems not configured correctly.<br/>You can refer to the ST67W6X_CLI project (Firmware\\Projects\\NUCLEO-H7S3L8\\Applications\\ST67W6X\\ST67W6X_CLI\\Appli) provided in the X-CUBE-ST67W61 v1.2.0 package, to compare to your SPI configuration.</p><p> </p><p>Regards</p></div>",
+                    "author": "Louis AUDOLY",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Louis,</p><p>I had compared the SPI config in ioc, included DMA. it almost the same but just change to SPI2, not spi1.</p><p>I also found i had an error about DMA RX setting then correct it, but now, I got random magic number...</p><p>No idea what's wrong about SW.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JohnWick1_0-1775835472958.png\" style=\"width: 400px;\"><img alt=\"JohnWick1_0-1775835472958.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ecd0c503-7f7f-812a-cb81-5f1e92c85398.png\" title=\"JohnWick1_0-1775835472958.png\"/></span></p><p>SPI2 setting:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JohnWick1_1-1775835526805.png\" style=\"width: 400px;\"><img alt=\"JohnWick1_1-1775835526805.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/86f85045-4992-a9b8-2037-9d640cd076a6.png\" title=\"JohnWick1_1-1775835526805.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JohnWick1_2-1775835551234.png\" style=\"width: 400px;\"><img alt=\"JohnWick1_2-1775835551234.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5a1dda56-ffff-c005-5264-ec8e75a61a5c.png\" title=\"JohnWick1_2-1775835551234.png\"/></span></p><p>DMA setting:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JohnWick1_3-1775835582399.png\" style=\"width: 400px;\"><img alt=\"JohnWick1_3-1775835582399.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bafc1184-ae6f-59fc-d271-b2089b160d8a.png\" title=\"JohnWick1_3-1775835582399.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"JohnWick1_4-1775835604181.png\" style=\"width: 400px;\"><img alt=\"JohnWick1_4-1775835604181.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/22106102-484d-8886-913a-62cb68f6da74.png\" title=\"JohnWick1_4-1775835604181.png\"/></span></p><p> </p><p> </p></div>",
+                    "author": "JohnWick1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After I change the SPI <span>BaudRatePrescaler </span>to <span>SPI_BAUDRATEPRESCALER_128, it works now.</span></p><p><span>Indeed, this issue was caused by SPI.</span></p><p> </p><p><span>Thanks a lot for the support.</span></p></div>",
+                    "author": "JohnWick1",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Louis AUDOLY",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

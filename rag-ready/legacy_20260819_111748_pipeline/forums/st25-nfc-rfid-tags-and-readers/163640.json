@@ -1,0 +1,159 @@
+{
+    "forum": [
+        {
+            "id": "163640",
+            "publicId": "163640",
+            "title": "ST25R3911B Single-Ended Cable Mode — Only 10mm Read Range Despite Good SWR Match",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r3911b-single-ended-cable-mode-only-10mm-read-range-despite-good-swr-match-163640",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Readers – ST25R391x series"
+            ],
+            "published_at": "2026-03-10T09:57:06+00:00",
+            "views": 1116,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hello qwdwdwwq,\n\ndo you have new findings related to this issue?\n\nYou could also monitor VDD, VSP\\_RF and the voltage directly on the RFO pin.\n\nMaybe there is also some issue with the voltage stability.\n\nPlease let us know in case of questions.\n\nbr Travis",
+            "best_answer_author": "Travis Palmer",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Just a heads-up, this post was written by AI. I used it to document a process of debugging this board, and create a summary for a forum post.\n\n**Platform:** ST25R3911B, RFAL library, ISO 14443A\n\n**Config:** Single-ended mode, 0.3m 50Ω coaxial cable, remote antenna PCB\n\n**Supply:** 5V on VDD and VIO\n\n**Read range:** ~10mm (expected 40-80mm for antenna size)\n\n---\n\n## Setup Overview\n\nI'm using an ST25R3911B driving a remote PCB antenna via a 0.3m 50Ω coaxial cable in single-ended mode (RFO1). The antenna is a 2-turn square loop, 70×70mm outer dimension, 1.4mm trace width, 0.7mm spacing, calculated inductance ~735nH.\n\nThe chip drives two antennas switched alternately — RFO1 to the remote antenna via coax, RFO2 to a local antenna. Both antennas show identical poor range (~10mm), so the problem is not specific to the coax path.\n\n---\n\n## Hardware — Reader PCB Matching Network\n\nDesigned using the ST25R Antenna Matching Tool V3.6.2 with these parameters:\n\n* Target: ST25R3911B\n\n* Config: single-ended-cable\n\n* Antenna inductance: 701 nH\n\n* Target matching Z: 8 Ω\n\n* Target Q: 40\n\n* Cable length: 0.3 m\n\n**Reader-side components (confirmed populated):**\n\n* EMC inductor: 330nH, 160mΩ DCR\n\n* First shunt: 220pF C0G\n\n* Series cap: 176pF C0G\n\n* Middle shunt: 452pF C0G\n\n* RFI1 divider: 10pF / 150pF C0G\n\n* SMA shunt: 154pF C0G\n\n---\n\n## Hardware — Antenna PCB\n\nTopology: Coax SMA → C1 (series) → node → C2 (parallel to GND) + R1 (parallel to GND) + Antenna loop\n\n**Current tuned values (arrived at empirically via VNA):**\n\n* C1 = 47pF C0G\n\n* C2 = 110pF C0G\n\n* R1 = 1kΩ\n\n* All caps confirmed C0G/NP0 (Kyocera KGM series)\n\n**Antenna:**\n\n* 2-turn square PCB loop\n\n* Outer dimension: 70×70mm (trace center to center)\n\n* Trace width: 1.4mm, spacing: 0.7mm\n\n* Calculated inductance (Greenhouse formula): ~735nH\n\n* DC resistance measured: 0.1Ω\n\n---\n\n## VNA Results\n\nAfter extensive iterative tuning, best result achieved:\n\n* **SWR: 1.04** at the reader SMA (measuring through 0.3m cable)\n\n* **S11: -35dB**\n\n* **Resonance: ~13.85 MHz** (slightly high, 13.56 MHz target)\n\n* **Impedance: ~49Ω** — essentially perfect 50Ω match\n\nSmith chart shows clean resonance loop passing through center.\n\n---\n\n## Voltage Measurements (scope, 5V supply)\n\nMeasurement Point Vpp\n\n|  |  |\n\n| --- | --- |\n\n| RFO1 pin | 4V |\n\n| After 330nH EMC inductor | 9V |\n\n| After matching network / before SMA | 5-6V |\n\n| After 0.3m coax cable at antenna SMA | 6V |\n\n| Directly across antenna loop terminals | 7V |\n\n**The problem:** Despite SWR=1.04 and a resonant antenna tank, there is virtually **no Q multiplication** at the antenna. 6Vpp into the antenna SMA, only 7Vpp across the antenna loop.\n\n---\n\n## Software Configuration\n\nRFAL library, confirmed working after fixing a critical bug:\n\n**Bug fixed:** The handshake() function was calling rfalNfcInitialize() on every poll cycle when no tag was present, constantly resetting the chip including analog config and calibration. This was causing instability. Fixed by moving init to a one-time startup function.\n\n**Current firmware:**\n\nc\n\n```\n\n// Called once at startup:\n\nvoid init() {\n\nspiInit(spiHandler);\n\nrfalNfcInitialize();\n\nrfalChipSetAntennaMode(true, false); // single-ended\n\nrfalAdjustRegulators(NULL);\n\nrfalCalibrate();\n\n}\n\n// Poll loop:\n\nNFC_State handshake() {\n\nrfalNfcDiscoverParam discPParam = {\n\n.compMode = RFAL_COMPLIANCE_MODE_ISO,\n\n.techs2Find = RFAL_NFC_POLL_TECH_A,\n\n.techs2Bail = 0,\n\n.totalDuration = 1000U,\n\n.devLimit = 1,\n\n.maxBR = RFAL_BR_106,\n\n};\n\nrfalNfcDiscover(&discPParam);\n\nuint32_t timeoutRef = HAL_GetTick();\n\nwhile (rfalNfcGetState() != RFAL_NFC_STATE_ACTIVATED) {\n\nrfalNfcWorker();\n\nif (HAL_GetTick() - timeoutRef > 1500U)\n\nreturn NFC_State::SENSOR_NOT_DETECTED;\n\n}\n\nreturn NFC_State::OK;\n\n}\n\n```\n\n**Register readback after init:**\n\n* 0x00 (IO\\_CONF1) = 0x8F → bit 7 = 1 → single-ended confirmed :white\\_heavy\\_check\\_mark:\n\n* 0x27 (RFO\\_AM\\_OFF\\_LEVEL) = 0x00 → all driver segments enabled = maximum power :white\\_heavy\\_check\\_mark:\n\n* Transmit frequency confirmed at 13.56 MHz on scope :white\\_heavy\\_check\\_mark:\n\n---\n\n## What I've Ruled Out\n\n* :white\\_heavy\\_check\\_mark: Antenna trace continuity — 0.1Ω DC resistance, no broken vias\n\n* :white\\_heavy\\_check\\_mark: Cap dielectric — all C0G/NP0 confirmed\n\n* :white\\_heavy\\_check\\_mark: Driver strength — register 0x27=0x00 (max power)\n\n* :white\\_heavy\\_check\\_mark: Single-ended mode — confirmed via register readback\n\n* :white\\_heavy\\_check\\_mark: Firmware constant reinit bug — fixed, slight range improvement after fix\n\n* :white\\_heavy\\_check\\_mark: Transmit frequency — confirmed 13.56 MHz on scope\n\n* :white\\_heavy\\_check\\_mark: Both antennas affected equally — rules out coax-specific issue\n\n* :white\\_heavy\\_check\\_mark: Supply voltage — 5V on VDD and VIO, within spec\n\n---\n\n## Key Questions\n\n1. **Why is Q multiplication not happening at the antenna despite SWR=1.04?** The 50Ω coax termination seen through C1 may be the dominant loss (50Ω coax presents ~77Ω effective parallel load to the tank), killing Q. Is this expected in single-ended cable mode?\n\n2. **Is 10mm range expected for single-ended cable operation?** I understand single-ended costs 6dB vs differential. Combined with 3.3V→5V improvement, are there other fundamental limitations I'm missing?\n\n3. **Should I expect voltage multiplication at the antenna in this topology?** Or does the 50Ω matching inherently prevent high Q operation at the antenna?\n\n4. **Any suggestions for improving range in single-ended cable mode** without switching to differential?\n\nAny help appreciated — I've been at this for a while and running out of ideas!\n\n---\n\n## Summary of Setup\n\n```\n\nST25R3911B (5V, single-ended) ↓ RFO1330nH EMC inductor ↓Pi matching network (220pF || 176pF series || 452pF) ↓RFI1 tap (10pF/150pF divider) ↓0.3m 50Ω coax ↓Antenna PCB: C1=47pF series → C2=110pF || R1=1kΩ || 2-turn 70×70mm loop (735nH, 0.1Ω)\n\nResult: SWR=1.04, S11=-35dB, range ~10mm\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ee2b353-65cd-5bdd-c37c-8f9dc5d37207.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d5a14f8-5856-ada4-4cda-127949baa7ac.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3df0f057-c81d-d2f0-dd21-046fca3b6ce3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d839190f-7eda-d907-26d7-2d91829dafc7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/460ac761-1ddd-1af2-0b08-cc66fe983002.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dcae718-105d-1b3a-a31b-9fbfff00086f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6ac04f7-4376-7411-da3f-5868fe90785b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b469ae7c-420b-ea59-41ec-1db75b39db45.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35dd8e22-9b6b-9fd2-d40b-01ed8b0d122d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d7bd135c-c3f6-32a6-bdae-50315cb1fb8b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b5a0f09a-8ae0-14f1-3255-1529a5915a6d.png"
+            ],
+            "author": "qwdwdwwq",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <span class=\"\"><a class=\"\" href=\"https://community.st.com/t5/user/viewprofilepage/user-id/61976\" target=\"_blank\"><span class=\"\">qwdwdwwq,</span></a></span></p><p> </p><p><span class=\"\"><span class=\"\">I think you have mixed up some components of the matching network.</span></span></p><ul class=\"\"><li>Series cap: 176pF C0G</li><li>Middle shunt: 452pF C0G</li></ul><p>Do not seem to be correct.</p><p>Please see attached the proposed matching network in the antenna matching tool:</p><div class=\"\"><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"single ended.png\" style=\"width: 994px;\"><img alt=\"single ended.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b5a0f09a-8ae0-14f1-3255-1529a5915a6d.png\" title=\"single ended.png\"/></span></div><p>The left side of the sma cable is fixed since it matches 8Ohm to 50Ohm. The right side of the matching network is dependent on the antenna parameter. It matches the antenna (inductance) to 50Ohm. </p><p>q1: Not sure about q-multiplication, but yes, in general the antenna voltage is 5-15 times higher than the RFO output. </p><p>q2: Please have a look at the single ended application note (AN5592)</p><p>q3: Yes, this is why per default a capacitive voltage divider of 10:150 is proposed.</p><p>q4: I think you have wrong matching values applied. Can you please share a smith chart of your antenna matching?</p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Travis,</p><p>Thanks for help,</p><p>Here is the last smith chart, measured with the cable:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"1772110810603_image.png\" style=\"width: 400px;\"><img alt=\"1772110810603_image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35dd8e22-9b6b-9fd2-d40b-01ed8b0d122d.png\" title=\"1772110810603_image.png\"/></span></p><p>And also last tool output, im not sure about those and will double check if the actual soldered caps match this:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"1772089672416_obraz.png\" style=\"width: 400px;\"><img alt=\"1772089672416_obraz.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dcae718-105d-1b3a-a31b-9fbfff00086f.png\" title=\"1772089672416_obraz.png\"/></span></p><p> </p></div>",
+                    "author": "qwdwdwwq",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"61976\">@qwdwdwwq</user-mention>,</p><p>Many thanks for sharing the smith chart measurement (smith chart1).</p><p>It confirms that your antenna is correctly matched to 50Ohm.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 400px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d839190f-7eda-d907-26d7-2d91829dafc7.png\" title=\"image.png\"/></span></p><p>Can you also share the smith chart of the complete matching (smith chart 2)?</p><p> </p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi again,</p><p> </p><p>unfortunately the 13.56MHz marker is missing.</p><p>Maybe can you also increase the span? There is no resonance visible.</p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sorry, I increased the span to 250Mhz</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot from 2026-03-11 11-32-38.png\" style=\"width: 999px;\"><img alt=\"Screenshot from 2026-03-11 11-32-38.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ee2b353-65cd-5bdd-c37c-8f9dc5d37207.png\" title=\"Screenshot from 2026-03-11 11-32-38.png\"/></span></p><p> </p></div>",
+                    "author": "qwdwdwwq",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p> </p><p>Your smith chart tells me, that the series and parallel cap does not fit.</p><p>The circle should look like this: (red curve)<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 400px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/460ac761-1ddd-1af2-0b08-cc66fe983002.png\" title=\"image.png\"/></span></p><p> </p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>It should be mainly the series capacitor and parallel capacitor of the 8Ohm to 50Ohm matching network.</p><p>Details about the impact can be found in AN4974 Rev 3, page 37/46.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 592px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6ac04f7-4376-7411-da3f-5868fe90785b.png\" title=\"image.png\"/></span></p><p>Procedure: </p><p>1.) adjust the EMI filter (ok in your case)</p><p>2.) Adjust the series cap</p><p>3.) adjust the parallel cap</p><p>During fine-tuning it might be required to re-start from the beginning. Changing the parallel cap can also impact the size of the resonance circle (same impact as series cap...).</p><p>Please let me know in case of further questions. </p><p>Please also share the outcome of your study with the community.</p><p>br Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>So does these values from AN5592 should be used as default for any kind of antenna and cable length connected to single ended setup?</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot from 2026-03-11 14-51-53.png\" style=\"width: 400px;\"><img alt=\"Screenshot from 2026-03-11 14-51-53.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d7bd135c-c3f6-32a6-bdae-50315cb1fb8b.png\" title=\"Screenshot from 2026-03-11 14-51-53.png\"/></span></p></div>",
+                    "author": "qwdwdwwq",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>The antenna matching tool do provide some presets for single ended antenna with cable topology.</p><p>They should fit pretty well.</p><p>Be aware that there can be some influence (parasitic capacitance) coming from the PCB which might require re-tuning.</p><p>br Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Also, should i calibrate the matching network with or without antenna connected? </p></div>",
+                    "author": "qwdwdwwq",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>either 50Ohm termination or 50Ohm antenna. </p><p>Your antenna is pretty well tuned so it can be used.</p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, </p><p>Im not able to perform power vs sensitivity test for now. Are there any other tests i can do? Today i measured board power draw when activating the tag, and at 5V the overall power draw was 0,660W when reading the tag, and around 0,400W when idling. </p></div>",
+                    "author": "qwdwdwwq",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello qwdwdwwq, </p><p> </p><p>do you have new findings related to this issue?</p><p>You could also monitor VDD, VSP_RF and the voltage directly on the RFO pin. </p><p>Maybe there is also some issue with the voltage stability.</p><p>Please let us know in case of questions.</p><p> </p><p>br Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Travis,</p><p>VDD is stable at 5V, and VSP_RF at around 4.88V with 160mV Vpp max. Both don't change during tag detection</p><p>RFO voltage when no tag:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"NewFile1.png\" style=\"width: 800px;\"><img alt=\"NewFile1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b469ae7c-420b-ea59-41ec-1db75b39db45.png\" title=\"NewFile1.png\"/></span></p><p>RFO voltage with tag:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"NewFile3.png\" style=\"width: 800px;\"><img alt=\"NewFile3.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3d5a14f8-5856-ada4-4cda-127949baa7ac.png\" title=\"NewFile3.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"NewFile2.png\" style=\"width: 800px;\"><img alt=\"NewFile2.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3df0f057-c81d-d2f0-dd21-046fca3b6ce3.png\" title=\"NewFile2.png\"/></span></p><p> Thanks, let me know if you would like to see more measurements. </p><p> </p><p>Maybe one thing to notice is, I skip the cable and connected antenna directly to the board with SMA barrel as a experiment and the range remains the same.</p></div>",
+                    "author": "qwdwdwwq",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

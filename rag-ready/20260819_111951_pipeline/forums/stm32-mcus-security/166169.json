@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "166155",
+            "publicId": "166169",
+            "title": "STM32U5 WRP2AR register value resets to default value and write protect is disabled",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32u5-wrp2ar-register-value-resets-to-default-value-and-write-protect-is-disabled-166169",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32CubeProgrammer",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-06-15T09:58:28+00:00",
+            "views": 77,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@harisuvarna ;\n\nThe unlock bit in write protection registers is not made to allow changing the configuration as you seem to use it. This bit is used to lock the configuration. You cannot unlock it like this.\n\nFirst to be able to program the WRP sectors, the bit 31 should be 1. If unlock bit is 0 it means write protection is locked. To be able to change this bit back to 1 you must go through a RDP regression.\n\nThis is described in “Write protection lock” part of paragraph 7..6.1 of the reference manual RM0456 rev 7.\n\nSo, I would advise first to make sure this bit is set to 1.\n\nThen in your code, you can first make tests without changing this bit.\n\nThen if you want to use this unlock bit to lock the write protection in production, you can set it to 0 at the end of your programming sequence.\n\nBest regards\n\nJocelyn",
+            "best_answer_author": "Jocelyn RICARD",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi\n\nI am implemented flash write protect on STM32U5 using option byte register FLASH\\_WRP2AR.\n\nFollowing these steps to write protect page 0x4C and 0x4D page in Bank 2\n\n- Unlock flash\n\n- Unlock Flash option register(FLASH\\_OPTR)\n\n- Unlock flash page by setting UNLOCK bit(31) in FLASH\\_WRP2AR\n\n- Write WRP2A\\_PSTRT[6:0] of  FLASH\\_WRP2AR with value 0x4C\n\n- Write WRP2A\\_PEND[[6:0] of  FLASH\\_WRP2AR with value 0x4D\n\n- Lock flash page by clearing UNLOCK bit(31) in FLASH\\_WRP2AR\n\n- Initiate option byte programming by setting OPTSTRT bit FLASH\\_NSCR register\n\n- Wait for flash operation to complete\n\n- Lock FLASH\\_OPTR register\n\n- Lock Flash\n\nThis sequence works some times , however most of the time  after option byte programming FLASH\\_WRP2AR value resets to following value and write protect is disabled.\n\n- WRP2A\\_PSTRT[6:0]: 0x7F\n\n- WRP2A\\_PEND[[6:0]: 0x00\n\nOPTWERR bit sets in FLASH\\_NSSR indicating that invalid configuration, however configuration looks right.\n\nRegards,\n\nHareesha",
+            "images": [],
+            "author": "harisuvarna",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"78245\">@harisuvarna</user-mention> ;</p><p>The unlock bit in write protection registers is not made to allow changing the configuration as you seem to use it. This bit is used to lock the configuration. You cannot unlock it like this.</p><p>First to be able to program the WRP sectors, the bit 31 should be 1. If unlock bit is 0 it means write protection is locked. To be able to change this bit back to 1 you must go through a RDP regression.</p><p>This is described in “Write protection lock” part of paragraph 7..6.1 of the reference manual RM0456 rev 7.</p><p>So, I would advise first to make sure this bit is set to 1.</p><p>Then in your code, you can first make tests without changing this bit.</p><p>Then if you want to use this unlock bit to lock the write protection in production, you can set it to 0 at the end of your programming sequence.</p><p>Best regards</p><p>Jocelyn</p><p> </p></div>",
+                    "author": "Jocelyn RICARD",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Jocelyn RICARD",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

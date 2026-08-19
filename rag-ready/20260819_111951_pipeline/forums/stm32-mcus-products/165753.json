@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "165753",
+            "publicId": "165753",
+            "title": "Drone CAN Setup (STM32H753 -STM32F103 Flight Controller)",
+            "url": "https://community.st.com/stm32-mcus-products-25/drone-can-setup-stm32h753-stm32f103-flight-controller-165753",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "ST-boards",
+                "GPIO-EXTI",
+                "CAN"
+            ],
+            "published_at": "2026-05-17T07:24:20+00:00",
+            "views": 322,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> The problem is usually CAN configuration (baud rate, termination, filters) or motor state/init protocol.*\n\nA CAN trace would reveal that, although the error messages depend on the tool used.\n\n*Node ID change is possible only if the motor firmware supports it. CAN-USB is mainly useful for debugging.*\n\nProblems due to incorrect setup (non-matching IDs) would be visible via a CAN trace as well.\n\nAlthough \"node ID\" is not a feature of CAN, which knows only message IDs.\n\nHigher protocols such as CANopen do have node IDs, though.",
+            "best_answer_author": "Ozone",
+            "best_answer_author_role": "Principal",
+            "content_text": "Hello everyone\n\nI'm new here, but i have worked on a flight controller unit FCU with those:\n\n**FMU Processor: STM32H753**\n\n**IO Processor: STM32F103\n\nThis FCU then connected to a Raspberry Pi4, auxiliary, where  run his drone python software, using MAVlink approach for telemetry data and CAN communication and parameters setup;**Right now\n\nWe have a (good) software ready, with some wizard working well\n\nBUT\n\nwe have an issue with CAN-motors and our STM chips...\n\nIs it possibile that those H753 is NOT able to read a CAN motor ,brand new, out of fabric?\n\nor better\n\nIs the chip (**H753)** ABLE to write a NODE ID on a CAN motor, wich is ut of fabric (nodeID=1) to an actual working NODE ID(10,11,12 etc..)?\n\nWe had this issue....\n\nbased on your knowledge..\n\nThe correct way is to use a CAN-USB to \"wake up\" motors one by one and then connect to FCU?\n\nThank you",
+            "images": [],
+            "author": "MShow",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Your question is very generic.</p>\n<p>What kind of issues you faced with CAN on STM32H753?</p>\n<p>You need to be more specific especially with CAN questions:</p>\n<p>Exact issue you have faced?</p>\n<p>What kind of investigation you did at this stage: usage of oscilloscope / logic analyzer etc ..?</p>\n<p>Provide more details on CAN config:</p>\n<p>- Mode used: Classic, FD CAN?</p>\n<p>- Bit rate(s)? </p>\n<p>- Provide schematics</p>\n<p>- Clock configs: better to share your project.</p>\n<p><strong>PS</strong>: we cannot support you on <strong>Raspberry Pi4 </strong>questions. It's your responsibility to configure the CAN interface from that side.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; we have an issue with CAN-motors and our STM chips...</em></font><br/><font color=\"#0000FF\"><em><u>&gt; Is it possibile that those H753 is NOT able to read a CAN motor ,brand new, out of fabric?<br/></u></em></font><br/><font color=\"#0000FF\"><em>&gt; or better</em></font><br/><font color=\"#0000FF\"><em><u>&gt; Is the chip (<strong>H753)</strong> ABLE to write a NODE ID on a CAN motor, wich is ut of fabric (nodeID=1) to an actual working NODE ID(10,11,12 etc..)?</u></em></font></p><p>As already stated, there is almost no workable information in your post.<br/>I would recommend to check the schematics that your STM32 boards actually have a suitable CAN interface (including transceivers), and that it is properly connected to the CAN device (motor ?).</p><p>If you don't build the STM32 board firmware yourself, check at least the release notes that CAN is actually supported.</p><p>And then try to monitor the CAN bus connection, to see if there is any traffic at all.<br/>The best option for that would be a CAN dongle (USB-CAN adapter), either on a PC or the Raspberry Pi board.<br/>Alternatively a scope or logic analyser, the latter would have to be connected somehow to CAN Rx /Tx pin at MCU voltage level (not the CAN transceiver).</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>STM32H753 is fully capable of CAN communication, so it’s likely not a chip issue. The problem is usually CAN configuration (baud rate, termination, filters) or motor state/init protocol. Node ID change is possible only if the motor firmware supports it. CAN-USB is mainly useful for debugging.</p></div>",
+                    "author": "DigitalMonk12",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; The problem is usually CAN configuration (baud rate, termination, filters) or motor state/init protocol.</em></font></p><p><span>A CAN trace would reveal that, although the error messages depend on the tool used.</span></p><p><font color=\"#0000FF\"><em>Node ID change is possible only if the motor firmware supports it. CAN-USB is mainly useful for debugging.</em></font></p><p><span>Problems due to incorrect setup (non-matching IDs) would be visible via a CAN trace as well.</span></p><p><span>Although \"node ID\" is not a feature of CAN, which knows only message IDs.<br/>Higher protocols such as CANopen do have node IDs, though.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

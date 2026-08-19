@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "165243",
+            "publicId": "165243",
+            "title": "Questions about Unaligned memory accesses and Hard Faults",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/questions-about-unaligned-memory-accesses-and-hard-faults-165243",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-04-29T18:41:50+00:00",
+            "views": 241,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "One possible short answer is that STM32G0 is a Cortex-M0+ and STM32F1 is Cortex-M3. These ARM cores differ in handling unaligned memory accesses.\n\n* CM0 and CM0+ do not allow unaligned accesses at all, and usually throw HardFault (\\*)\n\n* CM3 and newer **allow unaligned 16-bit and 32-bit loads and stores in \"normal\" memory**, and they have additional UsageFault exception for unaligned access errors, when they still occur. BusFault exception covers more cases (including unaligned access to something that isn't \"normal memory\"). **By default, all these new exceptions are promoted to HardFault** so you can catch only the latter (but still can find out the true reason of exception, if you like to).\n\n* The ability of CM3+ to do unaligned accesses can be turned off, if you want the old behavior of CM0.\n\nAbout different compilers and options: this is complicated. TL;DR: All decent compilers that support attribute(packed) or \\_\\_packed on structures, also support seamless access to unaligned fields in these structs.\n\nBut access to unaligned fields in packed struct thru a random pointer isn't warranted to work on CM0+ with any compiler or without special options. It will likely work on CM3, because of the hardware ability.\n\nKeil and IAR have better support for unaligned operations, this is one of reasons why they cost more.\n\nFor more information and practical advice you can ask your favorite AI. These things are very fond of C and ARM programming and  enjoy explaining in great details.\n\n*(\\*) Googling yields that Cortex-M0+ may have unaligned accesses, almost like in M4, but ST does not seem to enable this in their M0+.*",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "I am using STM32CubeIDE for a project using custom hardware with a STM32G0B1CBT6.\n\nI recently hit a bug where my code was doing a 32-bit write to an address that wasn't on a 32-bit boundary (off by 2 bytes) and a Hard Fault was generated.\n\nI've corrected the code to avoid this, but this same code worked OK on an earlier project - which used Keil uVision and a STM32F103C8T6.\n\nI've seen references to compiler options to control this behavior, but I've not found them in CubeIDE or Keil.  Am I wrong here?  Or can someone point me to where those options might be?  Or is this some kind of difference between these two chips?\n\nAlso: I'm on the fence about whether this is a good feature or not.  On the one hand, avoiding unaligned memory  seems fairly easy.  On the other hand, Hard Faults really cause havoc in my world.",
+            "images": [],
+            "author": "Jim Seymour",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>One possible short answer is that STM32G0 is a Cortex-M0+ and <span>STM32F1 is Cortex-M3. These ARM cores differ in handling unaligned memory accesses. </span></p><ul class=\"lia-list-style-type-square\"><li><span>CM0 and CM0+ do not allow unaligned accesses at all, and usually throw HardFault (*)  </span></li><li><span>CM3 and newer <strong>allow unaligned 16-bit and 32-bit loads and stores in \"normal\" memory</strong>, and they have additional UsageFault exception for unaligned access errors, when they still occur. BusFault exception covers more cases (including unaligned access to something that isn't \"normal memory\"). <strong>By default, all these new exceptions are promoted to HardFault</strong> so you can catch only the latter (but still can find out the true reason of exception, if you like to).</span></li><li><span>The ability of CM3+ to do unaligned accesses can be turned off, if you want the old behavior of CM0.</span></li></ul><p><span>About different compilers and options: this is complicated. TL;DR: All decent compilers that support attribute(packed) or __packed on structures, also support seamless access to unaligned fields in these structs. </span></p><p><span>But access to unaligned fields in packed struct thru a random pointer isn't warranted to work on CM0+ with any compiler or without special options. It will likely work on CM3, because of the hardware ability.</span></p><p><span>Keil and IAR have better support for unaligned operations, this is one of reasons why they cost more.</span></p><p><span>For more information and practical advice you can</span><span> ask your favorite AI. These things are very fond of C and ARM programming and  enjoy explaining in great details.</span></p><p><em>(*) Googling yields that Cortex-M0+ may have unaligned accesses, almost like in M4, but ST does not seem to enable this in their M0+.</em></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163660",
+            "publicId": "163660",
+            "title": "What if I *want* a LOAD segment with RWX permissions?",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/what-if-i-want-a-load-segment-with-rwx-permissions-163660",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-03-10T19:05:27+00:00",
+            "views": 320,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "But the part you write will probably have no code?\n\nThen you can split the flash in two parts: rx for the code and rw for your data.\n\nSo if you have something like:\n\n```\n\nMEMORY\n\n{\n\nRAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K\n\nFLASH (rx) : ORIGIN = 0x8000000, LENGTH = 2048K\n\n}\n\n```\n\nchange it to e.g.:\n\n```\n\nMEMORY\n\n{\n\nRAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K\n\nFLASH (rx) : ORIGIN = 0x8000000, LENGTH = 1024K\n\nFLASHEMU (rw) : ORIGIN = 0x8100000, LENGTH = 1024K\n\n}\n\n```\n\n(untested, just a proposal)",
+            "best_answer_author": "mfgkw",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I'm getting the \"elf has a LOAD segment with RWX permissions\" warning, and a quick search here reveals a couple of ways to get around this: Disable the warning, or edit the .ld file.\n\nHowever, in my case, I'm using the upper half of the STM32's flash area to emulate non-volatile memory.  So I ***want*** my flash to be writeable.\n\nCan anyone suggest some magic to put in my linker file that will make the warning go away, but also allow me to write to flash?\n\nAlso: I'm using STM32CubeIDE, so my linker file is auto-generated.  Is there a user-override mechanism (like there is in the source code)?\n\nThanks.",
+            "images": [],
+            "author": "Jim Seymour",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>But the part you write will probably have no code?</p><p>Then you can split the flash in two parts: rx for the code and rw for your data.</p><p> </p><p>So if you have something like:</p><pre class=\"lia-code-sample language-c\"><code>MEMORY\n{\n RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K\n FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 2048K\n}</code></pre><p>change it to e.g.:</p><pre class=\"lia-code-sample language-c\"><code>MEMORY\n{\n RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K\n FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 1024K\n FLASHEMU (rw) : ORIGIN = 0x8100000, LENGTH = 1024K\n}</code></pre><p>(untested, just a proposal)</p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks. Now that I think this problem through, this solves an issue I was worried about: My code overflowing the first half of flash.</p><p>It doesn't solve the warning issue.  But on further research, it seems that the only way to get around that is to suppress it.  This is because I'm using the hal_flash routines - and one of them is declared with __RAM_FUNC (which puts it in the RAM segment - which is rwx).</p><p> </p></div>",
+                    "author": "Jim Seymour",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span>So I </span><em><strong>want</strong></em><span> my flash to be writeable.</span></p><p>From the linker POV this memory is still not-writeable, so just leave the linker file as is. No change is needed.</p><p>If you like, divide the FLASH region as <user-mention data-id=\"87198\">@mfgkw</user-mention> proposed, (with r attribute) - only for convenience, to ensure that the program fits in the reduced FLASH size. </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

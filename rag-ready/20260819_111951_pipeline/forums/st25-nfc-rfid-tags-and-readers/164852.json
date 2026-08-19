@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "164852",
+            "publicId": "164852",
+            "title": "st25r100 How to use function \"rfalTransceiveBlockingTxRx\" send 36 bits data",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r100-how-to-use-function-rfaltransceiveblockingtxrx-send-36-bits-data-164852",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID readers - ST25Rx00 series"
+            ],
+            "published_at": "2026-04-17T06:53:18+00:00",
+            "views": 335,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nas communicated in previous posts: Go step by step! First verify your CRC and parity and bit oriented sending is working using a well-known command without crypto. E.g. use a T2T and perform a read block using the mentioned methods. Only then move to your crypto.\n\nBR, Ulysses",
+            "best_answer_author": "Ulysses HERNIOSUS",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "@Ulysses HERNIOSUS\n\nDear Ulysses,\n\nSorry to bother you again.\n\ncode :\n\nerr = rfalTransceiveBlockingTxRx(tx\\_buf, sizeof(tx\\_buf), rx\\_buf, sizeof(rx\\_buf), &actlen, RFAL\\_TXRX\\_FLAGS\\_CRC\\_TX\\_MANUAL|RFAL\\_TXRX\\_FLAGS\\_PAR\\_TX\\_NONE|RFAL\\_TXRX\\_FLAGS\\_CRC\\_RX\\_KEEP|RFAL\\_TXRX\\_FLAGS\\_PAR\\_RX\\_REMV|RFAL\\_TXRX\\_FLAGS\\_CRC\\_RX\\_MANUAL, 71680U);\n\nI want to send 4 bytes data and 4 bits parity, how do i combine those 36 bits data to 5 bytes data and send with function rfalTransceiveBlockingTxRx.\n\nfor example:\n\ndata\\_enc: 03, de, 59, bd\n\nparity\\_enc: 00, 00, 00, 00\n\ntx\\_buf: 03, bc, 65, e9, 05\n\nis it correct? can rfalTransceiveBlockingTxRx send 4bit data?\n\nThanks",
+            "images": [],
+            "author": "wenjie",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi,</p>\n<p>as communicated in previous posts: Go step by step! First verify your CRC and parity and bit oriented sending is working using a well-known command without crypto. E.g. use a T2T and perform a read block using the mentioned methods. Only then move to your crypto.</p>\n<p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, </p>\n<ul>\n<li>the frame cannot be sent using the blocking byte-oriented <span>rfalTransceiveBlockingTxRx(). You need to use the bit-oriented rfalStartTransceive().... interface.</span></li>\n<li><span>I think your parity encoding is incorrect. It should be odd parity so 03 1 de 1 59 1 bd 1</span></li>\n</ul>\n<p><span>Yes, you can also transfer 4 bits.</span></p>\n<p>Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>RFAL has to use st25r200WriteFifo to send data which can only send full bytes. I don't think RFAL can send bits.</p><p>I'm trying reading block data from M1 card which need encoded parity. When encoded parity is the same as normal parity and use <span>rfalTransceiveBlockingTxRx and </span><span>RFAL_TXRX_FLAGS_PAR_TX_AUTO, I can read data successfully. So encoding is correct. Nothing is wrong but sending 36 bits data ifself.</span></p><p><span>Could you help check whether my code is wrong or RFAL doesn't support incomplete bytes sending?</span></p><p> </p><p><span>code:</span></p><div><div><span>rfalTransceiveContext </span><span>ctx</span><span>;</span></div><div><span>    </span><span>ctx</span><span>.</span><span>txBuf</span><span> = </span><span>tx_buf</span><span>;</span></div><div><span>    </span><span>ctx</span><span>.</span><span>txBufLen</span><span> = </span><span>36</span><span>;</span></div><div><span>    </span><span>ctx</span><span>.</span><span>rxBuf</span><span> = </span><span>rx_buf</span><span>;</span></div><div><span>    </span><span>ctx</span><span>.</span><span>rxBufLen</span><span> = </span><span>sizeof</span><span>(</span><span>rx_buf</span><span>) * </span><span>8</span><span>;</span></div><div><span>    </span><span>ctx</span><span>.</span><span>rxRcvdLen</span><span> = &amp;</span><span>actlen</span><span>;</span></div><div><span>    </span><span>ctx.flags = RFAL_TXRX_FLAGS_CRC_TX_MANUAL|RFAL_TXRX_FLAGS_PAR_TX_NONE|RFAL_TXRX_FLAGS_CRC_RX_KEEP|RFAL_TXRX_FLAGS_PAR_RX_REMV|RFAL_TXRX_FLAGS_CRC_RX_MANUAL;</span></div><div><span>    </span><span>ctx</span><span>.</span><span>fwt</span><span> = </span><span>71680U</span><span>;</span></div><div><span>    </span><span>err</span><span> = </span><span>rfalStartTransceive</span><span>(&amp;</span><span>ctx</span><span>);</span></div><div><span>    </span><span>do</span><span>{</span></div><div><span>        </span><span>rfalWorker</span><span>();</span></div><div><span>        </span><span>err</span><span> = </span><span>rfalGetTransceiveStatus</span><span>();</span></div><div><span>    }</span></div><div><span>    </span><span>while</span><span>( (</span><span>rfalIsTransceiveInTx</span><span>()) &amp;&amp; (</span><span>err</span><span> == RFAL_ERR_BUSY) );</span></div><div><span>    </span><span>platformLog</span><span>(</span><span>\"err: </span><span>%d</span><span>, actlen: </span><span>%d</span><span>\\r\\n</span><span>\"</span><span>, </span><span>err</span><span>, </span><span>actlen</span><span>);</span></div><div><span>    </span><span>err</span><span> = </span><span>rfalTransceiveBlockingRx</span><span>();</span></div></div></div>",
+                    "author": "wenjie",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>yes, only full bytes are written into FIFO. But <em>nbtx </em>bits tell how many bits to transmit from the last byte.</p>\n<p>There is no need to call <span>rfalIsTransceiveInTx() or rfalTransceiveBlockingRx(). Just wait until rfalGetTransceiveStatus() does not return RFAL_ERR_BUSY anymore.</span></p>\n<p><span>From a first glimpse the rest look correct.</span></p>\n<p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

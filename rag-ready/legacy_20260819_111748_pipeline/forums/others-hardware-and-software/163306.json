@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "163306",
+            "publicId": "163306",
+            "title": "CAN intermittent send message failures with Blue Pill board",
+            "url": "https://community.st.com/others-hardware-and-software-57/can-intermittent-send-message-failures-with-blue-pill-board-163306",
+            "category": "Others: hardware and software",
+            "tags": [
+                "STM32F1 series"
+            ],
+            "published_at": "2026-03-01T02:07:37+00:00",
+            "views": 364,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @pulsar wrote:\n\n>\n\n> I've been working with Blue Pill + external CAN transceiver and my own custom very simple PCB with f103\n\n>\n\n> ---\n\nNote that Blue Pill boards and some other colorful boards -most probably- contain a counterfeit MCU. I remember in this forum that some people faced issues with these boards especially with CAN communication.\n\nSo what I suggest is to purchase a chip ST board like [NUCLEO-F103](https://www.st.com/en/evaluation-tools/nucleo-f103rb.html) and we are here to help you.\n\nThank you for your understanding.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm doing can-bus work with F103 and having a problem I can't figure out.\n\nI'm listening for a specific message, it's on a 20ms interval, and then when that message arrives I right away broadcast a new message using the same id but with different data.  To do this I'm setting a flag inside HAL\\_CAN\\_RxFifo0MsgPendingCallback and then monitor this flag inside the main loop. If the flag is set I'm calling HAL\\_CAN\\_AddTxMessage to send a new message and resetting the flag.  This repeats.\n\nNow, everything seems to be working most of the time, but at random times, it can be a minute or several minutes or longer, my messages are not sent for a second or few seconds or randomly sent/not sent for few seconds.  Then everything will go back to normal for a while and then it might get \"broken\" again.  This will repeat.\n\nHAL\\_CAN\\_AddTxMessage() is always returning OK.\n\nHAL\\_CAN\\_TxMailbox[0-2]CompleteCallback() are not being called when I notice the failures.\n\nThere are 3 other nodes on this network; one is my CAN analyzer and two are locked commercial devices.\n\nAny help is appreciated.  Thank you.",
+            "images": [],
+            "author": "pulsar",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>You need to provide more and more deials then that when it comes to CAN communication issues.</p>\n<p>1- Provide your Hardware details. Saying that you are using F103 with other nodes does tell anything. So you need to provide your schematics especially the STM32 side.</p>\n<p>2- What is your Clock configuration? have you used an external crystal or used the internal HSI?. It's recommended to use HSE with a crystal or any other precise clock source.</p>\n<p>3- Check you wiring and connections with a contuinuity tester.</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've been working with Blue Pill + external CAN transceiver and my own custom very simple PCB with f103 and CAN transceiver.</p><p>My custom PCB does not have an external crystal but the blue pill does, tried both HSI and HSE on the blue pill and they behave the same.</p><p>I'm listening for errors via the <span>HAL_CAN_ErrorCallback and it's always the same error:<br/><br/></span></p><div><div><p>Decimal:2048</p><p>Hex:0x800</p><p> </p></div></div><p>I'm not sure what that error is exactly.  Hard to see it being a wiring issue since it's all sitting on my desk and works fine most of the time while running, just from time to time it goes into a state where it triggers the errors and then it goes back to running fine again.</p><p>Attached is the .ico from the project.</p></div>",
+                    "author": "pulsar",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"82715\">@pulsar</user-mention> wrote:<br/>\n<p>I've been working with Blue Pill + external CAN transceiver and my own custom very simple PCB with f103</p>\n<hr/></blockquote>\n<p>Note that Blue Pill boards and some other colorful boards -most probably- contain a counterfeit MCU. I remember in this forum that some people faced issues with these boards especially with CAN communication.</p>\n<p>So what I suggest is to purchase a chip ST board like <a href=\"https://www.st.com/en/evaluation-tools/nucleo-f103rb.html\" rel=\"noopener noreferrer\" target=\"_blank\">NUCLEO-F103</a> and we are here to help you.</p>\n<p>Thank you for your understanding.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So it looks like its throwing <span>arbitration lost error.</span></p><p><span>#define HAL_CAN_ERROR_TX_ALST0 (0x00000800U /*!&lt; TxMailbox 0 transmit failure due to arbitration lost */</span></p></div>",
+                    "author": "pulsar",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

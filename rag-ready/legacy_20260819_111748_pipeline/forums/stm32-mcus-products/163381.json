@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "163381",
+            "publicId": "163381",
+            "title": "PWR Configuration for STM32H755ZIT3 (LDO-only mode)",
+            "url": "https://community.st.com/stm32-mcus-products-25/pwr-configuration-for-stm32h755zit3-ldo-only-mode-163381",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Power",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-03T13:14:54+00:00",
+            "views": 429,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @RIVR and welcome to the ST community,\n\nYou may need to refer to the [AN4938](https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf) \"Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development\":\n\nA reference schematic:\n\n![screenshot.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f78862f4-edf0-6708-6e2e-75fbfcb00e38.png \"screenshot.png\")\n\nSo,\n\n1- I don't seen any of the decoupling capacitors on VDD in your schematic\n\n2- VCAP pins need only 2 x 2.2uF. Not one cap per VCAP pin.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am currently performing the bring-up of a custom PCBA using the **STM32H755ZIT3**.\n\nMy design is intended to use the **Internal LDO only**, bypassing the SMPS to reduce component count (i.e. one less inductor in my layout).\n\nHere's few details about the MCU power section of my SCH (also, please check attached capture):\n\n* **SMPS Pins:** As per the Reference Manual for \"LDO-only\" mode, I have grounded VFBBSMPS, VSSSMPS and VDDSMPS, whereas VLXSMPS is floating.\n\n* **VCORE/VCAP:** I have placed the required 2.2uF decoupling capacitors on VCAP\\_1, VCAP\\_2, and VCAP\\_3. No external inductor is present on the layout.\n\nWhat I'm observing is that at power-on, VCORE remains at 0V. Consequently, the target is not detected by the ST-LINK. If I instead \"jumpstart\" the board by applying an external 1.2V to the VCAP nodes, the MCU becomes reachable via SWD, and I can successfully modify registers.\n\nI suspect a conflict between my hardware layout and the **factory default reset value** of the PWR\\_CR3 register (see attached abstract of RM0399). Looking at the documentation, if the SMPS is enabled by default, the power-on sequence hangs because the SMPS cannot regulate without the missing inductor.\n\nMy question for you is: is there an easier way to have the MCU wake up with LDO-only config than externally forcing 1.2V on VCAP? Am I really forced to have an inductor in my layout?\n\nThank you,\n\nNB",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f78862f4-edf0-6708-6e2e-75fbfcb00e38.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c91ed8c9-0c5e-3997-d0e6-63c460361876.png"
+            ],
+            "author": "RIVR",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What you've done should work. If not, there is an error somewhere, but it doesn't appear to be anywhere that you've shown.</p><p>Could be a poorly soldered chip, bad connection, misoriented part, design issue, etc.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104694\">@RIVR</user-mention> and welcome to the ST community,</p>\n<p>You may need to refer to the <a href=\"https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4938</a> \"Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development\":</p>\n<p>A reference schematic:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 999px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f78862f4-edf0-6708-6e2e-75fbfcb00e38.png\" title=\"screenshot.png\"/></span></p>\n<p>So,</p>\n<p>1- I don't seen any of the decoupling capacitors on VDD in your schematic</p>\n<p>2- VCAP pins need only 2 x 2.2uF. Not one cap per VCAP pin.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, and thank you both for addressing my ticket.<br/><br/></p><blockquote><hr/><user-mention data-id=\"499\">@mƎALLEm</user-mention> wrote:<br/><p>Hello <user-mention data-id=\"104694\">@RIVR</user-mention> and welcome to the ST community,</p><p>You may need to refer to the <a href=\"https://www.st.com/resource/en/application_note/an4938-getting-started-with-stm32h74xig-and-stm32h75xig-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN4938</a> \"Getting started with STM32H74xI/G and STM32H75xI/G MCU hardware development\":</p><p>A reference schematic:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 999px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c91ed8c9-0c5e-3997-d0e6-63c460361876.png\" title=\"screenshot.png\"/></span></p><p>So,</p><p>1- I don't seen any of the decoupling capacitors on VDD in your schematic</p><p>2- VCAP pins need only 2 x 2.2uF. Not one cap per VCAP pin.</p><hr/></blockquote><p>Coming to your points:</p><p>1- My bad, I didn't realize I cropped off the decoupling caps from the snapshot. Decoupling caps are actually there, as per attached capture.<br/>2- Ah, noted, I overlooked this. Will save one 2.2uF in my next re-spin then, thanks!<br/><br/><br/>Anyways, small piece of update: I tried bringing-up a blank PCBA unit to make sure there was no board-specific issue with my first setup. Turns out the first PCBA was indeed damaged (somehow), and now I can reliably see 1.00V on VCORE on other nominally identical units as soon as I power them up.<br/>I'll maybe try and replace the MCU on the defective one, but I would say the issue is now solved!<br/><br/>Thank you all for the valuable support, truly appreciated!<br/>Best,<br/>NB</p></div>",
+                    "author": "RIVR",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

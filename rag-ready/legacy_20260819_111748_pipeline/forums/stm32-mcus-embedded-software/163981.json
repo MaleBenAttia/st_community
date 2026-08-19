@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "163981",
+            "publicId": "163981",
+            "title": "FLASH_EraseProgram example code for STM32CubeU3 not working. fails in erasing",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/flash-eraseprogram-example-code-for-stm32cubeu3-not-working-fails-in-erasing-163981",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32U3 series"
+            ],
+            "published_at": "2026-03-19T10:35:49+00:00",
+            "views": 261,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi TDK,\n\nI resolved the issue. I reset the option bytes to default factory settings.  I think the wrong bank was selected in option byte.\n\nAlso observed setting breakpoint in code is affecting the flash erase operation.\n\nThanks for the help!!\n\nregards,\n\nRajath",
+            "best_answer_author": "rajathks",
+            "best_answer_author_role": "Associate",
+            "content_text": "I am running the  FLASH\\_EraseProgram example code provided by STM32CubeU3.  the code fails in erasing the flash and enters ErrorHandler.\n\nI have verified the FLASH\\_USER\\_START\\_ADDR & FLASH\\_USER\\_END\\_ADDR.  it is set as follows.\n\n#define FLASH\\_USER\\_START\\_ADDR ADDR\\_FLASH\\_PAGE\\_128 /\\* Start @ of user Flash area \\*/\n\n#define FLASH\\_USER\\_END\\_ADDR (ADDR\\_FLASH\\_PAGE\\_255 + FLASH\\_PAGE\\_SIZE - 1) /\\* End @ of user Flash area \\*/\n\nI have tested in both debug and run mode, it is not working as expected. Is anything to be modified to run the code.\n\nregards,\n\nRajath",
+            "images": [],
+            "author": "rajathks",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>FLASH_EraseProgram should not be called directly. Use HAL_FLASHEx_Erase as is done in the example programs like this one:</span></p><p><span><a href=\"https://github.com/STMicroelectronics/STM32CubeU3/blob/453c7fafaeb4774b4b0f6e4f8486e7c183fc254e/Projects/NUCLEO-U3C5ZI-Q/Examples/FLASH/FLASH_EraseProgram/Src/main.c#L146\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeU3/blob/453c7fafaeb4774b4b0f6e4f8486e7c183fc254e/Projects/NUCLEO-U3C5ZI-Q/Examples/FLASH/FLASH_EraseProgram/Src/main.c#L146</a></span></p><p><span>Show your code.</span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi TDK,</p><p>I am using  the following example code in STM32CubeU3 without any changes. </p><p>Projects/NUCLEO-U385RG-Q/Examples/FLASH/FLASH_EraseProgram</p><p>The program does not work properly, Flash page erase fails with <strong>PGSERR<span> .</span></strong></p><p>regards.</p><p>Rajath</p></div>",
+                    "author": "rajathks",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No such issues here running it in STM32CubeIDE. Are you loading it with the Example Selector in STM32CubeMX?</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi TDK,</p><p>I resolved the issue. I reset the option bytes to default factory settings.  I think the wrong bank was selected in option byte.</p><p>Also observed setting breakpoint in code is affecting the flash erase operation.</p><p> </p><p>Thanks for the help!!</p><p>regards,</p><p>Rajath </p><p> </p></div>",
+                    "author": "rajathks",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

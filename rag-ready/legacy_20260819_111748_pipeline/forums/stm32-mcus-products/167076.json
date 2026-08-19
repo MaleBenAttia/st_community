@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "167057",
+            "publicId": "167076",
+            "title": "STM32G431 TIM2 (32bit) strange behavior",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g431-tim2-32bit-strange-behavior-167076",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G4 series",
+                "TIM"
+            ],
+            "published_at": "2026-07-20T08:43:48+00:00",
+            "views": 82,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "TIMx\\_PSC is [unconditionally preloaded](http://www.efton.sk/STM32/gotcha/g40.html). This behaviour is documented.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c69f3de3-f1bc-43e8-a932-21c1ad375c0c.png)\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Heyho,\n\nworking on a new project with a STM32G431, for now on a Nucleo-32 board.\n\nI have lots of things running (bare-metal, mostly no HAL), then I needed a timer with a higher resolution than the SysTick (running at 1 ms, looks valid).\n\nThe only 32-bit timer is TIM2, so I set it up to simply count up, no interrupts, only with pre-scaler set to get 1 counter period of 10 us at a clock of 96 MHz.\n\nThe code below is changed to a period of **1 ms**, for simpler comparison to the 1 ms tick.\n\nHere’s the setup:\n\n```\n\n/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */\n\n/* TIM2\n\n*\t32 bit timer\n\n*\tinit function\n\n*\t10 us timer -> NO interrupt\n\n*/\n\nvoid TimComInit(void)\n\n{\n\n/* peripheral clock enable */\n\n__IO uint32_t u32TmpReg;\n\nRCC->APB1ENR1 |= RCC_APB1ENR1_TIM2EN;\n\nu32TmpReg = ( RCC->APB1ENR1 & RCC_APB1ENR1_TIM2EN );\n\n(void)u32TmpReg;\n\nTIM2->CR1\t= 0;\n\nTIM2->CR2\t= 0;\n\nTIM2->SMCR\t= 0;\n\nTIM2->CCER\t= 0;\n\nTIM2->CCMR1\t= 0;\n\nTIM2->CCMR2\t= 0;\n\nTIM2->CCMR3\t= 0;\n\nTIM2->DIER\t= 0;\n\nTIM2->SR\t= 0;\n\nTIM2->EGR\t= 0;\n\nTIM2->OR\t= 0;\n\nTIM2->PSC\t= (uint32_t)((float)u32CpuClock / 2E3f) - 1UL;\n\nTIM2->ARR\t= 0xFFFFFFFF;\n\n/* timer enable */\n\nTIM2->CNT \t= 0;\n\nTIM2->CR1 \t|= TIM_CR1_CEN;\n\n}\n\n```\n\nHere’s the strange behavior (which was the same when set up for 10 us):\n\n* after init, the timer runs with full clock speed, ignoring the pre-scaler\n\n* after the first overflow, the pre-scaler is used\n\nHere’s the UART output (which I confirmed with some timer controlled GPIO, where I actually found this problem, because the TIM2 controlled pulses where super-short after start-up, then okay):\n\n```\n\ndirectly after start:\n\nT2    276587682    <- TIM2->CNT\n\nTimMs 5762         <- TIM7 also set to 1 ms\n\nTick  5762\n\n...\n\nT2    476524324\n\nTimMs 9927\n\nTick  9927\n\nlater, after 1st overflow, now OK: difference between T2 and Tick readings is about the same\n\nT2    289650\n\nTimMs 379129\n\nTick  379129\n\nT2    294491\n\nTimMs 383969\n\nTick  383969\n\n```\n\nWhat am I doing wrong?\n\nAs you can see, this set up code is so simple, only PSC set, then enable. Must something really stooopid…\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c69f3de3-f1bc-43e8-a932-21c1ad375c0c.png"
+            ],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>When I set CNT = 0xFFFFFFFE before setting the enable bit, then the timer works fine.</p><p>Played around with it by setting CNT to various values and comparing with the SysTick, it’s definitely taking PSC into account only after the first overrun.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>TIMx_PSC is <a href=\"http://www.efton.sk/STM32/gotcha/g40.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">unconditionally preloaded</a>. This behaviour is documented.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c69f3de3-f1bc-43e8-a932-21c1ad375c0c.png\"/></figure><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks ​<user-mention data-id=\"17162\">@waclawek.jan</user-mention> !</p><p>Just found the same by setting it up via CubeMx, and there I found the line:</p><p>TIM2-&gt;EGR     = TIM_EGR_UG;</p><p>Then I checked the RM again.</p><p> </p><p>I never came across this before, is this a feature for “advanced” timers only?</p><p> </p><p>And interesting that this is required even before the timer was ever enabled.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; is this a feature for “advanced” timers only?</p><p>No, this is the same in all timers.</p><p>In 16-bit timers many users simply don’t notice that the first period was shorter. Also, “library” (SPL/Cube/LL/HAL) users won’t notice as the “libraries” tend to add setting TIMx_EGR.UG to timer initialization code.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

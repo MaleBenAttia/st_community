@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "165489",
+            "publicId": "165489",
+            "title": "CubeMX not generating timebase IRQ handler for different timebase source.",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/cubemx-not-generating-timebase-irq-handler-for-different-timebase-source-165489",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "SysTick",
+                "Bug-report",
+                "TIM"
+            ],
+            "published_at": "2026-05-07T17:33:57+00:00",
+            "views": 238,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @JulioCalandrin\n\nI have performed a test with the latest version of STM32CubeMX 6.17.0, and it is working as expected.\n\n![GhofraneGSOURI_0-1778229618451.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4ae3c86-aac5-5eb9-dbb1-e0d669be4d8f.png \"GhofraneGSOURI_0-1778229618451.png\")\n\nI highly recommend updating to the latest versions: STM32CubeMX 6.17.0 and STM32CubeIDE 2.1.1.\n\nPS : STM32CubeMX 6.17.0 is no longer integrated into STM32CubeIDE 2.1.1. Instead, the two tools are now interoperable.\n\nFor more details , please check the following LINKs:\n\nSTM32CubeMX download Link:[STM32CubeMX | Software - STMicroelectronics](https://www.st.com/en/development-tools/stm32cubemx.html)\n\n[STM32CubeIDE 2.0.0 workflow tutorial - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus/stm32cubeide-2-0-0-workflow-tutorial/ta-p/864831)\n\n[STM32CubeIDE 2.0 release - early heads-up! - STMicroelectronics Community](https://community.st.com/t5/stm32cubeide-mcus/stm32cubeide-2-0-release-early-heads-up/td-p/810967)\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello!\n\nI attempted running a basic FreeRTOS example on a STM32F407VET6 board using CMSIS v2 following some tutorials, replacing systick for either TIM 6 or 7 as HAL Timebase as many tutorials suggest. The code only blinks and LED on the pre-generated task.\n\nI could never get the program to work and by pausing execution I noticed it went straight to the default handler infinite loop. After reading a few posts it seems that the CubeIDE still does not generate the appropriate timer IRQ Handler within the stm32xxxx\\_it.c file and has to be added manually, as suggested by @Curtis B. on the posts attached bellow.\n\n```\n\nvoid TIM7_IRQHandler(void)\n\n{\n\n/* USER CODE BEGIN TIM7_IRQn 0 */\n\n/* USER CODE END TIM7_IRQn 0 */\n\nHAL_TIM_IRQHandler(&htim7);\n\n/* USER CODE BEGIN TIM7_IRQn 1 */\n\n/* USER CODE END TIM7_IRQn 1 */\n\n}\n\n```\n\nAdding the IRQHandler fixes the issue but it is a bit frustrating that many tutorials follow the same steps and rarely mention this, since it usually works fine with other MCUs. I actually tested the same workflow for a STM32H773IIT6 board and for that MCU it worked perfectly, the IRQ handlers for the timer are generated and updated automatically by CubeIDE.\n\nI have come accross two other posts that had simillar issues to what I'm facing:\n\n<https://community.st.com/t5/stm32cubemx-mcus/stm32h755-haltick-timer-and-freertos-problem-with-code/td-p/247812/page/2>\n\n<https://community.st.com/t5/stm32cubeide-mcus/freertos-doesn-t-working-when-generated-from-cube/td-p/311618and>\n\nThe original posts are from 2020, but the problem persists on some microcontrollers. I tested on both CubeIDE v.1.18 and v.1.19. Has this been reviewed in the newest versions of CubeMX?\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4ae3c86-aac5-5eb9-dbb1-e0d669be4d8f.png"
+            ],
+            "author": "JulioCalandrin",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106766\">@JulioCalandrin</user-mention> </p>\n<p>I have performed a test with the latest version of STM32CubeMX 6.17.0, and it is working as expected.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GhofraneGSOURI_0-1778229618451.png\" style=\"width: 400px;\"><img alt=\"GhofraneGSOURI_0-1778229618451.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f4ae3c86-aac5-5eb9-dbb1-e0d669be4d8f.png\" title=\"GhofraneGSOURI_0-1778229618451.png\"/></span></p>\n<p>I highly recommend updating to the latest versions: STM32CubeMX 6.17.0 and STM32CubeIDE 2.1.1.</p>\n<p>PS : STM32CubeMX 6.17.0 is no longer integrated into STM32CubeIDE 2.1.1. Instead, the two tools are now interoperable.</p>\n<p>For more details , please check the following LINKs:</p>\n<p>STM32CubeMX download Link:<a href=\"https://www.st.com/en/development-tools/stm32cubemx.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeMX | Software - STMicroelectronics</a></p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/stm32cubeide-2-0-0-workflow-tutorial/ta-p/864831\" target=\"_blank\">STM32CubeIDE 2.0.0 workflow tutorial - STMicroelectronics Community</a></p>\n<p><a href=\"https://community.st.com/t5/stm32cubeide-mcus/stm32cubeide-2-0-release-early-heads-up/td-p/810967\" target=\"_blank\">STM32CubeIDE 2.0 release - early heads-up! - STMicroelectronics Community</a></p>\n<p>THX</p>\n<p>Ghofrane </p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I am able to consistently reproduce this issue on STM32CubeMX version 6.18.0 on Linux. Occasionally the generated code will contain the interrupt handler for the specified timebase source, but usually it doesn’t.</p><p> </p><p>Details on my project in case they are relevant:</p><ul><li>Part: STM32F413CHUx</li> <li>Using freeRTOS</li> <li>timebase source is TIM1 but I have also had the issue with TIM5 and TIM14</li> <li>on the NVIC panel I have confirmed the “Time base: TIM1 update...” interrupt table row has “Generate Enable in Init”, \"Generate IRQ handler”, and “Call HAL handler” checked</li></ul><p> </p><p>This a painful bug in STM32CubeMX because you must manually recreate the interrupt handler every time you generate code, otherwise your code will fail to run.</p></div>",
+                    "author": "nfriendlybrinc",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

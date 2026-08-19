@@ -1,0 +1,94 @@
+{
+    "forum": [
+        {
+            "id": "163747",
+            "publicId": "163747",
+            "title": "Teseo-LIV4F broken NMEA",
+            "url": "https://community.st.com/gnss-positioning-120/teseo-liv4f-broken-nmea-163747",
+            "category": "GNSS positioning",
+            "tags": [
+                "GPS",
+                "Positioning"
+            ],
+            "published_at": "2026-03-12T22:31:23+00:00",
+            "views": 1261,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Summary for reference by others encountering this problem:\n\nAt least upto and including firmware 4.6.8.5.11 NMEA output breaks when you enable or disable specific frametrypes using the $PSTMSETPAR,1201 command. It seems to be related to I2C being enabled which is factory default. You can prevent the problem by disabling I2C using:\n\n```\n\n$PSTMSETPAR,1263,0x1,2\n\n$PSTMSAVEPAR\n\n$PSTMSRR\n\n```",
+            "best_answer_author": "Joost123",
+            "best_answer_author_role": "Associate II",
+            "content_text": "We recently had a batch of equipment assembled with the Teseo-LIV4F instead of LIV3, and I'm running into some real strange behaviour.\n\nWhenever I try to disable the GPGSV frame the whole NMEA output breaks. It is not a problem with the receiving host as I have verified with an oscilloscope that the broken NMEA is really outputted by the LIV4F.\n\nCommands I send:\n\n```\n\n$PSTMSETPAR,1201,0x4,2*7B\n\n$PSTMSAVEPAR*58\n\n$PSTMSRR*49\n\n```\n\nAnd the output starts to be like: (See concatinated GBS and GSV, the checksum and new line on GBS is missing)\n\n```\n\n$GNGBS,,,,,,,,,,,,,,,$GNRMC,,V,,,,,,,,,,N,V*37\n\n$GNGGA,,,,,,0,00,0.0,,M,,M,,*56\n\n$GNVTG,,T,,M,,N,,K,N*32\n\n$GNGST,,,,,,,,*49\n\n$GNGBS,,,1,01,25,,,39$BDGSV,1,1,01,25,,,39,,,,,,,,,,,,,1*79\n\n$GNRMC,,V,,,,,,,,,,N,V*37\n\n$GNGGA,,,,,,0,00,0.0,,M,,M,,*56\n\n$GNVTG,,T,,M,,N,,K,N*32\n\n$GNGST,,,,,,,,*49\n\n$GNGBS,,,1,01,25,,,37$BDGSV,1,1,01,25,,,37,,,,,,,,,,,,,1*77\n\n$GNRMC,,V,,,,,,,,,,N,V*37\n\n$GNGGA,,,,,,0,00,0.0,,M,,M,,*56\n\n$GNVTG,,T,,M,,N,,K,N*32\n\n$GNGST,,,,,,,,*49\n\n```\n\nEnabling / Disabling different frames caused different types of broken output (missing identifiers or checksums). The frames seem to break in the same way for every output cycle.\n\nIn above example the output will work like normal again after re-enabling GPGSV:\n\n```\n\n$PSTMSETPAR,1201,0x4,1*78\n\n$PSTMSAVEPAR*58\n\n$PSTMSRR*49\n\n```\n\nDoes anyone recognize this behaviour?\n\nReflashing firmware does not help (It makes the device work like expected again until I disable some frametypes)\n\nI tested on 4.6.8.5.11 and 4.6.8.5.10:\n\n```\n\n$PSTMVER,FreeRTOS_V10.4.3_ARM*57\n\n$PSTMVER,BINIMG_STA8041_4.6.8.5.11_ARM*34\n\n$PSTMVER,SWCFG_86065331*62\n\n$GPTXT,DEFAULT PVT CONFIGURATION*2A\n\n$PSTMSWCONFIG,1,0,12,00000af005070a0a0e0d0c0b0a090608070203630e110404180c0155030000500fffff0f0714000affffffffffffffffffffffffffffffffffffffffffffffff*1D\n\n$PSTMSWCONFIG,1,1,12,ffffffffffffffffffffffffffffffffffffffffffffffffffff010101000001094005ffffffffff449641095f53884000000000000000000000000000000000*4D\n\n$PSTMSWCONFIG,1,2,12,ffffffff00000000ffffffff000000000000000000000000ffffffff000100000019000000000000ffffffffffffffffffffffffffffffff0000120005282000*13\n\n$PSTMSWCONFIG,1,3,12,01323200050358020a0a0000fe03000010f08334d50300a42023c07e00000000000000005f5388402023c07e0000000000000000000000000000000012090000*1A\n\n$PSTMSWCONFIG,1,4,12,120000009a106464ae618400000001000000000000000000000000000000000006000000ffffffff040000000100000000000080b004780503000000f0c3f7ff*45\n\n$PSTMSWCONFIG,1,5,12,00000000ffffffff000000000c0a00020fb4a005f5310000010a1900330a0a1400510000810e000000001810000008000e01000000000000020f000000000000*13\n\n$PSTMSWCONFIG,1,6,12,0000e803ffffffff0610000080ba8c014810c703ffffffff9abed2e6edf2fafb0000020205060101ff00ff00ff00ff00ff000000ff00ff000000000000000000*4D\n\n$PSTMSWCONFIG,1,7,12,9a9999999999b93f000000000000e03f0000000000000000000000000000f03f4bc431896f754440f0f67e923d8d2c408c65456bb71b56404b0484b86d3da53e*1E\n\n$PSTMSWCONFIG,1,8,12,0cb8df888b2f9c3e2b69a4292b1b503e0cb8df888b2f9c3e4b0484b86d3da53e000000000000000000000000000000005feffe78af8e44406c21c84109c32b40*4B\n\n$PSTMSWCONFIG,1,9,12,00000000000024401d8f19a88c8f4440598b4f0130be2b4000000000000024407ac2120f289f44402315c616828c2b400000000000002440ace28dcc239f4440*11\n\n$PSTMSWCONFIG,1,10,12,95826e2f698c2b4000000000000024400f0c0c120f0c0c120f0c0c120f0c0c1244454641554c542050565420434f4e46494755524154494f4e00000000000000*76\n\n$PSTMSWCONFIG,1,11,12,00000000000000000000000000000000000000000000000000000000000000000000000000000000*26\n\n$GNRMC,,V,,,,,,,,,,N,V*37\n\n$GNGGA,,,,,,0,00,0.0,,M,,M,,*56\n\n$GNVTG,,T,,M,,N,,K,N*32\n\n$GNGST,,,,,,,,*49\n\n$GNGBS,,,,,,,,,,*5F\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,1*33\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,3*31\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,4*36\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,1*33\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,3*31\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,4*36\n\n$GNRMC,,V,,,,,,,,,,N,V*37\n\n$GNGGA,,,,,,0,00,0.0,,M,,M,,*56\n\n$GNVTG,,T,,M,,N,,K,N*32\n\n$GNGST,,,,,,,,*49\n\n$GNGBS,,,,,,,,,,*5F\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,1*33\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,3*31\n\n$GNGSA,A,1,,,,,,,,,,,,,0.0,0.0,0.0,4*36\n\n```\n\nOn the LIV3 devices all worked like expected.\n\nRegards, help much apreciated.",
+            "images": [],
+            "author": "Joost123",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I can't believe it, but we've just verified it is a LIV4F firmware issue. We had some older LIV4F modules laying around running 4.6.3.5.3, they work completely fine. We updated it to <span>4.6.8.5.11 and the NMEA breaks!<br/><br/>Edit: 4.6.3.5.3 also seems affected, please see follow up post below.</span></p></div>",
+                    "author": "Joost123",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Another update.<br/><br/>I received the 4.6.3.5.3 firmware file, at first it seemed to work correctly with a custom config on the enabled frametypes. Unfortunately I've now also encountered the same problem, whether it breaks or not seems to depend on how much data is in the frames:<br/><br/></p><pre class=\"lia-code-sample language-c\"><code>OK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,142826.176,V,,,,,,,070180,,,N,V*2C\nBROKEN -&gt; $GNGGA,142826.176,,,,,,,*5C\nBROKEN -&gt; 0,,M,,M,,*43\nBROKEN -&gt; $GNGBS,142826.176,,,,,,,,,,0.0,$GNRMC,142826.576,V,,,,,,,070180,,,N,V*28\nBROKEN -&gt; $GNGGA,142826.576,,,,,,,*58\nBROKEN -&gt; 0,,M,,M,,*47\nBROKEN -&gt; $GNGBS,142826.576,,,,,,,,,,0.0,$GNRMC,142827.056,V,,,,,,,070180,,,N,V*2E\nBROKEN -&gt; $GNGGA,142827.056,,,,,,,*5E\nBROKEN -&gt; 0,,M,,M,,*41\nBROKEN -&gt; $GNGBS,142827.056,,,,,,,,,,0.0,$GNRMC,142827.535,V,,,,,,,070180,,,N,V*2E\nBROKEN -&gt; $GNGGA,142827.535,,,,,,,*5E\nBROKEN -&gt; 0,,M,,M,,*41\nBROKEN -&gt; $GNGBS,142827.535,,,,,,,,,,0.0,$GNRMC,142828.016,V,,,,,,,070180,,,N,V*25\nBROKEN -&gt; $GNGGA,142828.016,,,,,,,*55\nBROKEN -&gt; 0,,M,,M,,*4A\nBROKEN -&gt; $GNGBS,142828.016,,,,,,,,,,0.0,$GNRMC,142828.516,V,,,,,,,070180,,,N,V*20</code></pre><p><br/><br/><br/></p></div>",
+                    "author": "Joost123",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>I used Teseo Suite to disable $GPGSV and $GPGSA</p>\n<pre class=\"lia-code-sample language-c\"><code>$PSTMSETPAR,1201,0x4,2\n$PSTMSETPAR,1201,0x80000,2\n$PSTMSAVEPAR\n$PSTMSRR</code></pre>\n<p>I am able to see NMEA sentences. </p>\n<p>I tested the set up in Teseo Suite.</p>\n<p>I am wondering if there is a another bit setting which is causing the behavior you are seeing. Can you please retry flashing the chip and start troubleshoot by first turning off just $GSV and SGA?</p></div>",
+                    "author": "GalaxyQuest",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for testing,<br/><br/>I just tested this after flashing 4.6.8.5.11, and over here the output breaks. However, especially in Teseo-Suite it might look like all is working fine as Teseo-Suite seems to filter out any frame that does not have a valid checksum.<br/><br/></p><p> </p><p>What I did:<br/>1. Flash firmware 4.6.8.5.11 using Teseo-Suite Pro, with 'Erase NVM' and 'Restore Factory Settings' enabled.</p><p>2. Connect to the device using the 'Control' mode.</p><p>3. Send the following commands: </p><pre>$PSTMSETPAR,1201,0x4,2\n$PSTMSETPAR,1201,0x80000,2\n$PSTMSAVEPAR\n$PSTMSRR</pre><p>4. At that point the output shown in Teseo-Suite seems fine, however, it seems to be so only because it filters out broken NMEA.<br/>5. I Disconnected and reconnected in Debug mode. In debug mode Teseo-Suite can show the raw UART output. In this view we can see a broken $GNGBS frame attached just before every $GNRMC frame, that does not show up in 'Control' mode.<br/>6. I disconnected Teseo-Suite and opened my raw UART logger, it also shows the broken $GNGBS frame attached before each $GNRMC frame.<br/><br/>Regards,<br/>Joost</p></div>",
+                    "author": "Joost123",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>Thanks for catching this. It looks like the NMEA frame GNGBS is not calculating checksum data and adding termination.</p>\n<p>Let me bring this up to our product team and provide you feedback.</p>\n<p>I was thinking disabling GSA and GSV was causing other frames to not populate data.</p>\n<p>While we wait to resolve this issue, for delimiting an NMEA frame, can you use \"$\" as a frame start identifier i.e., consider the end of the frame only when a next \"$\" is received?</p></div>",
+                    "author": "GalaxyQuest",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Not really because my application needs different modes where different combinations of frames are enabled that cause different types of broken output. Just to have some fun with really broken output you can try:<br/><br/></p><pre class=\"lia-code-sample language-c\"><code> $PSTMSETPAR,1130,0x00\n $PSTMSETPAR,1303,0.5\n $PSTMSETPAR,1201,0x00000042\n $PSTMSETPAR,1228,0x00002000\n $PSTMCFGCONST,2,0,2,0,2\n $PSTMSETPAR,1200,0x8,1\n $PSTMSETPAR,1200,0x8000,2\n $PSTMSAVEPAR\n $PSTMSRR</code></pre><p>It gives me this (No single valid line of output)</p><pre class=\"lia-code-sample language-c\"><code>BROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,12$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,11$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56\nBROKEN -&gt; $GNGBV,1,1,01,19,,,11$GNRMC,,V,,,,,,,,,,N,V*37\nBROKEN -&gt; $GNGGA,,,,,,,,,,*5F\nBROKEN -&gt; ,M,,M,,*56</code></pre><p><br/>But good and bad news. I just found out it is actually a known firmware bug that you encountered before and is aperantly not yet fixed:<br/><br/><a href=\"https://community.st.com/t5/gnss-positioning/gnss-modules-commands-teseo-liv4f/td-p/812774\" target=\"_blank\">https://community.st.com/t5/gnss-positioning/gnss-modules-commands-teseo-liv4f/td-p/812774</a><br/><br/></p><p>Like you point out yourself, the broken NMEA output is caused by I2C being enabled along UART (Which seems to be factory default).<br/><br/>When I throw the 'disable I2C' in the mix:</p><pre class=\"lia-code-sample language-c\"><code>$PSTMSETPAR,1130,0x00\n$PSTMSETPAR,1263,0x1,2\n$PSTMSETPAR,1303,0.5\n$PSTMSETPAR,1201,0x00000042\n$PSTMSETPAR,1228,0x00002000\n$PSTMSETPAR,1102,0x9\n$PSTMCFGCONST,2,0,2,0,2\n$PSTMSETPAR,1200,0x8,1\n$PSTMSETPAR,1200,0x8000,2\n$PSTMSAVEPAR\n$PSTMSRR</code></pre><p>Everything starts to work just fine:</p><pre class=\"lia-code-sample language-c\"><code>OK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56\nOK -&gt; $GNGBS,,,,,,,,,,*5F\nOK -&gt; $GNRMC,,V,,,,,,,,,,N,V*37\nOK -&gt; $GNGGA,,,,,,0,00,0.0,,M,,M,,*56</code></pre><p><br/><br/></p></div>",
+                    "author": "Joost123",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Summary for reference by others encountering this problem:<br/><br/>At least upto and including firmware 4.6.8.5.11 NMEA output breaks when you enable or disable specific frametrypes using the $PSTMSETPAR,1201 command. It seems to be related to I2C being enabled which is factory default. You can prevent the problem by disabling I2C using:<br/><br/></p><pre class=\"lia-code-sample language-c\"><code>$PSTMSETPAR,1263,0x1,2\n$PSTMSAVEPAR\n$PSTMSRR</code></pre><p> </p></div>",
+                    "author": "Joost123",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It is good to have one more thing in mind when using this gps module:<br/>Software Change List (4.6.8.5.11) Fix loss of FW config issue<br/>this problem is not solved no matter what it says in the pdf file to the firmware, I have 16 devices with this gps module working from 11.2025 until now 2 gps modules returned to factory settings for no clear reason. For the moment I think I managed to solve this problem by changing the factory settings in the .bin firmware file with the ones I needed using Teseo-Suite and rewriting the firmware in the gps modules.</p></div>",
+                    "author": "jori",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks, I must say I'm completely struck by how broken the firmware seems to be, just really to a point where it is almost unusable beyond the default config, even when changing settings that are perfectly well documented in the software manual.</p><p> </p><p>As far as I know there is not even an Errata sheet available with all the known problems / workarounds.</p></div>",
+                    "author": "Joost123",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GalaxyQuest",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "GalaxyQuest",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "164161",
+            "publicId": "164161",
+            "title": "USB Standalone AzureRTOS STM32WBA",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-standalone-azurertos-stm32wba-164161",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB",
+                "STM32WBA series"
+            ],
+            "published_at": "2026-03-25T14:27:54+00:00",
+            "views": 375,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hey,\n\nI finally succeed to make it work.\n\nThe point is : by default in X-CUBE-AZRTOS-WB we have this :\n\n![st56.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/630b96f2-302e-4bfa-b75e-6f41f2a8deac.png \"st56.png\")\n\nand if i undestood corectly, ENDPOINT\\_IN\\_CMD\\_ADDR should be different of IN and OUT ADDR.\n\nSo i just modify like it :\n\n**USBD\\_CDCACM\\_ENDPOINT\\_IN\\_CMD\\_ADDR 2**And then it worked.\n\nI also used in the end those values for the endpoint :\n\n```\n\n/* Set Rx FIFO */\n\nHAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_HS, 0x200);\n\n/* Set Tx FIFO 0 */\n\nHAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 0, 0x40); // EP0\n\n/* Set Tx FIFO 1 */\n\nHAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 1, 0x80); // CDC IN\n\n/* Set Tx FIFO 2 */\n\nHAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 2, 0x10); // CDC CMD\n\n```\n\nthanks for your help,\n\nIf someone need i can share my project of USB Standalone for STM32WBA65\n\nYvan",
+            "best_answer_author": "SnoZek",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello,\n\nAs a lot of people here, i'm trying to implement USB in standalone mode (bare metal, no OS used).\n\n* I'm using NUCLEO-STM32WBA65RI board.\n\n* CubeDE 1.19\n\n* CubeMX 6.15.0\n\nstill can't make it work. I'm looking for help. I checked a lot of forum posts, a lot of github pages.\n\nI based myself on :\n\n<https://github.com/STMicroelectronics/x-cube-azrtos-h7/blob/dev/usbx/Projects/NUCLEO-H723ZG/Applications/USBX/Ux_Device_CDC_ACM_Standalone/USBX/App/app_usbx_device.c>\n\nand tried to implement the AzureRTOS USBX standalone version\n\nHere is my Cube MX configuration :\n\nClock USB :\n\n![st.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/95311222-ed53-1877-c439-8db436bc3c5e.png \"st.png\")\n\nI only used X-CUBE-AZRTOS-WB and desactivated USBX :![st3.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c77c12c-c84f-4a5b-bda8-f806ae1ed3a4.png \"st3.png\")\n\nUsing buffer <10\\*1024 would rise a memory error flag in ux\\_device\\_stack\\_initialize() :\n\nThe rest is default configuration.\n\n![st2.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f299614-d8a1-c75b-fb74-195f4a5fc888.png \"st2.png\")\n\nThen USB\\_OTG\\_HS : Device\\_Only and :\n\n![st4.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/223e05c0-ecea-294a-cb29-34b5edd88481.png \"st4.png\")\n\nThen i generated the code,\n\nI added :\n\n```\n\nif(MX_USBX_Device_Init() != HAL_OK)\n\n{\n\nfor(;;);\n\n}\n\n```\n\nAnd inside of it :\n\n```\n\n/* USER CODE BEGIN MX_USBX_Device_Init1 */\n\nUSBX_APP_Device_Init();\n\n/* USER CODE END MX_USBX_Device_Init1 */\n\n```\n\nAnd inside of it :\n\n```\n\n/* USER CODE BEGIN USB_Device_Init_PreTreatment_1 */\n\n/* Set Rx FIFO */\n\nHAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_HS, 0x200);\n\n/* Set Tx FIFO 0 */\n\nHAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 0, 0x10);\n\n/* Set Tx FIFO 1 */\n\nHAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 1, 0x10);\n\n/* Set Tx FIFO 2 */\n\nHAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 2, 0x20);\n\n/* USER CODE END USB_Device_Init_PreTreatment_1 */\n\n```\n\nInside of MX\\_USB\\_OTG\\_HS\\_PCD\\_Init() i added :\n\n```\n\n/* USER CODE BEGIN USB_OTG_HS_Init 1 */\n\nmemset(&hpcd_USB_OTG_HS, 0x0, sizeof(PCD_HandleTypeDef));\n\n/* USER CODE END USB_OTG_HS_Init 1 */\n\n```\n\nInside of \\_ux\\_utility\\_time\\_get() i added :\n\n```\n\n/* USER CODE BEGIN _ux_utility_time_get */\n\ntime_tick = HAL_GetTick();\n\n/* USER CODE END _ux_utility_time_get */\n\n```\n\nI also implemented the TX and RX function but my code is blocking before that.\n\nInside of MX\\_USB\\_OTG\\_HS\\_PCD\\_Init -> HAL\\_PCD\\_Init -> USB\\_CoreInit -> USB\\_CoreReset\n\n```\n\ndo\n\n{\n\ncount++;\n\nif (count > HAL_USB_TIMEOUT)\n\n{\n\nreturn HAL_TIMEOUT;\n\n}\n\n} while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_CSRSTDONE) == 0U);\n\n```\n\nDoes anyone succeed to implement USBX with STM32WBA65 in bare metal ?\n\nThanks for your help,\n\nYvan",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/630b96f2-302e-4bfa-b75e-6f41f2a8deac.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c77c12c-c84f-4a5b-bda8-f806ae1ed3a4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f299614-d8a1-c75b-fb74-195f4a5fc888.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/95311222-ed53-1877-c439-8db436bc3c5e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/223e05c0-ecea-294a-cb29-34b5edd88481.png"
+            ],
+            "author": "SnoZek",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"63314\">@SnoZek</user-mention>,<br/><br/>I faced a similar issue and spent some time figuring it out. I'm using STM32CubeMX 6.17 and the same board.</p><p><br/>Make sure that your code calls the following function:</p><pre class=\"lia-code-sample language-c\"><code>__HAL_RCC_SYSCFG_CLK_ENABLE();</code></pre><p>If it does not appear in your project, add this call inside the <strong>/* USER CODE BEGIN MspInit 0 */</strong> section of the void <strong>HAL_MspInit(void)</strong> function.<br/><br/>Here is helpful resource to resolve usb related issues.<br/><a href=\"https://community.st.com/t5/stm32-mcus/faq-troubleshooting-a-usb-core-soft-reset-stuck-on-an-stm32/ta-p/803224\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/faq-troubleshooting-a-usb-core-soft-reset-stuck-on-an-stm32/ta-p/803224</a></p></div>",
+                    "author": "jmk",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104943\">@jmk</user-mention> ,</p><p>Thanks for your answer,<br/>I added the line and it didn't block anymore.<br/>Now the code is running and in the while(1) :</p><pre class=\"lia-code-sample language-c\"><code>\t USBX_Device_Process(NULL);</code></pre><p>calling :<br/><br/></p><pre class=\"lia-code-sample language-c\"><code> ux_device_stack_tasks_run();</code></pre><p>Now, my PC (Windows) see the USB device which is already a big step <strong>but</strong> with an error : \"Device descriptor request failed\"<br/><br/>Thanks for your help,<br/><br/></p></div>",
+                    "author": "SnoZek",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"63314\">@SnoZek</user-mention> </p>\n<p>Glad you fixed the first issue.</p>\n<p>Now, it seems you need to check your configuration. You can check this <a href=\"https://github.com/STMicroelectronics/STM32CubeWBA/tree/main/Projects/NUCLEO-WBA65RI/Applications/USBX/Ux_Device_HID_Standalone\" rel=\"nofollow noopener noreferrer\" target=\"_self\">example</a> as reference.</p>\n<p> </p>\n<p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey,<br/><br/>I finally succeed to make it work.<br/>The point is : by default in X-CUBE-AZRTOS-WB we have this :</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"st56.png\" style=\"width: 400px;\"><img alt=\"st56.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/630b96f2-302e-4bfa-b75e-6f41f2a8deac.png\" title=\"st56.png\"/></span></p><p> and if i undestood corectly, ENDPOINT_IN_CMD_ADDR should be different of IN and OUT ADDR.<br/>So i just modify like it :<br/><strong>USBD_CDCACM_ENDPOINT_IN_CMD_ADDR 2<br/></strong>And then it worked.<br/><br/>I also used in the end those values for the endpoint :</p><pre class=\"lia-code-sample language-c\"><code> /* Set Rx FIFO */\n HAL_PCDEx_SetRxFiFo(&amp;hpcd_USB_OTG_HS, 0x200);\n\n /* Set Tx FIFO 0 */\n HAL_PCDEx_SetTxFiFo(&amp;hpcd_USB_OTG_HS, 0, 0x40); // EP0\n\n /* Set Tx FIFO 1 */\n HAL_PCDEx_SetTxFiFo(&amp;hpcd_USB_OTG_HS, 1, 0x80); // CDC IN\n\n /* Set Tx FIFO 2 */\n HAL_PCDEx_SetTxFiFo(&amp;hpcd_USB_OTG_HS, 2, 0x10); // CDC CMD</code></pre><p> </p><p>thanks for your help,<br/>If someone need i can share my project of USB Standalone for STM32WBA65<br/>Yvan<br/><br/></p></div>",
+                    "author": "SnoZek",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

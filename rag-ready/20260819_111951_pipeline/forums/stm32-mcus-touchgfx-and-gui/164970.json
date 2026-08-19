@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164970",
+            "publicId": "164970",
+            "title": "Trouble implementing touchgfx on custom board",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/trouble-implementing-touchgfx-on-custom-board-164970",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [],
+            "published_at": "2026-04-21T14:18:04+00:00",
+            "views": 390,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "If you want to use 565, you should set 000 for 16-bit parallel interface, Note that this means DB0 and DB9 are not used, they are the missing r and b bits.\n\nHave you tied unused pins to gnd or IOVCC according to the data sheet?",
+            "best_answer_author": "mathiasmarkussen",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI made a custom board and made a design in touchgfx. But my screen keeps being black.\n\nI want to confirm something because I think I made a mistake in my design.\n\nI selected the following display:\n\nMDT0130CIS-MULTI:\n\n[https://www.farnell.com/datasheets/4321575.pdf?\\_gl=1\\*vshmrc\\*\\_gcl\\_aw\\*R0NMLjE3NzUxMjEwOTIuRUFJYUlRb2JDaE1JM1BxQnEtbk9rd01WdHprR0FCMXQ5Z2k1RUFRWUFTQUJFZ0xmZVBEX0J3RQ..\\*\\_gcl\\_au\\*MTM4MTIxMjM2Mi4xNzc2NDEzMzk5](https://www.farnell.com/datasheets/4321575.pdf?_gl=1*vshmrc*_gcl_aw*R0NMLjE3NzUxMjEwOTIuRUFJYUlRb2JDaE1JM1BxQnEtbk9rd01WdHprR0FCMXQ5Z2k1RUFRWUFTQUJFZ0xmZVBEX0J3RQ..*_gcl_au*MTM4MTIxMjM2Mi4xNzc2NDEzMzk5)\n\nNow in the datasheet from the ST7789V driver which is on board of the MDT0130CIS-MULTI display it says the following.\n\n![William_RnD_0-1776780898568.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76f79c6a-4cd6-5196-8705-620e3b8ef65e.png \"William_RnD_0-1776780898568.png\")\n\nCan I conclude from this that I cant drive this display with LTDC and Touch GFX?\n\nKind regards,\n\nWilliam\n\nP.S.\n\nI included my .ioc file and main.c file if that could help.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76f79c6a-4cd6-5196-8705-620e3b8ef65e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bee1cbc0-c727-2ef6-a463-a443e9eabb49.png"
+            ],
+            "author": "William_RnD",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>If you want to use 565, you should set 000 for 16-bit parallel interface, Note that this means DB0 and DB9 are not used, they are the missing r and b bits.</p><p>Have you tied unused pins to gnd or IOVCC according to the data sheet?</p></div>",
+                    "author": "mathiasmarkussen",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Will, in pdf you can see </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MM1_0-1776782647481.png\" style=\"width: 400px;\"><img alt=\"MM1_0-1776782647481.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bee1cbc0-c727-2ef6-a463-a443e9eabb49.png\" title=\"MM1_0-1776782647481.png\"/></span></p><p>then as writed here for RGB (LTDC) you require set last two lines i mean better 101, and connection on connector HSYNC VSYNC DE ... for LTDC require right connection to STM. Display can be set as RGB 666 or 565 based on your choice package STM ...</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Interesting but shouldn't it be 010?</p><p>M2: 0<br/>M1: 1<br/>M0: 0<br/>18-bit interface<br/>DB17-DB0<br/>I took RGB565, its a STM32f429.</p><p>Maybe its a synchronization error then because I tried 010 and 101 but it stays black.</p><p>Kind regards, </p><p>William</p><p> </p><p><br/><br/></p></div>",
+                    "author": "William_RnD",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No 010 is 8080 paralel interface for memory access (FMC), no video LTDC RGB.</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mathiasmarkussen",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

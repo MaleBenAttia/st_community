@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "165443",
+            "publicId": "165443",
+            "title": "STM32U575CGU3 CAN Cycle Time Issue",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u575cgu3-can-cycle-time-issue-165443",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FDCAN",
+                "TIM",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-06T14:29:25+00:00",
+            "views": 185,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> I am using the STM32U575CGU3 MCU in my project, where I transmit data using two CAN frames on the bus. I have configured a CAN transmission cycle time of 250 ms in my software.*\n\nThe CAN bus is not deterministic, since messages are arbitrated by message IDs.\n\nThis means, a node will be blocked while others transmit, when it \"loses out\" the arbitration.\n\nValidate the timing of your MCU and firmware by other means, and check that the CAN bus timing fluctuations remain in acceptable bounds. For that, you need a reference system with a minimum of nodes, preferably only two.\n\nBTW, there is no such thing as a \"configured CAN transmission cycle time\" in standard CAN.\n\nSome higher-level protocols like CANopen organize the bus in \"cycles\", and thus have \"cycle times\".\n\nThis is not a feature of the CAN specification and the CAN peripheral, though.",
+            "best_answer_author": "Ozone",
+            "best_answer_author_role": "Principal",
+            "content_text": "I am using the STM32U575CGU3 MCU in my project, where I transmit data using two CAN frames on the bus. I have configured a CAN transmission cycle time of 250 ms in my software.\n\nHowever, on a few PCB assemblies, I am observing inconsistencies in the transmission cycle time. On few boards, the cycle time appears to fluctuate (e.g., around 0.5–0.6 ms deviation), while on other boards, it works well.\n\nCould you please help me understand what might be causing this variation across different PCBAs? Any guidance on potential root causes or debugging approaches would be highly appreciated.",
+            "images": [],
+            "author": "sasmitjoshi5",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>How are you managing that \"cycle time\"? using HAL_Delay in a loop? or over a timer interrupt? using a crystal instead of one of the internal RC clock sources?</p>\n<p>But <span>0.5 to 0.6ms deviation vs 250ms between frames seems to be acceptable <strong>0.24%</strong> of deviation! </span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, <br/>I am managing cycle time using timer interrupt. I am using external crystal - MC2016Z16.0000C19XSH. <br/>Sorry my bad, 0.5-0.6 ms is not a deviation, I have set 250 ms cycle time &amp; for few PCBAs it goes for 0.5 or 0.6 ms cycle time, instead of 250 ms. </p></div>",
+                    "author": "sasmitjoshi5",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>In that case this is a timer question not CAN question. The timer usage changes totally the context as you don't have CAN communication problem.</p>\n<p>Forget about CAN for now. Comment out the CAN transmission from the timer interrupt and toggle a pin instead. Do you have the same behavior?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, <br/>Earlier I had 16 MHz as a sysclk &amp; 128 MHz as a FDCAN clock. I have change sysclk to 128 MHz &amp; my problem got resolved as of now. Both sysclk &amp; CAN clock are same 128 MHz now. I have a question, is it safe to use sysclk at 128 MHz?</p></div>",
+                    "author": "sasmitjoshi5",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I am using the STM32U575CGU3 MCU in my project, where I transmit data using two CAN frames on the bus. I have configured a CAN transmission cycle time of 250 ms in my software.</em></font></p><p><span>The CAN bus is not deterministic, since messages are arbitrated by message IDs.<br/>This means, a node will be blocked while others transmit, when it \"loses out\" the arbitration.</span></p><p><span>Validate the timing of your MCU and firmware by other means, and check that the CAN bus timing fluctuations remain in acceptable bounds. For that, you need a reference system with a minimum of nodes, preferably only two.</span></p><p><span><br/>BTW, there is no such thing as a \"configured CAN transmission cycle time\" in standard CAN.<br/>Some higher-level protocols like CANopen organize the bus in \"cycles\", and thus have \"cycle times\".<br/>This is not a feature of the CAN specification and the CAN peripheral, though.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

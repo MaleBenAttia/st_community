@@ -1,0 +1,52 @@
+{
+    "forum": [
+        {
+            "id": "165884",
+            "publicId": "165884",
+            "title": "STM32G491KE received SPI data always 0xFF",
+            "url": "https://community.st.com/mems-sensors-48/stm32g491ke-received-spi-data-always-0xff-165884",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "STM32CubeMX",
+                "STM32G4 series",
+                "SPI"
+            ],
+            "published_at": "2026-05-21T22:45:31+00:00",
+            "views": 141,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Thank you @waclawek.jan and @Andrew Neil for the suggestions, I was able to figure out the problem.\n\nI was checking the registers as suggested for the SPI IO and found that MISO, MOSI, and CLK were being initialized properly, but when I tired to do the same for CS it would never get there and get stuck in an infinite loop I had written.\n\nI was preforming a check on the who\\_am\\_i register on the IMU to make sure the device was communicating properly after I had setup the SPI pins but before I had initialized the CS pin (since I was doing that in software) so the configuration was correct but the subnode device wasn't responding because the CS pin was not toggling.\n\nI feel silly but I hope it will help someone else in the future to remind them it might just be something so simple as the CS pin.",
+            "best_answer_author": "Nicc",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello\n\nI have custom PCB with STM32G491KE connected to an LSM6SV80X IMU directly via SPI. I'm having an issue with not being able to receive any data from the IMU, the the read value is always 0xFF which I've read is usually an issue with the slave/subnode/agent device not responding.\n\nHere's how the SPI interface is configured (via CubeMX with X-CUBE-MEMS1)\n\n```\n\n__weak HAL_StatusTypeDef MX_SPI1_Init(SPI_HandleTypeDef* hspi)\n\n{\n\nHAL_StatusTypeDef ret = HAL_OK;\n\nhspi->Instance = SPI1;\n\nhspi->Init.Mode = SPI_MODE_MASTER;\n\nhspi->Init.Direction = SPI_DIRECTION_2LINES;\n\nhspi->Init.DataSize = SPI_DATASIZE_8BIT;\n\nhspi->Init.CLKPolarity = SPI_POLARITY_LOW;\n\nhspi->Init.CLKPhase = SPI_PHASE_1EDGE;\n\nhspi->Init.NSS = SPI_NSS_SOFT;\n\nhspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;\n\nhspi->Init.FirstBit = SPI_FIRSTBIT_MSB;\n\nhspi->Init.TIMode = SPI_TIMODE_DISABLE;\n\nhspi->Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;\n\nhspi->Init.CRCPolynomial = 7;\n\nhspi->Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;\n\nhspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;\n\nif (HAL_SPI_Init(hspi) != HAL_OK)\n\n{\n\nret = HAL_ERROR;\n\n}\n\nreturn ret;\n\n}\n\n```\n\nFrom the datasheet of the IMU I can say:\n\n* That mode 0 and 3 are supported so the clock phase and clock polarity should be fine, but I have tested on both modes (same outcome)\n\n* The SPI diagrams from the IMU datasheet show 8-bit messages\n\n* The supported clock rate is up to 10MHz, and the clock on the G4 is 16MHz, with a pre-scaler of 2 that produces a clock of 8MHz < 10MHz. Going to 4MHz didn't change the outcome.\n\n* SPI is full duplex master on the G4, so using 4 wires, which is supported by the IMU and its default configuration in its registers\n\n* MSB first matches the IMU datasheet\n\nFurthermore, the pins are configured for no pull down/up and alternative function with push-pull. GPIO OSPEED is set to medium as the default was low which seemed slow. There is no external circuitry between the MCU and the IMU.\n\nVDD and VDDIO on the IMU are both powered via 3V3 and the G4 is also powered from the same 3V3.\n\n![Nicc_0-1779402803552.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b915180b-adce-41ce-307d-b129a13a9f74.png \"Nicc_0-1779402803552.png\")\n\nCubeMX generated an SPI send and SPI Recv functions to use with the interface generated using X-CUBE-MEMS1 but I swear they would not work as is since the write and read don't send the register value so I wrote my own using HAL. The odd parameters for the function is due to a generated struct expecting a function pointer of this type. That's why reg is 16 bits instead of 8 and dummy is cast to void (dummy is the device address used if the interface is configured for I2C).\n\n```\n\nint32_t my_SPI1_Send(uint16_t dummy, uint16_t reg, uint8_t * pData, uint16_t length){\n\n(void)dummy;\n\nuint8_t reg8 = (uint8_t)reg;\n\nHAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);\n\nHAL_SPI_Transmit(&hspi1, &reg8, 1, BUS_SPI1_POLL_TIMEOUT);\n\nHAL_SPI_Transmit(&hspi1, (uint8_t*) pData, length, BUS_SPI1_POLL_TIMEOUT);\n\nHAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);\n\nreturn 0;\n\n}\n\nint32_t my_SPI1_Recv(uint16_t dummy, uint16_t reg, uint8_t * pData, uint16_t length){\n\n(void)dummy;\n\nreg |= 0x0080;\n\nuint8_t reg8 = (uint8_t)reg;\n\nHAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);\n\nHAL_SPI_Transmit(&hspi1, &reg8, 1, BUS_SPI1_POLL_TIMEOUT);\n\nHAL_SPI_Receive(&hspi1, pData, length, BUS_SPI1_POLL_TIMEOUT);\n\nHAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);\n\nreturn 0;\n\n}\n\n```\n\nAny data received is always 0xFF. All functions return fine (HAL\\_OK) but the data is always all ones. I've read this can be from the subnode device not doing anything with the MISO line. I've stepped through the code and the register and data to send are both good. It is important to mention I made two PCBs and the behaviour is the same (I've not done every test on both boards but neither work and receive only 0xFF) so it's hard to imagine it's damage unless I'm very unfortunate. A configuration issue, some HW issue, or some esoteric SPI thing are the only options I can imagine is going on at this point.\n\nFearing HAL could be doing something, I wrote a very slim register version, here just grabbing the WHO\\_AM\\_I register but same outcome. (\\_\\_IO is a alias for volatile)\n\n```\n\nuint8_t reg = 0x80 | LSM6DSV80X_WHO_AM_I;\n\nuint8_t whoami = 0xAA;\n\nHAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);\n\nhspi1.Instance->CR1 |= SPI_CR1_SPE;\n\nwhile (!(SPI1->SR & SPI_SR_TXE)) {};\n\n*(__IO uint8_t *)&hspi1.Instance->DR = (* (uint8_t *)reg);\n\nwhile (!(SPI1->SR & SPI_SR_RXNE)) {};\n\n(* (uint8_t *)whoami) = *(__IO uint8_t *)&hspi1.Instance->DR;\n\nwhile (SPI1->SR & SPI_SR_BSY) {};\n\nHAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);\n\n```\n\nUnfortunately the pins that I selected on the G4 (PA6, PA7) cannot be configured for I2C so swapping SPI for I2C is not an option.\n\nI have not scoped any of the signal lines yet... and I still can but the PCB is very very small and would require scraping some of the soldermask off so I'm trying to fix it before it comes to that.\n\nThank you",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b915180b-adce-41ce-307d-b129a13a9f74.png"
+            ],
+            "author": "Nicc",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have you used a scope and/or logic analyser to see what's actually happening on the wires?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>+1 to using the oscilloscope/LA; but you can/should also read out and check/post the relevant GPIO and/or SPI registers content, and also a good exercise may be to try to bit-bang the interface.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you <user-mention data-id=\"17162\">@waclawek.jan</user-mention> and <user-mention data-id=\"35659\">@Andrew Neil</user-mention> for the suggestions, I was able to figure out the problem. <br/>I was checking the registers as suggested for the SPI IO and found that MISO, MOSI, and CLK were being initialized properly, but when I tired to do the same for CS it would never get there and get stuck in an infinite loop I had written. </p><p>I was preforming a check on the who_am_i register on the IMU to make sure the device was communicating properly after I had setup the SPI pins but before I had initialized the CS pin (since I was doing that in software) so the configuration was correct but the subnode device wasn't responding because the CS pin was not toggling. <br/>I feel silly but I hope it will help someone else in the future to remind them it might just be something so simple as the CS pin.</p></div>",
+                    "author": "Nicc",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

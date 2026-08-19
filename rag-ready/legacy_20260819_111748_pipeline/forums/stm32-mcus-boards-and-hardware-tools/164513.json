@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164513",
+            "publicId": "164513",
+            "title": "Bootloader Indication LED",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/bootloader-indication-led-164513",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32H7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-04-07T08:09:18+00:00",
+            "views": 549,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "According to AN2606 PB14 is USART1 TX (alternate) and set to push pull during system bootloader. TX inactive level is high and so Q3 will conduct and LD3 light up.",
+            "best_answer_author": "Uwe Bonnes",
+            "best_answer_author_role": "Chief",
+            "content_text": "Hi,\n\nI have the STM32H753ZI Nucleo board and have developed firmware around this MCU with this board as my reference platform.\n\nOn our product, firmware updates will be uploaded via the UART interfaces.\n\nSo the user will need to enter Bootloader.\n\nOn the Nucleo board, the LD3 Red LED stays illuminated when in Bootloader.\n\nI think this is because the GPIO pin is being pulled up, and this is not intentional as an indicator?\n\nAn indication to the user that they have successfully reset the MCU into Bootloader is useful.\n\nHow can you recommend we can do this in a reliable way in the future?\n\nThanks.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05e836ef-1d78-ef54-a8fb-65f098de34e3.png"
+            ],
+            "author": "shaling",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You're talking about ST's <a href=\"https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">System Bootloader</a> <em>in ROM</em> - Yes?</p><p>AIUI, that does not provide any indication itself.</p><p>But <em>your application</em> could provide an indication when it is running - so you just invert that!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have a heartbeat LED when the the program is running.<br/>This is not the problem.<br/>I found LD3 staying on when in System Bootloader useful.<br/>I would imagine I am not the only one.<br/>Can you explain why LD3 is constant ON when in Bootloader?<br/>Thanks.</p></div>",
+                    "author": "shaling",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105832\">@shaling</user-mention> wrote:<br/><p>Can you explain why LD3 is constant ON when in Bootloader?</p><hr/></blockquote><p>Have you looked at the board schematic?</p><p>See the '<strong>CAD Resources</strong>' tab on the boards <strong>Product Page</strong>:</p><p><a href=\"https://www.st.com/en/evaluation-tools/nucleo-h753zi.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/evaluation-tools/nucleo-h753zi.html#cad-resources</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Reading between the lines, I would guess the default reset state is pull-up, so this (just) switches on Q3 NPN transistor. Maybe through an opamp and NPN, some logic can be made to display an LED when reset.</p><p>Thanks.</p></div>",
+                    "author": "shaling",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No need to guess:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Image1.png\" style=\"width: 999px;\"><img alt=\"Image1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05e836ef-1d78-ef54-a8fb-65f098de34e3.png\" title=\"Image1.png\"/></span></p><p> <a href=\"https://www.st.com/resource/en/datasheet/stm32h753zi.pdf#page=31\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/datasheet/stm32h753zi.pdf#page=31</a></p><p><em>via: <a href=\"https://www.st.com/en/microcontrollers-microprocessors/stm32h753zi.html\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/microcontrollers-microprocessors/stm32h753zi.html</a></em></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>According to AN2606 PB14 is USART1 TX (alternate) and set to push pull during system bootloader. TX inactive level is high and so Q3 will conduct and LD3 light up.</p></div>",
+                    "author": "Uwe Bonnes",
+                    "role": "Chief"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That explains it. Thanks very much. I can use this :).</p><p>Much appreciated.</p></div>",
+                    "author": "shaling",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

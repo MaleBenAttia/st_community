@@ -1,0 +1,95 @@
+{
+    "forum": [
+        {
+            "id": "163719",
+            "publicId": "163719",
+            "title": "Errors converting Eclipse STM32CueIDE project to VSCode",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/errors-converting-eclipse-stm32cueide-project-to-vscode-163719",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-12T07:27:43+00:00",
+            "views": 899,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @MGO,\n\nIndeed, this issue has been spotted in some firmware example projects as well. We are currently working on it and hope to deliver a fix soon.\n\nIn the meantime, if you want to try the project conversion, you can do it from the CLI after duplicating your JSON file somewhere else on your disk and fixing it by escaping the backslashes (\\) with double backslashes (\\\\).\n\nThen run:\n\n```\n\ncube ide-project-convert --bypass-converter <path_to_stm32cubeide-export.json> --source-format stm32cubeide --destination <cmake_project_location> --format cmake\n\n```\n\nHope this helps.",
+            "best_answer_author": "Julien D",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello everybody.\n\nI try to convert an STM32CubeIDE project into a CMake project to be used on VSCode using the procedure included in \"STM32CubeIDE for Visual Studio Code\" extension.\n\nThe procedure aborts with this error message:\n\n*[Error] [ide-project-convert] Bad escaped character in JSON at position 15583 (line 322 column 55).*\n\n*Line 322 of \"stm32cubeide-export.json\" file, created by the procedure itself, is this one:\n\n, \"option.includepaths\": \"-I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\application\\Display\\TouchGFX\\generated\\texts\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\application\\Display\\TouchGFX\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\application\\Display\\TouchGFX\\gui\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\application\\Display\\TouchGFX\\generated\\gui\\_generated\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\application\\Display\\TouchGFX\\generated\\fonts\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\Middlewares\\ST\\touchgfx\\3rdparty\\libjpeg\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\application\\Display\\TouchGFX\\generated\\images\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Library\\FreeRTOSv10.4.1\\Source\\include\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Library\\FreeRTOSv10.4.1\\Source\\portable\\GCC\\ARM\\_CM4F\\\", -I\\\"C:\\Repo\\_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive\\_Fwk2\\Middlewares\\ST\\touchgfx\\framework\\include\\\"\"*\n\n*It seems to me that the problem are the single backslashes inside a \"quoted\" string (double backslash needed?).\n\nHow can I solve this issue since the file is automatically created?\n\nThank you, bye*",
+            "images": [],
+            "author": "MGO",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"69071\">@MGO</user-mention>,</p><p>Indeed, this issue has been spotted in some firmware example projects as well. We are currently working on it and hope to deliver a fix soon.</p><p>In the meantime, if you want to try the project conversion, you can do it from the CLI after duplicating your JSON file somewhere else on your disk and fixing it by escaping the backslashes (\\) with double backslashes (\\\\).</p><p>Then run:</p><pre class=\"lia-code-sample language-c\"><code>cube ide-project-convert --bypass-converter &lt;path_to_stm32cubeide-export.json&gt; --source-format stm32cubeide --destination &lt;cmake_project_location&gt; --format cmake</code></pre><p><span>Hope this helps.</span></p></div>",
+                    "author": "Julien D",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><pre class=\"lia-code-sample language-c\"><code>cube ide-project-convert --bypass-converter ../123/stm32cubeide-export.json --source-format stm32cubeide --destination ../123 --format cmake\n2026-03-16 11:19:01.530 [Info] Generating project...\n2026-03-16 11:19:02.358 [Error] Inconsistent source files found across project configurations is not supported.</code></pre><p> 修改好后，出现错误，还需要什么配置吗？</p></div>",
+                    "author": "Oliver_yydd",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105147\">@Oliver_yydd</user-mention>,</p><p>The current version of the tools requires having the same sources across all configurations defined in the exported JSON file. This was a deliberate choice made for the first version.</p></div>",
+                    "author": "Julien D",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you <user-mention data-id=\"573\">@Julien D</user-mention> for the fix!</p><p>I had a similar issue with this line in my export json:</p><pre class=\"lia-code-sample language-markup\"><code>\"option.directories\": \"[\"${workspace_loc:/${ProjName}/Middlewares/ST/STM32_Audio/Addons/SRC441/Lib}\"]\"</code></pre><p>where the inner quotation marks weren't being escaped. I fixed it by putting a backslash infront of the inner quotation marks. Hope this helps someone at some point!</p></div>",
+                    "author": "ShadowOnWiiU",
+                    "role": "Explorer"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you <user-mention data-id=\"105099\">@ShadowOnWiiU</user-mention> for your valuable feedback.</p><p>You are right; some parts of the JSON may not respect the format depending on the input project. This lack of quote escaping has been tracked on our side, and a fix is on its way.</p><p>The variable resolution issue is being addressed as well.</p></div>",
+                    "author": "Julien D",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Other warnings and errors on folders:</p><p><em>[Warn] Issue copying headers: Error: ENOENT: no such file or directory, lstat 'c:\\<strong><font color=\"#FF0000\">Repo_mgo\\STM32Workspace\\NGDrive\\Appl\\dDrive_Fwk2\\</font></strong>Repo_mgo\\STM32Workspace\\NGDrive\\Library\\STM32H7xx\\Drivers\\CMSIS\\Device\\ST\\STM32H7xx\\Include\"'</em></p><p>The <strong><font color=\"#FF0000\">RED</font></strong> part of the path above is wrong, appended erroneously.<br/>There are many of these warnings.</p><p> </p><p><em>[Error] EPERM: operation not permitted, copyfile 'c:\\Repo_mgo\\STM32Workspace\\NGDrive\\Library\\STM32H7xx\\Drivers' -&gt; 'C:\\Repo_mgo\\STM32Workspace\\NGDrive\\VSCode\\dDrive_Fwk2\\Library\\STM32H7xx\\Drivers'</em></p><p>In this case paths are correct, but I get an \"operation not permitted\" error.<br/>After this error the procedure aborts.</p></div>",
+                    "author": "MGO",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"69071\">@MGO</user-mention>,</p><p>Apologize for late replying. What you describe has been reproduced and analyzed. This is tracked by an internal ticket.</p><p>It happens when your include paths are defined with absolute path in your STM32CubeIDE (Eclipse based) project definition, you can workaround it by using relative paths within it instead.</p></div>",
+                    "author": "Julien D",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Julien D.</p><p>Thank you for the reply, I am going to apply your workaround.</p><p> </p></div>",
+                    "author": "MGO",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julien D",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Julien D",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Julien D",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Julien D",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

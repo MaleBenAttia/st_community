@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163376",
+            "publicId": "163376",
+            "title": "Nucleo H7S3L8: No GPIO output on ports O and P",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/nucleo-h7s3l8-no-gpio-output-on-ports-o-and-p-163376",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32H7 series",
+                "ST boards"
+            ],
+            "published_at": "2026-03-03T10:13:52+00:00",
+            "views": 280,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I don't use the 'H7R/S, but my guess is, that those two ports are powered from the VDDXSPI1/2 pins; and that these may also need to be enabled, probably in PWR.\n\nThe description of these power domains in DS and RM is, to put it mildly, poor.\n\nMaybe [relevant](https://community.st.com/t5/stm32-mcus-products/how-to-control-stm32h7rs-gpio-port-p-and-n/td-p/774042) thread?\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello everyone\n\nI am using a Nucleo H7S3L8 evaluation module am I am trying to get some GPIOs and peripherals to work. I have generated a demo project that toggles a few LEDs and that works. Then I started replacing the GPIO ports (A, B, etc.) and pin numbers in order to get other GPIOs to toggle (I left the rest of the code as-is, really just replaced the letters and numbers). However, I didn't manage to get an output on any of the GPIOs belonging to ports O and P. I tried GPIOO 0 and 4 as well as GPIOP 0-3 and attached the analyzer at CN10 13, 15, 19, 21, 23, 25 with GND at CN10 17 (always one at a time). All these signals do not toggle. Other GPIO banks such as GPIOB and GPIOM work.\n\nAre the O and P ports different than the others? Do I miss some special settings? I will later be using the XSPI there, so I will need exactly these pins.\n\nI appreciate any help!\n\nPS Here are my jumper settings:\n\nJP1: not connected\n\nJP2: connected\n\nJP3: only STLK connected\n\nJP5: connected to 3.3 V\n\nJP6: not connected",
+            "images": [],
+            "author": "fluxyfux",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't use the 'H7R/S, but my guess is, that those two ports are powered from the VDDXSPI1/2 pins; and that these may also need to be enabled, probably in PWR.</p><p>The description of these power domains in DS and RM is, to put it mildly, poor.</p><p>Maybe <a href=\"https://community.st.com/t5/stm32-mcus-products/how-to-control-stm32h7rs-gpio-port-p-and-n/td-p/774042\" target=\"_self\">relevant</a> thread?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks a lot!<br/>The magic lies in a call to HAL_PWREx_EnableXSPIM1();</p></div>",
+                    "author": "fluxyfux",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, so that just sets a single bit (it took me some time to realize that the 'H7RS Cube is separate from 'H7 Cube, thanks ST!):</p><pre class=\"lia-code-sample language-c\"><code>void HAL_PWREx_EnableXSPIM1(void)\n{\n SET_BIT(PWR-&gt;CSR2, PWR_CSR2_EN_XSPIM1);\n}</code></pre><p> Did this enable both GPIOP and GPIOO pins?</p><p>Did you try GPION? From the chips' layouts I'd expect they are bound to VDDXSPIM2 (and thus to be enabled by PWR_CSR2.EN_XSPIM2). Can you please try that, too?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,91 @@
+{
+    "forum": [
+        {
+            "id": "164517",
+            "publicId": "164517",
+            "title": "STM32CubeMX2 Release Build Configuration",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/stm32cubemx2-release-build-configuration-164517",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeMX2"
+            ],
+            "published_at": "2026-04-07T09:07:19+00:00",
+            "views": 559,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hi @gil\\_dobjanschi\n\nThank you for your detailed feedback and for sharing the solution you implemented. It is good to hear that the approach works as expected in your current setup.\n\nRegarding your remarks:\n\n**1. Add a Release build configuration in CMake when the code is generated**\n\nAn internal ticket has already been submitted for this request: **CDM0061318**. I will keep you posted.\n\n**2. Define the `DEBUG` flag for the debug version**\n\nI have submitted an internal ticket for this enhancement following your request: **CDM0061625**. I will keep you updated.\n\n**3. Use `Pre_Include_Global.h` to enable the two assert compile flags only if `DEBUG` is defined**\n\nIn **STM32CubeMX2**, go to the **Project Settings** page. In the **Global Services** section, open **HAL System Init Configuration**. There, you will find the following options:\n\n* **Assert checks on function parameters**\n\n* **Assert checks on module state**\n\nBy enabling these options, **STM32CubeMX2** generates the following definitions in `Pre_Include_Global.h`:\n\n* `#define USE_ASSERT_DBG_PARAM`\n\n* `#define USE_ASSERT_DBG_STATE`\n\nPlease do not hesitate to contact us if you need any further assistance or have any questions.\n\nRegards,\n\nSara.",
+            "best_answer_author": "Sara BEN HADJ YAHYA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI generated a project using STM32CubeMX2 for Nucleo-C5A3ZG and I imported the project using the 'STM32CubeMX2 Project' option into STM32CubeIDE. I can compile and link the code without any issues however I noticed that there is only one build configuration (debug\\_GCC\\_NUCLEO-C5A3ZG for my project). Can STM32CubeMX2 also create a release  build configuration?\n\nMy second related question what is the best way to add compile flags? I managed to add a -DDEBUG flag to the flags.cmake file and it works fine. Is this the right way to do it? Would project regeneration be troubled by this change?\n\nFinally, if I opted in for 'Assert checks on function parameters' and 'Assert checks on module state' in STM32CubeMX2 HAL System Init is there a way to only have this functionality enabled only for a debug build?\n\nThank you,\n\nGil",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7bf070e3-ebf6-4806-99a1-8d29186cfa56.png"
+            ],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Hi <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention>,</p>\n<p>Thanks a lot for your feedback and welcome to the ST Community!</p>\n<p>At the moment, the release build configuration cannot be added via the STM32CubeMX GUI, but it is possible using the CLI.</p>\n<p>For example, you can use a command similar to:</p>\n<p>cube mx ide-project generate -p ./test.ioc2 --build-target .release_IAR+NUCLEO-C562RE --destination test_ewarm --format EWARM --source include-packs-from-local --force<br/><br/>Please check <user-mention data-id=\"98273\">@MorkBeck</user-mention> reply in this thread: “<a href=\"https://community.st.com/t5/stm32cubemx2-mcus/stm32cubemx2-nucleo-c562re-you-need-ai/td-p/889242\" target=\"_self\">STM32CubeMX2 + NUCLEO-C562RE - you need AI?</a>” — it contains additional details and context that may be helpful.</p>\n<p>Please let me know if you need any further assistance.</p>\n<p>Regards,</p>\n<p>Sara</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the reply Sara!</p><p> </p><p>If I add the release configuration how can I handle the assert defines selectively in the debug and release builds (i.e. enable in debug build and disable in release build). It seems that STM32CubeMX2 is generating the Pre_Include_Global.h file where the two assert defines exist:</p><div><div><p><span>#define</span> <span>USE_ASSERT_DBG_PARAM</span></p><p><span>#define</span><span> USE_ASSERT_DBG_STATE</span></p></div></div><p> </p><p>It then uses the include file in STM32_HAL_Driver_codegen.cmake like this:</p><p> </p><div><div><p># Include <span>Pre_Include_Global.h</span> globally if needed</p><p>if(CMSIS_Tcompiler STREQUAL \"IAR\")</p><p>  target_compile_options(generated_STMicroelectronics_stm32c5xx_hal_drivers_0_0_1 INTERFACE \"SHELL:--preinclude $&lt;QUOTE&gt;${CMAKE_CURRENT_LIST_DIR}/<span>Pre_Include_Global.h</span>$&lt;QUOTE&gt;\")</p><p>else()</p><p>target_compile_options(generated_STMicroelectronics_stm32c5xx_hal_drivers_0_0_1 INTERFACE \"SHELL:-include $&lt;QUOTE&gt;${CMAKE_CURRENT_LIST_DIR}/<span>Pre_Include_Global.h</span>$&lt;QUOTE&gt;\")</p><p>endif()</p><p> </p><p>I guess in the release build these lines should not exist. I tried that but the code does not compile:</p><div><div><p><span>/Documents/GitHub/LED_Blink/LED_Blink_cmake/generated/hal/mx_rcc.c: In function 'mx_rcc_init':</span></p><p><span>/Documents/GitHub/LED_Blink/LED_Blink_cmake/generated/hal/mx_rcc.c:46:7: error: implicit declaration of function 'HAL_RCC_HSE_Enable'; did you mean 'HAL_RCC_LSI_Enable'? [-Wimplicit-function-declaration]</span></p><p><span>46 | if (HAL_RCC_HSE_Enable(HAL_RCC_HSE_ON) != HAL_OK)</span></p><p><span>| ^~~~~~~~~~~~~~~~~~</span></p><p><span>| HAL_RCC_LSI_Enable</span></p><p><span>/Documents/GitHub/LED_Blink/LED_Blink_cmake/generated/hal/mx_rcc.c:46:26: error: 'HAL_RCC_HSE_ON' undeclared (first use in this function)</span></p><p><span>46 | if (HAL_RCC_HSE_Enable(HAL_RCC_HSE_ON) != HAL_OK)</span></p><p><span>| ^~~~~~~~~~~~~~</span></p><p><span>Any ideas how I can proceed?</span></p><p><span>Thanks again,</span></p><p><span>Gil</span></p></div></div></div></div></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention>,</p>\n<p>Could you please try the following steps and let us know how it goes?<br/>Keep the pre-include mechanism and make only the assert macros configuration-specific. The cleanest version is to move the two assert defines out of the generated header and add them as Debug-only compile definitions:</p>\n<p>target_compile_definitions(<br/>generated_STMicroelectronics_stm32c5xx_hal_drivers_0_0_1<br/>INTERFACE<br/>$&lt;$&lt;CONFIG:Debug&gt;:USE_ASSERT_DBG_PARAM&gt;<br/>$&lt;$&lt;CONFIG:Debug&gt;:USE_ASSERT_DBG_STATE&gt;<br/>)<br/><span>Then, keep the existing global </span><code>-include</code><span> / </span><code>--preinclude</code><span> logic unchanged.</span></p>\n<p><span>If you must keep the defines inside the pre-include header, then the header itself should be conditional instead of being removed from Release. For example:</span></p>\n<p>#if defined(DEBUG)<br/>#define USE_ASSERT_DBG_PARAM<br/>#define USE_ASSERT_DBG_STATE<br/>#endif</p>\n<p>And in CMake make sure DEBUG is only set for Debug builds, for example:</p>\n<p>target_compile_definitions(your_app_target PRIVATE<br/>$&lt;$&lt;CONFIG:Debug&gt;:DEBUG&gt;<br/>$&lt;$&lt;CONFIG:Release&gt;:NDEBUG&gt;<br/>)<br/>Best regards,<br/>Pape</p></div>",
+                    "author": "PapeLibasse",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"68300\">@PapeLibasse</user-mention>,</p><p>Thank you for your reply! </p><p>I came up with a solution just before I received your reply. It is similar to the second option you outlined in your reply. </p><p>In the Pre_Include_Global.h I did exactly what you suggested:</p><p>#if defined(DEBUG)<br/>#define USE_ASSERT_DBG_PARAM<br/>#define USE_ASSERT_DBG_STATE<br/>#endif</p><p> </p><p>Then in the flags.cmake for for debug_GCC_NUCLEO-C562RE I defined the DEBUG flag:</p><div><p>target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC \"SHELL:-DDEBUG -g3 -O0 -fdata-sections -ffunction-sections -std=gnu11 -Wall -fstack-usage --specs=nano.specs --specs=nosys.specs -Werror=implicit-function-declaration ${CC_SECURE}\")</p><p>When there will be a release build configuration I will do:</p><p>target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC \"SHELL:-DNDEBUG -g0 -Os -fdata-sections -ffunction-sections -std=gnu11 -Wall -fstack-usage --specs=nano.specs --specs=nosys.specs -Werror=implicit-function-declaration ${CC_SECURE}\")</p><p> </p><p>That works fine <span>but the solution as it stands right now is not ideal. When I regenerate the code with STM32CubeMX2 the software will notice that I changed the contents and may end up overwriting the Pre_Include_Global.h. This is not a major issue as I can add my #ifdef DEBUG back after the code is generated.</span></p><p> </p><p>One possible solution from ST would be to update the STM32CubeMX2 to do the following:</p><p>1. Add a release build configuration in CMake when the code is generated.</p><p>2. Define the DEBUG flag for the debug version (possible in flags.cmake but it can be done with Cmake wizardry as well). Almost any application would benefit from this flag.</p><p>3. In <span>Pre_Include_Global.h use the code above to enable the two assert compile flags only if DEBUG is defined. This way the code generator can define values/flags that apply only in the debug build configuration, only in the release build configuration or both.</span></p><p> </p><p>These were just my 2 cents. Clever people in your team can come up with something even better.</p><p>Regards,</p><p>Gil</p></div></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention> </p>\n<p>Thank you for your detailed feedback and for sharing the solution you implemented. It is good to hear that the approach works as expected in your current setup.</p>\n<p>Regarding your remarks:</p>\n<p><strong>1. Add a Release build configuration in CMake when the code is generated</strong><br/>An internal ticket has already been submitted for this request:<span> </span><strong>CDM0061318</strong>. I will keep you posted.</p>\n<p><strong>2. Define the<span> </span><code>DEBUG</code><span> </span>flag for the debug version</strong><br/>I have submitted an internal ticket for this enhancement following your request:<span> </span><strong>CDM0061625</strong>. I will keep you updated.</p>\n<p><strong>3. Use<span> </span><code>Pre_Include_Global.h</code><span> </span>to enable the two assert compile flags only if<span> </span><code>DEBUG</code><span> </span>is defined</strong><br/>In<span> </span><strong>STM32CubeMX2</strong>, go to the<span> </span><strong>Project Settings</strong><span> </span>page. In the<span> </span><strong>Global Services</strong><span> </span>section, open<span> </span><strong>HAL System Init Configuration</strong>. There, you will find the following options:</p>\n<ul>\n<li><strong>Assert checks on function parameters</strong></li>\n<li><strong>Assert checks on module state</strong></li>\n</ul>\n<p>By enabling these options, <strong>STM32CubeMX2</strong> generates the following definitions in<span> </span><code>Pre_Include_Global.h</code>:</p>\n<ul>\n<li><code>#define USE_ASSERT_DBG_PARAM</code></li>\n<li><code>#define USE_ASSERT_DBG_STATE</code></li>\n</ul>\n<p>Please do not hesitate to contact us if you need any further assistance or have any questions.</p>\n<p>Regards,</p>\n<p>Sara.</p>\n<p><code></code></p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"1242\">@Sara BEN HADJ YAHYA</user-mention>,</p><p> </p><p>Thank you for considering my suggestions. I am looking forward to test the next release.</p><p> </p><p>We as developers are happy to have your support in creating great embedded applications with the new MCUs and STM32CubeMX2. </p><p> </p><p>Regards,</p><p>Gil</p><p> </p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"105834\">@gil_dobjanschi</user-mention> <br/>I wanted to follow up with you regarding these point:</p><ol><li>The release build target is confirmed to be added to the UI in a future releases. The team is currently working on it.</li> <li>Define the <code>DEBUG</code> flag for the debug version: After discussion with the team, it was decided to keep the current approach, which is that the update of the <strong>flags</strong> will have to be done manually in each IDE file. For instance, for STM32CubeIDE/Eclipse, see the screenshot.</li></ol><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7bf070e3-ebf6-4806-99a1-8d29186cfa56.png\"/></figure><p> </p><p>Please don’t hesitate to get back to me if you need more details or if you don’t agree with the decision.</p><p>Regards,</p><p>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "PapeLibasse",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "166034",
+            "publicId": "166046",
+            "title": "STM32_Programmer_CLI ignores Debug Authentication parameters given on command line",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32-programmer-cli-ignores-debug-authentication-parameters-given-on-command-line-166046",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer",
+                "STM32H5 series",
+                "Debug authentication"
+            ],
+            "published_at": "2026-06-10T19:00:42+00:00",
+            "views": 58,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@PaulAD,\n\nThanks for reaching out,\n\nTry putting the arguments before the “debugauth” keyword. For example, for full regression, try:\n\n```\n\n>STM32_Programmer_CLI -c port=SWD key=\"C:\\STM32CubeProgrammer 2.22.0\\bin\\DA_Default_Config\\STM32H5\\key_3_leaf.pem\" cert=\"C:\\STM32CubeProgrammer 2.22.0\\bin\\DA_Default_Config\\STM32H5\\cert_leaf_chain.b64\" per=a debugauth=1\n\n```\n\nAlthough I admit an improvement in the tool would be to parse the arguments in any case (Either put before or after the “debugauth” keyword). The request is already logged internally (**CDM0063730**).\n\nHope you find this helpful,\n\nAziz",
+            "best_answer_author": "Aziz BRIGUI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI’m setting up a bash script (under Ubuntu Linux) to automate STM32H563 provisioning for my application using the command-line version of STM32 Cube Programmer. As part of this script, I’m setting it up to automatically perform Full Regression prior to new provisioning if the board is already provisioned. (This is being used for testing and software development, so I am likely to need to do this.)\n\nThe help text tells me that I can use the “key”, “cert” and “per” arguments on the command line, along with debugauth=1, to specify paths to the key, certificate and requested permission to request debug authentication. However, the application seems to ignore these arguments completely and always asks for them to be entered in the console, so I can’t perform a scripted Full Regression as should be possible.\n\nI tried working around this by piping the output of a bash printf command into the application instead. Oddly, this seems to work for passing in the key and certificate but the selection of permission/action to perform which I fed to stdin was ignored; it almost looks like something is deliberately consuming all queued input prior to offering the option.\n\nI initially observed this in STM32\\_Programmer\\_CLI version 2.14.0. I just upgraded to the newest version 2.22.0 and am seeing almost exactly the same behaviours in that. Both versions ignore these command line arguments. For the piping of options into the application, 2.14.0 just sat waiting for more input (which won’t come as it already consumed what I prepared), while 2.22.0 ignored my selection but then appeared to accept the following newline, causing authentication to fail because of an invalid permission selection.\n\nThis leaves me unable to implement the scripted behaviour I want. Am I doing something wrong, or is this a bug in STM32\\_Programmer\\_CLI? If it’s a bug, please can you fix it for the next release?\n\nI don’t seem to be the only person affected by this. On this page:\n\n<https://community.st.com/stm32-mcus-60/implementing-debug-authentication-on-stm32h5-using-cli-tools-125580?tid=125580&fid=60>\n\nPieterG mentions the same issue but with password rather than certificate-based authentication.\n\nThanks and best regards\n\nPaul",
+            "images": [],
+            "author": "PaulAD",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107339\">@PaulAD</user-mention>,</p><p>Thanks for reaching out,</p><p>Try putting the arguments before the “debugauth” keyword. For example, for full regression, try:</p><pre><code class=\"language-bash\">&gt;STM32_Programmer_CLI -c port=SWD key=\"C:\\STM32CubeProgrammer 2.22.0\\bin\\DA_Default_Config\\STM32H5\\key_3_leaf.pem\" cert=\"C:\\STM32CubeProgrammer 2.22.0\\bin\\DA_Default_Config\\STM32H5\\cert_leaf_chain.b64\" per=a debugauth=1</code></pre><p>Although I admit an improvement in the tool would be to parse the arguments in any case (Either put before or after the “debugauth” keyword). The request is already logged internally (<strong>CDM0063730</strong>).</p><p>Hope you find this helpful,</p><p>Aziz </p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1898\">@Aziz BRIGUI</user-mention>,</p><p>Well, that works nicely and was indeed helpful! Thank you very much!</p><p>Best regards</p><p>Paul</p></div>",
+                    "author": "PaulAD",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Awesome, Thanks for the swift confirmation.</p><p>Cheers,</p><p>Aziz</p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

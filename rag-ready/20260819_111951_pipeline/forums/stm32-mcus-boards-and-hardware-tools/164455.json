@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164455",
+            "publicId": "164455",
+            "title": "STM32U5G9J-DK2 – Short circuit on 3.3V, U16 overheating, LD1 off",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32u5g9j-dk2-short-circuit-on-3-3v-u16-overheating-ld1-off-164455",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "STM32U5 series",
+                "ST boards"
+            ],
+            "published_at": "2026-04-03T15:32:23+00:00",
+            "views": 408,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @Ameni wrote:\n\n>\n\n> Hello,\n\n>\n\n> Thank you for your reply.\n\n>\n\n> Since it is very likely an internal short circuit inside the chip, is there any test or method to confirm this with 100% certainty?\n\n>\n\n> ---\n\nRemove JP4 to isolate the chip and measure the impedance at the MCU side using a multimeter, if it's very low in the order of few ohms this is definitly an issue. Start by using the continuity test. If with the continuity mode the speaker generates a sound it's 100% a short circuit inside the chip.\n\nYou should do the test between JP4 (MCU side- you need to find which pin of JP4) and GND with the board powered off.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am experiencing an issue with my STM32U5G9J-DK2 board.\n\nDescription:\n\n* Board powered through STLINK USB\n\n* LED LD7 is ON\n\n* LED LD6 is ON\n\n* LED LD1 is OFF\n\n* I measured about 0.8 Ω between 3V3 and GND\n\n* Component U16 overheats a few seconds after power-up\n\n* No external circuit is connected\n\nI already tried:\n\n* Another USB cable and power source\n\n* Disconnecting all external peripherals\n\nMy question:\n\nCould someone help identify where the problem might come from?\n\nCould U16 be defective or indicate a short circuit on the 3.3V rail?\n\nThank you for your help.",
+            "images": [],
+            "author": "Ameni",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"102298\">@Ameni</user-mention> wrote:<br/>\n<p>Hello,</p>\n<p>Thank you for your reply.</p>\n<p>Since it is very likely an internal short circuit inside the chip, is there any test or method to confirm this with 100% certainty?</p>\n<hr/></blockquote>\n<p>Remove <span>JP4 to isolate the chip and measure the impedance at the MCU side using a multimeter, if it's very low in the order of few ohms this is definitly an issue. Start by using the continuity test. If with the continuity mode the speaker generates a sound it's 100% a short circuit inside the chip.</span></p>\n<p><span>You should do the test between JP4 (MCU side- you need to find which pin of JP4) and GND with the board powered off.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>This is a hardware issue. First thing to do is to remove JP4 to disconnect VDD from the MCU. So the chip is isolated and no more powered on. Do you face the same behavior?</p>\n<p>If yes it's something related to power stage and could be damaged.</p>\n<p>If no I think in this case the MCU is damaged.</p>\n<p>But you need anyway to check the jumpers, put all the jumpers to their default position. You need to refer to the user manual of the board for that. But this needs to ensure you never modified anything on the board. Otherwise you ned to check what you've modified before the behavior to appear.</p>\n<p>If all jumpers are set in the default position and you still having the same behavior. Most probably, and unfortunately for you, the board is broken.</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your suggestion.</p><p>I removed JP4 to disconnect VDD from the microcontroller. After removing JP4, the short circuit between 3V3 and GND is no longer present, and the overheating issue disappears.</p><p>It seems that the problem only occurs when the microcontroller is connected to the power supply.</p><p>Does this mean that the microcontroller is damaged?</p><p>Thank you for your support.</p></div>",
+                    "author": "Ameni",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"102298\">@Ameni</user-mention> wrote:<br/>\n<p>Does this mean that the microcontroller is damaged?</p>\n<p> </p>\n</blockquote>\n<p> Most probably and unfortunately for you .. yes. Most probably a short circuit inside the chip.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If U16 is the LDO, it's expected that it heats up if there's a short somewhere.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

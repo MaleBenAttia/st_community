@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "167537",
+            "publicId": "167568",
+            "title": "STM32WL55 Transmitting Corrupted Packets in LoRa Mode",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/stm32wl55-transmitting-corrupted-packets-in-lora-mode-167568",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32WL series",
+                "LoRa"
+            ],
+            "published_at": "2026-08-08T13:39:40+00:00",
+            "views": 70,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "I found a solution.\n\nIt started working fine after I added `Radio.SetMaxPayloadLength()` after `Radio.SetTxConfig()`.\n\nI also tried the original ping-pong app, and adding a delay caused no issues.\n\nThank you.",
+            "best_answer_author": "tmiya",
+            "best_answer_author_role": "Associate",
+            "content_text": "I am using three Nucleo-WL55JC1 boards running software based on the dual-core SubGHz-pingpong example in LoRa mode.\n\nThe SDK I am using is STM32CubeWL Ver. 1.5.0.\n\nThe settings used are BW=125 kHz and SF=10.\n\nThe first board initiates the sequence, transmitting a 16-byte packet every 10 seconds and then switching to receive mode.\n\nThe second board acts as a receiver and sends a response upon receiving a packet.\n\nThe third board is receive-only and monitors the communication status.\n\nIf the second board does not send a response, the first board transmits packet without issues.\n\nHowever, if the second board does send a response, the first board sometimes fails its subsequent transmission, depending on the timing of that response.\n\nIf the second board responds within approximately 150 ms of receiving the packet, the first board operates correctly.\n\nIf the second board responds after a longer interval, the first board may fail to transmit the next packet.\n\nObservation with a spectrum analyzer shows that the radio signal is being transmitted, but it cannot be received as a valid packet.\n\nThe transmission immediately following a failed attempt always succeeds.\n\nSince the third (receive-only) board also fails to receive the signal, I believe the issue lies with the first board's transmission.\n\nI would like to ensure that the first board can transmit successfully even if it receives a response delayed by more than 150ms; are there any solutions or points I should check?",
+            "images": [],
+            "author": "tmiya",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Correction: The length of the packet transmitted by the first board is 52 bytes, not 16 bytes.</p></div>",
+                    "author": "tmiya",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi tmiya,<br/><br/>the fact that the failure is timing dependent is strange, I would expect a systematic behavior.<br/><br/>What do you mean with “corrupted packet”? wrong payload content, wrong payload length, wrong CRC, etc<br/><br/>In any case, to narrow down the root cause, I suggest you to provide exact radio settings: CRC enabled/disabled, packet lenght enable/disable, etc.<br/><br/>In general, when switching from Rx to Tx or viceversa, a SetTXConfig() or SetRxConfig() is needed in order to have the right register configuration, expecially when using CRC.</p><p>So, run the Radio.RadioSetTxGenericConfig() before the Radio.Send() and the Radio.RadioSetRxGenericConfig() before the Radio.Rx() if the radio was in RX or TX state respectively.<br/><br/>BR,<br/>Filippo</p></div>",
+                    "author": "Filippo_Malleo",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’d check the RX-to-TX state transition and pending IRQ flags first. Since the next transmission always succeeds, it sounds more like a timing or radio-state issue than a corrupted packet. Comparing the behavior with the original CubeWL ping-pong example could also help isolate where the problem starts.</p></div>",
+                    "author": "Christopher44",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><section><p>I’d check the RX-to-TX transition and any pending IRQ/status flags first. Since the failed transmission is followed by a successful one, it sounds more like a radio-state or timing issue than the packet itself. Comparing the delayed-response case with the original CubeWL ping-pong example may help pinpoint where the state gets stuck.</p></section></div>",
+                    "author": "Christopher44",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Filippo,<br/>Thank you for your reply.</p><p>I mentioned \"corrupted packets,\" but since I don't have a LoRa analysis tool, I haven't been able to verify the details.<br/>However, because multiple receivers are unable to receive the packets, I suspect there is an issue with the transmitted packet.<br/>(Is there a way to use the NUCLEO-WL55JC1 as a LoRa analyzer?)</p><p>I am using the device with the following settings:<br/>For transmission:</p><pre><code class=\"language-c\">Radio.SetTxConfig(<br/>\tMODEM_LORA,<br/>\t13,\t\t\t\t\t\t\t\t//power<br/>\t0,\t\t\t\t\t\t\t\t//dummy<br/>\t0,\t\t\t\t\t\t\t\t//BW:125k<br/>\t10,\t\t\t\t\t\t\t\t//SF:10<br/>\t1,\t\t\t\t\t\t\t\t//CR:4/5<br/>\t12,\t\t\t\t\t\t\t\t//preamble len<br/>\t0,\t\t\t\t\t\t\t\t//valiable payload len<br/>\ttrue,\t\t\t\t\t\t\t//use CRC<br/>\tfalse,\t\t\t\t\t\t\t//not use FH<br/>\t0,\t\t\t\t\t\t\t\t//dummy<br/>\tfalse,\t\t\t\t\t\t\t//not invert I/Q<br/>\t4000);\t\t\t\t\t\t\t//timeout<br/></code></pre><p>For reception:</p><pre><code class=\"language-c\">Radio.SetRxConfig(\t\t\t\t<br/>\tMODEM_LORA,<br/>\t0,\t\t\t\t\t\t\t\t\t//BW:125k<br/>\t10,\t\t\t\t\t\t\t\t\t//SF:10<br/>\t1,\t\t\t\t\t\t\t\t\t//CR:4/5<br/>\t0,\t\t\t\t\t\t\t\t\t//dummy<br/>\t12,\t\t\t\t\t\t\t\t\t//preamble len<br/>\t12,\t\t\t\t\t\t\t\t\t//SYNC timeout<br/>\t0,\t\t\t\t\t\t\t\t\t//valiable payload len<br/>\t0,\t\t\t\t\t\t\t\t\t//dummy<br/>\ttrue,\t\t\t\t\t\t\t\t//use CRC<br/>\tfalse,\t\t\t\t\t\t\t\t//not use FH<br/>\t0,\t\t\t\t\t\t\t\t\t//dummy<br/>\tfalse,\t\t\t\t\t\t\t\t//not invert I/Q<br/>\ttrue);\t\t\t\t\t\t\t\t//continuous Rx<br/><br/>Radio.SetMaxPayloadLength(MODEM_LORA, 255);<br/></code></pre><p>I use the following code for transmission:</p><pre><code class=\"language-c\">Radio.Standby();<br/>if (Radio.IsChannelFree(<br/>\t920600000,<br/>\t200000,<br/>\t-88,<br/>\t6)){<br/>\t\tRadio.SetTxConfig(~~~~~~<br/>\t\tRadio.Send(dt, len);<br/>}<br/></code></pre><p>And I use the following code for reception:</p><pre><code class=\"language-c\">Radio.Standby();<br/>Radio.SetRxConfig(~~~~~~<br/>Radio.Rx(4000);<br/></code></pre><p>In OnTxDone(), the same code as above is used to start reception.</p><p> </p><p>You suggested using `Radio.RadioSetTxGenericConfig()` and `Radio.RadioSetRxGenericConfig()` in your reply;<br/>is using `Radio.SetTxConfig()` and `Radio.SetRxConfig()` not a good approach?</p><p> </p></div>",
+                    "author": "tmiya",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Christopher44,</p><p>Thank you for your advice.</p><p>OK, I'll check it later.</p><p> </p><p>Note:</p><p>I am using the Cortex-M0+ code exactly as it is.</p><p>I am only modifying the M4 code.</p></div>",
+                    "author": "tmiya",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I found a solution.</p><p>It started working fine after I added `Radio.SetMaxPayloadLength()` after `Radio.SetTxConfig()`.</p><p> </p><p>I also tried the original ping-pong app, and adding a delay caused no issues.</p><p>Thank you.</p></div>",
+                    "author": "tmiya",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Filippo_Malleo",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,103 @@
+{
+    "forum": [
+        {
+            "id": "165637",
+            "publicId": "165637",
+            "title": "STM32F4: OSC_OUT as GPIO when HSE in Bypass mode",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f4-osc-out-as-gpio-when-hse-in-bypass-mode-165637",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "RCC",
+                "GPIO-EXTI",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-05-13T08:25:23+00:00",
+            "views": 513,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello @waclawek.jan\n\nDetailed update.\n\nMore tests are done internally with the following STM32F4 part numbers:\n\n|  |  |\n\n| --- | --- |\n\n| Product | OSC\\_OUT in HSE\\_BYPASS |\n\n| F407VG | Not available |\n\n| F429ZI | Not available |\n\n| F439ZI | Not available |\n\n| F469NI | Not available |\n\n| F413ZH | Working |\n\n| F446ZE | Working |\n\n| F401RE | Not available |\n\n| F410RB | Working |\n\n| F411RE | Not available |\n\n| F412ZG | Working |\n\nSo only the latest F4 products from F446, F410, F412 and F413 are able to use PH1 (or PF1) as GPIO independently when RCC is in HSE\\_BYPASS mode.\n\nAfter discussion with the design, and as you said @waclawek.jan that's something linked to STM32 history and the F4 family was developed by different design teams during several years period.\n\nUnfortunately, the GPIO characteristics of PH1 in this condition is not tested and cannot be confirmed to be safely used as a standard GPIO based on specification in the datasheet.\n\nThis is why our Reference Manual, indicates External source in HSE bypass, the PH1 (or PF1) act as OSC\\_OUT and the pin should be left in HI-Z state.\n\nSo we cannot guarantee using PH1 in this way, as we do not test either in validation and in production.\n\nBased on this, all the F4 device family, PH1 must be left unconnected and we do not recommend using it as GPIO when RCC is in HSE\\_BYPASS mode.\n\nOn STM32CubeMX side, nothing to change with the actual config.\n\nHowever, no constraint and no limitation to use PH0 and PH1 in GPIO if RCC use HSI.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*ST moderator: post split from this [thread](https://community.st.com/t5/stm32cubemx-mcus/how-to-set-hi-z-mode-in-ph1-osc-out-when-using-hse-bypass-mode/m-p/860092).*\n\nHello mƎALLEm,\n\nThank you for your confirmation on this issue.\n\nI would like to provide some additional information. I have also encountered the **same problem** on the **STM32F405RGT6**.\n\nIn STM32CubeMX, when I configure both HSE or LSE to \"Bypass Clock Source\" mode, the tool **insists on reserving PH1 (OSC\\_OUT) or PC15 (OSC32\\_OUT)** as RCC pins. It blocks me from configuring them as regular GPIOs, even though the hardware (as you've confirmed) supports it.\n\nFurthermore, I tested this on the STM32F446RE and STM32F446RC using the latest CubeMX, the **problem still exists** on those devices as well.\n\nRegarding the internal tickets you mentioned (220390 for documentation, 222721 for CubeMX), may I kindly ask:\n\n* Has the CubeMX fix (ticket 222721) been implemented in any release yet?\n\n* If not, is there an estimated timeline for when we can expect this fix?\n\nI understand if you cannot share internal details, but any update would be very helpful for our planning.\n\nThank you very much for your help, and sorry for my English as I'm not a native speaker.",
+            "images": [],
+            "author": "Richard1156",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106907\">@Richard1156</user-mention> wrote:<br/>\n<ul>\n<li><span class=\"\">Has the CubeMX fix (ticket 222721) been implemented in any release yet?</span></li>\n</ul>\n<hr/></blockquote>\n<p>Not yet.</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"106907\">@Richard1156</user-mention> wrote:\n<ul>\n<li><span class=\"\">If not, is there an estimated timeline for when we can expect this fix?</span></li>\n</ul>\n<hr/></blockquote>\n<p>I don't have the information for now.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The 'F405/407/415/417 is different from 'F446 in this regard, and you can' t use OSC_OUT as GPIO even if HSE is set to BYPASS.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p>\n<p>All STM32F4 are included. The documentation will be updated.</p>\n<p>So OSC_OUT could be used as normal GPIO when HSE in Bypass mode for any STM32F4xx.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> ,</p><p>I've tried this on a 'F427 and it did <strong>not</strong> work as GPIO. Reported so in some of the linked threads (EDIT <a href=\"https://community.st.com/t5/stm32-mcus-products/hse-bypass-mode-possible-use-of-osc-out-as-gpio/m-p/857127/highlight/true#M288962\" target=\"_self\">here</a>). Inferred same to 'F40x, but can try if time permits.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK so just tried: the 'F407 does not allow GPIO on either PH0 and PH1 (I don't even bother to check which one of them is supposed to be free) while both HSE and HSEBYP are set.</p><p>It's easy to try, I did not write a single line of code, all what I did was a couple of lines in gdb, while measuring on burden capacitors of the attached xtal using a simple multimeter. Hi-Z is distinguished from 0 and 1 simply by touching the metal tip of the probe by finger...</p><pre class=\"lia-code-sample language-c\"><code>(gdb) moni reset halt\ntarget halted due to debug-request, current mode: Thread\nxPSR: 0x01000000 pc: 0x080002e4 msp: 0x10010000\n(gdb) set RCC-&gt;AHB1ENR|=0xFF\n// enabling all GPIOs, 0x80 should be sufficient for GPIOH but doesnt' really matter\n(gdb) p /x *GPIOH\n$3 = {MODER = 0x0, OTYPER = 0x0, OSPEEDR = 0x0, PUPDR = 0x0, IDR = 0x2, ODR = 0x0, BSRR = 0x0,\n LCKR = 0x0, AFR = {0x0, 0x0}}\n// IDR shows 1 as I hold my finger at the probe touching PH1\n// meter at this point shows changing value from the 50Hz noise from my finger\n// same touching PH0, so both are Hi-Z as expected after reset\n(gdb) set GPIOH-&gt;MODER=0x5\n// after this, both PH0 and PH1 show 0V, as ODR=0\n(gdb) set GPIOH-&gt;ODR=1\n// PH0 goes to 3.3V as expected\n(gdb) set GPIOH-&gt;ODR=0\n// PH0 goes to 0V as expected\n(gdb) set GPIOH-&gt;ODR=2\n// PH1 goes to 3.3V as expected\n(gdb) set GPIOH-&gt;ODR=0\n// PH1 goes to 0V as expected\n(gdb) set GPIOH-&gt;MODER=0\n// both PH0 and PH1 are Hi-Z again\n(gdb) set RCC-&gt;CR |= 0x50000\n// PH0 and PH1 are still Hi-Z\n(gdb) p /x *RCC\n$4 = {CR = 0x57c83, PLLCFGR = 0x24003010, CFGR = 0x0, [...]\n// just verifying both HSEON and HSEBYP are set in RCC_CR\n// note that there is no HSERDY as the crystal won't oscillate in itself\n// (btw. eventually, just by touching one of the pins, RCC_CR.HSERDY went up, it just took some time, as I was injecting 50Hz and the HSERDY counter is probably something like 2^10 or so)\n// (also, while HSEON, GPIOH_IDR lowermost 2 bits won't get set, this is expected as the RCC override should be equivalent to putting the pins to Analog mode)\n(gdb) set GPIOH-&gt;MODER=0x5\n// yep, PH0/PH1 still Hi-Z\n(gdb) set GPIOH-&gt;ODR=3\n// and of course they are still Hi-Z, I just felt being compelled to try :-)</code></pre><p> </p><p>So, perhaps your colleagues might want to reconsider their assertion - or they might want to perform this little experiment, too - before changes to documentation are made.</p><p>JW</p><p>[EDIT] Oh, and I got caught again by the \"HSEBYP not being reset by software reset\" issue, as after the above exercise I wanted to continue by simply writing \"moni reset\", just to be surprised that the product I was testing this on did not start... :)</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p>\n<p>Thank you for your test.</p>\n<p>I did the same thing from my side on STM32F429ZI, STM32F446ZE, STM32F412ZG (Nucleo-144 boards) and indeed I found STM32F429ZI is not following the behavior i.e. OSC_OUT can't be used as GPIO output when HSE is in Bypass mode. Which is not the case of STM32F446ZE andSTM32F412ZG. </p>\n<p>I've already escalated the case for internal analysis.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention> ,</p><p>thanks for letting us know.</p><p>This detail appears to have roots deep back into the STM32 history... :)</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p>\n<p>Detailed update.</p>\n<p>More tests are done internally with the following STM32F4 part numbers: </p>\n<table border=\"1\" width=\"100%\">\n<tbody>\n<tr>\n<td width=\"50%\">Product</td>\n<td width=\"50%\">OSC_OUT in HSE_BYPASS</td>\n</tr>\n<tr>\n<td width=\"50%\">F407VG</td>\n<td width=\"50%\">Not available</td>\n</tr>\n<tr>\n<td width=\"50%\">F429ZI                         </td>\n<td width=\"50%\">Not available</td>\n</tr>\n<tr>\n<td width=\"50%\">F439ZI                         </td>\n<td width=\"50%\">Not available</td>\n</tr>\n<tr>\n<td width=\"50%\">F469NI                         </td>\n<td width=\"50%\">Not available</td>\n</tr>\n<tr>\n<td width=\"50%\">F413ZH                        </td>\n<td width=\"50%\">Working</td>\n</tr>\n<tr>\n<td width=\"50%\">F446ZE                        </td>\n<td width=\"50%\">Working</td>\n</tr>\n<tr>\n<td width=\"50%\">F401RE                       </td>\n<td width=\"50%\">Not available</td>\n</tr>\n<tr>\n<td width=\"50%\">F410RB                       </td>\n<td width=\"50%\">Working</td>\n</tr>\n<tr>\n<td width=\"50%\">F411RE                       </td>\n<td width=\"50%\">Not available</td>\n</tr>\n<tr>\n<td>F412ZG                       </td>\n<td>Working</td>\n</tr>\n</tbody>\n</table>\n<p>So only the latest F4 products from F446, F410, F412 and F413 are able to use PH1 (or PF1) as GPIO independently when RCC is in HSE_BYPASS mode.</p>\n<p>After discussion with the design, and as you said <user-mention data-id=\"17162\">@waclawek.jan</user-mention> that's something linked to STM32 history and the F4 family was developed by different design teams during several years period.</p>\n<p>Unfortunately, the GPIO characteristics of PH1 in this condition is not tested and cannot be confirmed to be safely used as a standard GPIO based on specification in the datasheet. <br/>This is why our Reference Manual, indicates External source in HSE bypass, the PH1 (or PF1) act as OSC_OUT and the pin should be left in HI-Z state.</p>\n<p>So we cannot guarantee using PH1 in this way, as we do not test either in validation and in production.</p>\n<p>Based on this, all the F4 device family, PH1 must be left unconnected and we do not recommend using it as GPIO when RCC is in HSE_BYPASS mode.<br/>On STM32CubeMX side, nothing to change with the actual config. <br/>However, no constraint and no limitation to use PH0 and PH1 in GPIO if RCC use HSI.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the detailed info!</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "164044",
+            "publicId": "164044",
+            "title": "BLE Mesh: Proxy node doesn't relay application messages via advertising bearer",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/ble-mesh-proxy-node-doesn-t-relay-application-messages-via-advertising-bearer-164044",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "BLE",
+                "STM32WB series"
+            ],
+            "published_at": "2026-03-21T12:03:55+00:00",
+            "views": 382,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello the issue was solve by using the FW version V1.23.0 instead. And all works well with this version",
+            "best_answer_author": "dexoo",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello,\n\nI'm using 2x NUCLEO-WB55RG boards with the unmodified BLE\\_MeshLightingPRFNode example from STM32CubeWB V1.24.0.\n\nSetup:\n\n- BLE Stack full v1.13.2.2 (stm32wb5x\\_BLE\\_Stack\\_full\\_fw.bin)\n\n- FUS v1.2.0\n\n- Provisioned with ST BLE Mesh app (tested on both iOS and Android)\n\n- Both nodes subscribed and published to Default group (0xC000)\n\n- Both nodes have AppKey 00 bound to all models\n\nFirmware boot logs confirm:\n\n- Relay = Enabled\n\n- Proxy = Enabled\n\n- Friend = Enabled\n\n- PB-ADV = Enabled\n\n- PB-GATT = Enabled\n\n- Default TTL = 8\n\n- Different MAC addresses on each board\n\nProblem:\n\n1. Sending a Generic OnOff command to the Default group (0xC000) from the app only turns on the LED of the node connected via GATT proxy. The other node never receives the message.\n\n2. SW1 button press toggles only the local LED, never the remote node's LED.\n\n3. It is ALWAYS the last provisioned node that responds. If I reverse the provisioning order, it is still the last one that works. The first provisioned node stops responding to group commands.\n\n4. Android app logs show \"Vendor OnOff Command Sent to ==>c000\" confirming the app sends to the correct group address.\n\n5. Configuration messages DO reach the other node — I can read Node Features and Element Settings of the non-proxy node without timeout. This means the relay works for Config Model messages (using DevKey) but NOT for application messages (using AppKey).\n\n6. nRF Connect shows both nodes advertising as \"Mesh Proxy\" with strong RSSI (-54 dBm), confirming the radio works on both boards.\n\n7. Loopback local works — each node receives its own published messages correctly.\n\n8. Node Features display in Android app shows everything disabled, but firmware logs confirm features are enabled. Proxy is confirmed working as the app connects via GATT proxy. This seems like a display bug.\n\n9. When trying to enable/disable features (Friend, Relay) via the app, the toggle switches back immediately.\n\nWhat I've tried:\n\n- Fresh unmodified BLE\\_MeshLightingPRFNode from V1.24.0\n\n- Both iOS and Android ST BLE Mesh apps\n\n- Setting Default TTL to 8 in firmware via BLEMesh\\_SetDefaultTTL(8)\n\n- ConfigModel\\_SelfSubscriptionConfig and ConfigModel\\_SelfPublicationConfig at boot\n\n- Enabling VENDOR\\_CLIENT\\_MODEL\\_PUBLISH in mesh\\_cfg\\_usr.h\n\n- Full chip erase and re-provisioning multiple times\n\n- Verified BLE Stack full (not light) is installed\n\nQuestion:\n\nWhy does the proxy node not relay application messages (Generic OnOff, Vendor) to the advertising bearer, while it does relay configuration messages? Is this a known issue with V1.24.0 or the mesh library v1.13.011?\n\nThank you for your help.\n\nHardware: P-NUCLEO-WB55RG (2 boards)\n\nFirmware: BLE\\_MeshLightingPRFNode (unmodified from STM32CubeWB V1.24.0)\n\nBLE Stack: stm32wb5x\\_BLE\\_Stack\\_full\\_fw.bin v1.13.2.2\n\nFUS: v1.2.0\n\nMesh Library: v01.13.011\n\nApps: ST BLE Mesh iOS + Android",
+            "images": [],
+            "author": "dexoo",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello the issue was solve by using the FW version V1.23.0 instead. And all works well with this version </p></div>",
+                    "author": "dexoo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>The issue is confirmed as a regression. BLE_MeshLightingPRFNode from V1.13 works correctly — SW1 on one node toggles the LED on the other node. The same example from V1.24.0 does NOT work. The advertising bearer relay is broken in newer versions of the mesh library.</strong>\"</p></div>",
+                    "author": "dexoo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/>I have tried with the version 1.24.0 and I have not reproduced the trouble.<br/>Did you download the associated Wireless Coprocessor Binary v1.24.0 stm32wb5x_BLE_Stack_full_fw.bin available only with the FUS v2.2.0 as described in STM32WB Coprocessor Wireless Binaries release note ?<br/><br/>Let me know if you still have the trouble after this download.<br/><br/>Best regards.</p></div>",
+                    "author": "EMECH",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I didn’t download any binary. I didn’t change the binary in the <span>NUCLEO-WB55RG M0.</span></p><p><span>i just downloaded the FW v1.24 build and loaded. And it was not working well as I explained in my 1st message . But the v1.23 works well for me. I’m ok with it. Thanks</span></p></div>",
+                    "author": "dexoo",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/><br/>Sorry if I was not clear, but If you want to use <span>BLE_MeshLightingPRFNode application from STM32CubeWB V1.24.0, you must before update the Wireless Coprocessor Binary to the version 1.24.0 by downloading the stm32wb5x_BLE_Stack_full_fw.bin version 1.24.0 and then after download the compiled BLE_MeshLightingPRFNode binary.</span></p><p><span><br/>For the Wireless Coprocessor Binary update please refer to the C:\\BLE\\STM32Cube_FW_WB_V1.24.0\\Projects\\STM32WB_Copro_Wireless_Binaries\\STM32WB5x\\Release_Notes.html.<br/></span></p><p><span>Let me know if you still have the trouble after this update of the Wireless Coprocessor Binary to the version 1.24.0.<br/></span></p><p><span>Best regards.</span></p></div>",
+                    "author": "EMECH",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "EMECH",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "EMECH",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

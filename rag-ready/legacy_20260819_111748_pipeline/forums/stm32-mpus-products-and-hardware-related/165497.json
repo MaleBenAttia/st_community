@@ -1,0 +1,46 @@
+{
+    "forum": [
+        {
+            "id": "165497",
+            "publicId": "165497",
+            "title": "Is dual-rank ddr3l supported on the mp2? Conflicting info in 4 different places.",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/is-dual-rank-ddr3l-supported-on-the-mp2-conflicting-info-in-4-different-places-165497",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "Documentation",
+                "DDR"
+            ],
+            "published_at": "2026-05-08T05:47:37+00:00",
+            "views": 201,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@gabriel0,\n\nThere is no conflict with STM32MP2: we only support **single-rank** with DDR3L, so **dual-rank is not possible**.\n\nHowever, it is absolutely possible to find **DDR3L 1 GB single-rank** devices.\n\nHere is a reference for a DDR3L that is documented on the ST Wiki <https://wiki.st.com/stm32mpu/wiki/Validated_DRAM_on_STM32_MPU_portfolio#STM32MP2->\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/47e519a2-c402-4f1c-a3fe-f146e50c13c3.png)\n\nand another one from the same manufacturer you mentioned earlier (ISSI). As you can see in the screenshot, there are indeed two references: one for **dual-rank** and one for **single-rank**. You must choose the **single-rank** version.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/879e0612-a7d9-44bf-bad7-86c9bcf5f3ba.png)\n\nBest Regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I'm using the mp215 with ddr3l (x16) and an ISSI dram ic that is 8Gb (1 gigabyte) which means it's a dual rank configuration compared to a more typical half gigabyte. As far as im aware all 1GB ddr3 dram ic's are dual rank.\n\nIn AN5723 6.1 Note it says \"**8 Gbit DDR3 defined by JEDEC is uncommon. Practically, DDR3L density is limited to 4 Gbits (max = 1 Gbyte in total). Single rank only is required.** \".\n\n[an5723 link](https://www.st.com/resource/en/application_note/an5723-guidelines-for-ddr-configuration-on-stm32mp2-mpus-stmicroelectronics.pdf)\n\nAs far as I understand it it says it's not possible. However this is an older AN and i think it's for the mp25 series only (im using the mp21).\n\nHowever in the ST Wiki \"How to setup the DDR configuration\" section 5 the exact opposite is implied. This whole section repeatedly describes a \"concrete example\" of swapping the swapping the mp215-dk's lpddr4 out with a 1GB ddr3 ic. Also using a theoretical dtsi called \"*stm32mp21-ddr3-1x8Gbits-1x16bits-800MHz.dtsi*\" and define \"DDR\\_MEM\\_SIZE 0x40000000\" which is 1GB. So this is conflicting info because i dont see how 1gb ddr3 is possible if it isn't dual rank.\n\n<https://wiki.st.com/stm32mpu/wiki/How_to_setup_the_DDR_configuration#STM32MP2_series>\n\nHowever another conflict is in cubemx. I have 16 bit ddr3 set for the DDR\\_CTRL\\_PHY config. And i even have Density set to 8Gb implying dual rank. but the greyed out \"user input basic\" option has NUMRANK\\_DFI0 set to 1 and it can't be changed. so i don't know how im even supposed to generate a valid dtsi for my case.\n\n![gabriel0_0-1778218908356.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/72b829e1-4fda-d078-0a42-13163d7a51e3.png \"gabriel0_0-1778218908356.png\")\n\nAnother conflict on top of that is the mp21 control signals DDR\\_A2 and DDR\\_A6 pins are CS\\_N0 and CS\\_N1. Those are chip select pins ranks. Once again implying it is possible. So which is it? is it supported or not and if it is how do i set it as dual rank in cubemx.\n\nTo reiterate on what st resources say about dual rank ddr3.\n\n- AN5723 says it's not possible\n\n- Wiki says it is.\n\n-Cubemx implies it's not.\n\n-Routing pins available implies it is.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/879e0612-a7d9-44bf-bad7-86c9bcf5f3ba.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/47e519a2-c402-4f1c-a3fe-f146e50c13c3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/72b829e1-4fda-d078-0a42-13163d7a51e3.png"
+            ],
+            "author": "gabriel0",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105591\">@gabriel0</user-mention>,</p><p>There is no conflict with STM32MP2: we only support <strong>single-rank</strong> with DDR3L, so <strong>dual-rank is not possible</strong>.<br/>However, it is absolutely possible to find <strong>DDR3L 1 GB single-rank</strong> devices.</p><p>Here is a reference for a DDR3L that is documented on the ST Wiki <a href=\"https://wiki.st.com/stm32mpu/wiki/Validated_DRAM_on_STM32_MPU_portfolio#STM32MP2-\" rel=\"noopener noreferrer\" target=\"_blank\">https://wiki.st.com/stm32mpu/wiki/Validated_DRAM_on_STM32_MPU_portfolio#STM32MP2-</a></p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/47e519a2-c402-4f1c-a3fe-f146e50c13c3.png\"/></figure><p>and another one from the same manufacturer you mentioned earlier (ISSI). As you can see in the screenshot, there are indeed two references: one for <strong>dual-rank</strong> and one for <strong>single-rank</strong>. You must choose the <strong>single-rank</strong> version.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/879e0612-a7d9-44bf-bad7-86c9bcf5f3ba.png\"/></figure><p><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

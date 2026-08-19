@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "164261",
+            "publicId": "164261",
+            "title": "Lorawan end node - possible deveui bug?",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/lorawan-end-node-possible-deveui-bug-164261",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Bug-report",
+                "STM32WL series",
+                "LoRa"
+            ],
+            "published_at": "2026-03-28T11:23:03+00:00",
+            "views": 307,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello jonnieh,\n\nI ran into this issue last week working with the same example on a B-WL5M-SUBG1 board.  What I found was that the new application code makes a call to the  GetUniqueId() function at line 605 of lora\\_app.c.  This function is implemented in sys\\_app.c and generates a unique deveui.  So you are correct that the application now generates its own deveui and ignores the one we enter in se-identity.h (and this is not documented anywhere I could find).\n\nFor my setup it's actually better to have this unique ID generated for me, but if the se\\_identity.h approach works better for you then you could replace the call to GetUniqueId() with your own code that references the deveui in se-identity.h.",
+            "best_answer_author": "JHCarter",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I am trying to develop a small scale lorawan app on a nucleo-wl55jc using the application example in stm32cube\\_fw\\_wl\\_v1.5.0 and have spent several hours trying to trace my error/bug in the software. All join attempts fail because the deveui as it appears in the se-identity.h file is ignored and the mcu derived value applied. Tracing this value to the lora\\_app.c file shows the se-identity.h file is correctly read and the macro expansion appears to give the correct value in the set user credentials section (lines 617-620) but the join is attempted using what I believe to be the mcu derived value. The same credentials work as expected when used under stm32cude\\_fw\\_wl\\_1.4.0 At the outset, I must confess it's 25 years since I did any serious programming so I may of missed something obvious but I would be grateful for any pointers as to why it's failing!",
+            "images": [],
+            "author": "jonnieh",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello jonnieh,</p><p>I ran into this issue last week working with the same example on a B-WL5M-SUBG1 board.  What I found was that the new application code makes a call to the  GetUniqueId() function at line 605 of lora_app.c.  This function is implemented in sys_app.c and generates a unique deveui.  So you are correct that the application now generates its own deveui and ignores the one we enter in se-identity.h (and this is not documented anywhere I could find). </p><p>For my setup it's actually better to have this unique ID generated for me, but if the se_identity.h approach works better for you then you could replace the call to GetUniqueId() with your own code that references the deveui in se-identity.h.</p></div>",
+                    "author": "JHCarter",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Many thanks, I read through the code without realising the significance of that function and shall now change GetUniqueid to take the se-identity value as I have no control over what deveui's the server accepts,</p><p> </p><p>Thanks again.</p></div>",
+                    "author": "jonnieh",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

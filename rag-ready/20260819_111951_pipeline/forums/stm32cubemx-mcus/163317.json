@@ -1,0 +1,128 @@
+{
+    "forum": [
+        {
+            "id": "163317",
+            "publicId": "163317",
+            "title": "CubeMX doesn't generate .project and .cproject files with non-default firmware location",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/cubemx-doesn-t-generate-project-and-cproject-files-with-non-default-firmware-location-163317",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "STM32G4 series"
+            ],
+            "published_at": "2026-03-01T19:51:37+00:00",
+            "views": 1197,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @trs wrote:\n\n>\n\n> a github repo (<https://github.com/STMicroelectronics/STM32CubeG4)> cloned on my machine,\n\n>\n\n> ---\n\nST's GitHub repos rely on submodules - so you have to follow the instructions to clone correctly:\n\n![Image1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d23f6ab-13c5-5579-7a08-99201cd38ca3.png \"Image1.png\")\n\nDid you do that?",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "CubeMX does not generate .project and .cproject files for cubeIDE, when in CubeMX project it is selected to not use default firmware location, and path set to folder with STM32Cube FW from github.\n\nTo reproduce:\n\n1 Open CubeMX\n\n2 Select File->New Project\n\n3 Select chip,  in my case stm32g491ceu6\n\n4 Open Project manager tab, enter name and location for the project, toolchain - stcubeide\n\n5 Uncheck \"Use Default Firmware Location\", Click Browse and navigate to a folder with github repository with cude FW package\n\n6 Go to \"Code Generator\" sub tab, select radio button \"Add nevessary library files as reference in the toolchainproject configuration file\"\n\n7 Click generate\n\n8 Observe folder content in the file explorer - .cproject and .project are missing.\n\nCubeMX version 6.16.1",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ac803d4-5286-2095-8ae6-6dcc3cb64170.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/332fea58-2d97-e48a-8546-0ce87502ebc6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b29843de-c0dd-e020-b32d-3558ae785b3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b949cf1c-e736-7e25-c3b2-9ddc067be5fa.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d23f6ab-13c5-5579-7a08-99201cd38ca3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8cb695c5-ab05-c912-bed9-09ab01e666f7.png"
+            ],
+            "author": "trs",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Just tried this and both .project and .cproject showed up as expected. Maybe you missed a dialog box, or maybe you have some other project setting which is incorrect, or maybe you have \"dot\" files hidden.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-01 162608.png\" style=\"width: 499px;\"><img alt=\"Screenshot 2026-03-01 162608.png\" height=\"140\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8cb695c5-ab05-c912-bed9-09ab01e666f7.png\" title=\"Screenshot 2026-03-01 162608.png\" width=\"499\"/></span></p><p>It is easier to debug STM32CubeMX issues when you attach the IOC file that produces the incorrect behavior.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for support. Attaching my <span>STM32CubeMX </span>project with the IOC file.</p><div class=\"\"> </div><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-01 205814.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-03-01 205814.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ac803d4-5286-2095-8ae6-6dcc3cb64170.png\" title=\"Screenshot 2026-03-01 205814.png\"/></span></p><p> These are all files that I get after pressing Generate button.</p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I do not see an attached IOC file.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; ProjectManager.CustomerFirmwarePackage=..\\\\..\\\\libs\\\\STM32CubeG4</em></p><p>Maybe a relative path is supported in the \"Firmware Relative Path\" box.</p><p>I can't test out your IOC exactly because our library paths are not the same. With a non-default absolute path, everything works for me.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Cannot reproduce this problem. Tested with relative path:</p><pre class=\"lia-code-sample language-markup\"><code>ProjectManager.CustomerFirmwarePackage=..\\\\CUBELIBS\\\\STM32Cube_FW_C0_V1.1.0</code></pre><p>Though in the CubeMX GUI the path is displayed as absolute (and it does not let user edit in place), in the ioc file it is relative.</p><div class=\"\"> </div><div class=\"\"> </div><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-02 215027.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-03-02 215027.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b949cf1c-e736-7e25-c3b2-9ddc067be5fa.png\" title=\"Screenshot 2026-03-02 215027.png\"/></span></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you open IOC file I shared before, can you get to generate STM32CubeIDE project?</p><p>As soon as I check the box \"Use Default Firmware Location\" the project generates normally. Then if I uncheck the checkbox, click Browse and navigate to a github repo (<a href=\"https://github.com/STMicroelectronics/STM32CubeG4)\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeG4)</a> cloned on my machine, all files in the project's Drivers folder are gone, and there is no path in .project file to any source file anymore, including main.c.</p><p>The GUI says Relative path, which is I suppose automatically resolved into a relative path, as there is no way to paste any text into the text box. The only way to set the path is to click Browse button. Is it not the case on your side?</p><p>The path it resolved, after I navigated to the repo through Browse button click - is correct:</p><p>ProjectManager.CustomerFirmwarePackage=..\\\\..\\\\libs\\\\STM32CubeG4</p><p>Here is my folder structure, where STM32CubeG4 is a submodule in main Git repo:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-02 173346.png\" style=\"width: 253px;\"><img alt=\"Screenshot 2026-03-02 173346.png\" height=\"252\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/332fea58-2d97-e48a-8546-0ce87502ebc6.png\" title=\"Screenshot 2026-03-02 173346.png\" width=\"253\"/></span></p><p> </p><p> </p><p> </p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"75353\">@trs</user-mention> wrote:<br/><p>a github repo (<a href=\"https://github.com/STMicroelectronics/STM32CubeG4)\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeG4)</a> cloned on my machine, </p><hr/></blockquote><p>ST's GitHub repos rely on <font face=\"courier new,courier\">submodule</font>s - so you have to follow the instructions to clone correctly:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Image1.png\" style=\"width: 999px;\"><img alt=\"Image1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d23f6ab-13c5-5579-7a08-99201cd38ca3.png\" title=\"Image1.png\"/></span></p><p> </p><p>Did you do that?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Good point Andrew, I did not clone the repo as a one with submodules. I see now that STM32G4xx_HAL_Driver is a submodule. And now I did that, and code generation worked, partially.</p><p>When in Code generation subtab, I had selected \"Copy only necessary library files\" it copied files from my \"libs\" folder. I tested that by adding some text in comments and after project generation I saw that file copied into my project was updated with that change.</p><p>When in Code generation subtab, I had selected \"Add necessary library files as reference in the toolchain project configuration file\" then .project file for the CubeIDE is not generated correctly still. Files are all gone and not copied - which is expected, but .project file does not have file references to files from \"libs\" folder.</p><p>Thank you for support, again very good point you brought up!</p><p> </p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; a github repo (<a href=\"https://github.com/STMicroelectronics/STM32CubeG4)\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeG4)</a> cloned on my machine</em></p><p>Maybe this is the issue. What if you use the standard way of installing the package? (Help -&gt; Manage embedded...)</p><p>You can't just mix and match any repo version with any CubeMX version.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You are probably correct. I don't want to try installing firmware package as the STM32CubeMX already installed it's own package and I know that is working.</p><p>So the issue is that github repo != installed package. Which is unfortunate, as it would blend very nicely with having a github repository within your project repository, where FW package is a submodule in it. This is attractive because:</p><p>A) it is easy to get updates - no installation is required;</p><p>B) modifications to the FW library are easy to keep track of because I would create a separate branch, and would always see what I changed in the library and why;</p><p>C) integration of my changes and updates is a breather as I would merge/rebase my branch of the FW library.</p><p>Anyway, thank you for the help! Hopefully this will be possible in near future.</p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>jamessmite,</p><p>\"<span>When you uncheck “Use Default Firmware Location,” the IDE references the libraries as external links instead of copying them,\" - This is not correct, there is another thing for this function. The options you are referring to are the ones here in the screenshot:</span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-02 194802.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-03-02 194802.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b29843de-c0dd-e020-b32d-3558ae785b3e.png\" title=\"Screenshot 2026-03-02 194802.png\"/></span></p><p> <span>“Use Default Firmware Location” will allow you to get the library from another CubeMX FW installation. But this, unfortunately does not work with github repository of the library.</span></p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#000000\">&gt; <span>The GUI says Relative path, which is I suppose automatically resolved into a relative path, as there is no way to paste any text into the text box. The only way to set the path is to click Browse button</span></font></p><p><font color=\"#000000\">Yes. Even if the path in the .ioc file is absolute, you can edit it manually to relative form and CubeMX will preserve it.</font></p><p><font color=\"#000000\"><user-mention data-id=\"75353\">@trs</user-mention>  Do you have two Cube libraries: one in your git repo and another (the 'default' one)  installed by the CubeMX or CubeIDE? If so, is the non-default library in your repo broken in some way?</font></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes I have library that CubeMX downloaded in c:\\Users\\username\\STM32Cube\\Repository\\STM32Cube_FW_G4_V1.6.2\\ and one I cloned. I compared them, and difference was only in line endings.</p><p>As Andrew mentioned - I did not clone github repo with submodules parameter and as a result my repo was screwed up. </p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Then I'm out of ideas. I use basically the same setup: customized Cube package in non-default directory, which is also a git repo. Works well with several versions of CubeMX and CubeIDE.</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So I kept looking into this issue, now I have 2 projects with identical IOC file and one generates good CubeIDE project, the other one does not. </p><p>There are some differences in .mxproject file.. Will keep investigating..</p><p>Attaching the projects..</p></div>",
+                    "author": "trs",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

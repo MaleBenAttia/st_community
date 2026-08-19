@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "165354",
+            "publicId": "165354",
+            "title": "NUCLEO-N657X0-Q does not power up after supplying 7V through VIN with CN9 set to VIN",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/nucleo-n657x0-q-does-not-power-up-after-supplying-7v-through-vin-with-cn9-set-to-vin-165354",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST boards",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-05-04T11:48:31+00:00",
+            "views": 208,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "hi Hong\n\n1. When supplying power through VIN, is changing \\*\\*CN9 to 5-6 VIN\\*\\* the only required hardware setting, or is there any additional jumper/solder bridge/sequence that must be configured?\n\n---for the VIN input, just need put the CN9 to 5-6, no other need be configured.\n\n2. Is applying \\*\\*7V to VIN\\*\\* correct for the NUCLEO-N657X0-Q board, or could 7V on VIN cause this issue?\n\n----the VIN support 7-12V.\n\n3. Is there a recommended power-up sequence when using VIN, especially with the B-CAMS-IMX camera connected?\n\n----actually no recommended power-up sequence, but as you see, the 7V VIN just have 4mA, it is not normal for board use. suggest you remove the camera, and repower the board.\n\n4. Is it possible that the onboard regulator, eFuse, or 3.3V power rail protection was damaged or latched off?\n\n---can you test TP2(5V),TP5(3.3V), TP13(3.3V), TP15(1.8V), TP16(1.8V).\n\n5. What is the proper and safe procedure for powering the NUCLEO-N657X0-Q from VIN?\n\n---for the VIN input, just need put CN9 to 5-6, be careful for the VDD and GND.",
+            "best_answer_author": "AlexWEI",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am using an \\*\\*STM32 NUCLEO-N657X0-Q\\*\\* board with the \\*\\*B-CAMS-IMX camera module\\*\\*.\n\nOriginally, the board was working correctly. In \\*\\*DEV BOOT mode\\*\\*, I loaded and ran my AI model, using the B-CAMS-IMX camera sold by ST. The board connected normally to my laptop, and I was able to confirm that the AI application was running correctly by viewing the camera output and the AI object detection result on my laptop.\n\nI also changed the BOOT pins and confirmed that the same AI application worked correctly in \\*\\*Flash Boot mode\\*\\* as well.\n\nAfter that, I wanted to test whether the board could run from an external power supply instead of being powered through ST-LINK. So I changed \\*\\*CN9 from 1-2, STLK power, to 5-6, VIN power\\*\\*, following the description in the official NUCLEO-N657X0-Q documentation. Then I applied \\*\\*7V from a DC power supply to the VIN and GND pins\\*\\* of the NUCLEO-N657X0-Q board. I carefully checked the polarity and connected VIN and GND correctly.\n\nWhen I supplied 7V through VIN, the current consumption was only about \\*\\*4 mA\\*\\*, and the board LEDs looked like in the attached photo. However, the B-CAMS-IMX camera video output, which had previously appeared on my laptop, no longer appeared.\n\nAt first, I thought there might be a software or boot configuration issue. So I changed the power source back to \\*\\*CN9 1-2, STLK power\\*\\*, and changed the BOOT pins back to \\*\\*DEV BOOT mode\\*\\*. However, after that, the board no longer powered up correctly. STM32CubeProgrammer shows a very low target voltage, around \\*\\*0.37 V\\*\\*, and reports:\n\n`Error: Unable to get core ID`\n\n`Error: No STM32 target found`\n\nI did not intentionally operate the BOOT pins or power selection pins incorrectly. Also, when I applied VIN power, the only external device connected to the board was the \\*\\*B-CAMS-IMX camera module\\*\\*. No other external modules or devices were connected.\n\nI bought \\*\\*two NUCLEO-N657X0-Q boards\\*\\*, and I tested both boards in the same way. Unfortunately, both boards now show the same behavior after applying 7V through VIN. The 3.3V rail does not seem to come up properly anymore. When I measure the board’s \\*\\*3.3V pin with a multimeter\\*\\*, I do not get 3.3V. Could you please help me understand what might have happened?\n\nSpecifically, I would like to know:\n\n1. When supplying power through VIN, is changing \\*\\*CN9 to 5-6 VIN\\*\\* the only required hardware setting, or is there any additional jumper/solder bridge/sequence that must be configured?\n\n2. Is applying \\*\\*7V to VIN\\*\\* correct for the NUCLEO-N657X0-Q board, or could 7V on VIN cause this issue?\n\n3. Is there a recommended power-up sequence when using VIN, especially with the B-CAMS-IMX camera connected?\n\n4. Is it possible that the onboard regulator, eFuse, or 3.3V power rail protection was damaged or latched off?\n\n5. What is the proper and safe procedure for powering the NUCLEO-N657X0-Q from VIN?\n\nAny help would be greatly appreciated. I am trying to understand whether I missed a required configuration step for VIN power, or whether there may be an issue with the board power circuitry. Thank you.\n\n![vin.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/857203c4-bb62-fa81-3b81-c75176cff611.jpg \"vin.jpg\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/db9d8391-8bfc-3063-46c2-aed5d13bc7dc.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/857203c4-bb62-fa81-3b81-c75176cff611.jpg"
+            ],
+            "author": "HONG1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Hong, I am validation engineer of this N6 nucleo board, I have tried to supply 7V to VIN again, and did not find any issue, the board can work well on both supply 7V on VIN and then supply by STLink USB, the 5V and 3V3 voltage also are OK. my board version is MB1940-N657X0Q-C02.</p><p>1. Are you sure your VIN input is brown wire-7V and black wire-GND?</p><p>2. use STlink programmer to connect the board, must be in <span>**DEV BOOT mode**.<span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"IMG_20260512_103025.jpg\" style=\"width: 749px;\"><img alt=\"IMG_20260512_103025.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/db9d8391-8bfc-3063-46c2-aed5d13bc7dc.jpg\" title=\"IMG_20260512_103025.jpg\"/></span></span></p></div>",
+                    "author": "EXUE.2",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hi Hong</p><p>1. When supplying power through VIN, is changing **CN9 to 5-6 VIN** the only required hardware setting, or is there any additional jumper/solder bridge/sequence that must be configured?</p><p>---for the VIN input, just need put the CN9 to 5-6, no other need be configured.</p><p>2. Is applying **7V to VIN** correct for the NUCLEO-N657X0-Q board, or could 7V on VIN cause this issue?</p><p>----the VIN support 7-12V. </p><p>3. Is there a recommended power-up sequence when using VIN, especially with the B-CAMS-IMX camera connected?</p><p>----actually no recommended power-up sequence, but as you see, the 7V VIN just have 4mA, it is not normal for board use. suggest you remove the camera, and repower the board. </p><p>4. Is it possible that the onboard regulator, eFuse, or 3.3V power rail protection was damaged or latched off?</p><p>---can you test TP2(5V),TP5(3.3V), TP13(3.3V), TP15(1.8V), TP16(1.8V). </p><p>5. What is the proper and safe procedure for powering the NUCLEO-N657X0-Q from VIN?</p><p>---for the VIN input, just need put CN9 to 5-6, be careful for the VDD and GND. </p><p> </p></div>",
+                    "author": "AlexWEI",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "EXUE.2",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "AlexWEI",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

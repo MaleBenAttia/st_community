@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164798",
+            "publicId": "164798",
+            "title": "Controller sends LE Periodic Advertising Report instead of unmasked",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/controller-sends-le-periodic-advertising-report-instead-of-unmasked-164798",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "Zephyr",
+                "BLE",
+                "STM32WB0 series"
+            ],
+            "published_at": "2026-04-16T00:51:43+00:00",
+            "views": 185,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Eyck-Huang ,\n\nThe STM32WB0 BLE stack controller-only library supports BLE PAwR (Periodic Advertising with Responses) including the Observer role. Also, supported Periodic Advertising Report v2 (with subevent context) with relevant commands and events for subevent context management.\n\nYou can refer to the PM0274 in section *2.3.8 Periodic advertising with responses*and *4.18.5 Periodic Advertising with Responses (PAwR)*\n\nThis wiki describes the STM32WB0 series BLE stack library modularity feature and how to integrate it on a user application, and provides general information about the BLE Periodic Advertising with Responses (PAwR) feature:\n\n* [STM32WB0 Bluetooth® LE Stack Modularity and Integration - stm32mcu](https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32WB0_BLE_Stack_Integration)\n\n* [Bluetooth® LE PAwR-ESL features and applications - stm32mcu](https://wiki.st.com/stm32mcu/wiki/Connectivity:Bluetooth_LE_PAwR-ESL_features_and_applications)",
+            "best_answer_author": "Imen.D",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "When using a Zephyr RTOS host with PAwR synchronization response enabled, the STM32WB09 controller (observer role) reports a legacy **LE Periodic Advertising Report (subevent 0x0F)** while syncing to a PAwR broadcaster.\n\nThe broadcaster is implemented on **EFR32BG42 (SiLabs)**.\n\nZephyr host reports:\n\n[00:00:02.987,453] <dbg> bt\\_hci\\_core: hci\\_event: event 0x3e\n\n[00:00:02.987,480] <dbg> bt\\_hci\\_core: hci\\_le\\_meta\\_event: subevent 0x0f\n\n[00:00:02.987,497] <err> bt\\_scan: The controller shall raise the latest unmasked version of the event\n\nWhich corresponds to:\n\n* LE Meta Event\n\n* LE Periodic Advertising Report (legacy)\n\nThe Zephyr BLE controller layer is based on **stm32wb0x\\_ble\\_stack\\_controller\\_only.a**\n\nDoes **stm32wb0x\\_ble\\_stack\\_controller\\_only.a** support:\n\n1. BLE 5.4 PAwR (Periodic Advertising with Responses) – Observer role?\n\n2. Periodic Advertising Report v2 (with subevent context)?",
+            "images": [],
+            "author": "Eyck-Huang",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106143\">@Eyck-Huang</user-mention> ,</p>\n<p><span>The STM32WB0 BLE stack controller-only library supports </span>BLE PAwR (Periodic Advertising with Responses) including the Observer role. Also, supported Periodic Advertising Report v2 (with subevent context) with relevant commands and events for subevent context management.</p>\n<p>You can refer to the PM0274 in section <em>2.3.8 Periodic advertising with responses </em>and <em>4.18.5 Periodic Advertising with Responses (PAwR)</em></p>\n<p>This wiki describes the STM32WB0 series BLE stack library modularity feature and how to integrate it on a user application, and <span>provides general information about the BLE </span><span>Periodic Advertising with Responses (PAwR) feature:</span></p>\n<ul>\n<li><a href=\"https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32WB0_BLE_Stack_Integration\" rel=\"noopener noreferrer\" target=\"_blank\">STM32WB0 Bluetooth® LE Stack Modularity and Integration - stm32mcu</a></li>\n<li><a href=\"https://wiki.st.com/stm32mcu/wiki/Connectivity:Bluetooth_LE_PAwR-ESL_features_and_applications\" rel=\"noopener noreferrer\" target=\"_blank\">Bluetooth® LE PAwR-ESL features and applications - stm32mcu</a></li>\n</ul>\n<p> </p>\n<p> </p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

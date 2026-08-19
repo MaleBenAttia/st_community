@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "165250",
+            "publicId": "165250",
+            "title": "LSM6DSO I3C SETDASA",
+            "url": "https://community.st.com/mems-sensors-48/lsm6dso-i3c-setdasa-165250",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "STM32H5 series",
+                "I3C"
+            ],
+            "published_at": "2026-04-30T02:29:36+00:00",
+            "views": 321,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I resolved the issue by changing the RESTART in the Add RST frame to STOP.\n\n```\n\n/*Add context buffer Set CCC frame in Frame context */\n\nif (HAL_I3C_AddDescToFrame(&hi3c1,\n\naSET_CCC_RST,\n\nNULL,\n\naContextBuffers,\n\n1,\n\nI3C_BROADCAST_WITHOUT_DEFBYTE_STOP) != HAL_OK)\n\n```\n\nThank you for your help!",
+            "best_answer_author": "jad1",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello!\n\nI'm working on an **Nucleo-H503RB** board and trying to communicate with a **LSM6DSO** over **I3C**.\n\nI am now able to use **ENTDAA** to assign a dynamic address to the LSM6DSO.\n\nNext, I want to test using **SETDASA** to assign a dynamic address based on the static address (0x6A) of the LSM6DSO. I followed [Getting started with I3C - stm32mcu](https://wiki.st.com/stm32mcu/wiki/Getting_started_with_I3C)(4.2 Dynamic addressing using SETDASA CCC section ), but encountered the following issue.\n\n### Issue:\n\n**The process stops at RSTDAA and does not continue to SETDASA.**\n\n![jad1_0-1777514154625.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8bc25304-d70d-f9d6-713e-836f0e61aa69.png \"jad1_0-1777514154625.png\")\n\n![jad1_1-1777514179063.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b850990e-b171-1744-dab2-2bab22d5bddc.png \"jad1_1-1777514179063.png\")\n\n![jad1_2-1777514187310.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cbfc3578-8399-5454-c9ba-c39ae541b9cb.png \"jad1_2-1777514187310.png\")\n\nI have already verified via **I2C** that the static address is 0x6A.\n\n### **Question:**\n\nHow can I successfully **complete the SETDASA** procedure?\n\n### **Full Code****:**\n\n```\n\n/* Includes ------------------------------------------------------------------*/\n\n#include \"main.h\"\n\n/* Private includes ----------------------------------------------------------*/\n\n/* USER CODE BEGIN Includes */\n\n#include <stdio.h>\n\n#include \"target.h\"\n\n/* USER CODE END Includes */\n\n/* Private typedef -----------------------------------------------------------*/\n\n/* USER CODE BEGIN PTD */\n\n#define Direct_SETDASA 0x87\n\n#define Brodacast_DISEC 0x01\n\n#define Brodacast_RST 0x06\n\n#define LSM6DSO_DYNAMIC_ADDR 0x32\n\n/* USER CODE END PTD */\n\n/* Private define ------------------------------------------------------------*/\n\n/* USER CODE BEGIN PD */\n\n#define I3C_IDX_FRAME_1 0U /* Index of Frame 1 */\n\n#define I3C_IDX_FRAME_2 1U /* Index of Frame 2 */\n\n#define STATIC_ADRESS_LSM6DSO 0x6A\n\n/* USER CODE END PD */\n\n/* Private macro -------------------------------------------------------------*/\n\n/* USER CODE BEGIN PM */\n\n/* USER CODE END PM */\n\n/* Private variables ---------------------------------------------------------*/\n\nCOM_InitTypeDef BspCOMInit;\n\nI3C_HandleTypeDef hi3c1;\n\n/* USER CODE BEGIN PV */\n\nuint8_t aSETDASA_LSM6DSO_data[1] = {(LSM6DSO_DYNAMIC_ADDR << 1)};\n\nuint8_t aDISEC_data[1] = {0x08}; // Disable IBI interrupt\n\n/* Buffer used for transmission */\n\nuint8_t aTxBuffer[0x0F];\n\n/* Buffer used by HAL to compute control data for the Private Communication */\n\nuint32_t aControlBuffer[0xF];\n\n/* Context buffer related to Frame context, contain different buffer value for a communication */\n\nI3C_XferTypeDef aContextBuffers[2];\n\n/* Descriptor for direct write SETDASA CCC */\n\nI3C_CCCTypeDef aSET_DASA_LSM6DSO[] =\n\n{\n\n/*Target Addr CCC Value CCC data + defbyte pointer CCC size + defbyte Direction */\n\n{0x6A,Direct_SETDASA,{aSETDASA_LSM6DSO_data,1},HAL_I3C_DIRECTION_WRITE},\n\n};\n\n/* Descriptor for direct write DISEC CCC */\n\nI3C_CCCTypeDef aSET_CCC_DISEC[] =\n\n{\n\n{0x6A,Brodacast_DISEC, {aDISEC_data,1},LL_I3C_DIRECTION_WRITE},\n\n};\n\n/* Descriptor for direct write RST CCC */\n\nI3C_CCCTypeDef aSET_CCC_RST[] =\n\n{\n\n{0x6A,Brodacast_RST, {NULL,0},LL_I3C_DIRECTION_WRITE},\n\n};\n\n/* USER CODE END PV */\n\n/* Private function prototypes -----------------------------------------------*/\n\nvoid SystemClock_Config(void);\n\nstatic void MPU_Config(void);\n\nstatic void MX_GPIO_Init(void);\n\nstatic void MX_I3C1_Init(void);\n\nstatic void MX_ICACHE_Init(void);\n\n/* USER CODE BEGIN PFP */\n\n/* USER CODE END PFP */\n\n/* Private user code ---------------------------------------------------------*/\n\n/* USER CODE BEGIN 0 */\n\n/* USER CODE END 0 */\n\n/**\n\n* @brief The application entry point.\n\n* @retval int\n\n*/\n\nint main(void)\n\n{\n\n/* USER CODE BEGIN 1 */\n\n/* USER CODE END 1 */\n\n/* MCU Configuration--------------------------------------------------------*/\n\n/* MPU Configuration--------------------------------------------------------*/\n\nMPU_Config();\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n\nHAL_Init();\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* Configure the system clock */\n\nSystemClock_Config();\n\n/* USER CODE BEGIN SysInit */\n\n/* USER CODE END SysInit */\n\n/* Initialize all configured peripherals */\n\nMX_GPIO_Init();\n\nMX_I3C1_Init();\n\nMX_ICACHE_Init();\n\n/* USER CODE BEGIN 2 */\n\n/* Send a DISEC to disable IBI interrupt */\n\naContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aControlBuffer;\n\naContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size = 1;\n\naContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer = aTxBuffer;\n\naContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size = 1;\n\n/* Add context buffer Set CCC frame in Frame context */\n\nif (HAL_I3C_AddDescToFrame(&hi3c1,\n\naSET_CCC_DISEC,\n\nNULL,\n\naContextBuffers,\n\n1,\n\nI3C_BROADCAST_WITHOUT_DEFBYTE_RESTART) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_I3C_Ctrl_TransmitCCC(&hi3c1, aContextBuffers, 1000) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nwhile (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)\n\n{\n\n}\n\n/* Send a RSTDAA to reset previous dynamic address the target */\n\naContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aControlBuffer;\n\naContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size = 1;\n\naContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer = aTxBuffer;\n\naContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size = 1;\n\n/*Add context buffer Set CCC frame in Frame context */\n\nif (HAL_I3C_AddDescToFrame(&hi3c1,\n\naSET_CCC_RST,\n\nNULL,\n\naContextBuffers,\n\n1,\n\nI3C_BROADCAST_WITHOUT_DEFBYTE_RESTART) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_I3C_Ctrl_TransmitCCC(&hi3c1, aContextBuffers, 1000) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nwhile (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)\n\n{\n\n}\n\n/* Send a SETDASA to set the dynamic on LSM6DSO using his static address */\n\naContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.pBuffer = aControlBuffer;\n\naContextBuffers[I3C_IDX_FRAME_1].CtrlBuf.Size = 1;\n\naContextBuffers[I3C_IDX_FRAME_1].TxBuf.pBuffer = aTxBuffer;\n\naContextBuffers[I3C_IDX_FRAME_1].TxBuf.Size = 1;\n\n/* Add context buffer Set CCC frame in Frame context */\n\nif (HAL_I3C_AddDescToFrame(&hi3c1,\n\naSET_DASA_LSM6DSO,\n\nNULL,\n\n&aContextBuffers[I3C_IDX_FRAME_1],\n\n1,\n\nI3C_DIRECT_WITHOUT_DEFBYTE_RESTART) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_I3C_Ctrl_TransmitCCC_IT(&hi3c1, &aContextBuffers[I3C_IDX_FRAME_1]) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nwhile (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY)\n\n{\n\n}\n\n/* After a dynamic address has been assigned, the sensor is recognized as an I3C device */\n\n/* Check if the LSM6DSO sensor is ready to communicate in I3C */\n\nif (HAL_I3C_Ctrl_IsDeviceI3C_Ready(&hi3c1, LSM6DSO_DYNAMIC_ADDR, 300, 1000) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE END 2 */\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ba40cf5-d651-94f9-9b63-0963f41540c7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8bc25304-d70d-f9d6-713e-836f0e61aa69.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b850990e-b171-1744-dab2-2bab22d5bddc.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cbfc3578-8399-5454-c9ba-c39ae541b9cb.png"
+            ],
+            "author": "jad1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><div>I resolved the issue by changing the RESTART in the Add RST frame to STOP.</div><pre class=\"lia-code-sample language-c\"><code> /*Add context buffer Set CCC frame in Frame context */\n if (HAL_I3C_AddDescToFrame(&amp;hi3c1,\n aSET_CCC_RST,\n NULL,\n aContextBuffers,\n 1,\n I3C_BROADCAST_WITHOUT_DEFBYTE_STOP) != HAL_OK)</code></pre><div>Thank you for your help!</div></div>",
+                    "author": "jad1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106500\">@jad1</user-mention> ,<br/><br/><span>Try to use </span><code>SETDASA</code><span> with the </span><strong>raw 7-bit dynamic address</strong><span> in the payload, not the address shifted left by one. <br/></span><span><span class=\"hljs-type\">uint8_t</span> aSETDASA_LSM6DSO_data[<span class=\"hljs-number\">1</span>] = {LSM6DSO_DYNAMIC_ADDR};<br/>You can also debug the code and tell me whether </span><code>SETDASA</code><span> is actually sent or not then we can verify the waveform .<br/><br/></span>foued<br/><br/><br/></p></div>",
+                    "author": "Foued_KH",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Foued,<br/><br/>I changed the dynamic address as below, but the logic analyzer shows the same result.</p><pre class=\"lia-code-sample language-c\"><code>uint8_t aSETDASA_LSM6DSO_data[1] = {(LSM6DSO_DYNAMIC_ADDR)};</code></pre><p>I tried to print the procedure on the PuTTY log. <span>It seems like it's stuck in adding the SETDASA frame.</span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"jad1_0-1777551760699.png\" style=\"width: 400px;\"><img alt=\"jad1_0-1777551760699.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ba40cf5-d651-94f9-9b63-0963f41540c7.png\" title=\"jad1_0-1777551760699.png\"/></span></p><pre class=\"lia-code-sample language-c\"><code> if (HAL_I3C_AddDescToFrame(&amp;hi3c1,\n aSET_DASA_LSM6DSO,\n NULL,\n &amp;aContextBuffers[I3C_IDX_FRAME_1],\n 1,\n I3C_DIRECT_WITHOUT_DEFBYTE_RESTART) != HAL_OK)\n {\n printf(\"[I3C][ERROR] Add SETDASA frame failed\\r\\n\");\n printf(\"[I3C] ErrorCode = 0x%08lX\\r\\n\", hi3c1.ErrorCode);\n Error_Handler();\n }</code></pre><p><span>If I have taken any wrong step, please kindly tell me.</span></p><p><span>Thanks for help!</span></p><p> </p></div>",
+                    "author": "jad1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Debug and step into </span><code>HAL_I3C_AddDescToFrame()</code><span> to see exactly where the execution gets stuck and identify the root cause.<br/></span>Let me know!<br/>Foued</p></div>",
+                    "author": "Foued_KH",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Foued_KH",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Foued_KH",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

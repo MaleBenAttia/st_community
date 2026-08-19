@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164535",
+            "publicId": "164535",
+            "title": "Need memory map - STM32C011F6J6 project - built with HAL, using too much flash",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/need-memory-map-stm32c011f6j6-project-built-with-hal-using-too-much-flash-164535",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-04-07T14:10:05+00:00",
+            "views": 219,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "CudeIDE has the Build Analyser for this:\n\n<https://www.st.com/resource/en/user_manual/dm00629856.pdf#page=125>\n\nThe map file will be in your Projects 'Debug' folder - called *<project-nake>*.map\n\n**PS:**\n\nApart from HAL, other big users of Flash include:\n\n* printf\n\n* floating-point",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "I'm building a (relatively simple) application with STM32C011F6J6 using HAL for managing onboard peripherals. I believe moving some of the I/O code to LL or \"bare metal\" (direct register manipulation) would help reduce flash demand - 32K byte budget - but would like target these efforts.\n\nIs there a way (perhaps using the linker that's part of STM32CubemX) to get a memory map telling me how much flash is occupied by each function call?\n\nThank you",
+            "images": [],
+            "author": "wb0gaz",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>CudeIDE has the Build Analyser for this:</p><p><a href=\"https://www.st.com/resource/en/user_manual/dm00629856.pdf#page=125\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/user_manual/dm00629856.pdf#page=125</a></p><p> </p><p>The map file will be in your Projects 'Debug' folder - called <font face=\"times new roman,times\"><em>&lt;project-nake&gt;</em></font><font face=\"courier new,courier\">.map</font></p><p> </p><p><strong><u>PS</u>:</strong></p><p>Apart from HAL, other big users of Flash include:</p><ul><li><font face=\"courier new,courier\">printf</font></li><li>floating-point</li></ul></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Andrew - I had been using \"release\" configuration (to reduce flash demand), hence no debug folder activity (that I was seeing, anyway), so  that provides a helpful path forward!</p><p>Am not using much C library stuff... A possible culprit - not yet looked at memory map, but from prior experience - may to be in USART handling (the application is doing only very rudimentary serial I/O, no need for buffering, etc.), want to quantify HAL USART usage among other possible candidates before diving in.</p><p>Thanks again for the quick/helpful reply!</p></div>",
+                    "author": "wb0gaz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I guess it would be called 'Release', then ?</p><p>Note that there's nothing to stop you editing the 'Debug' configuration to use a different optimisation setting.</p><p>I always use <strong><font face=\"courier new,courier\">-Og</font></strong> - see: <a href=\"https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#index-Og\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#index-Og</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

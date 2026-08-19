@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "167296",
+            "publicId": "167322",
+            "title": "OpAmp PGA mode - noisy output - STM32G431",
+            "url": "https://community.st.com/stm32-mcus-products-25/opamp-pga-mode-noisy-output-stm32g431-167322",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "OPAMP",
+                "STM32G4 series",
+                "ADC"
+            ],
+            "published_at": "2026-07-29T12:20:55+00:00",
+            "views": 80,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "@mechatron\n\nYou will never know, as I say the reason likely biased to internal routing on the crystal, and it’s strictly confidential.\n\nSame apply to noise property of the internal resistive PGA matrix, some resistors have much higher level of thermal noise than good quality external resistors.\n\nSpectrum analysis of the noise may be useful here, to differentiate interference/thermal/pop-corn/flicker/etc noise nature. Post a code, I can try to run SA on my nucleo-G474re in spare time",
+            "best_answer_author": "MasterT",
+            "best_answer_author_role": "Lead II",
+            "content_text": "Hi,\n\nUsing the STM32G431 in PGA mode vs in standalone mode (external resistor network for Gain), I am getting different noise levels on the final output (measured using ADC).\n\nThe noise generated in PGA mode is twice as big as in standalone mode. What could be the reason?\n\nI expect a change in gain due to the tolerance specified in the datasheet, but did not expect the noise level to increase.\n\nNote - I tested with multiple combinations for external gain (100R and 1k5, 1k and 15k, 10k and 150k) to reach 16 gain. All the three resulted in similar noise level. Hence, thermal noise could not be the reason is what I assume, in case of PGA. Is some other effect taking presedence here?",
+            "images": [],
+            "author": "mechatron",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p><user-mention data-id=\"79334\">@mechatron</user-mention> </p><p>You will never know, as I say the reason likely biased to internal routing on the crystal, and it’s strictly confidential.</p><p>Same apply to noise property of the internal resistive PGA matrix, some resistors have much higher level of thermal noise than good quality external resistors.</p><p>Spectrum analysis of the noise may be useful here, to differentiate interference/thermal/pop-corn/flicker/etc noise nature. Post a code, I can try to run SA on my nucleo-G474re in spare time</p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>RM says: “amplifier with a non-inverting gain ranging from 2 to 64, or with inverting gain ranging from<br/>-1 to -63.”</p><p>The minimum gain 2 in non-inverting mode implies noise gain 2. Same for inverting G -1, noise of internal opa-amp getting factor G +2 amplification. You can use capacitor in parallel to feedback resistors to minimize BW and noise consequently.</p><p> </p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"43295\">@MasterT</user-mention> ,</p><p> </p><p>Thanks for the response. Is this filtering always required while using OpAmp in PGA mode?</p><p>I am trying to understand why there is a difference in noise for external gain 16 vs PGA gain 16.</p></div>",
+                    "author": "mechatron",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>One of many possible reasons may be where low leg of internal resistor is connected to ground on silicon crystal, since no “ground-plane” exists on chip.  Using external resistors you may get better option in this regard.</p><p>Filtering is just a remedy for pure noise performance of the internal op-amp, 500 nV/Hz is extremely high value, any lm358 has lower noise.</p><p>What is the application?</p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

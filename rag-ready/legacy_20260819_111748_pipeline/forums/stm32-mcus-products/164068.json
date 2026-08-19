@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "164068",
+            "publicId": "164068",
+            "title": "Strange CRC behaviour",
+            "url": "https://community.st.com/stm32-mcus-products-25/strange-crc-behaviour-164068",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L4 series"
+            ],
+            "published_at": "2026-03-23T08:03:17+00:00",
+            "views": 197,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "You need to take \\*address\\* (i.e. use the & operator), to be cast and then dereferenced:\n\n```\n\n*(__IO uint8_t *)&(CRC->DR) = Temp;\n\n```\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "I've got some trouble with the CRC unit in an STM32L475.\n\nAt first, I got wrong CRC results, but then it dawned on me that the compiled code didn't force only 8 bits at a time into CRC->DR. So I added what I've used elsewhere, to force the compiler to store only 8 bits in a 32-bit register.\n\n```\n\n*(__IO uint8_t *)(CRC->DR) = Temp;\n\n```\n\nTemp is a uint8\\_t variable. Below, it certainly looks like a single byte is transferred to CRC-DR (strb instruction).\n\n```\n\n*(__IO uint8_t *)(CRC->DR) = Temp;\n\n80013ea:\t683b \tldr\tr3, [r7, #0]\n\n80013ec:\t7018 \tstrb\tr0, [r3, #0]\n\n```\n\nHowever, after I modified my code that way, it would seem that nothing is calculated at all. No matter how many (non-zero) bytes I throw into CRC->DR, the output just stays at 0.\n\nIf I revert back to\n\n```\n\nCRC->DR = Temp;\n\n```\n\nat least I get *something*, albeit an incorrect value as soon as I enter more than one byte.\n\nI initialise the CRC unit like this:\n\n```\n\nCRC->POL = 0x04C11DB7;\n\nCRC->INIT = 0;\n\nCRC->CR = CRC_CR_RESET;\n\n```\n\nIs there something blatantly obvious I've missed?",
+            "images": [],
+            "author": "EThom.3",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You need to take *address* (i.e. use the &amp; operator), to be cast and then dereferenced:</p><pre class=\"lia-code-sample language-c\"><code>*(__IO uint8_t *)&amp;(CRC-&gt;DR) = Temp;</code></pre><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oh... oops.</p><p>Yes, I thought it would be something embarrassingly simple. Thank you <user-mention data-id=\"17162\">@waclawek.jan</user-mention> !</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

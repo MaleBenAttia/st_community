@@ -1,0 +1,94 @@
+{
+    "forum": [
+        {
+            "id": "164215",
+            "publicId": "164215",
+            "title": "MX25UM51245G not being initialized by bootrom",
+            "url": "https://community.st.com/stm32-mcus-products-25/mx25um51245g-not-being-initialized-by-bootrom-164215",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bootloader",
+                "Flash",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-03-26T14:09:00+00:00",
+            "views": 499,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nafter our own Investigations we were able to pin Point and fix the Issue. The connection between PN7 and the reset lead to issues with booting from flash in Flash boot. Removing the connectiong resistor Solved the issue.\n\nThe Upload to the flash in dev Boot still doesn't work, but we are not able to do the required Hardware modification to figure out the Issue, but we have a software workaround. For sake of documentation the Workaround consinsts of 2 steps. First using the STMCubeIDE to upload and run a basic firmware image into Ram which initialises the Flash and then the Programmer schould work as expected.\n\nRegards Nico",
+            "best_answer_author": "Nixxen",
+            "best_answer_author_role": "Associate II",
+            "content_text": "We are currently working with a custom PCB using an STM32N6 chip and an MX25UM512G flash chip. The flash is connected identically to the Nucleo development board.\n\nWhen powering up the board in Dev Boot mode, it is not possible to read the flash chip using CubeProgrammer. The MCU crashes, which we assume based on the reduced power consumption observed afterward.\n\nIf we first load a firmware image into SRAM using CubeIDE (which successfully connects to and reads the flash memory), then reading and writing the flash via CubeProgrammer works as expected.\n\nHowever, after a power cycle without reloading the firmware into SRAM, the flash becomes inaccessible again.\n\nAdditionally, after flashing the firmware using this workaround (i.e., initializing the flash via our own firmware and then booting in Flash mode), the software is not executed from flash and the system does not boot.\n\nOur assumption is that the flash is not correctly initialized by the boot ROM. Any help or suggestions would be highly appreciated.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b9f961e4-55bc-e27d-d8ba-8f963e58147f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/63f05003-dc85-21a7-58cb-5ec21c8473d3.png"
+            ],
+            "author": "Nixxen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"95761\">@Nixxen</user-mention> ;</p>\n<p> </p>\n<p>Could you please check the memory RESET pin.</p>\n<p>It is recommended to connect the STM32 NRST pin with a reverse diode to each of all external RESET pins of external memories, to generate a proper hardware reset simultaneously as mentioned in <a href=\"https://www.st.com/resource/en/application_note/an5967-getting-started-with-hardware-development-for-stm32n6-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Getting started with hardware development for STM32N6 MCUs - Application note.</a></p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did not intend to accept this as a solution. We did initialy connect the flash reset to the OCTO-SPI Reset but also added a Line to the Hardwarereset of the SMT32. might there be an issue with the reset both being connected to the OCTO-SPI Reset and the external reset</p><p> </p><p>Nico</p></div>",
+                    "author": "Nixxen",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"95761\">@Nixxen</user-mention> wrote:<br/>\n<p>I did not intend to accept this as a solution.</p>\n<hr/></blockquote>\n<p>How to unmark the solution:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 308px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b9f961e4-55bc-e27d-d8ba-8f963e58147f.png\" title=\"screenshot.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"95761\">@Nixxen</user-mention>;</p>\n<p> </p>\n<p>If you have a reset connection issue, external memory supplies (VDD_MEM1 and VDD_MEM2) must be cut for more than 1 ms to allow reboot on reset. For that I advise you to respect the recommendation.</p>\n<div class=\"mceNonEditable lia-copypaste-placeholder\" id=\"tinyMceEditor_12d6404baf91bdKDJEM1_0\"> </div>\n<p>Could you please share your schematic?</p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p>\n<p>  </p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>when rebooting we cut the power for 2-3 seconds on the whole board so this shouldnt be an issue. I attached our Flash-Schematics. We later added a connection betweenn the MCU NRST and the Flash-Reset Manualy which is not shown in the schematic.</p><p> </p><p>Nico</p></div>",
+                    "author": "Nixxen",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"95761\">@Nixxen</user-mention> ;</p>\n<p> </p>\n<p>After checking your schematic, your aren't used a reversed diode <span>to each of all external RESET pins of external memories as recommended in <a href=\"https://www.st.com/resource/en/application_note/an5967-getting-started-with-hardware-development-for-stm32n6-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Getting started with hardware development for STM32N6 MCUs - Application note.</a></span></p>\n<p><span>I recommend you to correct this issue by adding a reversed diode. Please let me know if the issue is solved or not?</span></p>\n<p><span>I advise you to refer to <a href=\"https://www.st.com/en/evaluation-tools/nucleo-n657x0-q.html#cad-resources\" rel=\"noopener noreferrer\" target=\"_self\">Nucleo-N657X0-Q schematic</a> and check your schematic.</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"KDJEM1_0-1775751950116.png\" style=\"width: 400px;\"><img alt=\"KDJEM1_0-1775751950116.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/63f05003-dc85-21a7-58cb-5ec21c8473d3.png\" title=\"KDJEM1_0-1775751950116.png\"/></span></p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>after our own Investigations we were able to pin Point and fix the Issue. The connection between PN7 and the reset lead to issues with booting from flash in Flash boot. Removing the connectiong resistor Solved the issue. </p><p>The Upload to the flash in dev Boot still doesn't work, but we are not able to do the required Hardware modification to figure out the Issue, but we have a software workaround. For sake of documentation the Workaround consinsts of 2 steps. First using the STMCubeIDE to upload and run a basic firmware image into Ram which initialises the Flash and then the Programmer schould work as expected.</p><p> </p><p>Regards Nico</p></div>",
+                    "author": "Nixxen",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

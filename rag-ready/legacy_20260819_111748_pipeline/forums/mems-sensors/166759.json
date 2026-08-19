@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "166734",
+            "publicId": "166759",
+            "title": "STEVAL-MKI109D + STEVAL-MKI207V1: SPI transaction completes cleanly (HAL_OK) but MISO always reads 0xFF — CS/mode/clock all verified correct",
+            "url": "https://community.st.com/mems-sensors-48/steval-mki109d-steval-mki207v1-spi-transaction-completes-cleanly-hal-ok-but-miso-always-reads-0xff-cs-mode-clock-all-verified-correct-166759",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "STM32H5 series",
+                "SPI",
+                "MEMS sensors",
+                "USB Type-C and power delivery"
+            ],
+            "published_at": "2026-07-08T06:19:43+00:00",
+            "views": 23,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@pooja\\_g ,\n\nTo narrow this down cleanly, I’d suggest first validating the setup with the official ST PID example on [Github](https://github.com/STMicroelectronics/ism330dhcx-pid).\n\n* If `WHO_AM_I` reads correctly with the official code, then the issue is most likely in your bare-metal implementation.\n\n* If it still reads `0xFF`, then the problem is much more likely on the hardware side — for example the adapter board, level-shifter path, power domain, or the MISO signal not being driven properly.\n\nIf possible, the next best step would be to check the SPI waveforms with an oscilloscope or logic analyzer, especially:\n\n* `CS`\n\n* `SCK`\n\n* `MOSI`\n\n* `MISO`\n\nThat would confirm whether the sensor is actually driving MISO during the read transaction, which would help determine whether this is a firmware-side or hardware-side issue.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "**Board:** STEVAL-MKI109D (STM32H563ZI) + STEVAL-MKI207V1 adapter (ISM330DHCX)\n\n**Goal:** Bare-metal custom firmware reading WHO\\_AM\\_I over SPI1\n\nFollowing up on my earlier thread about GPIO pin mapping [link to old thread] — pin mapping is now resolved (SPI1\\_NSS on PA15, confirmed via community input; PA4/PA5 are DAC1 Vdd\\_set/VddIO\\_set as discussed). Thanks for the help getting there.\n\nI'm now stuck on a different issue and would appreciate a sanity check. **WHO\\_AM\\_I consistently reads 0xFF**, but every layer I can verify from firmware/multimeter checks out correctly:\n\n* CS on PA15 (GPIO output, confirmed via MODER/ODR register dump)\n\n* SPI1 Mode 3 (CPOL=1, CPHA=1) — confirmed via CFG2 register decode\n\n* SCK/MISO/MOSI on PB3/PB4/PB5, AF5 — confirmed via GPIOB MODER/AFRL dump\n\n* VDD/VDDIO measured 3.3V at the DIL24 breakout header (J13/J14 area on JP1/JP2), in spec\n\n* `HAL_SPI_TransmitReceive` returns HAL\\_OK, ErrorCode=0x0, every call — no timeout, no fault\n\n* Tested at both SPI\\_BAUDRATEPRESCALER\\_32 and \\_256 (extremes) — identical 0xFF result at both, ruling out clock-speed/level-shifter-timing issues\n\n* Swept 9 additional candidate CS pins as a sanity check — all 0xFF\n\nGiven a clean, fault-free SPI transaction that consistently returns 0xFF regardless of clock speed, this looks like MISO simply isn't being driven — but I don't have a scope/logic analyzer to confirm signal activity directly at the DIL24 socket or on the T14/T15 level shifter outputs.\n\n**Specific questions:**\n\n1. Is there anything specific about the T14/T15 (NTA4151PT1G) level-shifter circuit that requires a particular power-up sequence or reference voltage beyond VDD/VDDIO themselves — e.g. does `VddIO2` (referenced near T15 in the schematic) need to be independently supplied, and if so, from where?\n\n2. Is there a minimum CS-to-first-clock-edge setup time the ISM330DHCX needs that HAL\\_SPI\\_TransmitReceive might not guarantee back-to-back?\n\n3. Any other MCU-side signal (chip select gating, ready/busy line) specific to this adapter board that a from-scratch bare-metal implementation might be missing, that ProfiMEMS handles internally?\n\nHappy to share full register dumps / relevant code snippets if useful. Appreciate any pointers — been systematically ruling things out for a while now and this is the one piece I can't verify without a scope.",
+            "images": [],
+            "author": "pooja_g",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"105524\">@pooja_g</user-mention> ,</p><p>To narrow this down cleanly, I’d suggest first validating the setup with the official ST PID example on <a href=\"https://github.com/STMicroelectronics/ism330dhcx-pid\" rel=\"noreferrer noopener\" target=\"_blank\">Github</a>.</p><ul><li>If <code>WHO_AM_I</code> reads correctly with the official code, then the issue is most likely in your bare-metal implementation.</li> <li>If it still reads <code>0xFF</code>, then the problem is much more likely on the hardware side — for example the adapter board, level-shifter path, power domain, or the MISO signal not being driven properly.</li></ul><p>If possible, the next best step would be to check the SPI waveforms with an oscilloscope or logic analyzer, especially:</p><ul><li><code>CS</code></li> <li><code>SCK</code></li> <li><code>MOSI</code></li> <li><code>MISO</code></li></ul><p>That would confirm whether the sensor is actually driving MISO during the read transaction, which would help determine whether this is a firmware-side or hardware-side issue.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

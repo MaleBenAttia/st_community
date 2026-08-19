@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "163689",
+            "publicId": "163689",
+            "title": "muxed FSMC in STM32F407vet6 through HAL for NOR flash memory write operations issue HAL",
+            "url": "https://community.st.com/stm32-mcus-products-25/muxed-fsmc-in-stm32f407vet6-through-hal-for-nor-flash-memory-write-operations-issue-hal-163689",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-11T10:19:11+00:00",
+            "views": 258,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "After Connecting RY|BY and enabling NWAIT i was able to read ID several times in a row:\n\nManufacturer: 0x00C2, Device1: 0x22BA, Device2: 0x0000, Device3: 0x0000\n\nBefore that i was able to read it couple times, but anly with physical contact with WE pin. Looks like NOR was not able to switch state fast enough, but it surprised me, since it was driver in debug mode only at 21mhz.\n\nThank you for your help!",
+            "best_answer_author": "Wassermann1",
+            "best_answer_author_role": "",
+            "content_text": "I'm trying to set up FSMC in muxed mode to read\\_write external NOR flash devices. Muxed pins goes through 2 8-bit latches 74HC574D.\n\nThe problem is that currently i can barely read from external NOR and it's not accepting commands.\n\nFirstly HAL\\_NOR\\_Init(&hnor1, &Timing, NULL) returns HALL\\_ERR  since it fails to read CommandSet from NOR. It should read address 0x13 from CFI and get 0x02 or 0x01 as a result, but write commad makes no effect and as a result driver reads at 0x13 from memopry start.\n\nAfter analyzing what's going on on the FSMC bus I still cand fing any clues. Here is an example how it performs ReadID sequence, using standard HAL\\_NOR\\_ReadID\n\n![изображение.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c22496fc-a8c2-986e-9313-15a26fa0312b.png \"изображение.png\")\n\nEverything looks correct, 3 sequences 0x555 - >0xAA, 0x2AA -> 0x55 and 0x555 -> 0x90, but reading 0x00 and 0x01 right after returns data from NOR not the deviceID\n\nI've also tried bitbang mode with same pins and code below successfully reads deviceID. So after all it's not a witing problem, but maby timings or some FSMC setting\n\n```\n\nHAL_StatusTypeDef NOR_ReadID_Manual(uint16_t* manufacturer, uint16_t* device) {\n\nif (!manufacturer || !device) return HAL_ERROR;\n\nNOR_Manual_Init();\n\nwrite_nor(0x0000, 0xF0);\n\nwrite_nor(0x555 * 2, 0x00AA);\n\nwrite_nor(0x2AA * 2, 0x0055);\n\nwrite_nor(0x555 * 2, 0x0090);\n\n*manufacturer = read_nor(0x00 * 2);\n\n*device = read_nor(0x01 * 2);\n\n// Reset\n\nwrite_nor(0x0000, 0xF0);\n\nreturn HAL_OK;\n\n}\n\n```\n\n![изображение.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe0bfb86-e07d-925b-bec8-bf97fdff850c.png \"изображение.png\")\n\nI've tried different timings but it has no effect. Currently it runs on 21Mhz\n\n![изображение.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/923fa0d6-9a2c-748e-b2f2-e6597e4edc88.png \"изображение.png\")\n\nWith such init settings:\n\n```\n\n/** Perform the NOR1 memory initialization sequence\n\n*/\n\nhnor1.Instance = FSMC_NORSRAM_DEVICE;\n\nhnor1.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;\n\n/* hnor1.Init */\n\nhnor1.Init.NSBank = FSMC_NORSRAM_BANK1;\n\nhnor1.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_ENABLE;\n\nhnor1.Init.MemoryType = FSMC_MEMORY_TYPE_NOR;\n\nhnor1.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_16;\n\nhnor1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;\n\nhnor1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;\n\nhnor1.Init.WrapMode = FSMC_WRAP_MODE_DISABLE;\n\nhnor1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;\n\nhnor1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;\n\nhnor1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;\n\nhnor1.Init.ExtendedMode = FSMC_EXTENDED_MODE_DISABLE;\n\nhnor1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;\n\nhnor1.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;\n\nhnor1.Init.PageSize = FSMC_PAGE_SIZE_NONE;\n\n/* Timing */\n\nTiming.AddressSetupTime = 4;\n\nTiming.AddressHoldTime = 3;\n\nTiming.DataSetupTime = 6;\n\nTiming.BusTurnAroundDuration = 2;\n\nTiming.CLKDivision = 16;\n\nTiming.DataLatency = 17;\n\nTiming.AccessMode = FSMC_ACCESS_MODE_A;\n\n/* ExtTiming */\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c22496fc-a8c2-986e-9313-15a26fa0312b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ecd6779-eb65-53da-7644-913c9c952acb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe0bfb86-e07d-925b-bec8-bf97fdff850c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9c9b9117-818b-bbec-cc43-ff54da395b63.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3996d346-6b70-864b-3c3e-e6f7861f797c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/923fa0d6-9a2c-748e-b2f2-e6597e4edc88.png"
+            ],
+            "author": "Wassermann1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>After Connecting RY|BY and enabling NWAIT i was able to read ID several times in a row:<br/>Manufacturer: 0x00C2, Device1: 0x22BA, Device2: 0x0000, Device3: 0x0000<br/>Before that i was able to read it couple times, but anly with physical contact with WE pin. Looks like NOR was not able to switch state fast enough, but it surprised me, since it was driver in debug mode only at 21mhz.<br/><br/>Thank you for your help!</p></div>",
+                    "author": "Wassermann1",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Not sure but you need to use a D-Type <strong>Latch</strong> (<a href=\"https://www.ti.com/lit/ds/symlink/cd74hc573.pdf?ts=1773221879536\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">74HC57<strong>3</strong></a>) having LE (latch-enable pin) instead of D-Type <strong>Flip-Flop</strong> (<a href=\"https://www.ti.com/lit/ds/symlink/sn74hc574.pdf\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">74HC57<strong>4</strong></a>) (clock: CLK pin).</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 999px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3996d346-6b70-864b-3c3e-e6f7861f797c.png\" title=\"screenshot.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello<br/> <a href=\"https://www.ti.com/lit/ds/symlink/cd74hc573.pdf?ts=1773221879536\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">74HC57<strong>3</strong></a> was my first attempt, but I've fugured out that it holds address only while NADV is active</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"изображение.png\" style=\"width: 644px;\"><img alt=\"изображение.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ecd6779-eb65-53da-7644-913c9c952acb.png\" title=\"изображение.png\"/></span><br/>Following RM0090 it will latch address only during ADDSET and during ADDHOLD it will again became transparent<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"изображение.png\" style=\"width: 711px;\"><img alt=\"изображение.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9c9b9117-818b-bbec-cc43-ff54da395b63.png\" title=\"изображение.png\"/></span></p><p>With <a href=\"https://www.ti.com/lit/ds/symlink/sn74hc574.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">74HC57<strong>4</strong></a> at least read operations works.<br/>I'm thinking about connecting RY\\BY NOR output to FSMC_NWAIT</p></div>",
+                    "author": "Wassermann1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"91883\">@Wassermann1</user-mention> wrote:<br/>\n<p> <a href=\"https://www.ti.com/lit/ds/symlink/cd74hc573.pdf?ts=1773221879536\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">74HC57<strong>3</strong></a> was my first attempt, but I've fugured out that it holds address only while NADV is active</p>\n<p> </p>\n<hr/></blockquote>\n<p>You need a latch not a D-type flip flop and indeed you need to add an inverter to the latch LE input.</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"91883\">@Wassermann1</user-mention> wrote:<br/>\n<p>Hello<br/>With <a href=\"https://www.ti.com/lit/ds/symlink/sn74hc574.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">74HC57<strong>4</strong></a> at least read operations works.</p>\n</blockquote>\n<p> It reads but not all operations are performed correctly. right?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

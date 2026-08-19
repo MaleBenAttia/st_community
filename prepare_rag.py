@@ -99,9 +99,9 @@ def _category_dir(output_dir: Path, category_name: str) -> Path:
 # Traitement par Type
 # --------------------------------------------------------------------------
 
-def process_forums() -> dict:
-    input_dir = OUTPUT_DIR / "forums"
-    output_dir = RAG_READY_DIR / "forums"
+def process_forums(run_id: str = None) -> dict:
+    input_dir = OUTPUT_DIR / run_id / "forums" if run_id else OUTPUT_DIR / "forums"
+    output_dir = RAG_READY_DIR / run_id / "forums" if run_id else RAG_READY_DIR / "forums"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     ok_urls = []
@@ -145,7 +145,17 @@ def process_forums() -> dict:
 
         topic_url = topic.get("_seoUrl", file_path.name)
 
-        # Période d'activité (min/max publishedAt sur tous les posts analysés)
+        # Filtre de date : tout post antérieur à RAG_START_DATE est écarté
+        # (fichier supprimé de output/ et totalement exclu des compteurs).
+        if not is_recent_enough(topic.get("publishedAt")):
+            filtered_too_old += 1
+            try:
+                file_path.unlink()
+            except Exception:
+                pass
+            continue
+
+        # Période d'activité (min/max publishedAt sur les posts analysés)
         pub_dt = None
         if topic.get("publishedAt"):
             try:
@@ -170,24 +180,6 @@ def process_forums() -> dict:
         if not topic.get("bestAnswer", False):
             filtered_urls.append({"url": topic_url, "reason": "no_best_answer"})
             filtered_no_best_answer += 1
-            if has_st_reply:
-                ongoing_with += 1
-                if has_su_reply:
-                    ongoing_with_st_su += 1
-                else:
-                    ongoing_with_st_nosu += 1
-            else:
-                ongoing_without += 1
-                if has_su_reply:
-                    ongoing_without_st_su += 1
-                else:
-                    ongoing_without_st_nosu += 1
-            continue
-
-        # 2. Filtre: Date
-        if not is_recent_enough(topic.get("publishedAt")):
-            filtered_urls.append({"url": topic_url, "reason": "too_old"})
-            filtered_too_old += 1
             if has_st_reply:
                 ongoing_with += 1
                 if has_su_reply:
@@ -345,7 +337,7 @@ def process_forums() -> dict:
         rag_items.append(rag_item)
 
     # ── Calcul des stats finales ─────────────────────────────────────────
-    total_input = processed_count + filtered_no_best_answer + filtered_too_old + filtered_other
+    total_input = processed_count + filtered_no_best_answer + filtered_other
     rejected_total = total_input - processed_count
     avg_replies  = round(total_replies / processed_count, 2) if processed_count > 0 else 0
     avg_views    = round(total_views   / processed_count, 2) if processed_count > 0 else 0
@@ -353,7 +345,6 @@ def process_forums() -> dict:
     max_replies  = max(r for r, _, _ in reply_counts) if reply_counts else 0
     resolution_rate = round(processed_count / total_input * 100, 1) if total_input > 0 else 0
     pct_no_best  = round(filtered_no_best_answer / total_input * 100, 1) if total_input > 0 else 0
-    pct_too_old  = round(filtered_too_old        / total_input * 100, 1) if total_input > 0 else 0
 
     # Distribution des réponses par tranche
     dist = {"0": 0, "1": 0, "2_to_5": 0, "6_plus": 0}
@@ -367,9 +358,9 @@ def process_forums() -> dict:
     top3_replied = sorted(reply_counts, key=lambda x: x[0], reverse=True)[:3]
     top3_replied_out = [{"title": t, "url": u, "reply_count": r} for r, t, u in top3_replied]
 
-    # Top 3 posts les plus vus (on recollecte depuis rag_items)
-    top3_viewed = sorted(rag_items, key=lambda x: x.get("views", 0), reverse=True)[:3]
-    top3_viewed_out = [{"title": x["title"], "url": x["url"], "views": x.get("views", 0)} for x in top3_viewed]
+    # Top 10 posts les plus vus (on recollecte depuis rag_items)
+    top10_viewed = sorted(rag_items, key=lambda x: x.get("views", 0), reverse=True)[:10]
+    top10_viewed_out = [{"title": x["title"], "url": x["url"], "views": x.get("views", 0)} for x in top10_viewed]
 
     # Breakdown par catégorie
     cat_breakdown: dict = {}
@@ -388,9 +379,8 @@ def process_forums() -> dict:
         "rejected_total":                 total_input - processed_count,
         "rejected_no_best_answer":        filtered_no_best_answer,
         "rejected_no_best_answer_pct":    pct_no_best,
-        "rejected_too_old":               filtered_too_old,
-        "rejected_too_old_pct":           pct_too_old,
         "rejected_other":                 filtered_other,
+        "deleted_too_old":                filtered_too_old,
         # Réponses (replies)
         "total_replies":                  total_replies,
         "avg_replies_per_post":           avg_replies,
@@ -446,7 +436,7 @@ def process_forums() -> dict:
         # Vues
         "total_views":                    total_views,
         "avg_views_per_post":             avg_views,
-        "top3_most_viewed_posts":         top3_viewed_out,
+        "top10_most_viewed_posts":        top10_viewed_out,
         # Images
         "total_images_in_content":        total_images,
         # Par catégorie
@@ -455,6 +445,8 @@ def process_forums() -> dict:
 
     print(f"  -> {processed_count} sujets de forum préparés pour le RAG.")
     print(f"     Taux de résolution : {resolution_rate}%")
+    if filtered_too_old:
+        print(f"     {filtered_too_old} sujet(s) trop ancien(s) supprimé(s) de output/forums.")
     print(f"     Réponses totales   : {total_replies} | Moyenne : {avg_replies} | Max : {max_replies}")
     if top3_replied:
         try:
@@ -464,9 +456,9 @@ def process_forums() -> dict:
     return {"count": processed_count, "ok_urls": ok_urls, "filtered_urls": filtered_urls, "stats": stats, "rag_items": rag_items}
 
 
-def process_knowledge_base() -> dict:
-    input_dir = OUTPUT_DIR / "knowledge_base"
-    output_dir = RAG_READY_DIR / "knowledge_base"
+def process_knowledge_base(run_id: str = None) -> dict:
+    input_dir = OUTPUT_DIR / run_id / "knowledge_base" if run_id else OUTPUT_DIR / "knowledge_base"
+    output_dir = RAG_READY_DIR / run_id / "knowledge_base" if run_id else RAG_READY_DIR / "knowledge_base"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     ok_urls = []
@@ -489,10 +481,13 @@ def process_knowledge_base() -> dict:
 
         cat_dir = _category_dir(output_dir, article.get("categoryName", ""))
 
-        # 1. Filtre: Date
+        # 1. Filtre: Date (tout article antérieur à RAG_START_DATE est écarté)
         if not is_recent_enough(article.get("publishedAt")):
-            filtered_urls.append({"url": article_url, "reason": "too_old"})
             filtered_too_old += 1
+            try:
+                file_path.unlink()
+            except Exception:
+                pass
             continue
 
         # 2. Nettoyage HTML -> Markdown
@@ -535,9 +530,8 @@ def process_knowledge_base() -> dict:
         ok_urls.append(article_url)
         rag_items.append(rag_item)
 
-    total_input = processed_count + filtered_too_old
+    total_input = processed_count
     accepted_pct = round(processed_count / total_input * 100, 1) if total_input > 0 else 0
-    too_old_pct  = round(filtered_too_old  / total_input * 100, 1) if total_input > 0 else 0
 
     # Breakdown par catégorie KB
     cat_breakdown_kb: dict = {}
@@ -551,13 +545,14 @@ def process_knowledge_base() -> dict:
         "total_input_files":      total_input,
         "accepted":               processed_count,
         "accepted_pct":           accepted_pct,
-        "rejected_too_old":       filtered_too_old,
-        "rejected_too_old_pct":   too_old_pct,
+        "deleted_too_old":        filtered_too_old,
         "total_images_in_content": total_images,
         "by_category":            cat_breakdown_kb,
     }
 
     print(f"  -> {processed_count} articles préparés pour le RAG.")
+    if filtered_too_old:
+        print(f"     {filtered_too_old} article(s) trop ancien(s) supprimé(s) de output/knowledge_base.")
     return {"count": processed_count, "ok_urls": ok_urls, "filtered_urls": filtered_urls, "stats": stats, "rag_items": rag_items}
 
 
@@ -565,13 +560,13 @@ def process_knowledge_base() -> dict:
 # Main
 # --------------------------------------------------------------------------
 
-def run_prepare() -> dict:
+def run_prepare(run_id: str = None) -> dict:
     print("Démarrage du pipeline de préparation RAG...")
     start_time_dt = datetime.now()
     start_time_iso = start_time_dt.isoformat()
 
-    forums_report = process_forums()
-    kb_report = process_knowledge_base()
+    forums_report = process_forums(run_id)
+    kb_report = process_knowledge_base(run_id)
 
     end_time_dt = datetime.now()
     end_time_iso = end_time_dt.isoformat()
@@ -628,7 +623,7 @@ def run_prepare() -> dict:
     print(f"  --- Forums ---")
     print(f"  Acceptés               : {forums_report['count']} ({f_stats.get('accepted_pct',0)}%)")
     print(f"  Sans best answer       : {f_stats.get('rejected_no_best_answer', 0)} ({f_stats.get('rejected_no_best_answer_pct',0)}%)")
-    print(f"  Trop anciens           : {f_stats.get('rejected_too_old', 0)} ({f_stats.get('rejected_too_old_pct',0)}%)")
+    print(f"  Trop anciens (supprimés) : {f_stats.get('deleted_too_old', 0)}")
     print(f"  Total réponses         : {f_stats.get('total_replies', 0)}")
     print(f"  Moy. réponses/post     : {f_stats.get('avg_replies_per_post', 0)}")
     print(f"  Min/Max réponses       : {f_stats.get('min_replies',0)} / {f_stats.get('max_replies', 0)}")
@@ -645,7 +640,7 @@ def run_prepare() -> dict:
         print(f"  Post + répondu         : {top_title} ({top3[0].get('reply_count',0)} rép.)")
     print(f"  --- Knowledge Base ---")
     print(f"  Acceptés               : {kb_report['count']} ({k_stats.get('accepted_pct',0)}%)")
-    print(f"  Trop anciens           : {k_stats.get('rejected_too_old', 0)} ({k_stats.get('rejected_too_old_pct',0)}%)")
+    print(f"  Trop anciens (supprimés) : {k_stats.get('deleted_too_old', 0)}")
     print("="*55)
 
     return report

@@ -1,0 +1,45 @@
+{
+    "forum": [
+        {
+            "id": "163715",
+            "publicId": "163715",
+            "title": "STM32H563 / STM32Cube FW_H5 v1.6.0 regression: `ADC2_INP0` broken by `LL_ADC_EnableChannel0_GPIO()` change, reference manual unclear",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h563-stm32cube-fw-h5-v1-6-0-regression-adc2-inp0-broken-by-ll-adc-enablechannel0-gpio-change-reference-manual-unclear-163715",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bug-report",
+                "Documentation",
+                "STM32H5 series",
+                "ADC",
+                "HAL"
+            ],
+            "published_at": "2026-03-12T01:50:47+00:00",
+            "views": 306,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @KaiY\n\nThank you for bringing this issue to our attention.\n\nI reported this internally.\n\nInternal ticket number**: CDM0060549**",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I found an ADC regression on `STM32H563RG` after upgrading from `STM32Cube FW\\_H5 v1.5.1` to `v1.6.0`.\n\nSetup:\n\n- MCU: `STM32H563RG`\n\n- Old package: `STM32Cube FW\\_H5 v1.5.1`\n\n- New package: `STM32Cube FW\\_H5 v1.6.0`\n\n- CubeMX: `6.17.0`\n\nSymptom:\n\n- I sample multiple external channels on `ADC2`, including `ADC2\\_INP0`.\n\n- Before the upgrade, `ADC2\\_INP0` measured correctly.\n\n- After the upgrade, `ADC2\\_INP0` no longer reflects the actual GPIO input voltage, while the other ADC2 channels still behave correctly.\n\nThis is not a sampling-time or rank-order issue. The problem follows `ADC2\\_INP0` specifically.\n\nThe regression appears to come from a change in the LL helper for Channel 0 GPIO switch control.\n\nIn older FW\\_H5 code, `LL\\_ADC\\_EnableChannel0\\_GPIO()` always set `ADC1->OR.OP0`, regardless of the ADC instance passed in.\n\nIn FW\\_H5 v1.6.0, that helper was changed to set `ADCx->OR.OP0` instead. On STM32H563, that breaks `ADC2\\_INP0`.\n\nWhat fixes the problem in my testing is:\n\n- still enabling Channel 0 GPIO switch control when `ADC2\\_INP0` is configured\n\n- but using `ADC1->OR.OP0`, not `ADC2->OR.OP0`\n\nSo for STM32H563, `ADC2\\_INP0` appears to depend on the shared GPIO switch control bit in `ADC1->OR.OP0`.\n\nThe reference manual is also misleading here. The description of `ADCx->OR.OP0` says:\n\n```\n\nBit 0 OP0: Option bit 0\n\nFor ADC1:\n\n0: INP0/INN1 GPIO switch control disabled\n\n1: INP0/INN1 GPIO switch control enabled\n\nNote: This option bit must be set to 1 when ADCx_INP0 or ADCx_INN1 channel is selected.\n\nFor ADC2:\n\n0: VDDCORE channel disabled\n\n1: VDDCORE channel enabled\n\n```\n\nThis wording makes it sound like:\n\n- `OP0` enables external `INP0/INN1` routing only for `ADC1`\n\n- `ADC2.OP0` is only related to `VDDCORE`\n\n- `ADC2\\_INP0` does not rely on any such switch bit\n\nBut actual behavior appears different: `ADC2\\_INP0` is a valid external channel, and it only works correctly when the Channel 0 GPIO switch is enabled through `ADC1->OR.OP0`.\n\nRequested fixes:\n\n- Please fix the HAL/LL implementation so `ADC2\\_INP0` uses the correct switch-control behavior.\n\n- Please update the reference manual wording for `ADCx->OR.OP0` to explicitly describe how `ADC2\\_INP0` is routed.\n\n- If `ADC2\\_INP0` depends on `ADC1->OR.OP0`, please state that directly in the reference manual and LL/HAL comments.\n\nAs written now, both the software comments and the reference manual suggest that `ADC2` is unrelated to this switch bit, which makes this regression very difficult to diagnose.",
+            "images": [],
+            "author": "KaiY",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"97018\">@KaiY</user-mention> </p>\n<p style=\"background: white; margin: 7.5pt 0in 0in 0in;\"><span>Thank you for bringing this issue to our attention.</span></p>\n<p style=\"background: white; box-sizing: border-box; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; word-spacing: 0px; margin: 7.5pt 0in 0in 0in;\"><span>I reported this internally.</span></p>\n<p style=\"background: white; box-sizing: border-box; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; word-spacing: 0px; margin: 7.5pt 0in 0in 0in;\"><span>Internal ticket number<strong>: CDM0060549</strong></span></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

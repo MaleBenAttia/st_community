@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "164055",
+            "publicId": "164055",
+            "title": "STM32H7S3 CubeMX bug - ETH_CLK pin not initialized when using external clock source for Ethernet PHY",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32h7s3-cubemx-bug-eth-clk-pin-not-initialized-when-using-external-clock-source-for-ethernet-phy-164055",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-22T10:41:03+00:00",
+            "views": 295,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Happybolt\n\nYour contribution is much appreciated.\n\nIssue has been escalated to dev team under internal ticket ID **#0060894**\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI found a bug in STM32CubeMX code generation for STM32H7S3.\n\nWhen configuring Ethernet with external clock input (ETH\\_CLK pin,\n\nPD6 with AF4\\_ETH) as PHY clock source, CubeMX does not generate\n\nGPIO initialization for this pin in HAL\\_ETH\\_MspInit().\n\nWorkaround - must add manually:\n\n\\_\\_HAL\\_RCC\\_GPIOD\\_CLK\\_ENABLE();\n\nGPIO\\_InitStruct.Pin = GPIO\\_PIN\\_6;\n\nGPIO\\_InitStruct.Mode = GPIO\\_MODE\\_AF\\_PP;\n\nGPIO\\_InitStruct.Pull = GPIO\\_NOPULL;\n\nGPIO\\_InitStruct.Speed = GPIO\\_SPEED\\_FREQ\\_HIGH;\n\nGPIO\\_InitStruct.Alternate = GPIO\\_AF4\\_ETH;\n\nHAL\\_GPIO\\_Init(GPIOD, &GPIO\\_InitStruct);\n\nWithout this, Ethernet does not work even though all other\n\nETH pins are correctly initialized by CubeMX.\n\nSteps to reproduce:\n\n1. Select STM32H7S3\n\n2. Enable Ethernet (ETH)\n\n3. Set clock source to external clock via ETH\\_CLK pin (PD6)\n\n4. Generate code\n\n5. ETH\\_CLK pin GPIO init is missing in generated code\n\nCubeMX version: 6.17.0\n\nMCU: STM32H7S3\n\nThank you",
+            "images": [],
+            "author": "Happybolt",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Unable to duplicate. Please include your IOC file.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Made a new project and added ETH peripheral. </span><span>PD6 (ETH_CLK) GPIO is not initialized in generated code. </span><span>However, PHY clock generation is configured: </span><span>PeriphClkInit.Eth1PhyClockSelection = RCC_ETH1PHYCLKSOURCE_HSE;</span></p></div>",
+                    "author": "Happybolt",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105367\">@Happybolt</user-mention> </p>\n<p>Your contribution is much appreciated.</p>\n<p>Issue has been escalated to dev team under internal ticket ID <strong>#0060894</strong></p>\n<p>I will keep you posted with updates.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

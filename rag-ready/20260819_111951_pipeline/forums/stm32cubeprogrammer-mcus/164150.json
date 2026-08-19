@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "164150",
+            "publicId": "164150",
+            "title": "How to erase rtc backup register with cube programmer",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/how-to-erase-rtc-backup-register-with-cube-programmer-164150",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer"
+            ],
+            "published_at": "2026-03-25T12:12:33+00:00",
+            "views": 485,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "... and, to be able to write into PWR registers, you have to set RCC\\_APB1ENR.PWREN first... :)\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Could I erase rtc backup registers with STM32CubeProgrammer ?\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/38d8d4e3-7c24-823c-bf27-b6979955c460.png \"image.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/38d8d4e3-7c24-823c-bf27-b6979955c460.png"
+            ],
+            "author": "isikli",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, it is possible, but not via the standard mass erase in STM32CubeProgrammer.</p>\n<p>For STM32L010/L07x/L08x you have two practical options:</p>\n<ol>\n<li>Directly in STM32CubeProgrammer\n<ul>\n<li>Connect in Hotplug/Halt mode</li>\n<li>Open Registers → RTC</li>\n<li>Manually write 0x00000000 (or any value) to BKP0R, BKP1R, etc., then Apply.</li>\n</ul>\n</li>\n<li>Via firmware (backup‑domain reset)</li>\n</ol>\n<p class=\"lia-indent-padding-left-30px\" style=\"padding-left : 30px;\">Program and run the following HAL code once; this clears all RTC backup registers:</p>\n<pre class=\"lia-code-sample language-c\"><code>__HAL_RCC_PWR_CLK_ENABLE();\nHAL_PWR_EnableBkUpAccess();\n__HAL_RCC_BACKUPRESET_FORCE();\n__HAL_RCC_BACKUPRESET_RELEASE();\nHAL_PWR_DisableBkUpAccess();</code></pre>\n<p>Only if both VDD and VBAT are completely removed will the backup registers be lost automatically.</p>\n<p>Does that answer your question?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><div class=\"video-embed-center video-embed\"><iframe allow=\"autoplay; fullscreen; encrypted-media; picture-in-picture;\" allowfullscreen=\"true\" class=\"embedly-embed\" frameborder=\"0\" height=\"112\" scrolling=\"no\" src=\"https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FBuYBYw9MFis%3Ffeature%3Doembed&amp;display_name=YouTube&amp;url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DBuYBYw9MFis&amp;image=https%3A%2F%2Fi.ytimg.com%2Fvi%2FBuYBYw9MFis%2Fhqdefault.jpg&amp;type=text%2Fhtml&amp;schema=youtube\" title=\"STM32CubeProgrammer 2026 03 31 15 17 13\" width=\"200\"></iframe></div>I try your suggestion via cubeprogrammer but I can't delete rtc bkp register. Please, check my video.</p></div>",
+                    "author": "isikli",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't use CubeProgrammer, but I believe you still need to enable the backup-domain access by setting PWR_CR.DBP before trying to overwrite the backup registers.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><div class=\"video-embed-center video-embed\"><iframe allow=\"autoplay; fullscreen; encrypted-media; picture-in-picture;\" allowfullscreen=\"true\" class=\"embedly-embed\" frameborder=\"0\" height=\"112\" scrolling=\"no\" src=\"https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FXgig9tuLV5w%3Ffeature%3Doembed&amp;display_name=YouTube&amp;url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DXgig9tuLV5w&amp;image=https%3A%2F%2Fi.ytimg.com%2Fvi%2FXgig9tuLV5w%2Fhqdefault.jpg&amp;type=text%2Fhtml&amp;schema=youtube\" title=\"STM32CubeProgrammer 2026 03 31 15 52 25\" width=\"200\"></iframe></div>I try that <span>PWR_CR.DBP register set firstly, still I can't delete. I guess I can't write to register via cubeprogrammer.</span></p></div>",
+                    "author": "isikli",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>... and, to be able to write into PWR registers, you have to set RCC_APB1ENR.PWREN first... :)</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, That is worked.<div class=\"video-embed-center video-embed\"><iframe allow=\"autoplay; fullscreen; encrypted-media; picture-in-picture;\" allowfullscreen=\"true\" class=\"embedly-embed\" frameborder=\"0\" height=\"112\" scrolling=\"no\" src=\"https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FN_YmoUnJenE%3Ffeature%3Doembed&amp;display_name=YouTube&amp;url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DN_YmoUnJenE&amp;image=https%3A%2F%2Fi.ytimg.com%2Fvi%2FN_YmoUnJenE%2Fhqdefault.jpg&amp;type=text%2Fhtml&amp;schema=youtube\" title=\"STM32CubeProgrammer 2026 03 31 18 21 07\" width=\"200\"></iframe></div></p></div>",
+                    "author": "isikli",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

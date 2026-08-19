@@ -1,0 +1,99 @@
+{
+    "forum": [
+        {
+            "id": "166026",
+            "publicId": "166037",
+            "title": "Has anyone successfully used the ST25R95 EMI FILTER CALCULATION.xlsm tool?",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/has-anyone-successfully-used-the-st25r95-emi-filter-calculation-xlsm-tool-166037",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID readers - ST25Rx00 series"
+            ],
+            "published_at": "2026-06-10T13:29:53+00:00",
+            "views": 138,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hi Marco,\n\nThe antenna tuning of the ST25R95 is an iterative process. The input impedance of the antenna + matching network, seen from TX1/TX2, should be the complex conjugate of the equivalent source impedance of the ST25R95 plus EMI filter, so that at\n\n13.56 MHz the reactive parts cancel and the resistive parts are matched for maximum power transfer.\n\nAccording to AN5248, C2 mainly adjusts the tuning frequency, while C11/C12 mainly adjust the impedance magnitude. In practice, you should start from the Excel-calculated values, measure the input impedance with the board unpowered, and then fine-tune C2 first to center the resonance at 13.56 MHz, followed by C11/C12 to reach the desired impedance level. Since the components interact slightly, the tuning must be repeated until the target is reached.\n\nAfter powering the board, also check the ST\\_R0 voltage and keep it below the recommended limit. As noted in the application note, the target input impedance can be chosen above the ST25R95 output impedance, up to around 50 Ω if appropriate for the application.\n\nFor your latest example, it would mean to reduce C2 a little bit to move the 13.56MHz point to the real axe.\n\nI expect that the whole resonance circle moves up:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/514e4a9a-75ae-44ac-85e4-438eab434c29.png)\n\nBR Travis",
+            "best_answer_author": "Travis Palmer",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello everyone,\n\nHas anyone successfully used the **\"ST25R95 EMI FILTER CALCULATION.xlsm\"** spreadsheet?\n\nI'm currently trying to use it for tuning the matching network of an ST25R95 design, but it doesn't seem to work correctly on my side. As soon as I modify any parameter or use the reset function, all the graphs disappear and I can no longer obtain any meaningful results.\n\nAt the moment, this tool would be very useful for optimizing the matching network, and without it I'm having some difficulties proceeding with the tuning process.\n\nHas anyone experienced the same issue? Is there a specific Excel version, macro setting, or workaround required to make the spreadsheet work properly?\n\nAny suggestions, advice, or alternative methods for tuning the matching network would be greatly appreciated.\n\nThank you in advance for your help.\n\nMarco",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c5fd99a9-04f7-4792-9b9e-745039abac9c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a480a2f8-5355-4056-8377-52b000374dfb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/57f665b4-26b6-43e8-96ba-99e16902a6a6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/019e8f85-b488-4af0-ba3b-126b8de19bfa.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d2277c14-b162-4560-915f-8ad987eba14d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d399070-644a-4cbc-ba36-ee1b7578112e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/514e4a9a-75ae-44ac-85e4-438eab434c29.png"
+            ],
+            "author": "stst9187",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Marco,</p><p> </p><p>I just downloaded the “ST25R95_EMI_FILTER_CALCULATION.xlsm” from <a href=\"https://www.st.com/en/embedded-software/stsw-st25r003.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.st.com/en/embedded-software/stsw-st25r003.html</a> .</p><p> </p><p>When changing the antenna inductance from 1.2uH to 1.1uH and 2uH all matching values got updated and the graphs refreshed. For me the tool is working. Have you tried another PC / MS Office installation?</p><p>Did you perform any specific action?</p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Travis,</p><p>Thank you for your quick reply.</p><p>I downloaded the Excel sheet from the link you shared earlier.</p><p>With the default settings, the Input Impedance Curves are displayed correctly.</p><p>When I change La from 1.2 to 1, the graph stops working and disappears.</p><p> </p><p> </p><p>Could you please verify whether the spreadsheet is working as expected?</p><p>I am currently working on improving the matching network tuning. Since the Excel tool does not seem to be working correctly on my side, would you be able to help me with the tuning process?</p><p>Any suggestions on how to optimize the matching network or validate the antenna tuning would be greatly appreciated.</p><p>Thank you for your support,</p><p>Best regards,</p><p>Marco</p></div>",
+                    "author": "stst9187",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I add the screeshot:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d399070-644a-4cbc-ba36-ee1b7578112e.png\"/></figure><p> </p></div>",
+                    "author": "stst9187",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Marco,</p><p> </p><p>Sorry i do not know why the excel is not working on your side.</p><p>Default input:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a480a2f8-5355-4056-8377-52b000374dfb.png\"/></figure><p>1uH:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c5fd99a9-04f7-4792-9b9e-745039abac9c.png\"/></figure><p> </p><p>Maybe it is some regional setting of your PC or MS office (. vs ,).</p><p>Also the graphs are working:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d2277c14-b162-4560-915f-8ad987eba14d.png\"/></figure><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Travis,</p><p>thank you for your reply I will try with a different version of PC or MS office.</p><p>Best regards,<br/>Marco</p></div>",
+                    "author": "stst9187",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Travis,</p><p>I have tested the Excell sheet with a different version of MS office and it works correctly.<br/> </p><p>According to application note AN5248, without powering the board, I measured the circuit input impedance between TX1 and TX2 using a network analyzer. Please find a screenshot below.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/019e8f85-b488-4af0-ba3b-126b8de19bfa.png\"/></figure><p><br/>My question is: how should I practically tune the values of C11, C12, and C2?</p><p>I understand that the tuning frequency can be adjusted using C2, while the impedance magnitude can be adjusted using C11 and C12. However, I do not fully understand the practical procedure for doing this.</p><p>The application note states that the matching network can be calculated by solving the impedance matching criterion:</p><p>Zin2 = Zout_EMI*</p><p>which allows the values of C11 = C12 and C2 to be determined.</p><p>However, I am struggling to understand how to apply this criterion in practice starting from the measured impedance.</p><p>Could you please provide some guidance on the tuning process?</p><p>Thank you for your help.</p><p>Best regards,<br/>Marco</p><p> </p><p> </p></div>",
+                    "author": "stst9187",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Travis,<br/> </p><p>I share the upadate measure and the matching component values </p><ul><li><strong>Z = 10.2 + j0.1 Ω</strong></li> <li><strong>C2 = 91 pF</strong></li> <li><strong>C11 = C12 = 30 pF</strong></li> <li><strong>RL = -3.6 dB</strong></li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/57f665b4-26b6-43e8-96ba-99e16902a6a6.png\"/></figure><p> </p><p>I am currently adjusting the C11 and C12 values to increase the RF range<br/><br/>Best regards,<br/>Marco</p></div>",
+                    "author": "stst9187",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Marco,</p><p> </p><p>The antenna tuning of the ST25R95 is an iterative process. The input impedance of the antenna + matching network, seen from TX1/TX2, should be the complex conjugate of the equivalent source impedance of the ST25R95 plus EMI filter, so that at<br/>13.56 MHz the reactive parts cancel and the resistive parts are matched for maximum power transfer.</p><p>According to AN5248, C2 mainly adjusts the tuning frequency, while C11/C12 mainly adjust the impedance magnitude. In practice, you should start from the Excel-calculated values, measure the input impedance with the board unpowered, and then fine-tune C2 first to center the resonance at 13.56 MHz, followed by C11/C12 to reach the desired impedance level. Since the components interact slightly, the tuning must be repeated until the target is reached.</p><p>After powering the board, also check the ST_R0 voltage and keep it below the recommended limit. As noted in the application note, the target input impedance can be chosen above the ST25R95 output impedance, up to around 50 Ω if appropriate for the application.</p><p> </p><p>For your latest example, it would mean to reduce C2 a little bit to move the 13.56MHz point to the real axe.</p><p>I expect that the whole resonance circle moves up:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/514e4a9a-75ae-44ac-85e4-438eab434c29.png\"/></figure><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

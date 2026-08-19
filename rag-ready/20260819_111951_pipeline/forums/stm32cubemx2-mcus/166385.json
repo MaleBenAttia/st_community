@@ -1,0 +1,85 @@
+{
+    "forum": [
+        {
+            "id": "166364",
+            "publicId": "166385",
+            "title": "STM32CUBEMX2 and STM32CubeIDE 2.1.1 how to generate release file",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/stm32cubemx2-and-stm32cubeide-2-1-1-how-to-generate-release-file-166385",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX2"
+            ],
+            "published_at": "2026-06-23T16:36:20+00:00",
+            "views": 125,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@Raymond Buck\n\nThanks for your feedback,\n\nAt the moment, the release build configuration cannot be added via the STM32CubeMX2 GUI, but it is possible using the CLI.\n\nFor example, you can use a command similar to:\n\ncube mx ide-project generate -p ./test.ioc2 --build-target .release\\_IAR+NUCLEO-C562RE --destination test\\_ewarm --format EWARM --source include-packs-from-local --force\n\nAn internal ticket has already been submitted to add the Release build configuration in the GUI and the team is currently working on it. I will keep you posted.\n\nThis thread [STM32CubeMX2 Release Build Configuration](https://community.st.com/stm32cubemx2-mcus-151/stm32cubemx2-release-build-configuration-164517) also raises the same discussion regarding the Release/ Debug options in the UI.\n\n*Internal ticket number:***CDM0061318***(This is an internal tracking number and is not accessible or usable by customers).*\n\nRegards,\n\nSara.",
+            "best_answer_author": "Sara BEN HADJ YAHYA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have ordered the Nucleo-C542C board. I am waiting on the board to arrive so I thought I would setup a blinky project to test on the board. i used MX2 to setup the GPIO, clock, etc. I then imported the project int CubeIDE using the CMAKE option.\n\nApparently there is no way to build a release file. This means I will not be able to program the board. The build hammer only shows the debug build option.\n\nAlso, I do not see the .ioc file in the project tree. Apparently I don’t understand how MX2 and CubeIDE link together. If I am able to ever find the .ioc file, will it be updated if I make changes in MX2? The old version of CubeMX linked the.ioc files together. If changes were made by CubeMX, those changes were reflected in CubeIDE.\n\nAs a side note, there is one aggravating minor issue with CUBEMX2. Why are all the screens so washed out and difficult to see?. Everything that should be solid black is a barely visible light colored grey. This is particularly annoying in the GPIO chip pinout view. The oscillator clock setup is even worse.\n\nAt this point my main issue is not being able to generate a Release file. It would also be nice to be able to view the .ioc file.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b28a1c79-5ddf-4f5e-8d8d-658417e107a0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0150a7e-2fec-4d04-8efc-50e80769fcff.png"
+            ],
+            "author": "Raymond Buck",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>Apparently there is no way to build a release file. This means I will not be able to program the board. The build hammer only shows the debug build option</p></blockquote><p>Not sure what you mean by that ?</p><p>You can certainly program the board with the Debug build!</p><p> </p><p>Does your hammer button not give you the option to choose ‘Release’ ?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b28a1c79-5ddf-4f5e-8d8d-658417e107a0.png\"/></figure><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Andrew, that is correct. The only option under the hammer is Debug.<br/><br/>I have spent the last 4 hours using ChatGPG and Gemini trying to find a solution. According to both AI engines, there is no option to build a release file when using CubeMX2. Both of them say files have to be manually modified to have the Release option. So far, none of their suggestions have worked.</p><p>I don’t like the idea of using a debug file to program the board. If I look at the C/C++ build options for a debug file, there is no Post Build option so you can’t generate a hex file. If fact, there are not any options available to control the build steps. It appears if the project is built with MX2, no options are no longer available.</p></div>",
+                    "author": "Raymond Buck",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>I don’t like the idea of using a debug file to program the board</p></blockquote><p>I still don’t understand why this is an issue?</p><p> </p><blockquote><p>If I look at the C/C++ build options for a debug file, there is no Post Build option so you can’t generate a hex file. If fact, there are not any options available to control the build steps</p></blockquote><p>Is this a result of using CMAKE ?</p><p>Do you get those options if you use a CubeIDE managed project instead ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"21607\">@Raymond Buck</user-mention></p><p>Thanks for your feedback,</p><p>At the moment, the release build configuration cannot be added via the STM32CubeMX2 GUI, but it is possible using the CLI.</p><p>For example, you can use a command similar to:</p><p>cube mx ide-project generate -p ./test.ioc2 --build-target .release_IAR+NUCLEO-C562RE --destination test_ewarm --format EWARM --source include-packs-from-local --force</p><p>An internal ticket has already been submitted to add the Release build configuration in the GUI and the team is currently working on it. I will keep you posted.</p><p>This thread <a href=\"https://community.st.com/stm32cubemx2-mcus-151/stm32cubemx2-release-build-configuration-164517\" rel=\"noopener noreferrer\" target=\"_self\">STM32CubeMX2 Release Build Configuration</a> also raises the same discussion regarding the Release/ Debug options in the UI.</p><p><em>Internal ticket number: </em><strong>CDM0061318 </strong><em>(<u>This is an internal tracking number and is not accessible or usable by customers</u>).</em></p><p> </p><p>Regards,</p><p>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sara, thank you for confirming there is an issue. Hopefully the update will be available soon.</p><p>I normally build in the Release mode as I rarely need the debug mode.</p><p>You are showing IAR+ but I assume the same thing would work with STM32CubeIDE.</p><p>Can you explain why I can’t see the ioc file in the project tree? With the earlier versions of CubeMX generated projects, the ioc file was always at the bottom of the file list in the left panel.</p></div>",
+                    "author": "Raymond Buck",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, with <strong>STM32CubeIDE</strong> you need to specify <strong>GCC</strong> rather than <strong>IAR</strong>.</p><p>Regarding the project tree and the <strong>.ioc2</strong> file placement, by default the IDE project and the <strong>.ioc2</strong> file are placed under the same workspace directory. For example:</p><p> </p><pre><code>Workspace<br/>├── MyProject.ioc2<br/>└── MyProject_cmake<br/></code></pre><p>However, you can use the <strong>Project Settings</strong> in <strong>STM32CubeMX2</strong> to customize the project tree. For example, if you want to change the destination of the IDE project, simply click the folder icon, select the workspace, and adjust the path from the default location.</p><p>Please refer to the attached example:</p><p>I created a <strong>MyProject.ioc2</strong> project under <code>C:\\projects\\C562\\Test</code>. By default, the IDE project would be placed in <code>C:\\projects\\C562\\Test\\MyProject_cmake</code>, but I changed it to <code>C:\\projects\\C562\\Test</code>. </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0150a7e-2fec-4d04-8efc-50e80769fcff.png\"/></figure><p> </p><p>Regards,</p><p>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Sara,</p><p>Thank you, that helps. I will move mine to my root project folder so it is easily accessible.</p><p>Regards,</p><p>Ray</p></div>",
+                    "author": "Raymond Buck",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

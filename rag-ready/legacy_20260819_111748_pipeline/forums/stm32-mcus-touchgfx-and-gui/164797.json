@@ -1,0 +1,82 @@
+{
+    "forum": [
+        {
+            "id": "164797",
+            "publicId": "164797",
+            "title": "Manipulation of the TouchGFX framebuffer to serve a custom QSPI display driver.",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/manipulation-of-the-touchgfx-framebuffer-to-serve-a-custom-qspi-display-driver-164797",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-04-16T00:29:01+00:00",
+            "views": 405,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Thank you Peter.\n\nIt turned up to be an issue with the screen design and not with the triggering of vSync from the timer.\n\nI added a screen with the default analog clock instead and now when I trigger vSync from the timer, screenView::handleTickEvent() is getting called and flushFrameBuffer is called.\n\nI introduced the custom logic of changing the frameBuffer in the TouchGFXGeneratedHAL::flushFrameBuffer and I can see the screen refreshing.\n\nWe can mark this issue as resolved.\n\nThank you again for your help.",
+            "best_answer_author": "fcz",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi STM Forum,\n\nI'm integrating a custom QSPI display controller with TouchGFX and ThreadX. I need to convert the TouchGFX framebuffer into RGB666 (6 bits per color) for a custom display interface that runs over SPI/QSPI.\n\nHere is my IOC. As you can see, I currently have only the QSPI and the clock connected.\n\n![fcz_0-1776299317429.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/832564f2-adb6-8b48-f22f-9987aa23bf29.png \"fcz_0-1776299317429.png\")\n\nI believe the framebuffer is defined in TouchGFXGeneratedHAL.cpp as:\n\nLOCATION\\_PRAGMA\\_NOLOAD(\"TouchGFX\\_Framebuffer\")uint32\\_t frameBuf[(320 \\* 240 \\* 2 + 3) / 4 \\* 2] LOCATION\\_ATTRIBUTE\\_NOLOAD(\"TouchGFX\\_Framebuffer\")\n\nMy target app currently runs on an STM32F7. I also have a GFX01M2 display on a Nucleo H503, but the SPI display example is of limited use because it appears to use many more GPIOs than I have available in my application (I only have QSPI).\n\nI have the following questions that will help me integrate TouchGFX into this project:\n\n1. How do I invoke a screen switch from code?\n\n2. When and in which method should I capture the framebuffer, manipulate it, convert it, and pass it to my custom QSPI controller?\n\n3. What TouchGFX method is triggered during a screen transition that would allow me to modify the framebuffer?\n\nBefore I start digging into rabbit holes, I thought posting here might help others with the same issue.\n\nThank you in advance for your help.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/832564f2-adb6-8b48-f22f-9987aa23bf29.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d3664ce6-cdb0-5dc2-6ec0-c1aa8db6ba73.png"
+            ],
+            "author": "fcz",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello fcz,</p><p>If your display can support it, I would generally recommend you either use use 16 bit or 24 bit colors instead, since this is directly supported by TouchGFX.</p><p>But if you need to do this manual color conversion etc., I will recommend you to look at our \"NUCLEO-U575ZI + GFX02Z1\" application template available in TouchGFX Designer. This uses double framebuffer and FMC 8-bit interface to transfer the pixels, which is very similar to QSPI. Here the framebuffer swap is synchronized with the Tearing Effect signal from the display:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"PeterVang_0-1776419860182.png\" style=\"width: 999px;\"><img alt=\"PeterVang_0-1776419860182.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d3664ce6-cdb0-5dc2-6ec0-c1aa8db6ba73.png\" title=\"PeterVang_0-1776419860182.png\"/></span></p><p>I think you could use the same synchronizing mechanisms and then you just need to make your own implementation of the LCD_IOSendDataDMA function, which fits your display interface.</p><p>Best regards</p><p>Peter</p><p> </p></div>",
+                    "author": "PeterVang",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Peter for your response.<br/>I did something very similar, but since I do not have a standard display<br/>(hence no LCD_SignalTearingEffectEvent method) nor a LCD sync pin, I ended up creating a 60Hz timer and calling</p><pre class=\"lia-code-sample language-c\"><code>HAL::getInstance()-&gt;vSync();\ntouchgfx::OSWrappers::signalVSync();</code></pre><p>from HAL_TIM_PeriodElapsedCallback.</p><p>For what concern the showing of the framebuffer, the display I have is only 6 bit, so I ended up converting from argb2222,<br/>masking out the alpha channel with the following method:</p><pre class=\"lia-code-sample language-c\"><code>uint8_t* argb222ToRgb222(int width, int height) {\n\nauto fb = HAL::getInstance()-&gt;lockFrameBuffer();\n\nint totalPixels = HAL::DISPLAY_WIDTH * HAL::DISPLAY_HEIGHT;\n\n// Allocate memory for the new array\nuint8_t* rgb6bit = (uint8_t*)malloc(totalPixels * sizeof(uint8_t));\nif (rgb6bit == NULL) return NULL;\n\n// Treat the source as a byte array to process pixel-by-pixel\nuint8_t* src=(uint8_t*)fb;\n\nfor (int i = 0; i &lt; totalPixels; i++) {\n// Mask out the top 2 bits (Alpha) to keep only the 6-bit RGB data\nrgb6bit[i] = src[i] &amp; 0x3F;\n}\n\nHAL::getInstance()-&gt;unlockFrameBuffer();\nreturn rgb6bit;\n}</code></pre><p><br/>I am not sure I am handling the framebuffer correctly, because it seems that often the framebuffer cannot be unlocked and gets stuck over there.</p><p>However after much struggling I see some progress. Thanks!</p><p> </p><div><div> </div></div><p><br/><br/><br/></p></div>",
+                    "author": "fcz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok. If you do not have any tearing effect signal available, you will probably risk some display tearing since your 60 Hz is not synchronized with the actual refresh of the LCD. But you can still use the logic that is implemented in the <span>LCD_SignalTearingEffectEvent function in the code snippet in my first message. You just execute it in your timer event instead of an external interrupt event.</span></p><p><span>The logic implemented in this example (line 502-513) uses the swapFramebuffers instead of lock/unlock. After calling this (if needed), the pixel data to be transmitted can be access directly using the TFTframebuffer point like shown in line 512.</span></p><p><span>Are you sure that it is necessary to set the two \"alpha bits\" to be zero? I could imaging that your display does not care about the value of these two bits.</span></p><p> </p></div>",
+                    "author": "PeterVang",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, Peter.</p><p>If I pass the buffer to my display unchanged, nothing is shown.</p><p>Fortunately, I can process the framebuffer in place without copying with a slightly modified method similar to the above.</p><p>It also seems that calling vSync() and signalVSync() from a timer does not force the framebuffer to refresh.</p><p>I have a TouchGFX app with a simple test animation: the first frame displays correctly, but afterward the framebuffer appears not to be updated by TouchGFX, so the animation does not play, although vSync() is being called by the timer callback.<br/>The first frame displays correctly, but after that it looks like the framebuffer is no longer updated by TouchGFX, so the animation is not shown.</p><p>Any idea?</p></div>",
+                    "author": "fcz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok. Can you debug the application and see if TouchGFX is beeing \"ticked\"?</p><p>You could e.g. look for if it reaches something like line 10 in this code:</p><pre class=\"lia-code-sample language-cpp\"><code>void touchgfx_taskEntry()\n{\n /*\n * Main event loop will check for VSYNC signal, and then process next frame.\n *\n * Note This function returns immediately if there is no VSYNC signal.\n */\n if (OSWrappers::isVSyncAvailable())\n {\n hal.backPorchExited();\n }\n}</code></pre><p> </p><p> </p></div>",
+                    "author": "PeterVang",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Peter.<br/>It turned up to be an issue with the screen design and not with the triggering of <span>vSync from the timer.<br/>I added a screen with the default analog clock instead and now when I trigger vSync from the timer, screenView::handleTickEvent() is getting called and flushFrameBuffer is called.<br/>I introduced the custom logic of changing the frameBuffer in the TouchGFXGeneratedHAL::flushFrameBuffer and I can see the screen refreshing.<br/>We can mark this issue as resolved.<br/>Thank you again for your help.<br/><br/><br/></span><br/><br/><br/><br/></p></div>",
+                    "author": "fcz",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PeterVang",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "PeterVang",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "PeterVang",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

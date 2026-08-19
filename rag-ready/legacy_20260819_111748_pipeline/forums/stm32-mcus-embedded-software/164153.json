@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "164153",
+            "publicId": "164153",
+            "title": "USB-PD on STM32G473",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-pd-on-stm32g473-164153",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G4 series",
+                "USB Type-C and power delivery"
+            ],
+            "published_at": "2026-03-25T12:48:36+00:00",
+            "views": 253,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @fjahn9\n\nTo better understand and reproduce the issue, could you please share your project setup (e.g. project files and configuration)?\n\nIf it contains confidential information, you can either send it to me in a private message or grant access to this GitHub account:: <https://github.com/FBLSTM>\n\nWe will treat any shared information as confidential and use it only to analyze this issue.\n\nThank you!",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone!\n\nI have generated a code from CubeMX for USB-PD in bare-metal configuration like this:\n\n![Screenshot 2026-03-25 134022.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d18aecc-41b1-ed29-5750-8d896ea52b59.png \"Screenshot 2026-03-25 134022.png\")  ![Screenshot 2026-03-25 134229.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2fe8ddb2-bc82-3a59-6687-3243209deb89.png \"Screenshot 2026-03-25 134229.png\")\n\nThen I started testing the code and the function *USBPD\\_PE\\_Init* at this line:\n\n```\n\n/* PE SET UP : Port 0 */\n\nCHECK_PE_FUNCTION_CALL(USBPD_PE_Init(_port_index, (USBPD_SettingsTypeDef *)&DPM_Settings[_port_index], &DPM_Params[_port_index], &dpmCallbacks));\n\n```\n\nreturned *false*.\n\nI have looked in the assembler window and found out that some members of\n\n```\n\nstatic const USBPD_PE_Callbacks dpmCallbacks =\n\n{\n\nUSBPD_DPM_SetupNewPower,\n\nUSBPD_DPM_HardReset,\n\nNULL,\n\nUSBPD_DPM_Notification,\n\nUSBPD_DPM_ExtendedMessageReceived,\n\nUSBPD_DPM_GetDataInfo,\n\nUSBPD_DPM_SetDataInfo,\n\nUSBPD_DPM_EvaluateRequest,\n\nNULL,\n\nNULL, // Like this one!!!\n\nUSBPD_PE_TaskWakeUp,\n\n#if defined(_VCONN_SUPPORT)\n\nUSBPD_DPM_EvaluateVconnSwap,\n\nUSBPD_DPM_PE_VconnPwr,\n\n#else\n\nNULL,\n\nNULL,\n\n#endif /* _VCONN_SUPPORT */\n\nUSBPD_DPM_EnterErrorRecovery,\n\nUSBPD_DPM_EvaluateDataRoleSwap,\n\nUSBPD_DPM_IsPowerReady\n\n};\n\n```\n\nare not allowed to be *NULL*. So I wonder if this is normal or I'm missing something?\n\nTHX!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0d18aecc-41b1-ed29-5750-8d896ea52b59.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2fe8ddb2-bc82-3a59-6687-3243209deb89.png"
+            ],
+            "author": "fjahn9",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"32983\">@fjahn9</user-mention> </p>\n<p>To better understand and reproduce the issue, could you please share your project setup (e.g. project files and configuration)?</p>\n<p>If it contains confidential information, you can either send it to me in a private message or grant access to this GitHub account::<span> </span><a href=\"https://github.com/FBLSTM\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/FBLSTM</a></p>\n<p>We will treat any shared information as confidential and use it only to analyze this issue.</p>\n<p>Thank you!</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <span>FBL,<br/>thank you for your reply, but somehow during preparing the project to be sent, I regenerated the project in CubeMX one more time and now I can run my softwere without errors! I can see how software reacts on cable attachments, so this question can be marked as solved. Anyway, can you post here how to switch a Data role? I have used USBPD_DPM_RequestDataRoleSwap(PortNum) function, but nothing happened. Could you have a look at my project's files anyway?</span></p><p><span>Thank you!</span></p></div>",
+                    "author": "fjahn9",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "165272",
+            "publicId": "165272",
+            "title": "STM32F767 I2C sending byte immediately after address sent",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f767-i2c-sending-byte-immediately-after-address-sent-165272",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F7 series"
+            ],
+            "published_at": "2026-04-30T16:37:48+00:00",
+            "views": 303,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "> The ISR register is always clear just before setting the start bit.\n\nWell, then that's wrong. TXE flag should be set, as the transmitter should be empty at that point.\n\nI don't quite understand the rest of  your post, but try to walk through a transmission cycle in the debugger, with stopped processor, while manually manipulating and observing the registers. An example [here](https://community.st.com/t5/stm32-mcus-products/stm32l431-i2c-master-transmitter-txis-is-set-when-slave-nacks/m-p/619716) (at the beginning is a normal transaction; rest of that post deals with a pathologic case which you don't need to consider).\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "I am having an issue while trying to setup an I2C driver on my STM32F767ZI Nucleo board interfacing with an SHT31 and SGP40 I2C sensors. The code I am running first initializes the SHT31 with a write and read and then initializes the SGP40 with a write and read.\n\nThe issue I am running into is whenever I send the next message (read on whichever sensor I decide to try to configure first), the I2C peripheral sends a start bit and address as expected but adds a null byte immediately after the address. See attached example where I would expect the address of 0xB2, and the two byte message of 0x36 and 0x82 to be sent instead I see the address of 0xB2, then data of 0x00 and 0x36.  It runs through the first write cycle without an issue.\n\nEdited to elaborate on the logic analyzer captures. I2C\\_LA.\\_Expected captures the moment after stepping through setting the start bit in the CR2 register. It shows the address being transmitted and then SDA returns high and SCL is set low waiting to transmit the next byte.\n\nI2C\\_LA shows the same line being executed but the second send message around. This shows the address being sent along with a null byte. It also seems like the byte counter is decremented so the peripheral considers that byte as a proper sent byte even though I never write anything to the TX register...\n\n```\n\nerror_t i2c_master_transmit(I2C_TypeDef *i2c_instance, uint8_t device_address, uint8_t *tx_buffer, uint16_t data_length)\n\n{\n\nerror_t status = ERR_OK;\n\nif(i2c_wait_for_busy_clear(i2c_instance) == ERR_OK)\n\n{\n\ni2c_instance->ICR |= (I2C_ICR_STOPCF | I2C_ICR_NACKCF); //clear flags if set\n\n//configure registers for TX\n\ni2c_instance->CR1 &= ~(0x1UL << I2C_CR2_ADD10_Pos); //set to 7 bit addressing\n\ni2c_instance->CR2 &= ~(0xFFUL << I2C_CR2_SADD_Pos); //clear address bits\n\ni2c_instance->CR2 |= (device_address << I2C_CR2_SADD_Pos); //set address\n\ni2c_instance->CR2 &= ~(0x1UL << I2C_CR2_RD_WRN_Pos); //clear bit to set to write\n\n//set number of bytes to transmit\n\ni2c_instance->CR2 &= ~(0xFF <<I2C_CR2_NBYTES_Pos);\n\ni2c_instance->CR2 |= ((uint8_t)data_length <<I2C_CR2_NBYTES_Pos);\n\ni2c_instance->CR2 |= I2C_CR2_START;\n\n//set the SB synch flag and enable interrupt\n\ni2c_synch_flags.I2C1_WAIT_SB = true;\n\n//i2c_enable_event_interrupts(i2c_instance);\n\ni2c_enable_rx_tx_interrupt(i2c_instance);\n\nwhile(!(i2c_instance->ISR & I2C_ISR_TC))\n\n{\n\n//wait for TXE\n\nif(i2c_synch_txe_interrupt(i2c_instance) != ERR_OK)\n\n{\n\nstatus = ERR_TIMEOUT;\n\nbreak;\n\n}\n\n//send byte\n\ni2c_instance->TXDR = *tx_buffer;\n\ntx_buffer++;\n\n}\n\n//send stop bit once data transfer is complete\n\ni2c_instance->CR2 |= I2C_CR2_STOP;\n\n//wait for stop bit\n\nwhile(!(i2c_instance->ISR & I2C_ISR_STOPF))\n\n{\n\nif((i2c_instance->ISR & (I2C_ISR_NACKF)) != 0)\n\n{\n\n//clear NACKF\n\ni2c_instance->ICR |= I2C_ICR_NACKCF;\n\nbreak;\n\n}\n\n}\n\n}\n\nelse\n\n{\n\nstatus = ERR_FAIL;\n\n}\n\nreturn status;\n\n}\n\n```\n\n---\n\n*Edited to place LA Traces inline for easier viewing:*\n\n**I2C\\_LA\\_Expected.jpg**\n\n![AndrewNeil_1-1777568522414.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/97741e66-2f22-559e-8e79-c95c72753277.png \"AndrewNeil_1-1777568522414.png\")\n\n**I2C\\_LA.jpg**\n\n![AndrewNeil_2-1777568584092.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f9454be8-8eb4-23c2-75ac-1ceb3125fd20.png \"AndrewNeil_2-1777568584092.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f9454be8-8eb4-23c2-75ac-1ceb3125fd20.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/97741e66-2f22-559e-8e79-c95c72753277.png"
+            ],
+            "author": "metalimi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What is I2C_ISR (and/or other relevant I2C registers') content before the \"correct\" and before the \"incorrect\" transmission?</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your reply and my apologies for not replying sooner.</p><p> </p><p>The ISR register is always clear just before setting the start bit. After the transfer is complete, the STOPF bit gets set in the ISR as expected. The CR1 and CR2 registers also look normal.</p><p> </p><p>I tried using the AUTOEND function as well and looping while the number of bytes to be written (or read for that matter) have been transferred and I found it interesting (thanks to your recommendation) is that  after a \"correct\" write TXE in the ISR register is still set even though the number of bytes written to the CR2 registers NBYTE bits have been sent. I even tried flushing the register by setting the ISR TXE bit in software (per the datasheet). I looked a bit further into my code and found that the TXE flag was blocking me from getting to the RXNE handler. I fixed that issue and I think I'm closer to my goal.</p></div>",
+                    "author": "metalimi",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; The ISR register is always clear just before setting the start bit.</p><p>Well, then that's wrong. TXE flag should be set, as the transmitter should be empty at that point.</p><p>I don't quite understand the rest of  your post, but try to walk through a transmission cycle in the debugger, with stopped processor, while manually manipulating and observing the registers. An example <a href=\"https://community.st.com/t5/stm32-mcus-products/stm32l431-i2c-master-transmitter-txis-is-set-when-slave-nacks/m-p/619716\" target=\"_self\">here</a> (at the beginning is a normal transaction; rest of that post deals with a pathologic case which you don't need to consider).</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My apologies. I think the TXE flag wasn't being set because of a change I made after making this post by preloading a byte into the transmit register to see if that would make the peripheral send whatever was in the TX register instead of a null bit so the register was actually full prior to setting the start bit. I have since restored that bit of code to what is written above and the TXE bit is indeed set prior to sending the start bit and address. </p><p> </p><p>I appreciate the example. I will take a look and see if I can't refine my code to work more as expected. That last bit about the pathologic case gave me a good morning chuckle. Thank you again for your help!</p></div>",
+                    "author": "metalimi",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

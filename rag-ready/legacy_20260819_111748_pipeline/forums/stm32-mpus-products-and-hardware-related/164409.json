@@ -1,0 +1,80 @@
+{
+    "forum": [
+        {
+            "id": "164409",
+            "publicId": "164409",
+            "title": "eMMC and DTS",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/emmc-and-dts-164409",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "SDIO-SDMMC",
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-04-02T06:27:17+00:00",
+            "views": 517,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "@LaurentC\\_FDI ,\n\nI contacted the eMMC expert, and the feedback is the following one.\n\nConcerning the regulator, if it always-on in your design, there is no risk to have issue on it.\n\nConcerning the ddr-1\\_8, the most probable issue you could face is storage performance issue, but we do not see major risk of complete break.\n\nAs this configuration is still out of spec of your eMMC, we cannot engage ourselves on this answer,  but this was just to share you the expert mind on it.\n\nKind regards,\n\nErwan.\n\n[EDIT: by reading the code, you will end in the same mode DDR52, so even performances should be OK. As soon as regu is always-on, it should work]",
+            "best_answer_author": "Erwan SZYMANSKI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear all,\n\nWe have a design where the VCCQ of eMMC is currently 3.3V. We need to move to 1.8V to be able to use a new reference\n\nIs there any risk to break somthing if I use the below DTS on board where eMMC is 3.3V VCCQ. We have pull up to VCCQ on D0 and CMD\n\n```\n\nvqmmc-supply = <&v1v8>;\n\nmmc-ddr-1_8v;\n\n```\n\nAccording to my tests, system is up and running, but I fear this should have an impact on MPU pads\n\nIf no risk, this could avoid me to add a DTS overlay according to my hardware board version in case of 3.3V VCCQ\n\nI add my layout for eMMC for better understanding, see R353 and R356 to switch VCCQ\n\nThanks in advance for answers and hints\n\nRegards\n\nLaurent",
+            "images": [],
+            "author": "LaurentC_FDI",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"72923\">@LaurentC_FDI</user-mention> ,<br/>This parameter is to adapt to your own eMMC. As the configuration is in the DT<strong>S </strong>and not DT<strong>SI, </strong>it means that it depends on your HW board design.</p>\n<p>For example, we do not have the same eMMC on STM32MP257F-EV1 and STM32MP157F-EV1 board, one is using 1v8 and the other 3v3.</p>\n<ul>\n<li><a href=\"https://github.com/STMicroelectronics/linux/blob/v6.6-stm32mp/arch/arm/boot/dts/st/stm32mp157f-ed1.dts\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/linux/blob/v6.6-stm32mp/arch/arm/boot/dts/st/stm32mp157f-ed1.dts</a></li>\n<li><a href=\"https://github.com/STMicroelectronics/linux/blob/v6.6-stm32mp/arch/arm64/boot/dts/st/stm32mp257f-ev1.dts\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/linux/blob/v6.6-stm32mp/arch/arm64/boot/dts/st/stm32mp257f-ev1.dts</a></li>\n</ul>\n<p>Just put the right value corresponding to your eMMC.</p>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Erwan, thank you for the feedback. I understand I should adapt the value to my board. My question is : is it risky for MP157 to not adapt the value for 300 products already delivered, or do I have to handle this difference in an overlay based on the hardware revision of my board.</p><p> </p></div>",
+                    "author": "LaurentC_FDI",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"72923\">@LaurentC_FDI</user-mention> ,<br/>Sorry I just have read again your question and realized I did not understand your ask at first read.</p>\n<p>For me, there is a functional risk if you do not put the right value corresponding to your current eMMC in the DTS. The mmc core driver is using it to set some capabilities and parameters according the eMMC mode supported. I think the risk if you put the wrong value is some bad behavior with your eMMC, but I cannot be sure about that.</p>\n<p>In theory, you should have one configuration per board and so I would recommend to have 2 dedicated DTS if you have 2 different HW board (even for a small change like that).</p>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you Erwan. This feedback is precisely what I was exepecting.</p><p>Even if this will lead me to add this overlay management in my bootloader. I will not manage 2 dts, but add an overlay on products with HW rev1 runnning a 3.3V VCCQ, while the default value will be 1.8 for new products</p><p>Thanks again for your support</p></div>",
+                    "author": "LaurentC_FDI",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"72923\">@LaurentC_FDI</user-mention> ,<br/>I contacted the eMMC expert, and the feedback is the following one.</p>\n<p>Concerning the regulator, if it always-on in your design, there is no risk to have issue on it.</p>\n<p>Concerning the ddr-1_8, the most probable issue you could face is storage performance issue, but we do not see major risk of complete break.</p>\n<p>As this configuration is still out of spec of your eMMC, we cannot engage ourselves on this answer,  but this was just to share you the expert mind on it.</p>\n<p>Kind regards,<br/>Erwan.</p>\n<p> [EDIT: by reading the code, you will end in the same mode DDR52, so even performances should be OK. As soon as regu is always-on, it should work]</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you, this is a great news. Yes regulator is always on, we choose STMPMIC1B in our design to have 1.8V on buck 3<br/>and this one is configured as below </p><pre class=\"lia-code-sample language-c\"><code>\t\t\tv1v8: buck3 {\n\t\t\t\tregulator-name = \"v1v8\";\n\t\t\t\tregulator-min-microvolt = &lt;1800000&gt;;\n\t\t\t\tregulator-max-microvolt = &lt;1800000&gt;;\n\t\t\t\tregulator-always-on;\n\t\t\t\tst,mask-reset;\n\t\t\t\tregulator-initial-mode = &lt;0&gt;;\n\t\t\t\tregulator-over-current-protection;\n\t\t\t};</code></pre></div>",
+                    "author": "LaurentC_FDI",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

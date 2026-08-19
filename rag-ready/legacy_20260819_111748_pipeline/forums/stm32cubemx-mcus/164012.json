@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164012",
+            "publicId": "164012",
+            "title": "STM32CubeMX Generates different names for interrupt handler in startup file & stm32l4xx_it.c",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-generates-different-names-for-interrupt-handler-in-startup-file-stm32l4xx-it-c-164012",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "DMA",
+                "STM32L4 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-03-20T07:27:58+00:00",
+            "views": 332,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "It appears this bug has been fixed. The code generates correctly on the latest STM32CubeMX version. Update your STM32CubeMX to fix this.\n\n```\n\n.word\tEXTI0_IRQHandler\n\n.word\tEXTI1_IRQHandler\n\n.word\tEXTI2_IRQHandler\n\n.word\tEXTI3_IRQHandler\n\n.word\tEXTI4_IRQHandler\n\n.word\tDMA1_Channel1_IRQHandler\n\n.word\tDMA1_Channel2_IRQHandler\n\n.word\tDMA1_Channel3_IRQHandler\n\n.word\tDMA1_Channel4_IRQHandler\n\n.word\tDMA1_Channel5_IRQHandler\n\n.word\tDMA1_Channel6_IRQHandler\n\n.word\tDMA1_Channel7_IRQHandler\n\n.word\tADC1_2_IRQHandler\n\n.word\tCAN1_TX_IRQHandler\n\n.word\tCAN1_RX0_IRQHandler\n\n.word\tCAN1_RX1_IRQHandler\n\n.word\tCAN1_SCE_IRQHandler\n\n```\n\nOr, as a workaround, put\n\n```\n\n#define DMA1_Channel7_IRQHandler DMA1_CH7_IRQHandler\n\n```\n\nin a USER CODE block at the top of the \\*\\_it.c file.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi everyone,\n\nI just started developing software for a new project containing on of the STM32L4P5 series microcontrollers. Therefore I bought the NUCELO-L4P5ZG starter-kit to get used to the IDE, HAL and so on. I use the STM32CubeMX IDE (Version 6.16.1) to configure the board and generate the basic initialization sources. Further code writing is done in STM32CubeIDE (Version: 2.1.1).\n\nFor the beginning I configured three GPIO pins for the LEDs on the board and the LPUART for simple data transfer to terminal on host computer. For the transmission I want to use DMA . After generating the code with CubeMX and implementing some simple blink logic for the LEDs, I added the line HAL\\_UART\\_Transmit\\_DMA(&hlpuart1, buffer, 14); to the main loop. I debugged the code and saw that the code ran into the infinite loop in the DefaultHandler in the startup file startup\\_stm32l4p5zgtx.s:\n\nAfter searching for two and a half hour I finally found the problem: the generated names for the interrupt handler in the startup file and the stm32l4xx\\_it.c **are slightly different**. See the following sections:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c457f7be-1efd-6ba6-6859-ba4a53893244.png \"image.png\")\n\nand\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b83e2576-ea67-7f3d-0045-a7e8293e66f7.png \"image.png\")\n\nAfter changing the name manually in the stm32l4xx\\_it.c file everything works fine (until the next generation of the initialization code with CubeMX).\n\nPlease see this as a bug report and consider this issue for new releases of CubeMX.\n\nAttached: my entire project.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c457f7be-1efd-6ba6-6859-ba4a53893244.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b83e2576-ea67-7f3d-0045-a7e8293e66f7.png"
+            ],
+            "author": "martin_stumbaum",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It appears this bug has been fixed. The code generates correctly on the latest STM32CubeMX version. Update your STM32CubeMX to fix this.</p><pre class=\"lia-code-sample language-c\"><code>\t.word\tEXTI0_IRQHandler\n\t.word\tEXTI1_IRQHandler\n\t.word\tEXTI2_IRQHandler\n\t.word\tEXTI3_IRQHandler\n\t.word\tEXTI4_IRQHandler\n\t.word\tDMA1_Channel1_IRQHandler\n\t.word\tDMA1_Channel2_IRQHandler\n\t.word\tDMA1_Channel3_IRQHandler\n\t.word\tDMA1_Channel4_IRQHandler\n\t.word\tDMA1_Channel5_IRQHandler\n\t.word\tDMA1_Channel6_IRQHandler\n\t.word\tDMA1_Channel7_IRQHandler\n\t.word\tADC1_2_IRQHandler\n\t.word\tCAN1_TX_IRQHandler\n\t.word\tCAN1_RX0_IRQHandler\n\t.word\tCAN1_RX1_IRQHandler\n\t.word\tCAN1_SCE_IRQHandler</code></pre><p> </p><p>Or, as a workaround, put</p><pre class=\"lia-code-sample language-c\"><code>#define DMA1_Channel7_IRQHandler DMA1_CH7_IRQHandler</code></pre><p> in a USER CODE block at the top of the *_it.c file.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,55 @@
+{
+    "forum": [
+        {
+            "id": "167105",
+            "publicId": "167130",
+            "title": "Can STM32C552RE be used on a NUCLEO-C562RE board ?",
+            "url": "https://community.st.com/stm32-mcus-products-25/can-stm32c552re-be-used-on-a-nucleo-c562re-board-167130",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32C5 series"
+            ],
+            "published_at": "2026-07-22T07:56:22+00:00",
+            "views": 75,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Thanks for the reply ​@Stassen.C & ​@Ozone, it works now. The NRST pins was not soldered properly, fixed that it works.\n\nthis proves that this can be done.",
+            "best_answer_author": "Srikar",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello,\n\nI have been using the NUCLEO-C562RE for my evaluation and due to a mistake I fried the MCU that came with the board, I replaced the MCU with an MCU from the same series. The dev board came with C562RE and I replaced it with C552RE, but after that I am not able to use JLink to connect to the MCU.\n\nam I right in assuming that since the pinout of the two MCU’s are same, the MCU’s can be swapped and used ?\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6e9f7d0e-6946-442a-af39-cbf644278fb2.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6e9f7d0e-6946-442a-af39-cbf644278fb2.png"
+            ],
+            "author": "Srikar",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; am I right in assuming that since the pinout of the two MCU’s are same, the MCU’s can be swapped and used ?</em></span></p><p>Presumably yes, but check the datasheets to make sure.<br/>Many MCUs in the same package share a very similiar or even identical pinout, even across MCU families. At least for smaller packages.</p><p>The error message “Failed to connect” sounds supsiciously like a hardware issue.<br/>Perhaps some cold or shorted solderings, or other parts of the board were damaged when the MCU was “fried”.<br/>I would recommend to check the current consumption, and the voltage on the MCU power supply pins (VDD, VDDA).<br/>For the current consumption, I would recommend a comparison with a second, working board (if possible). </p><p>For Nucleos and other stuff, an <a href=\"https://www.adafruit.com/product/2690\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">USB volt/amp meter like this </a>would be ok.<br/>Not a recommendation as such, but a device of that type is quite handy for quick checks.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Srikar,</p><p>The <strong>STM32C552RE and STM32C562RE in the same LQFP64 package are pin-compatible</strong>, so replacing the device is electrically possible. However, pin compatibility alone does not make the modified board an officially supported <strong>NUCLEO-C552RE</strong> configuration. Software projects, board definitions, clock configuration, option bytes, and debug tools must be configured for the STM32C552RE.</p><p>A blank STM32C552RE should nevertheless be accessible through SWD. If J-Link cannot connect, please check the following:</p><ol><li><strong>Update the J-Link software and probe firmware</strong> to a version that supports STM32C552 devices.</li> <li>Select <strong>STM32C552RE</strong> explicitly as the target device. If it is not listed, update J-Link before proceeding.</li> <li>Try <strong>Connect under Reset</strong> at a low SWD frequency, for example 100 kHz.</li> <li>Check that J-Link detects the target voltage and verify:\t<ul><li>VDD and VDDA supplies</li> <li>All VSS connections</li> <li>NRST level and continuity</li> <li>SWDIO and SWCLK continuity</li> <li>No solder bridges or lifted pins around the replaced MCU</li> </ul></li> <li>Make sure the onboard ST-LINK and the external J-Link are not driving the SWD interface simultaneously. Disconnect the relevant ST-LINK/SWD jumpers when using an external probe.</li> <li>If SWD communication is established but access is restricted, perform a <strong>full chip erase</strong> using STM32CubeProgrammer, provided the device is not permanently protected.</li></ol><p>As the replacement device is new, no application firmware is required for the initial debug connection. Therefore, if neither J-Link nor STM32CubeProgrammer can read the device ID while the target voltage is present, the most likely causes are <strong>tool support, soldering, power/reset integrity, or SWD connectivity</strong>, rather than the difference between STM32C552RE and STM32C562RE.</p><p>You should also create the application for the <strong>STM32C552RE MCU</strong>, rather than using the NUCLEO-C562RE board selector unchanged, and review any peripheral or memory differences between the two devices.</p><p> </p><p>Regards,<br/>Stassen</p></div>",
+                    "author": "Stassen.C",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the reply ​<user-mention data-id=\"1894\">@Stassen.C</user-mention> &amp; ​<user-mention data-id=\"48557\">@Ozone</user-mention>, it works now. The NRST pins was not soldered properly, fixed that it works.<br/><br/>this proves that this can be done.</p></div>",
+                    "author": "Srikar",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Stassen.C",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

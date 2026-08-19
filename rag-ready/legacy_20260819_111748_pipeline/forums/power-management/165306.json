@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "165306",
+            "publicId": "165306",
+            "title": "L9961 Cell voltages deviate during discharge",
+            "url": "https://community.st.com/power-management-53/l9961-cell-voltages-deviate-during-discharge-165306",
+            "category": "Power management",
+            "tags": [
+                "Battery management"
+            ],
+            "published_at": "2026-05-01T23:26:58+00:00",
+            "views": 109,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Based on the [L9961 data sheet](https://www.st.com/resource/en/datasheet/l9961.pdf), the behaviour is likely related to the measurement timing and input filter settling under load, rather than a pure ADC accuracy issue.\n\nA few key points:\n\n* The cell measurements are taken cyclically, not continuously\n\n* Your T​MEAS\\_CYCLE = 50ms must be longer than thefull measurement task duration\n\n* With TCELL\\_FILTER = 16.67ms, the task may be too close to the cycle time, which can cause unstable or skewed readings during discharge\n\n* The 150mV shift at 5A is much larger than the device’s specified cell measurement error, so I suspect a dynamic settling / layout / sense path effect\n\nRecommendations:\n\n* Increase TMEAS\\_CYCLE to ensure it is safely greater than the total conversion time\n\n* Temporarily reduce the cell filter time and check whether the drift decreases\n\n* Compare the L9961 readings with a direct measurement at the cell terminals under load\n\n* Check whether cell 1 and 5 have any layout or routing asymmetry, especially around the sense filters and references\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "![jondobrinc_0-1777677662697.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6d6bbe7e-095e-2cc5-84fa-6ec6da870369.png \"jondobrinc_0-1777677662697.png\")\n\nHello, we are having an issue where our cell voltage readings are drifting when discharging. When there is no current, the voltages all read correctly. However, during discharge, we see that cell 5 and cell 1 have lower voltage readings by about 150mV at 5A. Once discharge is ended, the voltages level off again. I have checked that this is reflected in the registers.\n\nThese are our filter settings:\n\n![jondobrinc_1-1777677981935.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe208e82-3c2a-6c4b-c162-786796d2f553.png \"jondobrinc_1-1777677981935.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6d6bbe7e-095e-2cc5-84fa-6ec6da870369.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fe208e82-3c2a-6c4b-c162-786796d2f553.png"
+            ],
+            "author": "jondobrinc",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Based on the <a href=\"https://www.st.com/resource/en/datasheet/l9961.pdf\" rel=\"noopener noreferrer\" target=\"_self\">L9961 data sheet</a>, the behaviour is likely related to the measurement timing and input filter settling under load, rather than a pure ADC accuracy issue.</p>\n<p>A few key points:</p>\n<ul>\n<li>The cell measurements are taken cyclically, not continuously</li>\n<li>Your T​MEAS_CYCLE = 50ms must be longer than thefull measurement task duration</li>\n<li>With TCELL_FILTER = 16.67ms, the task may be too close to the cycle time, which can cause unstable or skewed readings during discharge</li>\n<li>The 150mV shift at 5A is much larger than the device’s specified cell measurement error, so I suspect a dynamic settling / layout / sense path effect</li>\n</ul>\n<p>Recommendations:</p>\n<ul>\n<li>Increase TMEAS_CYCLE to ensure it is safely greater than the total conversion time</li>\n<li>Temporarily reduce the cell filter time and check whether the drift decreases</li>\n<li>Compare the L9961 readings with a direct measurement at the cell terminals under load</li>\n<li>Check whether cell 1 and 5 have any layout or routing asymmetry, especially around the sense filters and references</li>\n</ul>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

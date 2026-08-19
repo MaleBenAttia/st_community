@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164141",
+            "publicId": "164141",
+            "title": "DDR VTT Power Supply Issues",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/ddr-vtt-power-supply-issues-164141",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP15 lines",
+                "DDR",
+                "STM32MP13 lines"
+            ],
+            "published_at": "2026-03-25T09:21:50+00:00",
+            "views": 250,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @LH1,\n\nBased on ST's AN5692, yes you can eliminate the VTT power supply when using a single DDR3/3L module with the STM32MP13x (and similarly with STM32MP157) by adopting the cost-optimized point-to-point topology.\n\n## How It Works\n\nIn a standard DDR3L design, VTT is required to terminate the address/command (A/C) bus and reduce signal reflections. However, in a point-to-point topology with a single DRAM, the transmission line stubs are eliminated, making on-board termination unnecessary. Instead, the reflections are controlled via **33 Ω series resistors** on every A/C signal, which act as source termination.\n\n## Key Design Rules to Follow\n\n* **A/C bus** — point-to-point connection, no on-board termination, 33 Ω series resistors on each signal (can be removed if the DDR is placed very close to the SoC)\n\n* **CLK\\_N / CLK\\_P** — terminated differentially with a single **100 Ω resistor** (no VTT needed here either)\n\n* **Data bus (DQ, DQM, DQS)** — standard point-to-point, no termination required\n\n## Power Sensitivity Benefit\n\nEliminating VTT is a significant win for power-sensitive designs, since VTT typically mirrors half the VDDQ voltage and can draw tens to hundreds of mA dynamically during bus activity. Removing it reduces both BOM cost and standby/active power consumption.\n\n## Important Caveats\n\n* This topology is **only valid for a single DDR module** as soon as you add a second chip (x32 or dual-rank), you reintroduce stubs and will likely need termination again\n\n* Placement still matters: keep the DDR3L as **physically close as possible** to the STM32MP1x to minimize trace lengths and benefit from removing the 33 Ω resistors entirely\n\n* Always validate signal integrity with your specific PCB stackup, especially if traces exceed a few centimeters\n\nFor more details on DDR topology and cost-optimized designs, please refer to AN5692 available on [www.st.com](http://www.st.com).\n\nBest Regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "My device is quite power-sensitive. If I use a single DDR3L module with an STM32MP157 or 135, can I eliminate the need for a VTT power supply?",
+            "images": [],
+            "author": "LH1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105244\">@LH1</user-mention>,<br/><br/>Based on ST's AN5692, yes you can eliminate the VTT power supply when using a single DDR3/3L module with the STM32MP13x (and similarly with STM32MP157) by adopting the cost-optimized point-to-point topology.<br/><br/></p>\n<h2 class=\"font-editorial font-bold mb-2 mt-4 [.has-inline-images_&amp;]:clear-end text-lg first:mt-0 md:text-lg [hr+&amp;]:mt-4\" id=\"toc-hId-1823983671\">How It Works</h2>\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\">In a standard DDR3L design, VTT is required to terminate the address/command (A/C) bus and reduce signal reflections. However, in a point-to-point topology with a single DRAM, the transmission line stubs are eliminated, making on-board termination unnecessary. Instead, the reflections are controlled via<span> </span><strong>33 Ω series resistors</strong><span> </span>on every A/C signal, which act as source termination.</p>\n<h2 class=\"font-editorial font-bold mb-2 mt-4 [.has-inline-images_&amp;]:clear-end text-lg first:mt-0 md:text-lg [hr+&amp;]:mt-4\" id=\"toc-hId--728173290\">Key Design Rules to Follow</h2>\n<ul class=\"marker:text-quiet list-disc pl-8\">\n<li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\">\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\"><strong>A/C bus</strong><span> </span>— point-to-point connection, no on-board termination, 33 Ω series resistors on each signal (can be removed if the DDR is placed very close to the SoC)</p>\n</li>\n<li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\">\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\"><strong>CLK_N / CLK_P</strong><span> </span>— terminated differentially with a single<span> </span><strong>100 Ω resistor</strong><span> </span>(no VTT needed here either)</p>\n</li>\n<li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\">\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\"><strong>Data bus (DQ, DQM, DQS)</strong><span> </span>— standard point-to-point, no termination required</p>\n</li>\n</ul>\n<h2 class=\"font-editorial font-bold mb-2 mt-4 [.has-inline-images_&amp;]:clear-end text-lg first:mt-0 md:text-lg [hr+&amp;]:mt-4\" id=\"toc-hId-1014637045\">Power Sensitivity Benefit</h2>\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\">Eliminating VTT is a significant win for power-sensitive designs, since VTT typically mirrors half the VDDQ voltage and can draw tens to hundreds of mA dynamically during bus activity. Removing it reduces both BOM cost and standby/active power consumption.</p>\n<h2 class=\"font-editorial font-bold mb-2 mt-4 [.has-inline-images_&amp;]:clear-end text-lg first:mt-0 md:text-lg [hr+&amp;]:mt-4\" id=\"toc-hId--1537519916\">Important Caveats</h2>\n<ul class=\"marker:text-quiet list-disc pl-8\">\n<li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\">\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\">This topology is<span> </span><strong>only valid for a single DDR module</strong><span> </span>as soon as you add a second chip (x32 or dual-rank), you reintroduce stubs and will likely need termination again</p>\n</li>\n<li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\">\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\">Placement still matters: keep the DDR3L as<span> </span><strong>physically close as possible</strong><span> </span>to the STM32MP1x to minimize trace lengths and benefit from removing the 33 Ω resistors entirely</p>\n</li>\n<li class=\"py-0 my-0 prose-p:pt-0 prose-p:mb-2 prose-p:my-0 [&amp;&gt;p]:pt-0 [&amp;&gt;p]:mb-2 [&amp;&gt;p]:my-0\">\n<p class=\"my-2 [&amp;+p]:mt-4 [&amp;_strong:has(+br)]:inline-block [&amp;_strong:has(+br)]:pb-2\">Always validate signal integrity with your specific PCB stackup, especially if traces exceed a few centimeters</p>\n</li>\n</ul>\n<p>For more details on DDR topology and cost-optimized designs, please refer to AN5692 available on <a href=\"http://www.st.com\" rel=\"noopener noreferrer\" target=\"_blank\">www.st.com</a>.<br/><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

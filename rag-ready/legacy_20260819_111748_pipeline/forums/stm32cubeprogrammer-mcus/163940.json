@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "163940",
+            "publicId": "163940",
+            "title": "STM32H573 Custom Loader OSPI using Dual MX25L12833F",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/stm32h573-custom-loader-ospi-using-dual-mx25l12833f-163940",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "OctoSPI",
+                "STM32H5 series",
+                "XSPI"
+            ],
+            "published_at": "2026-03-18T11:50:15+00:00",
+            "views": 329,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @KDJEM.1\n\nThank you for taking the time to respond.\n\nWe have since been in touch with ST direclty through our supplier and they have confirmed the following two issues:\n\n* The project was larger than the allocated 64K SRAM in the CubeProgrammer database, this was fixed by enabling Os.\n\n* There was a bug in CubeProgrammer v2.18 (and possibly earlier) where there was a incorrect load address used for the STM32H5 which is mentioned on some forums but not documented. This fixed in v2.22 onwards of the programmer.\n\nCorrecting these two points, the loader now functions as expected.\n\nJack",
+            "best_answer_author": "JHedges",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello,\n\nWe are developing a STLDR to be used with STM32CubeProgrammer and are having what is seemingly random issues when programming hardware.\n\nWe have already written the XSPI interface which works when executed in FLASH using test calls, but as soon as the interface is placed into the STLDR framework and used with STM32CubeProgrammer we are seeing failures of either the Init or SectorErase functions.\n\nSometimes it will work after a full board reset, but not always.\n\nWe have tried linking the loader at the undocumented 0x20003004 RAM address but this seemingly does not fix the issue.\n\nWe have tried using our standard development IDE (not ST) which has been successful in the past, but also following the STM32Cube tutorial and repository here, replacing the QSPI calls with XSPI:\n\n<https://wiki.st.com/stm32mcu/wiki/Getting_started_with_External_memory_Manager_and_External_memory_loader>\n\n<https://github.com/STMicroelectronics/stm32-external-loader>\n\nThe hardware is a custom board using the H573II with dual MX25L12833F on the XSPI bus.\n\nThe common failures we are seeing is:\n\n1. Init() returns 0\n\n2. Init() timeout\n\n3. EraseSector() fails and R1 contains the memory mapped address\n\nWe have tried using the internal flash to trace the failures, however the loader can fail before reaching XSPI initialisation in some cases.\n\nAny help or suggestions are greatly welcomed.",
+            "images": [],
+            "author": "JHedges",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"52808\">@JHedges</user-mention> ;</p>\n<p> </p>\n<p>I recommend you to look at <a href=\"https://www.youtube.com/playlist?list=PLnMKNibPkDnHIrq5BICcFhLsmJFI_ytvE\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">MOOC - External QSPI loader how to - YouTube</a> may help you to check your project.</p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"2019\">@KDJEM.1</user-mention> </p><p>Thank you for taking the time to respond.</p><p>We have since been in touch with ST direclty through our supplier and they have confirmed the following two issues:</p><ul><li>The project was larger than the allocated 64K SRAM in the CubeProgrammer database, this was fixed by enabling Os.</li><li>There was a bug in CubeProgrammer v2.18 (and possibly earlier) where there was a incorrect load address used for the STM32H5 which is mentioned on some forums but not documented. This fixed in v2.22 onwards of the programmer.</li></ul><p>Correcting these two points, the loader now functions as expected.</p><p>Jack</p></div>",
+                    "author": "JHedges",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"52808\">@JHedges</user-mention> ,</p>\n<p> </p>\n<p>Thank you for coming back to the community and for sharing the solution.</p>\n<p> </p>\n<p>Thank you.</p>\n<p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

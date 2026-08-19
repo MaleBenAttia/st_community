@@ -1,0 +1,82 @@
+{
+    "forum": [
+        {
+            "id": "165066",
+            "publicId": "165066",
+            "title": "STM32CubeMX with MMT: strange LD file generation",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-with-mmt-strange-ld-file-generation-165066",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report"
+            ],
+            "published_at": "2026-04-23T18:19:11+00:00",
+            "views": 325,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@FluxPower42\n\nThis issue (*Ticket CDM0062400*) has been fixed in the latest version of STM32CubeMX 6.18.0\n\nDownload STM32CubeMX6.18.0 from [this link.](https://www.st.com/en/development-tools/stm32cubemx.html)\n\nRegards,\n\nSouhaib",
+            "best_answer_author": "Souhaib MAZHOUD",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "STM32CubeMX v6.17.0\n\nWhile configuring an STM32CubeMX project for an STM32H753 Ethernet project on a NUCLEO-H753ZI, I observed some strange behavior.\n\nAfter enabling memory management, including the checkboxes\n\n- Apply Application Regions Settings to Peripherals and\n\n- Apply Application Regions Settings to Linker Files,\n\nI would have expected the memory regions to be included in the linker description file STM32H753XX\\_FLASH.ld.\n\nUnfortunately, this was not the case.\n\nHowever, since the STM32H753XX\\_FLASH.ld file had obviously been regenerated, I did not suspect the file handling itself.\n\nAfter several hours of searching, I discovered that if the .ld file is deleted before regeneration, different content is generated.\n\nSteps to reproduce this:\n\n1. Open STM32CubeMX\n\n2. File / New Project… / Board Selector\n\n3. Select NUCLEO-H753ZI\n\n4. In „Board Project Options“ dialog, click button „Unselect All“\n\n5. Set Project Manager / Project / Toolchain / IDE  to CMake\n\nand Default Compiler/Linker to ST Arm Clang\n\n6. File / Save Project\n\n7. Generate Code\n\n8. Check the file size of STM32H753XX\\_FLASH.ld file (in my case: 8671 Bytes)\n\n9. Make a \\*copy\\* of the STM32H753XX\\_FLASH.ld file to STM32H753XX\\_FLASH\\_0**1**.ld for later compare, but don't delete the file.\n\n10. In STM32CubeMX Go to Tools / Memory Management\n\n- Switch Apply Application Regions Settings to Peripherals On\n\n- Switch Apply Application Regions Settings to Linker Files On\n\n11. File / Save Project\n\n12. Generate Code\n\n13. Check the file size of STM32H753XX\\_FLASH.ld file (in my case: 8651 Bytes)\n\n14. Make a \\*copy\\* of the STM32H753XX\\_FLASH.ld file to STM32H753XX\\_FLASH\\_0**2**.ld\n\n15. Compare the file \\_01.ld file from step 9 with this \\_02.ld file:\n\n![FluxPower42_0-1776966556255.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ddfb30a-3621-0341-c426-5b3a0821aab3.png \"FluxPower42_0-1776966556255.png\")\n\n16. \\*Delete\\* the STM32H753XX\\_FLASH.ld\n\n17. Generate Code again and open STM32H753XX\\_FLASH.ld file again\n\n18. Check the file size of STM32H753XX\\_FLASH.ld file (in my case: 9119 Bytes)\n\n19. Make a \\*copy\\* of the STM32H753XX\\_FLASH.ld file to STM32H753XX\\_FLASH\\_0**3**.ld\n\n20. Compare the file \\_01.ld file from step 9 with this \\_03.ld file:\n\n![FluxPower42_1-1776966780534.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e7f7e1cf-8778-7548-7648-61c01781c41e.png \"FluxPower42_1-1776966780534.png\")\n\n[...]\n\n![FluxPower42_2-1776966817509.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e589b50f-3ad0-701c-cf32-8b0ffb7d7fd3.png \"FluxPower42_2-1776966817509.png\")\n\n[...]\n\n![FluxPower42_3-1776966845387.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/607581e6-af02-25e0-849f-2f329532f8b3.png \"FluxPower42_3-1776966845387.png\")\n\nThe regions are now available.\n\nHowever, according to the comment header, the controller has now much more flash memory, but zero RAM :)\n\nIn addition, when the STM32CubeMX GUI is started with command line logging, two warnings occur during code generation after the MMT tab is opened once:\n\n```\n\n2026-04-23 19:59:33,111 [INFO] CodeEngine:319 - Generated code: D:\\dev\\Prj\\CubeMXTest\\CubeMXTest\\MXTmpFiles\\gpio.tmp\n\n2026-04-23 19:59:33,121 [WARN] IPConfigManager:107 - WARNING: Missing Config File for MEMORYMAP ip!!\n\n2026-04-23 19:59:33,122 [WARN] IP:2258 - DefaultDataRegion not found: check if there is a RefParameter without a condition.\n\n2026-04-23 19:59:33,153 [INFO] CodeEngine:295 - oldGeneratedFile, D:\\dev\\Prj\\CubeMXTest\\CubeMXTest\\MXTmpFiles\\cortex.tmp_save\n\n```\n\nIf you click on the RAM\\_D2 (or other) table cell now and regenerate it without changing the content, the error \"IP:2258 - DefaultDataRegion not found\" will disappear:\n\n```\n\n2026-04-23 20:00:00,152 [INFO] CodeEngine:319 - Generated code: D:\\dev\\Prj\\CubeMXTest\\CubeMXTest\\MXTmpFiles\\gpio.tmp\n\n2026-04-23 20:00:00,161 [WARN] IPConfigManager:107 - WARNING: Missing Config File for MEMORYMAP ip!!\n\n2026-04-23 20:00:00,191 [INFO] CodeEngine:295 - oldGeneratedFile, D:\\dev\\Prj\\CubeMXTest\\CubeMXTest\\MXTmpFiles\\cortex.tmp_save\n\n```\n\nThe next behavior occurs if the ETH module is switched on (to RMII) after the MMT is still activated.\n\nThe error appears in the MMT output log:\n\n![FluxPower42_4-1776967517070.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/303b85f4-9a1f-e915-1d92-dd4f7399881f.png \"FluxPower42_4-1776967517070.png\")\n\nHowever, if you switch to Tools / Memory Management, the output view is disabled.\n\nWhen you turn it back on, the content is empty:\n\n![FluxPower42_5-1776967596399.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/95e26f73-98a1-4cfb-5527-e55c351c7f5a.png \"FluxPower42_5-1776967596399.png\")\n\nuntil you switch the ETH off and on again, you will see both the new and old errors:\n\n![FluxPower42_6-1776967681149.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45c332dd-52ff-1583-3b96-d09e11c26a00.png \"FluxPower42_6-1776967681149.png\")\n\nI have a feeling that this feature is in a very beta state (or perhaps it's very KI-generated?)\n\nST: Thank you for fixing and testing the tool - I'm already excited for the new version!\n\nBest wishes, Timo",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45c332dd-52ff-1583-3b96-d09e11c26a00.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ddfb30a-3621-0341-c426-5b3a0821aab3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/607581e6-af02-25e0-849f-2f329532f8b3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e589b50f-3ad0-701c-cf32-8b0ffb7d7fd3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/95e26f73-98a1-4cfb-5527-e55c351c7f5a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e7f7e1cf-8778-7548-7648-61c01781c41e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/303b85f4-9a1f-e915-1d92-dd4f7399881f.png"
+            ],
+            "author": "FluxPower42",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"89333\">@FluxPower42</user-mention> </p><p>This issue (<em>Ticket CDM0062400</em>) has been fixed in the latest version of STM32CubeMX 6.18.0 </p><p>Download STM32CubeMX6.18.0 from <a href=\"https://www.st.com/en/development-tools/stm32cubemx.html\" rel=\"noopener noreferrer\" target=\"_blank\">this link.</a> </p><p>Regards,</p><p>Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"89333\">@FluxPower42</user-mention> </p>\n<p>Could you please attach your ioc in order to investigate the issue?</p>\n<p>BR, Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"62759\">@Souhaib MAZHOUD</user-mention> <br/><br/>the steps to generate the .ioc file in the different states are described in my post.<br/>To make it easy for you: attached a zip with folders of the different steps (note that the index numbers of the folders are different to the numbers in my post).<br/>In this zip you will find the .ioc files on the journey and and all files that have been modified during generation steps.<br/><br/>Please keep in mind, that you have to start without active MMT. Then generate the code (and the ld file). Then switch MMT and \"Apply Application Regions Settings to Linker Files\" on. Generate and check the ld file. Delete the file, generate again and check the ld file again.<br/><br/>Best wishes,<br/>Timo</p></div>",
+                    "author": "FluxPower42",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"89333\">@FluxPower42</user-mention> </p>\n<p>I appreciate the detailed description you provided.<br/>The first issue regarding the linkage file was raised internally with a dedicated team for review and correction: <em>Internal ticket number: CDM0062400 (This is an internal tracking number and is not accessible or usable by customers.)</em><br/>Concerning the error encountered when enabling ETH after using the MMT tool, this behavior is expected. The message is intentionally generated to alert the user about a memory region overlap detected by MMT:<br/>\"Error during the creation of the Rx_PoolSection region: The region you are trying to add overlaps with the RAM_D2 region\"<br/>This indicates that the Rx_PoolSection required by ETH conflicts with the existing RAM_D2 memory allocation.<br/>To resolve this issue, please update the memory mapping before enabling ETH by applying one of the following actions:<br/>Delete the RAM_D2 region, or Relocate the RAM_D2 region to AHB SRAM2 or AHB SRAM3<br/>Once this adjustment is made, ETH can be enabled without triggering the overlap error.</p>\n<p>BR, Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"62759\">@Souhaib MAZHOUD</user-mention> <br/>Thank you for your reply and for forwarding it internally.<br/><br/></p><p>Regarding the second \"issue\" (ETH/MMT): now I know how to handle it and what I should do.<br/>I just wanted to report this to ST because I don't think STM32CubeMX is very user-friendly in this regard. And it took me a while to figure out what I had done wrong, since I didn’t notice the first error message and the message was no longer visible after switching between tabs.<br/>If the error message were displayed permanently until the issue is resolved, this would be beneficial for all users.<br/><br/>Best regrads,<br/>Timo</p></div>",
+                    "author": "FluxPower42",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

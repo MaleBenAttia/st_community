@@ -1,0 +1,39 @@
+{
+    "forum": [
+        {
+            "id": "165763",
+            "publicId": "165763",
+            "title": "Vulkan driver bug when running PPSSPP on STM32MP257D",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/vulkan-driver-bug-when-running-ppsspp-on-stm32mp257d-165763",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-05-18T03:41:22+00:00",
+            "views": 145,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "All issues stem from Weston. Run pkill weston to kill the process, then set the environment variable export SDL\\_VIDEODRIVER=kmsdrm. You will also need to recompile the SDL library with kmsdrm support enabled. Screen tearing is completely resolved this way, and PPSSPP runs perfectly smoothly.",
+            "best_answer_author": "zhangtinglu",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I ported PPSSPP 1.20.3 to run on the STM32MP257D platform.\n\nWith the GLES backend, everything looks fine and normal games run without issues. But when I try heavier 3D games like *Tekken 6*, it gets extremely choppy – single-core CPU usage stays around 95%.\n\nThen I tried switching to Vulkan. At first, the emulator crashed on startup. I debugged it by adding some print statements and found that a function call was returning an incorrect value – which shouldn't happen according to the Vulkan spec. Because of that, another function (vkCreateSwapchainKHR) ended up failing.\n\n1) PPSSPP Crash Log:\n\n[Spoiler](#) (Highlight to read)\n\n**08:00:074 Vulkan/VulkanContext.cpp:1416 I[G3D]: surfCapabilities\\_.current: 960x544 min: 1x1 max: -1x-1 computed: -1x-1\n\n08:00:079 Vulkan/VulkanContext.cpp:1579 E[G3D]: vkCreateSwapchainKHR failed! VK\\_ERROR\\_DEVICE\\_LOST**\n\n08:00:074 Vulkan/VulkanContext.cpp:1416 I[G3D]: surfCapabilities\\_.current: 960x544 min: 1x1 max: -1x-1 computed: -1x-1 08:00:079 Vulkan/VulkanContext.cpp:1579 E[G3D]: vkCreateSwapchainKHR failed! VK\\_ERROR\\_DEVICE\\_LOST\n\n2) Source Files: ppsspp-1.20.3/Common/GPU/Vulkan/VulkanContext.h\n\n```\n\nVkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_devices_[physical_device_], surface_, &surfCapabilities_);\n\nif (res == VK_ERROR_SURFACE_LOST_KHR) {\n\n// Not much to do.\n\nERROR_LOG(Log::G3D, \"VK: Surface lost in InitSwapchain\");\n\nreturn false;\n\n}\n\n.........\n\nswapChainExtent_.width = clamp(currentExtent.width, surfCapabilities_.minImageExtent.width, surfCapabilities_.maxImageExtent.width);\n\nswapChainExtent_.height = clamp(currentExtent.height, surfCapabilities_.minImageExtent.height, surfCapabilities_.maxImageExtent.height);\n\n.........\n\nINFO_LOG(Log::G3D, \"surfCapabilities_.current: %dx%d min: %dx%d max: %dx%d computed: %dx%d\",\n\ncurrentExtent.width, currentExtent.height,\n\nsurfCapabilities_.minImageExtent.width, surfCapabilities_.minImageExtent.height,\n\nsurfCapabilities_.maxImageExtent.width, surfCapabilities_.maxImageExtent.height,\n\nswapChainExtent_.width, swapChainExtent_.height);\n\n.........\n\nVkSwapchainKHR oldSwapchain = swapchain_;\n\nVkSwapchainCreateInfoKHR swap_chain_info{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };\n\nswap_chain_info.surface = surface_;\n\nswap_chain_info.minImageCount = desiredNumberOfSwapChainImages;\n\nswap_chain_info.imageFormat = swapchainFormat_;\n\nswap_chain_info.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;\n\nswap_chain_info.imageExtent.width = swapChainExtent_.width;\n\nswap_chain_info.imageExtent.height = swapChainExtent_.height;\n\nswap_chain_info.preTransform = preTransform;\n\nswap_chain_info.imageArrayLayers = 1;\n\nswap_chain_info.presentMode = swapchainPresentMode;\n\nswap_chain_info.oldSwapchain = swapchain_;\n\nswap_chain_info.clipped = true;\n\nswap_chain_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;\n\npresentMode_ = swapchainPresentMode;\n\n.........\n\nres = vkCreateSwapchainKHR(device_, &swap_chain_info, NULL, &swapchain_);\n\nif (res != VK_SUCCESS) {\n\nERROR_LOG(Log::G3D, \"vkCreateSwapchainKHR failed! %s\", VulkanResultToString(res));\n\nreturn false;\n\n}\n\n```\n\nI found that the values of surfCapabilities\\_.maxImageExtent.width and .height were both -1(max: -1x-1 computed: -1x-1 ), which does not conform to the Vulkan standard, and Vulkan simply couldn't work. So I forcibly modified both values to 4096 (the current resolution being used is 1270x720), and then the Vulkan driver was able to run.\n\n![zhangtinglu_0-1779074418786.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f0b47353-800d-d9d5-bc68-d24fb6d96579.png \"zhangtinglu_0-1779074418786.png\")\n\nVulkan started up properly, and the frame rate improved a lot – *Tekken 6* runs at about 49 FPS now, with CPU usage dropping to 50%.\n\n![zhangtinglu_1-1779075016205.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d51dc94c-cb8f-fad6-6bd0-d0c726ce40df.png \"zhangtinglu_1-1779075016205.png\")\n\nNow I'm stuck with another issue: screen tearing. It shows up as random radial tears spreading outward from the center of the screen. This didn't happen with GLES. I've tried debugging but no luck. My guess is Vulkan 1.3.3 isn't fully supported on this platform yet. Any way to fix this?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d51dc94c-cb8f-fad6-6bd0-d0c726ce40df.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f0b47353-800d-d9d5-bc68-d24fb6d96579.png"
+            ],
+            "author": "zhangtinglu",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>All issues stem from Weston. Run pkill weston to kill the process, then set the environment variable export SDL_VIDEODRIVER=kmsdrm. You will also need to recompile the SDL library with kmsdrm support enabled. Screen tearing is completely resolved this way, and PPSSPP runs perfectly smoothly.</p></div>",
+                    "author": "zhangtinglu",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

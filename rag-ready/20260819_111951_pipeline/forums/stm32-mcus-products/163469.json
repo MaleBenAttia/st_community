@@ -1,0 +1,111 @@
+{
+    "forum": [
+        {
+            "id": "163469",
+            "publicId": "163469",
+            "title": "stm32F413VGT I2C support Fast mode Plus(1MHz)?",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f413vgt-i2c-support-fast-mode-plus-1mhz-163469",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "I2C",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-05T07:08:22+00:00",
+            "views": 625,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Hello all,\n\nGetting back to this question.\n\nRM0430 and DS11581  are referring to **FMPI2C** peripheral which is not the same instance than I2C1.\n\n**In RM0430:**Section 26 Fast-mode Plus Inter-integrated circuit interface (FMPI2C) (100kHz, 400kHz and 1MHz) refers to: FMPI2C while Section 27 Inter-integrated circuit (I2C) interface (100kHz and 400kHz) refers to: I2C1, I2C2 and I2C3.\n\nIn the datasheet DS11581, all pins with FMPI2C or I2C peripheral are named:\n\nI2CFMP1\\_SDA or \\_SCL\n\nI2Cx\\_SDA or \\_SCL\n\nThis naming convention is the same for STM32F413, F412, F410 and F446. CubeMx also uses these names.\n\n![screenshot1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e8e65129-d6c5-dbc4-4465-b36572c2588d.png \"screenshot1.png\")\n\nIn these STM32F4 reference manuals, sections:  RCC, there are also some references to “I2C4” which is in fact FMPI2C (and doesn’t exist in CubeMX for these F4 devices).\n\nYou can refer to [ES0372](https://www.st.com/resource/en/errata_sheet/es0372-stm32f413xgxh-and-stm32f423xh-device-errata-stmicroelectronics.pdf) - Rev 7 errata doc: 2.12.10 Inconsistent FMPI2C peripheral instance naming:\n\n![screenshot1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05f44633-33b1-a5fe-df36-3b83e9957aa6.png \"screenshot1.png\")\n\nHope I've answered the question.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "In STM32F413VGT I2C3 support Fast Mode Plus(1MHz)?\n\nI cannot find documentation",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ac97298b-c5a7-adc9-7c71-8d309419c626.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05f44633-33b1-a5fe-df36-3b83e9957aa6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d5a37c0d-b280-7e81-72d3-ca591f5b2027.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e8e65129-d6c5-dbc4-4465-b36572c2588d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5026efb7-17fa-f4ad-0cde-99dcf5d6def7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/934de6d0-7b7c-0c91-e8e6-28d6c868e187.png"
+            ],
+            "author": "GYUYEONLEE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Only one I2C instance supports Fast mode plus in that device:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"IMG_4832.png\" style=\"width: 2532px;\"><img alt=\"IMG_4832.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d5a37c0d-b280-7e81-72d3-ca591f5b2027.png\" title=\"IMG_4832.png\"/></span></p>\n<p> It seems to be the first I2C instance: I2C1. I need to check. Internal ticket for follow-up <em><strong>228415</strong></em>.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Please check i2c1 support fast mode plus.</p></div>",
+                    "author": "GYUYEONLEE",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Seems to be a mismatch between datasheet and reference manual here.</p><p> </p><p>The datasheet says it has 4 I2C instances, and yet it has no mention of \"I2C4\". Not even in the pinout list.</p><p>The reference manual says it only has 3 and yet refers to I2C4 in several places.</p><p> </p><p>I tend to believe there are only 3 instances here and that none of them support FM+. This post supports that:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-products/hello-everyone-i-am-new-for-stm32f4-microcontrollers-i-will-plan/td-p/198412\" target=\"_blank\">Solved: Hello everyone, I am new for STM32F4 microcontroll... - STMicroelectronics Community</a></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Clipboard_03-05-2026_01.png\" style=\"width: 999px;\"><img alt=\"Clipboard_03-05-2026_01.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ac97298b-c5a7-adc9-7c71-8d309419c626.png\" title=\"Clipboard_03-05-2026_01.png\"/></span></p><p>Initially, in the times of 'F4, the FM option was added as a different I2C module (it may be the I2Cv2(*) used in 'F0/'F3 and beyond). See e.g. <a href=\"https://community.st.com/t5/stm32-mcus-products/can-i-use-higher-speed-than-400khz-with-i2c-with-stm32f439/m-p/381557/highlight/true#M103838\" target=\"_self\">this post</a>.</p><p>(*) not the official versioning; ST never cared to version most of the modules.</p><p>The RM also have a separate chapter for I2C and separate for the I2CFMP.</p><p>(Note, that you have to enable the FM+ pins' drive in SYSCFG_CFGR).</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"17162\">@waclawek.jan</user-mention> Thanks for the correction as always.</p><p>So then the references to \"I2C4\" in the reference manual should probably be references to \"I2CFMP1\".</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-05 120921.png\" style=\"width: 231px;\"><img alt=\"Screenshot 2026-03-05 120921.png\" height=\"99\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/934de6d0-7b7c-0c91-e8e6-28d6c868e187.png\" title=\"Screenshot 2026-03-05 120921.png\" width=\"231\"/></span></p><p>Some already are, it's just inconsistent.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-05 121156.png\" style=\"width: 201px;\"><img alt=\"Screenshot 2026-03-05 121156.png\" height=\"81\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5026efb7-17fa-f4ad-0cde-99dcf5d6def7.png\" title=\"Screenshot 2026-03-05 121156.png\" width=\"201\"/></span></p><p>And the documentation should probably either call it I2CFMP or FMPI2C. Both RM and DS use both terminologies.</p><p> </p><p>And to the OP's direct question: Only I2CFMP1/FMPI2C1 supports FM+. This does not refer to \"I2C1\" which is a separate peripheral. I2C3 does not support it.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>see pic</p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; So then the references to \"I2C4\" in the reference manual</p><p>Nice catch; I haven't noticed that.</p><p>Besides the I2CFMPx/FMPI2Cx conundrum, the I2C chapter in DS quoted by <user-mention data-id=\"499\">@mƎALLEm</user-mention> above should be fixed, too.</p><p>This module is to be found in 'F410 (*), 'F412, 'F413/423 and 'F446, so I expect their DS/RM to contain these inconsistencies, too. </p><p>JW</p><p>(*) not in 'F411 - and not in older 'F405/407/415/417/427/429/437/439. <strike>The \"contemporary\" 'F7 already have the I2Cv2 as their default I2C modules, so that change happened somewhat sooner than I've thought (to be at 'F0/F3).</strike> Okay the 'F0/'F3 came <a href=\"http://efton.sk/STM32/gotcha/timeline.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">before</a> 'F7. It's quite some time...</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello all,</p>\n<p>Getting back to this question.</p>\n<p>RM0430 and DS11581  are referring to <strong>FMPI2C</strong> peripheral which is not the same instance than I2C1.</p>\n<p><strong>In RM0430: <br/></strong>Section 26 Fast-mode Plus Inter-integrated circuit interface (FMPI2C) (100kHz, 400kHz and 1MHz) refers to: FMPI2C while Section 27 Inter-integrated circuit (I2C) interface (100kHz and 400kHz) refers to: I2C1, I2C2 and I2C3.</p>\n<p>In the datasheet DS11581, all pins with FMPI2C or I2C peripheral are named:</p>\n<p>I2CFMP1_SDA or _SCL</p>\n<p>I2Cx_SDA or _SCL</p>\n<p>This naming convention is the same for STM32F413, F412, F410 and F446. CubeMx also uses these names.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot1.png\" style=\"width: 196px;\"><img alt=\"screenshot1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e8e65129-d6c5-dbc4-4465-b36572c2588d.png\" title=\"screenshot1.png\"/></span></p>\n<p>In these STM32F4 reference manuals, sections:  RCC, there are also some references to “I2C4” which is in fact FMPI2C (and doesn’t exist in CubeMX for these F4 devices).</p>\n<p>You can refer to <a href=\"https://www.st.com/resource/en/errata_sheet/es0372-stm32f413xgxh-and-stm32f423xh-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">ES0372</a> - Rev 7 errata doc: 2.12.10 Inconsistent FMPI2C peripheral instance naming:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot1.png\" style=\"width: 999px;\"><img alt=\"screenshot1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/05f44633-33b1-a5fe-df36-3b83e9957aa6.png\" title=\"screenshot1.png\"/></span></p>\n<p>Hope I've answered the question.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Oh, a \"terminology\" erratum? <span class=\"\"><span class=\"\">:shocked:</span></span></p><p>Well.... the I2C chapter in DS still needs to say all this explicitly, IMO. An \"implementation\" table (this is quite common in newer families' I2C chapter in DS), with a footnote saying something like \"FMPI2C may be called I2C4 at certain places\"?</p><p> <user-mention data-id=\"499\">@mƎALLEm</user-mention> ,</p><p>Can this please be submitted as a request for documentation improvement? For all the 'F4 variants using FMPI2C (I've listed tme above, hope did not omit some)?</p><p>Thanks,</p><p>JW</p><p> </p><p>PS. You have a typo in the post above, <strong>FPMI2C</strong> :)</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"17162\">@waclawek.jan</user-mention> </p>\n<blockquote><hr/><user-mention data-id=\"17162\">@waclawek.jan</user-mention> wrote:<br/>\n<p> <user-mention data-id=\"499\">@mƎALLEm</user-mention> ,</p>\n<p>Can this please be submitted as a request for documentation improvement? For all the 'F4 variants using FMPI2C (I've listed tme above, hope did not omit some)?</p>\n<hr/></blockquote>\n<p>I think better to submit a new post for this so we can do a follow-up. </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

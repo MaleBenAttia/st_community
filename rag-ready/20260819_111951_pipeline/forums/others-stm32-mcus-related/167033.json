@@ -1,0 +1,82 @@
+{
+    "forum": [
+        {
+            "id": "167013",
+            "publicId": "167033",
+            "title": "Unable to Get RMII Link on KSZ8863RLL Port 3 (STM32F746)",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/unable-to-get-rmii-link-on-ksz8863rll-port-3-stm32f746-167033",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32F7 series",
+                "Ethernet"
+            ],
+            "published_at": "2026-07-17T08:45:12+00:00",
+            "views": 93,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Here’s my pin connections with a H733.\n\nThe port names are the names used by the STM32.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6d5685a-b395-4aa4-a7a0-1584760f7c97.png)\n\nI only got it working by setting the PHY clock to internal, by setting register 198 (0xC6) / bit 3 via I2C (SPI is also an option I think - but the “advanced control” registers are not accessible via MDIO / MII management).\n\nYou also have to take care with the registers how and which port you set / check.",
+            "best_answer_author": "LCE",
+            "best_answer_author_role": "Principal II",
+            "content_text": "I am developing a device based on an **STM32F746VET6** with **two Ethernet ports**. To implement this, I chose the **KSZ8863RLL**, as it provides two external Ethernet PHY ports and an RMII interface to the STM32.\n\nAt the moment, **Port 1** and **Port 2** are both working correctly at **100 Mbps full duplex**. I can successfully transmit and receive data through both ports. However, I cannot get **Port 3** (the RMII CPU port) to establish a link.\n\nI'm a bit confused about the correct RMII interface connections. I am using **Clock Mode 5**, and my understanding is that the external **25 MHz crystal** is internally multiplied to **50 MHz**, with **REFCLKO\\_3** providing the 50 MHz reference clock to the STM32. Is that interpretation correct?\n\nThis is how I originally routed the RMII signals:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f43626e-b0f5-4eae-b4ae-d97e53a90303.png)\n\nAfter reading through the datasheet and application notes, I also came across the following information:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b3749595-f71f-46a9-b1d6-d6af6206f0d7.png)\n\nBased on that, I bodged my PCB to match the recommended connections, but I still cannot get a link on Port 3.\n\nHas anyone successfully used the KSZ8863RLL in RMII Mode 5 with an STM32? Am I misunderstanding how the RMII interface or clocking should be connected, or is there something obvious I'm missing?\n\nOriginal schematics of the PCB are attached bellow\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/93bc04af-4924-46fa-b3dc-f29c10385fe0.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/56393b90-772a-4b2b-a080-d02412ff02f9.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/93bc04af-4924-46fa-b3dc-f29c10385fe0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b3749595-f71f-46a9-b1d6-d6af6206f0d7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f43626e-b0f5-4eae-b4ae-d97e53a90303.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6d5685a-b395-4aa4-a7a0-1584760f7c97.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/56393b90-772a-4b2b-a080-d02412ff02f9.png"
+            ],
+            "author": "SeppeBudenaers",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The last table is a interpretation of 6-1 page 7 of this document <a href=\"https://ww1.microchip.com/downloads/en/DeviceDoc/KSZ8863RLL-Hardware-Design-Checklist-00003048A.pdf\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://ww1.microchip.com/downloads/en/DeviceDoc/KSZ8863RLL-Hardware-Design-Checklist-00003048A.pdf</a><br/><br/>to my understanding the KSZ8863RL is standard in PHY MAC mode and that is also what is needed for communicating with the STM.</p></div>",
+                    "author": "SeppeBudenaers",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>See also:</p><p><a href=\"https://community.st.com/stm32-mcus-products-25/eth-anybody-used-ksz8863rll-128822\" rel=\"noreferrer\" target=\"_self\">ETH: anybody used KSZ8863RLL?</a></p><p><a href=\"https://community.st.com/stm32-mcus-embedded-software-32/custom-pcb-stm32h7-and-ksz8863rll-rmii-134388\" rel=\"noreferrer\" target=\"_self\">Custom PCB, STM32H7 and KSZ8863RLL, RMII</a></p><p>Users in these posts may help you.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi I have read these but they don't show the connection towards the MCU, and are closed for discussion so i cannot ask them how they solved it. </p></div>",
+                    "author": "SeppeBudenaers",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You can mark them in this thread using @</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Here’s my pin connections with a H733.</p><p>The port names are the names used by the STM32.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b6d5685a-b395-4aa4-a7a0-1584760f7c97.png\"/></figure><p> </p><p>I only got it working by setting the PHY clock to internal, by setting register 198 (0xC6) / bit 3 via I2C (SPI is also an option I think - but the “advanced control” registers are not accessible via MDIO / MII management).</p><p>You also have to take care with the registers how and which port you set / check.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, sorry for the late response.</p><p>Thank you for sharing the schematics so I could cross-check our design. I managed to get my implementation working. The issue turned out to be a software incompatibility between the CycloneTCP driver and my STM code.</p><p>I am now configuring everything manually, including the network settings, and I also manually send and poll for UDP packets. This approach seems to be working reliably for me.</p><p>Thanks again for your help!</p></div>",
+                    "author": "SeppeBudenaers",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

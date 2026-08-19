@@ -1,0 +1,88 @@
+{
+    "forum": [
+        {
+            "id": "163962",
+            "publicId": "163962",
+            "title": "CubeMX2 code generation issues",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/cubemx2-code-generation-issues-163962",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "Bug-report",
+                "STM32CubeMX2"
+            ],
+            "published_at": "2026-03-18T21:28:56+00:00",
+            "views": 1329,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "I checked the path and it was set for \"cmake\" instead of \"cube-cmake\", so updated it.\n\nWhen building the project i got different errors\n\n```\n\n[cmakeExecutable] CMake executable not found in cache. Checking again.\n\n[proc] Executing command: cube-cmake --version\n\n[proc] The command: cube-cmake --version failed with error: Error: spawn cube-cmake ENOENT\n\n[proc] Executing command: cube-cmake -E capabilities\n\n[proc] The command: cube-cmake -E capabilities failed with error: Error: spawn cube-cmake ENOENT\n\n[main] Building folder: Nucleo-C562RE_Test_cmake\n\n[cmakeExecutable] CMake executable not found in cache. Checking again.\n\n[proc] Executing command: cube-cmake --version\n\n[proc] The command: cube-cmake --version failed with error: Error: spawn cube-cmake ENOENT\n\n[proc] Executing command: cube-cmake -E capabilities\n\n[proc] The command: cube-cmake -E capabilities failed with error: Error: spawn cube-cmake ENOENT\n\n[rollbar] Unhandled exception: Unhandled Promise rejection: build Error: Build failed: Unable to configure the project {}\n\n```\n\nI had the VS Code agent fix it. It added a wrapper \"cube-cmake.cmd\" which created this text\n\n```\n\n@Echo off\n\n\"%~dp0cube.exe\" cmake %*\n\n```\n\nBut it still had the same build error. Then I had the agent try to fix again and it create a settings.json file and added a path.\n\n![Screenshot 2026-03-27 121253.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/20e6b6c8-d978-6349-d476-ff52950f9d87.png \"Screenshot 2026-03-27 121253.png\")\n\nSo now I am able to build the project with zero errors.",
+            "best_answer_author": "Karl Yamashita",
+            "best_answer_author_role": "Principal",
+            "content_text": "Yesterday I was able to generate a cmake project which included main.c/h files. I opened the project in VS Code but had errors trying to build. I had VS code fix the errors so now I am able to build the project.\n\n* Today, I generated another project but the main.c/h files are missing as seen in the screen shot.\n\n* I've timed the project generation and it takes 3 minutes to generate a project. Why so long?\n\n* Why are the IOC files created outside of the project folder?\n\n![Screenshot 2026-03-18 140335.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1a433271-8012-2a2e-6a44-b239b14a4ba9.png \"Screenshot 2026-03-18 140335.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c741acc-76fd-ecd8-8eec-532e4e58e86c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1a433271-8012-2a2e-6a44-b239b14a4ba9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/20e6b6c8-d978-6349-d476-ff52950f9d87.png"
+            ],
+            "author": "Karl Yamashita",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"28429\">@Karl Yamashita</user-mention> </p><p><br/>With VS Code no need to open the folder with the<span> .ioc2</span><span> </span>file, just open the<span> '_cmake'</span><span> </span>project folder.</p><p>Can you please share the<span> cmake_project </span>folder and .zip issue reporter so we can check the error?</p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well the problem is when I want to create a repository for the cmake project folder, the IOC file is not included. </p><p> </p><p>I've attached the zip file and included the IOC file</p><p> </p></div>",
+                    "author": "Karl Yamashita",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"28429\">@Karl Yamashita</user-mention> </p><p><span>How did you create the attached IOC2? <br/>Could you please open pack manager and send me a screenshot displaying the \"Up To date\" packs?</span></p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"28429\">@Karl Yamashita</user-mention> <br/><br/>Yes, for the Cube bundle, all bundles are now up to date.<br/>What you need to do is check the <strong>CMake path</strong> in the VS Code settings and set it to \"<strong>cube-cmake\"</strong> as shown:<br/><br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot.png\" style=\"width: 691px;\"><img alt=\"Screenshot.png\" height=\"367\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1c741acc-76fd-ecd8-8eec-532e4e58e86c.png\" title=\"Screenshot.png\" width=\"691\"/></span><br/><br/></p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I checked the path and it was set for \"cmake\" instead of \"cube-cmake\", so updated it. </p><p>When building the project i got different errors</p><pre class=\"lia-code-sample language-c\"><code>[cmakeExecutable] CMake executable not found in cache. Checking again.\n[proc] Executing command: cube-cmake --version\n[proc] The command: cube-cmake --version failed with error: Error: spawn cube-cmake ENOENT\n[proc] Executing command: cube-cmake -E capabilities\n[proc] The command: cube-cmake -E capabilities failed with error: Error: spawn cube-cmake ENOENT\n[main] Building folder: Nucleo-C562RE_Test_cmake \n[cmakeExecutable] CMake executable not found in cache. Checking again.\n[proc] Executing command: cube-cmake --version\n[proc] The command: cube-cmake --version failed with error: Error: spawn cube-cmake ENOENT\n[proc] Executing command: cube-cmake -E capabilities\n[proc] The command: cube-cmake -E capabilities failed with error: Error: spawn cube-cmake ENOENT\n[rollbar] Unhandled exception: Unhandled Promise rejection: build Error: Build failed: Unable to configure the project {}</code></pre><p>I had the VS Code agent fix it. It added a wrapper \"cube-cmake.cmd\" which created this text</p><pre class=\"lia-code-sample language-c\"><code><user-mention data-id=\"24788\">@Echo</user-mention> off\n\"%~dp0cube.exe\" cmake %*</code></pre><p>But it still had the same build error. Then I had the agent try to fix again and it create a settings.json file and added a path.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-27 121253.png\" style=\"width: 676px;\"><img alt=\"Screenshot 2026-03-27 121253.png\" height=\"283\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/20e6b6c8-d978-6349-d476-ff52950f9d87.png\" title=\"Screenshot 2026-03-27 121253.png\" width=\"676\"/></span></p><p>So now I am able to build the project with zero errors.</p><p> </p><p> </p><p> </p><p> </p></div>",
+                    "author": "Karl Yamashita",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"28429\">@Karl Yamashita</user-mention> <br/><br/></p>\n<p>Nice, to hear it’s working now and that the issue is fixed!</p>\n<p>Thanks for sharing what you did too, this will be useful for others who hit the same problem. </p></div>",
+                    "author": "Oussama_TROUDI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Oussama_TROUDI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

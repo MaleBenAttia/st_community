@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "163688",
+            "publicId": "163688",
+            "title": "STM32H7S7 How to write to external flash",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h7s7-how-to-write-to-external-flash-163688",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "Flash",
+                "XSPI"
+            ],
+            "published_at": "2026-03-11T09:47:03+00:00",
+            "views": 517,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nPlease refer to [this example](https://github.com/STMicroelectronics/STM32CubeH7RS/tree/main/Projects/STM32H7S78-DK/Examples/XSPI/XSPI_NOR_ReadWhileWrite_DTR) provided in the CubeH7RS package in github.\n\nThe readme file indicates that the code is executed from Bank0 and the write is performed to Bank1.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "HI,\n\nI'm using stm32h7s78-dk, and setup the external flash following [this tutorial](https://github.com/ST-TOMAS-Workshop/stm32h7s_workshop/blob/main/1_external_memory/handson/3_extmem_mx.md)\n\nThe \"appli\" project is in external flash and runs with no issue. Now I want to write some config data such as display brightness to the external flash according to user input but I can't find a way to do that.\n\nI tried HAL\\_FLASH\\_Program(), but it seems can only modify the internal flash. Then I tried to enable EXTMEM\\_MANAGER\\_APPLI in CubeMX to use EXTMEM\\_WriteInMappedMode(). However, I can't reinitialize the xspi in \"appli\" project..\n\nWhat is the appropriate way to do this?\n\nAny input is much appreciated!",
+            "images": [],
+            "author": "evervoid",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Please refer to <a href=\"https://github.com/STMicroelectronics/STM32CubeH7RS/tree/main/Projects/STM32H7S78-DK/Examples/XSPI/XSPI_NOR_ReadWhileWrite_DTR\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">this example</a> provided in the CubeH7RS package in github.</p>\n<p>The readme file indicates that the code is executed from Bank0 and the write is performed to Bank1.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for reply!</p><p>My current setup is using xspi1 to interface with PSRAM, xspi2 for external flash. According to the example you mentioned, I need to use both xspi1 and xspi2 on the flash chip to be able to read and write at the same time.</p><p>So I have to use other method to interface with external ram, or have a dedicated chip such as a EEPROM to store the config data.</p><p>Am I understanding this correctly?</p></div>",
+                    "author": "evervoid",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm not expert of that interface but I think that's not possible to write to the same external memory flash while executing from it as you may stall the XSPI interface/the CPU.</p>\n<p>So maybe you need to relocate the program that writes to the external flash to another memory (internal SRAM/Flash or even the external SRAM you are using). After achieving the write operation you need to jump again to your program stored in the XSPI flash.</p>\n<p>Or for simply use an EEPROM or FRAM to store your data.</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

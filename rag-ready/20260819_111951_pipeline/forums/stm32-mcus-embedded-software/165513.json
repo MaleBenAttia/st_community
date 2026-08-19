@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "165513",
+            "publicId": "165513",
+            "title": "HAL_UART_Init --> HAL_RCCEx_PeriphCLKConfig --> HardFault_Handler",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/hal-uart-init-hal-rccex-periphclkconfig-hardfault-handler-165513",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "RCC",
+                "STM32H5 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-05-08T12:02:27+00:00",
+            "views": 195,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "[How to debug a HardFault on an Arm® Cortex®-M STM32](https://community.st.com/t5/stm32-mcus/how-to-debug-a-hardfault-on-an-arm-cortex-m-stm32/ta-p/672235)",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "MCU STM32H503KBU\n\ninternal clock  64 MHz\n\nDuring a UART restart,\n\nthe HAL\\_UART\\_Init function calls\n\nHAL\\_RCCEx\\_PeriphCLKConfig, which results in a HardFault\\_Handler\n\n```\n\nvoid UART_Set_BaudRate(UART_HandleTypeDef *huart, uint32_t BaudRate)\n\n{\n\nif (HAL_UART_DeInit(huart)!= HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nhuart->Instance = USART1;\n\nhuart->Init.BaudRate = BaudRate;\n\nhuart->Init.WordLength = UART_WORDLENGTH_8B;\n\nhuart->Init.StopBits = UART_STOPBITS_1;\n\nhuart->Init.Parity = UART_PARITY_NONE;\n\nhuart->Init.Mode = UART_MODE_TX_RX;\n\nhuart->Init.HwFlowCtl = UART_HWCONTROL_NONE;\n\nhuart->Init.OverSampling = UART_OVERSAMPLING_16;\n\nhuart->Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;\n\nhuart->Init.ClockPrescaler = UART_PRESCALER_DIV1;\n\nhuart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;\n\nif (HAL_UART_Init(huart) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_UART_Receive_IT( OW.huart, &uart_temp, 1) != HAL_OK)\n\nError_Handler();\n\n}\n\n```\n\nIf you disable the HAL\\_UART\\_DeInit function, everything works.\n\nWhat could be the problem?",
+            "images": [],
+            "author": "Sergei2",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Not clear what do you mean by \"<span>During a UART <strong>re</strong>start</span>\".</p>\n<p>+ in your code:</p>\n<pre class=\"lia-code-sample language-c\"><code>if (HAL_UART_Receive_IT( OW.huart, &amp;uart_temp, 1) != HAL_OK)</code></pre>\n<p>What is that <strong>OW</strong> here?</p>\n<p>You need to use the already used UART instance: huart</p>\n<pre class=\"lia-code-sample language-c\"><code>if (HAL_UART_Receive_IT(huart, &amp;uart_temp, 1) != HAL_OK)</code></pre>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>UART reboot is done to clear possible errors</span></p><p><span>As far as I understand, there's no direct function for this in HAL, so I use</span></p><pre class=\"lia-code-sample language-c\"><code>HAL_UART_DeInit\nHAL_UART_Init</code></pre><p><span>about OW ,y</span><span>es, it's my mistake. This is a global variable that is passed to this function.</span></p><p><span>OW.huart = &amp;huart1;</span></p><p> </p><p><span>But that's not a problem...<br/>The first initialization goes fine</span></p><pre class=\"lia-code-sample language-c\"><code>MX_USART1_UART_Init();</code></pre><p>but repeating it after <span>HAL_UART_DeInit</span> causes an error</p></div>",
+                    "author": "Sergei2",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-debug-a-hardfault-on-an-arm-cortex-m-stm32/ta-p/672235\" target=\"_blank\"><span>How to debug a HardFault on an Arm® Cortex®-M STM32</span></a></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,100 @@
+{
+    "forum": [
+        {
+            "id": "165045",
+            "publicId": "165045",
+            "title": "USB PD Extended Source Capabilities",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usb-pd-extended-source-capabilities-165045",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G0 series",
+                "USB Type-C and power delivery"
+            ],
+            "published_at": "2026-04-23T11:46:45+00:00",
+            "views": 366,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Turns out these specific calls need to be enabled separately in the PD configuration in usbpd\\_dpm\\_conf.h file. When these are set to true the stack calls SetDataInfo and GetDataInfo callbacks with the corresponding message id.\n\n```\n\n....\n\n.Is_SrcCapaExt_Supported = USBPD_TRUE, /*!< Source_Capabilities_Extended message supported or not by DPM */\n\n...\n\n.Is_GetBattery_Supported = USBPD_TRUE, /*!< Get Battery Capabitity and Status messages supported by PE */\n\n},\n\n...\n\n```",
+            "best_answer_author": "Mulleteer",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nHow do I serve request Get Source Capabilities Extended? I'm using STM32G0B1 with a port configured as SRC.\n\nWhen a SINK sends the Get Source Capabilities Extended the STM PD library responds with 'Not Supported' and my code is not aware that this even did happen.\n\n![Mulleteer_0-1776944660689.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45ac80c6-af52-1410-8cda-0e2f7dd6755d.png \"Mulleteer_0-1776944660689.png\")\n\nIs there way to intercept and serve this request? At least the callback structure does not appear to have direct support for this. USBPD\\_DPM\\_ExtendedMessageReceived is never called.\n\n```\n\n/* CAD callback definition */\n\nstatic const USBPD_PE_Callbacks dpmCallbacks =\n\n{\n\nUSBPD_DPM_SetupNewPower,\n\nUSBPD_DPM_HardReset,\n\nUSBPD_DPM_EvaluatePowerRoleSwap,\n\nUSBPD_DPM_Notification,\n\nUSBPD_DPM_ExtendedMessageReceived,\n\nUSBPD_DPM_GetDataInfo,\n\nUSBPD_DPM_SetDataInfo,\n\nUSBPD_DPM_EvaluateRequest,\n\nUSBPD_DPM_SNK_EvaluateCapabilities,\n\nUSBPD_DPM_PowerRoleSwap,\n\nUSBPD_PE_TaskWakeUp,\n\n#if defined(_VCONN_SUPPORT)\n\nUSBPD_DPM_EvaluateVconnSwap,\n\nUSBPD_DPM_PE_VconnPwr,\n\n#else\n\nNULL,\n\nNULL,\n\n#endif /* _VCONN_SUPPORT */\n\nUSBPD_DPM_EnterErrorRecovery,\n\nUSBPD_DPM_EvaluateDataRoleSwap,\n\nUSBPD_DPM_IsPowerReady\n\n};\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f6a10202-668a-2ae8-0bc9-e64a5e597659.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45ac80c6-af52-1410-8cda-0e2f7dd6755d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e30a3392-a88a-c150-d17d-908fafa9f6f4.png"
+            ],
+            "author": "Mulleteer",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"84761\">@Mulleteer</user-mention> </p>\n<p>Are you using latest version of <a href=\"https://github.com/STMicroelectronics/stm32-mw-usbpd-core\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32-mw-usbpd-core</a> v5.4?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't think so. I use what STMCube generated. The firmware package based on ioc file is <em>ProjectManager.FirmwarePackage=STM32Cube FW_G0 V1.6.2<br/></em><br/>I did try to update to latest <em>STM32Cube FW_G0 V1.6.3 </em>but it uses the same library binary USBPDCORE_PD3_FULL_CM0PLUS_wc32.a and in generated code there are mostly cosmetic and seemingly non-relevant changes.<br/><br/>Should I manually upgrade the code to use the github version of the library code and binary?</p></div>",
+                    "author": "Mulleteer",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yess <user-mention data-id=\"84761\">@Mulleteer</user-mention>, just to make sure you reproduce the issue as well on your end.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/><br/>I updated my project code to the master branch of <a href=\"https://github.com/STMicroelectronics/stm32-mw-usbpd-core\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32-mw-usbpd-core</a> (both header and .a library) and it seems nothing changed. I tried two type of messages, a control message Get_Source_Cap_Extended and a true extended message Get_Battery_Status. Both are served with Not Supported reply and it appears that PD library does not call any of the application callbacks. <span>USBPD_DPM_RequestWhatToDo is not called.</span><br/><br/>Here is capture of two messages I tried.<br/><br/></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-04-27 125745.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-04-27 125745.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e30a3392-a88a-c150-d17d-908fafa9f6f4.png\" title=\"Screenshot 2026-04-27 125745.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-04-27 125708.png\" style=\"width: 400px;\"><img alt=\"Screenshot 2026-04-27 125708.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f6a10202-668a-2ae8-0bc9-e64a5e597659.png\" title=\"Screenshot 2026-04-27 125708.png\"/></span></p><p>Thank you, Teemu<br/><br/></p></div>",
+                    "author": "Mulleteer",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"84761\">@Mulleteer</user-mention> </p>\n<p>Could you confirm implementing tthis request in your dpm_user.c </p>\n<pre class=\"lia-code-sample language-c\"><code>/**\n * @brief Request the PE to get a source capability extended\n * @param PortNum The current port number\n * @retval USBPD Status\n */\nUSBPD_StatusTypeDef USBPD_DPM_RequestGetSourceCapabilityExt(uint8_t PortNum)\n{\n USBPD_StatusTypeDef _status = USBPD_PE_Request_CtrlMessage(PortNum, USBPD_CONTROLMSG_GET_SRC_CAPEXT, USBPD_SOPTYPE_SOP);\n DPM_USER_ERROR_TRACE(PortNum, _status, \"GET_SRC_CAPA_EXT not accepted by the stack\");\n return _status;\n}</code></pre>\n<p> Otherwise, can you provide minimum firmware?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/><br/>Aren't these api calls used only by a Sink? I need to handle and respond to the extended requests in Source role.</p></div>",
+                    "author": "Mulleteer",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Turns out these specific calls need to be enabled separately in the PD configuration in usbpd_dpm_conf.h file. When these are set to true the stack calls SetDataInfo and GetDataInfo callbacks with the corresponding message id.<br/><br/></p><pre class=\"lia-code-sample language-c\"><code>....\n .Is_SrcCapaExt_Supported = USBPD_TRUE, /*!&lt; Source_Capabilities_Extended message supported or not by DPM */\n ...\n .Is_GetBattery_Supported = USBPD_TRUE, /*!&lt; Get Battery Capabitity and Status messages supported by PE */\n },\n...</code></pre><p> </p></div>",
+                    "author": "Mulleteer",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"84761\">@Mulleteer</user-mention> </p>\n<p>In my understanding, you have already enable it.</p>\n<p>Glad you found the root cause, because I couldn't reproduce on my end.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

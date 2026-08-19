@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164169",
+            "publicId": "164169",
+            "title": "cant put PZ3 into interrupt mode",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/cant-put-pz3-into-interrupt-mode-164169",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "OpenSTLinux",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-25T17:42:47+00:00",
+            "views": 154,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @vdl\n\nMost probable cause if because you already have another GPIO Px[3] defined as interrupt elsewhere.\n\nThis is a general constrains on most STM32 products due to the way the interrupt mux is done wrt GPIOs pins. Please refer to Reference Manual for details.\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "gpioinfo output\n\ngpiochip9 - 10 lines:\n\nline 0: \"PZ0\" input\n\nline 1: \"PZ1\" input\n\nline 2: \"PZ2\" input\n\nline 3: \"PZ3\" input\n\ngpiomon output\n\n# gpiomon --num-events 1 --edges falling PZ0\n\n^C\n\n# gpiomon --num-events 1 --edges falling PZ1\n\n^C\n\n# gpiomon --num-events 1 --edges falling PZ2\n\n^C\n\n# gpiomon --num-events 1 --edges falling PZ3\n\ngpiomon: unable to request lines on chip /dev/gpiochip9: No such device or address\n\nwhy is there a problem with PZ3 pin specifically? noone is using it\n\nshould i add something in dts?",
+            "images": [],
+            "author": "vdl",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105368\">@vdl</user-mention> </p>\n<p>Most probable cause if because you already have another GPIO Px[3] defined as interrupt elsewhere.</p>\n<p>This is a general constrains on most STM32 products due to the way the interrupt mux is done wrt GPIOs pins. Please refer to Reference Manual for details.</p>\n<p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>disabled emmc1 ( sd card interface ) which was using PD3 as interrupt - now PZ3 works</strong></p><p>weirdly i still can gpiomon PD3 and other Px3 pins ( unused ones )</p><p>also i could gpiomon other Px3 before </p></div>",
+                    "author": "vdl",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

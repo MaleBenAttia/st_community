@@ -1,0 +1,85 @@
+{
+    "forum": [
+        {
+            "id": "165971",
+            "publicId": "165983",
+            "title": "I2C Problems With KTD2037 Using HAL",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/i2c-problems-with-ktd2037-using-hal-165983",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Lighting and LED",
+                "STM32G4 series",
+                "I2C",
+                "HAL"
+            ],
+            "published_at": "2026-06-09T20:10:28+00:00",
+            "views": 182,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@mccabehm\n\nYou’re running into a protocol mismatch between the STM32 HAL “memory” APIs and how the KTD2037 actually performs reads, not a physical bus problem.\n\nHAL\\_I2C\\_Mem\\_Read() assumes a memory-like slave:\n\nS → Addr+W → RegAddr → Sr → Addr+R → Data → NACK → P",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have a custom board with G491 and an LED driver (Kinetic KTD2037). MCU is the I2C master. Any attempt to read a register using HAL from the KTD2037 fails, ErrorCode = 0x2 (arb lost). Register writes are OK. I can read/write other devices on the same bus OK.\n\nThe KTD2037 datasheet has this for an I2C register read:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f11872a8-9188-4d87-84e6-08f1b6c56a1d.png)\n\nThis doesn’t seem consistent with HAL\\_I2C\\_Mem\\_Read() or HAL\\_I2C\\_Master\\_Receive().\n\nOn a scope HAL\\_I2C\\_Mem\\_Read() results in\n\nS, 7-bit addr, write, ack, reg addr, ack, Sr, 7-bit addr, read, ack, 0xFF, nack\n\nI try setting the internal register pointer (it may not have one) using HAL\\_I2C\\_Master\\_Transmit(), which works OK. Then I follow it with HAL\\_I2C\\_Master\\_Receive() resulting in\n\nS, 7-bit addr, read, ack, 0xFF, nack\n\nIt looks like the master says arbitration lost because of unexpected nack from the KtTD037.\n\nThe KTD2037 datasheet does not mention I2C repeat start.\n\nAny way to read this device without writing my own I2C driver?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f11872a8-9188-4d87-84e6-08f1b6c56a1d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f0428a33-6b11-497f-bf76-5c9aa8beffe8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/25ac4b4b-6c5e-414b-8a01-2cbd3f5ae355.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d33d636b-24ca-4a2a-bc1a-14377a3210fc.png"
+            ],
+            "author": "mccabehm",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; The KTD2037 datasheet has this for an I2C register read:</em></p><p>This is consistent with a HAL_I2C_Master_Receive call to read 2 bytes. The first byte will be “Register Address” and the second will be “Data”.</p><p>HAL_I2C_Mem_Read is not meant for this.</p><p> </p><p>If you want to write an address, then read it, you can either do:</p><p>HAL_I2C_Mem_Read with a single byte write and a two byte read.</p><p>or</p><p>HAL_I2C_Master_Transmit with a single byte write plus a HAL_I2C_Mem_Read with a two byte read. These will be separate transactions unlike HAL_I2C_Mem_Read where it will be a repeated start condition.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The KTD2037 is not doing the NACK. It’s the STM32 that does the NACK during READs after it’s done reading the correct number of bytes to notify the slave to stop sending data. That is normal behavior. </p><p> </p><p>When you get HAL_BUSY = 0x02 when calling HAL_I2C_Mem_Read, could mean a number of scenarios. Try debugging and put a breakpoint in HAL_I2C_Mem_Read and see which of the 2 HAL_BUSY it returns from. Then you can narrow it down further. Also check the SR1 and SR2 registers to see which bits are set, if any.</p><ul><li>if (hi2c-&gt;State == <em>HAL_I2C_STATE_READY</em>) will return HAL_BUSY if not equal.</li> <li>Will return HAL_BUSY if it times out.  </li></ul><p> </p><p>The datasheet read command doesn’t look correct. But i could be wrong with this particular part.</p><p>When reading from a register, you typically want to WRITE the register value, then READ with the device address preceding the data like below. </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d33d636b-24ca-4a2a-bc1a-14377a3210fc.png\"/></figure><p> </p><p> </p><p> </p></div>",
+                    "author": "Karl Yamashita",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>By ErrorCode = 0x2, I mean hi2c2.ErrorCode, not return from HAL_I2C_Mem_Read(). hi2c2.ErrorCode = 0x2 =&gt; arbitration lost.</p><p> </p><p> </p><p> </p></div>",
+                    "author": "mccabehm",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>“HAL_I2C_Mem_Read with a single byte write and a two byte read” works OK.</p></div>",
+                    "author": "mccabehm",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I marked “Best answer” too soon.</p><p>HAL_I2C_Mem_Read() on a KTD2037 reg returns HAL_OK but the data returned is always 0x02. Reading every reg on the KTD2037 always returns data = 0x02. Some regs have reset values != 0x02, so I know I am not getting actual reg content.</p><p>From the KTD2037 datasheet a reg read is expected to be</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/25ac4b4b-6c5e-414b-8a01-2cbd3f5ae355.png\"/></figure><p>Notice the KTD2037 expects a read bit (1)  followed by the reg addr. HAL_I2C_Mem_Read() doesn’t do this. HAL_I2C_Master_Transmit() followed by HAL_I2C_Master_Receive() doesn’t do this. When I execute HAL_I2C_Master_Transmit() followed by HAL_I2C_Master_Receive() I don’t get recognizable data.</p><p>Another LED driver (TI LP5817) has this for a reg read</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f0428a33-6b11-497f-bf76-5c9aa8beffe8.png\"/></figure><p>The LP5817 first writes the internal reg, does repeat start, then reads data. This is consistent with HAL_I2C_Read_Mem().</p><p>I conclude that the HAL I2C APIs won’t work with the KTD2037. I would rather use a different LED driver than write a special I2C driver for the KTD2037.</p></div>",
+                    "author": "mccabehm",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>When the read bit is set, all further data comes from the slave, not from the STM32. This is how I2C works, there is no deviation from this between chips. There is no option to have the STM32 write one byte and then read the next. This would be a violation of I2C.</p><p>No doubt “Register Address” is meant to be set in another transaction like what HAL_I2C_Mem_Read does, but the datasheet does a poor job of explaining this.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"62714\">@mccabehm</user-mention> </p><p>You’re running into a protocol mismatch between the STM32 HAL “memory” APIs and how the KTD2037 actually performs reads, not a physical bus problem.</p><p>HAL_I2C_Mem_Read() assumes a memory-like slave:<br/>S → Addr+W → RegAddr → Sr → Addr+R → Data → NACK → P</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

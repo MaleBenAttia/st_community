@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "165673",
+            "publicId": "165673",
+            "title": "[Distribution Package] Configuring the kernel via menuconfig",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/distribution-package-configuring-the-kernel-via-menuconfig-165673",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "Yocto",
+                "OpenSTLinux",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-05-14T05:26:01+00:00",
+            "views": 99,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I was able to make menuconfig permanent by following the instructions on the wiki below.\n\n[https://wiki.st.com/stm32mpu/wiki/Menuconfig\\_or\\_how\\_to\\_configure\\_kernel#Menuconfig\\_and\\_Distribution\\_Package](https://wiki.st.com/stm32mpu/wiki/Menuconfig_or_how_to_configure_kernel#Menuconfig_and_Distribution_Package \"Menuconfig or how to configure kernel\")\n\n[https://wiki.st.com/stm32mpu/wiki/How\\_to\\_customize\\_the\\_Linux\\_kernel](https://wiki.st.com/stm32mpu/wiki/How_to_customize_the_Linux_kernel \"How to customize the Linux kernel\")",
+            "best_answer_author": "OKN",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I am developing a custom board using the STM32MP255F-AK.\n\nAfter configuring the kernel via menuconfig, the .config file reverts to its default state for some reason.\n\nThe custom board settings and device tree are located in `meta-st-stm32mp-addons`.\n\nI have already fetched the source code using `devtool modify virtual/kernel`.\n\nRun `bitbake -c menuconfig virtual/kernel`\n\nADIN\\_PHY was set to y\n\nThe .config file is saved in the following location:\n\nworkspace/source/linux-stm32mp/.config.new -> ~/OpenSTLinux/distpkg\\_ev1/build-openstlinuxweston-stm32mp25 -disco/tmp-glibc/work/stm32mp25\\_disco-ostl-linux/linux-stm32mp/6.6.48-stm32mp-r1/build/.config\n\nNext,\n\nI ran `bitbake virtual/kernel`\n\nThe ADIN\\_PHY=y setting remained in .config\n\nI tried running bitbake virtual/kernel again\n\nThe ADIN\\_PHY=y setting remains in .config\n\nI tried modifying the kernel's DeviceTree\n\nI ran bitbake virtual/kernel\n\nIt reverted back to “ADIN\\_PHY is not set.” Also, the build result showed that the ADIN\\_PHY driver was not included.\n\nHow can I prevent the .config file, which I modified in menuconfig, from reverting to its original state?\n\n-----------------------\n\nWe are proceeding with development by referring to ”[https://wiki.st.com/stm32mpu/wiki/How\\_to\\_create\\_your\\_own\\_machine#Create\\_a\\_customer\\_machine](https://wiki.st.com/stm32mpu/wiki/How_to_create_your_own_machine#Create_a_customer_machine \"3. Create a customer machine\")\n\n```\n\nBuild Configuration:\n\nBB_VERSION = \"2.8.0\"\n\nBUILD_SYS = \"x86_64-linux\"\n\nNATIVELSBSTRING = \"universal\"\n\nTARGET_SYS = \"aarch64-ostl-linux\"\n\nMACHINE = \"stm32mp25-ddlskt\"\n\nDISTRO = \"openstlinux-weston\"\n\nDISTRO_VERSION = \"5.0.3-snapshot-20260514\"\n\nTUNE_FEATURES = \"aarch64 crc cortexa35\"\n\nTARGET_FPU = \"\"\n\nDISTRO_CODENAME = \"scarthgap\"\n\nACCEPT_EULA_stm32mp25-disco = \"1\"\n\nGCCVERSION = \"13.%\"\n\nPREFERRED_PROVIDER_virtual/kernel = \"linux-stm32mp\"\n\n```",
+            "images": [],
+            "author": "OKN",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was able to make menuconfig permanent by following the instructions on the wiki below.</p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/Menuconfig_or_how_to_configure_kernel#Menuconfig_and_Distribution_Package\" rel=\"noopener noreferrer\" target=\"_blank\" title=\"Menuconfig or how to configure kernel\">https://wiki.st.com/stm32mpu/wiki/Menuconfig_or_how_to_configure_kernel#Menuconfig_and_Distribution_Package</a> </p><p><a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_customize_the_Linux_kernel\" rel=\"noopener noreferrer\" target=\"_blank\" title=\"How to customize the Linux kernel\">https://wiki.st.com/stm32mpu/wiki/How_to_customize_the_Linux_kernel</a> </p><p> </p></div>",
+                    "author": "OKN",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

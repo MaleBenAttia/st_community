@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "166187",
+            "publicId": "166203",
+            "title": "Using a Single SD Card for Both STM32N6 FSBL Boot and FileX File System",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/using-a-single-sd-card-for-both-stm32n6-fsbl-boot-and-filex-file-system-166203",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "SDIO-SDMMC",
+                "USB",
+                "STM32N6 series",
+                "FileX"
+            ],
+            "published_at": "2026-06-16T09:41:20+00:00",
+            "views": 97,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@Gowri\\_M ,\n\nYes, this is feasible. Here is the recommended approach:\n\n**SD card layout**\n\n* LBA 128: FSBL1 (Boot ROM default)\n\n* LBA 640: FSBL2 (Boot ROM default)\n\n* LBA 8192+: FileX partition (safe, no overlap with FSBL)\n\n**FileX and GPT**\n\n* *fx\\_media\\_open()* has no built-in GPT partition selector. If you use GPT, you need to translate the partition start offset in the storage driver. Without that, FileX treats LBA 0 as the filesystem root and may reformat unexpectedly.\n\n* The simpler and more reliable approach for embedded use is to skip GPT and use a fixed hidden-sector offset in *fx\\_media\\_format()* so FileX starts at a known LBA beyond the FSBL regions. The \"Please insert disk\" message on Windows is expected when the partition table is non-standard — it does not affect embedded operation.\n\n**Programming FSBL**\n\nSign with *STM32\\_SigningTool\\_CLI -t fsbl -hv 2.3 -nk*, then write to LBA 128 and LBA 640 via CubeProgrammer with the SDMMC external loader. The DK loader works for the DK board; custom hardware may need a matching loader for your bring-up environment.\n\nKind regards,\n\nDHIF Khaled",
+            "best_answer_author": "Khaled_DHIF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nWe are currently evaluating the possibility of booting an STM32N655X0-based custom board from an SD card and would appreciate some guidance before committing to this design.\n\n### Current Setup\n\n* MCU: STM32N655X0\n\n* Custom hardware\n\n* Currently, the FSBL is downloaded directly into RAM during development.\n\n* The FSBL then loads the application from external flash.\n\n* We would like to migrate to SD card boot.\n\n### Understanding from UM3234\n\nWhile reviewing *UM3234 - How to Proceed with Boot ROM on STM32N6 MCUs*, I found the following description (page 15):\n\n> In data transfer mode, the Boot ROM searches for two FSBL images. It first looks for a GPT header at LBA1. If GPT is present, the Boot ROM uses the GPT table to locate the FSBL images. If GPT is not found, it falls back to the default locations:\n\n>\n\n> * FSBL1: LBA 128\n\n> * FSBL2: LBA 640\n\nOur goal is to use a **single SD card** for both:\n\n1. Storing the FSBL used by Boot ROM\n\n2. Storing application data using FileX\n\n### What We Tried\n\n#### Option 1: GPT Partitioning\n\nWe partitioned the SD card as follows:\n\n* Partition 0: Reserved for FSBL\n\n* Partition 1: FAT32 file system for FileX\n\nThe partition style used was GPT.\n\nWhen opening the media using FileX:\n\n```\n\nfx_status = fx_media_open(&sdio_disk,\n\nFX_SD_VOLUME_NAME,\n\nfx_stm32_sd_driver,\n\n(VOID *)FX_NULL,\n\n(VOID *)fx_sd_media_memory,\n\nsizeof(fx_sd_media_memory));\n\n```\n\n`fx_media_open()` failed and FileX eventually reformatted the entire card.\n\nI noticed that FileX does not appear to provide a parameter to specify which partition should be mounted.\n\nAs an experiment, I modified the `FX_DRIVER_BOOT_READ` handling in `fx_stm32_sd_driver()` so that sector reads started from the offset corresponding to Partition 1 instead of LBA 0. This also reformatted the entire card.\n\n#### Option 2: Using Hidden Sectors\n\nI then experimented with the `hidden_sectors` parameter in `fx_media_format()` and configured it to reserve space at the beginning of the SD card for the FSBL region.\n\nWith this approach:\n\n* FileX formatting succeeded.\n\n* FileX file operations worked correctly.\n\nHowever, when the SD card was inserted into a PC using a card reader:\n\n* Windows detected the device as a USB Mass Storage device.\n\n* The drive letter appeared.\n\n* Opening the drive resulted in the message:\n\n`\"Please insert a disk into drive G:\"`\n\nThis makes me think that the resulting partition/file system layout may not be compatible with what Windows expects.\n\n### Questions\n\n1. Is it officially supported to use a single SD card for:\n\n* STM32N6 Boot ROM FSBL storage, and\n\n* a FileX-managed FAT file system?\n\n2. What is the recommended SD card layout for this use case?\n\n3. Does FileX support mounting a specific partition on an SD card, particularly when GPT partitioning is used?\n\n4. Is the hidden sector approach the correct method, or should a standard MBR/GPT partition table be maintained?\n\n5. Once the layout is finalized, what is the recommended way to program the FSBL image into the required sectors (for example LBA 128)?\n\n* Can the SD card external loader provided for the STM32N657-DK be used for this purpose on a custom STM32N655X0 board?\n\n* Or is another programming method recommended?\n\n### Additional Concern\n\nWe are still in the research phase and want to be certain that this approach is fully supported before proceeding.\n\nTo enable SD card boot, we will eventually need to program the corresponding OTP boot configuration. Since this operation is irreversible, we would like to validate the entire workflow before committing to that step.\n\nAny guidance, recommendations, or example implementations would be greatly appreciated.\n\nThank you.",
+            "images": [],
+            "author": "Gowri_M",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"93864\">@Gowri_M</user-mention> </p><p>Please refer to<a href=\"https://community.st.com/stm32-mcus-60/how-to-execute-code-from-the-external-serial-nor-using-the-stm32n6-146779?tid=146779&amp;fid=60\" rel=\"noreferrer\" target=\"_self\"> this article</a> as starting point. </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"93864\">@Gowri_M</user-mention> ,</p><p>Yes, this is feasible. Here is the recommended approach:</p><p><strong>SD card layout</strong></p><ul><li>LBA 128: FSBL1 (Boot ROM default)</li> <li>LBA 640: FSBL2 (Boot ROM default)</li> <li>LBA 8192+: FileX partition (safe, no overlap with FSBL)</li></ul><p><strong>FileX and GPT</strong></p><ul><li><em>fx_media_open()</em> has no built-in GPT partition selector. If you use GPT, you need to translate the partition start offset in the storage driver. Without that, FileX treats LBA 0 as the filesystem root and may reformat unexpectedly.</li> <li>The simpler and more reliable approach for embedded use is to skip GPT and use a fixed hidden-sector offset in <em>fx_media_format()</em> so FileX starts at a known LBA beyond the FSBL regions. The \"Please insert disk\" message on Windows is expected when the partition table is non-standard — it does not affect embedded operation.</li></ul><p><strong>Programming FSBL</strong><br/>Sign with <em>STM32_SigningTool_CLI -t fsbl -hv 2.3 -nk</em>, then write to LBA 128 and LBA 640 via CubeProgrammer with the SDMMC external loader. The DK loader works for the DK board; custom hardware may need a matching loader for your bring-up environment.</p><p>Kind regards, </p><p>DHIF Khaled</p></div>",
+                    "author": "Khaled_DHIF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Khaled_DHIF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

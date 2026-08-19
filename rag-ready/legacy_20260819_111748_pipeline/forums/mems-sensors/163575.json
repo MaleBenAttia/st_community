@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "163575",
+            "publicId": "163575",
+            "title": "Sensor TileBox Pro",
+            "url": "https://community.st.com/mems-sensors-48/sensor-tilebox-pro-163575",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Gyroscopes",
+                "Accelerometers",
+                "E-Compasses",
+                "MEMS Studio"
+            ],
+            "published_at": "2026-03-08T22:54:12+00:00",
+            "views": 300,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @Smithson ,\n\nThe USB data transmission limit for the Sensortile.box PRO is approximately 100 samples per second.\n\nTry creating a flow with a Bluetooth output (instead USB), then plot the accelerometer data in the app, and check that it runs at 100 Hz.\n\nThen switch the output flow to USB and test your system again.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "We want to use the Sensor TileBox pro to measure temp pressure and acceleration in structures.\n\nWe have been using some of your boards the MKI versions and they will run at a maximum of 1400 time steps per second when configured for about 2000.\n\nI have the tilebox pro exporting on the USB and picking it up with a new C# program.   See below.\n\n![Screenshot 2026-03-08 173626.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f519b6f3-55ec-e2fd-029b-e1e692d4420e.png \"Screenshot 2026-03-08 173626.png\")\n\nIt is reading at 18 cycles per second, I need to adjust the freq output, I thought I had a higher rate.\n\nit is really easy to use, but I have the Android Program setting 75 from pressure and temp and 480 for acceleration and getting 18 time steps per second.  Is this your board's limitation on exporting via the USB cable.\n\nWhere am I supposed to post this?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/08d09f85-9bd1-b863-2318-15814c62a203.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f519b6f3-55ec-e2fd-029b-e1e692d4420e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a3207c1-7568-439b-fa54-de85506aa125.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/198029f1-faa3-18e7-63f6-41b803ef5dd7.png"
+            ],
+            "author": "Smithson",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104480\">@Smithson</user-mention> ,</p>\n<p><span data-teams=\"true\">The USB data transmission limit for the Sensortile.box PRO is approximately 100 samples per second.<br/>Try creating a flow with a Bluetooth output (instead USB), then plot the accelerometer data in the app, and check that it runs at 100 Hz.<br/>Then switch the output flow to USB and test your system again.</span></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Federica:</p><p>Thank you for your response, I appreciate the effort.</p><p>I have looked at the matter based on your idea and it helped me find the cause of the error.  </p><p>I need data that will stand up in court, so being able to explain the data in the simplest possible terms is important. </p><p>Your cli_example program works fine.  I like my version, but that is personal preference and the fact that I am matching other data from other accelerometers both ST.COM and no-ST,com, means that we want a standard form of output. </p><p>The gold standard of accelerometers is the CX1, but they are very expensive, Your <a href=\"mailto:david.reynoldson@st.com\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">david.reynoldson@st.com</a></p><p>so kindly introduced me to the MKI series, we have used them for about 3 years.  We have sorted out most of the issues but not all, but as a backup to the CX1 they are useful.  </p><p>The Sensor TileBox pro is a neat step forward in technology, but the software is challenging.</p><p>The dat format was a bit of a math puzzle, but I am sure we have that sorted out, I even understand your basic time stamp algorithm.  I have no doubt I am getting from my C# program the correct acceleration output and time. </p><p>But your CSV file format has been a real challenge from the MEMS Studio. </p><p>Problem 1, you try and upload all of the different sensors to one csv file using a common time signal.  That is not possible in a applied mathematics sense.  Your sensors can run at different rates and the flow of information  also adds timing errors.  </p><p>Problem 2 you cram all of this data into a single csv file.  If run the accelerometer at about 1800 Hz, it runs fine using your main program over a USB cable at this speed.  It just saves the dat files.  But the other devices are running at 4 times the 1800 Hz for the gyro and other speeds. So MEMS Studio is trying to cram all of this data into a single time signal.  I now understand how it works, can I say simply it is a very bad idea.  </p><p>Looking at the time signal from a run this morning of 19.1 seconds.   You have steps that are not a standard distance apart, this is your algorithm adjusting for the varying measurement rates.  A sample output is shown. </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Smithson_0-1776352704387.png\" style=\"width: 686px;\"><img alt=\"Smithson_0-1776352704387.png\" height=\"580\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3a3207c1-7568-439b-fa54-de85506aa125.png\" title=\"Smithson_0-1776352704387.png\" width=\"686\"/></span></p><p>If I look at the differential timing, you can see the pattern and it is not what one expects, nor is it explained in your manuals.  This is the timing steps.  </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Smithson_1-1776352805868.png\" style=\"width: 680px;\"><img alt=\"Smithson_1-1776352805868.png\" height=\"357\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/08d09f85-9bd1-b863-2318-15814c62a203.png\" title=\"Smithson_1-1776352805868.png\" width=\"680\"/></span></p><p>If I look at the acceleration output,  your method has introduced a pseudo flat step and triangular step into the time signal, this will show up in any post FFT analysis of this data.   And it will play with the numerical integration, so beloved of engineers.  You fill up the gyro time steps with the last acceleration data and create a flattish spot. See example.  Like determining volumes from contour data, one has to make a decision, I understand this decision, I think it would be easy to improve.  </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Smithson_2-1776352917297.png\" style=\"width: 673px;\"><img alt=\"Smithson_2-1776352917297.png\" height=\"323\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/198029f1-faa3-18e7-63f6-41b803ef5dd7.png\" title=\"Smithson_2-1776352917297.png\" width=\"673\"/></span></p><p>I cannot use your mems studio, but I do not need it.  I was using it to check my program, but I am sure my program is correct, I am happy it runs at 1800 Hz over a USB cable,  I would like to get the code for the three dll's so that I can switch from g++ to Intel, I really like MSVC and I really hate using batch files to compile a program.  I know there are a lot of Linux users who love g++ and make files, but really that is so 1980's.  The datalogging code, I would like to make so it just outputs constantly, yes, there is auto-mode that is the next step.  </p><p>Great device, great support, but the csv is challenging.  You should explain it somewhere so it can be understood.   </p><p>Separate csv files would be best at constant timing intervals.  </p><p>Thanks for all the help, been a lot of fun. </p><p>John</p><p> </p><p> </p><p> </p><p> </p><p> </p></div>",
+                    "author": "Smithson",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Federica:</p><p>The quick solution to the CSV gap problems is Hermite Polynomials. Quick, dirty and rather useful, but it would be a better smoothing solution than linear. </p><p>Regards</p><p>john. </p><p> </p></div>",
+                    "author": "Smithson",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

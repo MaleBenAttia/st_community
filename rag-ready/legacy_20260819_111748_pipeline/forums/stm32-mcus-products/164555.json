@@ -1,0 +1,156 @@
+{
+    "forum": [
+        {
+            "id": "164555",
+            "publicId": "164555",
+            "title": "STM32H563ZIT6 cannot receive RS485 at high baud rates (e.g. 12 Mbaud)",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h563zit6-cannot-receive-rs485-at-high-baud-rates-e-g-12-mbaud-164555",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H5 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-04-08T07:37:31+00:00",
+            "views": 2469,
+            "reply_count": 16,
+            "best_answer": true,
+            "best_answer_content": "Thank you all for your support and valuable suggestions.\n\nI would like to briefly summarize the issue and the solution, in case it helps others in the future.\n\nInitially, when using **interrupt-based reception**, I was able to reach up to around **4 Mbaud** reliably.\n\nAfter switching to **DMA**, I was able to increase this up to **8 Mbaud**.\n\nHowever, I could never reach the **10 Mbaud** value stated in the datasheet — at that speed, I was neither able to receive nor transmit data reliably.\n\nWhile going through the datasheets more carefully, I noticed that the UART clock is **24 MHz**, and in simple terms, the achievable baud rates follow a relation like **24 / n (Mbaud)**.\n\nBased on this, I tested different baud rates again:\n\n* My device still cannot reliably communicate at **10 Mbaud**\n\n* But interestingly, it works **perfectly at 12 Mbaud**\n\nSo it seems that certain baud rates are more “naturally aligned” with the clock configuration, while others are not achievable due to divider limitations.\n\n---\n\nThanks again to everyone for the help.\n\nHave a great day!",
+            "best_answer_author": "MES98",
+            "best_answer_author_role": "",
+            "content_text": "TX works but RX interrupt not triggered\n\nHello,\n\nI am currently using a **custom board based on STM32H563ZIT6**. My goal is to establish communication over **RS485** between the STM32 and a PC (using Hterm). The system is designed to receive a command and send a response.\n\n---\n\n**Communication Details:**\n\n* Interface: RS485 (half-duplex)\n\n* PC Tool: Hterm\n\n* Converter: USB COM 485 PLUS 4\n\n* Packet size: Very small (typically 4 bytes)\n\n* Transmission interval: ≥ 300 ms\n\n---\n\n**Current Situation:**\n\n* Communication works perfectly between **115200 and 2,000,000 baud**\n\n* I am trying to increase the baud rate up to **12 Mbaud**\n\n---\n\n**Problem:**\n\nAt **12 Mbaud**:\n\n* STM32 → PC communication works correctly\n\n(I can see transmitted data on Hterm)\n\n* PC → STM32 communication does NOT work\n\n+ STM32 does not receive any data\n\n+ RX interrupt is not triggered at all\n\n+ It behaves as if no data is arriving\n\n---\n\n**Additional Notes:**\n\n* I have checked the **termination resistor**, and it seems correct\n\n* The data sent from PC is valid (verified from Hterm)\n\n* UART baud rate is configured up to **12.5 Mbaud in CubeMX**\n\n* The issue only appears at very high baud rates\n\n---\n\n**What I Suspect:**\n\n* Possible limitation of RS485 converter at high baud rates\n\n* UART sampling/timing issues at 12 Mbaud\n\n* Interrupt-based reception may not be sufficient at such speeds\n\n* Hardware limitations (signal integrity, cable, etc.)\n\n---\n\n**Questions:**\n\n1. Is it realistic to achieve **12 Mbaud over RS485** in this setup?\n\n2. Could this be a limitation of the **USB-RS485 converter**?\n\n3. Are there any specific STM32 UART settings required for such high speeds?\n\n4. Should DMA be used instead of interrupt for reliable reception?\n\n5. Are there known limitations for STM32H5 series UART at these speeds?\n\n---\n\nAny insights or similar experiences would be very helpful.\n\nThanks in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e564c8d5-fc7e-be89-6465-1d56e7f2f751.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9415e135-3759-9437-3cac-17678a44f9a9.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/285ffc19-7eda-fd34-4cda-5ff2c59f989c.png"
+            ],
+            "author": "MES98",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Thank you all for your support and valuable suggestions.</p><p>I would like to briefly summarize the issue and the solution, in case it helps others in the future.</p><p>Initially, when using <strong>interrupt-based reception</strong>, I was able to reach up to around <strong>4 Mbaud</strong> reliably.<br/>After switching to <strong>DMA</strong>, I was able to increase this up to <strong>8 Mbaud</strong>.</p><p>However, I could never reach the <strong>10 Mbaud</strong> value stated in the datasheet — at that speed, I was neither able to receive nor transmit data reliably.</p><p>While going through the datasheets more carefully, I noticed that the UART clock is <strong>24 MHz</strong>, and in simple terms, the achievable baud rates follow a relation like <strong>24 / n (Mbaud)</strong>.</p><p>Based on this, I tested different baud rates again:</p><ul><li>My device still cannot reliably communicate at <strong>10 Mbaud</strong></li><li>But interestingly, it works <strong>perfectly at 12 Mbaud</strong></li></ul><p>So it seems that certain baud rates are more “naturally aligned” with the clock configuration, while others are not achievable due to divider limitations.</p><hr/><p>Thanks again to everyone for the help.<br/>Have a great day!</p></div>",
+                    "author": "MES98",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105872\">@MES98</user-mention> and welcome to the ST community,</p>\n<p>You said the Rx interrupt is not triggering at all at 12 Mbaud but it does at lower baud rates.</p>\n<p>Are you sure there is no interrupt triggered at all? did you set a breakpoint in the Rx interrupt callback?</p>\n<p>Try also to use DMA for the reception.</p>\n<p> </p>\n<blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:\n<ol>\n<li><span>Could this be a limitation of the </span><strong><span>USB-RS485 converter</span></strong><span>?</span></li>\n</ol>\n<hr/></blockquote>\n<p>It could be.</p>\n<p>What about the RS485 transceiver you are using from STM32 side? does it support a communication up to 12MBaud?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I put a breakpoint in the UART Rx callback, and <strong>no interrupt is triggered at all</strong>.</p><p>Also, I discovered something interesting: when I connect <strong>two RS485 lines directly to each other</strong>, the STM32 is able to <strong>send and receive data at 12 Mbaud without any issues</strong>.</p><p>Based on this, I suspect that the problem is related to <strong>Windows, Hterm, or the USB COM485 PLUS 4 converter</strong>, rather than the STM32 or my code.</p></div>",
+                    "author": "MES98",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:<br/>\n<p>Based on this, I suspect that the problem is related to <strong>Windows, Hterm, or the USB COM485 PLUS 4 converter</strong>, rather than the STM32 or my code.</p>\n<hr/></blockquote>\n<p>Indeed! </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:<br/><ul><li><span>Possible limitation of RS485 converter at high baud rates</span></li></ul><p> </p><p><span>2. Could this be a limitation of the </span><strong><span>USB-RS485 converter</span></strong><span>?</span></p><hr/></blockquote><p>Have you tried using an oscilloscope to see what's actually happening on the wires - particularly at the STM32's RX pin?</p><p>That would soon show you if there's a hardware/connectivity issue ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I checked the signals with an oscilloscope, including at the STM32 RX pin, and everything looks fine.</p><p>Also, communication works without any issues up to <strong>2 Mbaud</strong>.</p></div>",
+                    "author": "MES98",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>At such high baudrates I recommend using the DMA to receive. An interrupt for each character is not fast enough. Though you should be getting interrupts.</p><p><br/>Aside from the termination resistor have you checked the bias network?</p><p><br/>Check the drive enable delay. I needed to set it to maximum to avoid corrupting the last bit. Disabling the drive too soon or too late can cause corrupted bits.</p><p> </p><p>Have you used a logic analyzer to check the signal integrity at the MCU pins?</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:<br/><ul><li><span>Communication works perfectly between </span><strong><span>115200 and 2,000,000 baud</span></strong></li><li><span>I am trying to increase the baud rate up to </span><strong><span>12 Mbaud</span></strong></li></ul><div><hr/></div><hr/></blockquote><p>Use the scope to see what's different (apart from just bit timing) between 2M and 12M baud.</p><p>Have you tried to narrow down where the failure actually starts between 2M and 12M ?</p><p>eg, try 7M - ie, halfway between 2 &amp; 12</p><ul><li>If that works, try 9.5M - ie, halfway between 7 &amp; 12</li><li>If that fails, try 4.5M - ie, halfway between 2 &amp; 7</li></ul><p>etc, etc, ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I see a huge negative going spike at the start of frame, at all baud rates.</p><p>Will this cause a problem for start detection?</p><p>Can you also check if the probe ground is connected by a very short wire to circuit ground? Not the usual long tail crocodile.</p><p> </p></div>",
+                    "author": "Kalpak",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; I see a huge negative going spike at the start of frame, at all baud rates.</em></font></p><p><span>Basically on every falling edge.<br/>I suppose this is an artifact, because the probe and the way it is attached are not appropriate for RF.</span></p><p><span>Mind you, a digital (square-wave) signal requires a bandwidth significantly higher than the bps number.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Also, those edges look rather slow</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"12MBaud.jpg\" style=\"width: 400px;\"><img alt=\"12MBaud.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9415e135-3759-9437-3cac-17678a44f9a9.jpg\" title=\"12MBaud.jpg\"/></span></p><p>As <user-mention data-id=\"48557\">@Ozone</user-mention> said, hard to tell if that's real, or an artifact of the scope and/or probe ...</p><p> </p><p><user-mention data-id=\"105872\">@MES98</user-mention> Doesn't your scope have a way to download screennshots?</p><p>That would give much better results than trying to photograph the screen!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; Also, those edges look rather slow</em></font></p><p><span>Yes, I very much agree. Although I'm not sure how the scope bandwidth, resolution and probe attachment affect this.<br/>Probably one of the lower-end scopes, with 2 channels, 8-bit resolution and around 100MHz.</span></p><p><span>I suppose your are aware of the Laplace / Fourier theorems, and the bandwidth requirement this implies. There does not seem much beyond the second harmonic present in the shown signal.</span></p><p><span> </span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"105872\">@MES98</user-mention> </p>\n<p>Just to be sure, what GPIO speed you set for the Tx and Rx pins? Did you set them to \"Very High\"?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"102075\">@Kalpak</user-mention> I don’t think it is causing a problem, but honestly I’m not sure why it appears.<br/>If it were an issue, I would expect it to also affect communication at <strong>2 Mbaud or 4 Mbaud</strong>, but those work without any problems.</p><p>Also, I am not using a long crocodile ground lead. As you suggested, I am measuring the differential lines using a <strong>very short, thin ground connection</strong>.<br/><br/><user-mention data-id=\"48557\">@Ozone</user-mention> You might be right. I don’t have very deep experience in this area, and my oscilloscope is relatively old, so the measurements might be affected by its limitations.</p><p> </p><p><user-mention data-id=\"27597\">@unsigned_char_array</user-mention> I am already measuring it in this way :(</p><p> </p><p><user-mention data-id=\"35659\">@Andrew Neil</user-mention> Unfortunately, my oscilloscope does not support direct screenshot export.<br/>However, I can capture the signal using <strong>single trigger mode</strong> and then take a picture of the screen.</p><p><br/><user-mention data-id=\"499\">@mƎALLEm</user-mention> Yes, the GPIO speed is set to <strong>Very High</strong>.<br/>You can also see it in the image I shared.<br/>There might still be a misconfiguration in other settings though.</p><p> </p><p><user-mention data-id=\"48557\">@Ozone</user-mention> </p><p>Yes, you guessed my oscilloscope quite well :D I am using a <strong>GW Instek GDS-1104S</strong>, and it does have some limitations.</p><p>By the way, the transmitted data is just a <strong>4-byte packet</strong>.<br/>What would you recommend I try next?</p><p>At the moment, I am planning to test using the <strong>LPUART peripheral</strong>, which theoretically supports much higher baud rates (up to 50 Mbaud).<br/>I will share an update if I observe any changes.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MES98_0-1775732380101.png\" style=\"width: 400px;\"><img alt=\"MES98_0-1775732380101.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e564c8d5-fc7e-be89-6465-1d56e7f2f751.png\" title=\"MES98_0-1775732380101.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MES98_1-1775732427345.png\" style=\"width: 400px;\"><img alt=\"MES98_1-1775732427345.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/285ffc19-7eda-fd34-4cda-5ff2c59f989c.png\" title=\"MES98_1-1775732427345.png\"/></span></p><p> </p></div>",
+                    "author": "MES98",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Can it be unhandled RX overrun or error condition?</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You're not so much interested in the waveform on the RS485, but rather in the signal waveform after the receiver on the STM32 side. Measure it as accurately as possible directly at the STM32's RX pin. This will help you determine whether the problem lies with the STM32 or is a signal integrity issue.<br/>If you find that the signal is fine there, use an oscilloscope to measure its actual bit rate precisely. Next, you should verify the actual speed at which the UART on the STM32 is operating (12 Mbit is already very high and may hit the \"divider\" limits). You can do this either by calculating it from the values read from the registers, or more simply by sending something (to TX) and measuring it with an oscilloscope.</p><p>BTW: The manual for the USB-COM485-PLUS2 (Version 1.3) states:<br/>\"Serial port speed up to 10Mbps\"</p></div>",
+                    "author": "Michal Dudka",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"37189\">@Pavel A.</user-mention> <user-mention data-id=\"10134\">@Michal Dudka</user-mention> <user-mention data-id=\"35659\">@Andrew Neil</user-mention> <user-mention data-id=\"499\">@mƎALLEm</user-mention>  <user-mention data-id=\"48557\">@Ozone</user-mention> Thank you for the detailed explanation.</p><p>After checking the datasheet more carefully, I realized that the maximum supported speed is actually <strong>10 Mbaud</strong>, not 12 Mbaud. However, I am currently unable to communicate reliably even at <strong>8 Mbaud</strong>.</p><p>I would like to share an important update — I believe I have finally identified the root cause of the issue.</p><p>The problem is related to a <strong>UART overrun error</strong>.</p><p>For example:</p><ul><li>At around <strong>6 Mbaud</strong>, if I send data <strong>byte by byte</strong>, the STM32 is able to receive it correctly</li><li>In that case, the data accumulates in my <strong>ring buffer</strong>, and I can process it as expected</li></ul><p>However:</p><ul><li>My actual goal is to send a <strong>4-byte packet at once</strong></li><li>At higher baud rates (<strong>6 / 8 / 10 Mbaud</strong>), this causes an overrun, and data is lost</li></ul><p>I tried increasing the <strong>RX FIFO threshold to FULL</strong>, which improved the situation slightly, but I am still only able to reliably receive up to <strong>3 bytes at once</strong></p><hr/><p><strong>Constraint:</strong></p><ul><li>I am required to use <strong>interrupt-based reception</strong></li><li>Unfortunately, using <strong>DMA is not an option</strong> in my case</li></ul><hr/><p><strong>Question:</strong></p><p>Is there any recommended way to handle high baud rate UART reception (6–10 Mbaud) using <strong>interrupts only</strong>, without causing overrun?</p><p>Are there specific FIFO, interrupt, or buffering strategies that could help in this scenario?</p><hr/><p>Any suggestions or best practices would be greatly appreciated.</p></div>",
+                    "author": "MES98",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:<br/><ul><li>I am required to use <strong>interrupt-based reception</strong></li></ul><hr/></blockquote><p>Why ?</p><p>This is exactly the kind of situation that DMA is for!</p><p>As <user-mention data-id=\"48557\">@Ozone</user-mention> said previously, \"<span><em>High interrupt loads ... can easily consume most of the available core performance</em>\". </span></p><p><span>That's why we have  DMA - to offload that burden!</span></p><p> </p><p><span>You haven't shown your code - how are you handling the interrupt?</span></p><p><span>It will probably need to be well-optimised - straight HAL probably won't hack it.</span></p><p><em><a href=\"https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413\" target=\"_blank\" title=\"How to insert source code\">How to insert source code</a></em></p><p> </p><blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:<br/><p>Is there any recommended way to handle high baud rate UART reception .</p><hr/></blockquote><p>DMA.</p><p> </p><blockquote><hr/><user-mention data-id=\"105872\">@MES98</user-mention> wrote:<br/><p> </p><p>Any suggestions or best practices </p><hr/></blockquote><p>Use DMA.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

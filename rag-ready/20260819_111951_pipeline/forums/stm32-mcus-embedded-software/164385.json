@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164385",
+            "publicId": "164385",
+            "title": "stm32n6 gpio interrupts: exti irqhandler missing",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-gpio-interrupts-exti-irqhandler-missing-164385",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "GPIO-EXTI",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-01T12:31:57+00:00",
+            "views": 313,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello!\n\nHave you checked the NVIC enabled in the GPIO config to generate interrupt?\n\nBest regards\n\nANJS",
+            "best_answer_author": "ANJS",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Dear all,\n\nI have been modifying the VENC\\_SDCard\\_ThreadX example and wanted to start some activity based on the user button, triggered by interrupt using the usual HAL + BSP helpers to init the gpio, and registering a handler function for falling flanks.\n\nSo I tried\n\n```\n\nBSP_PB_Init(BUTTON_USER1, BUTTON_MODE_EXTI);\n\n```\n\nand implemented BSP\\_PB\\_Callback().\n\nSymptom: Hitting the button turned the program to be stuck in some unrelated irqhandler (debugger name-clash -- the defaulthandler triggered), the callback has not been triggered.\n\nI had a look at the BSP implementationn and retried the same with HAL functions, same effect, this code in BSP\\_PB\\_Init() sparked my interest:\n\n```\n\n(void)HAL_EXTI_GetHandle(&hpb_exti[Button], BUTTON_EXTI_LINE[Button]);\n\n(void)HAL_EXTI_RegisterCallback(&hpb_exti[Button], HAL_EXTI_COMMON_CB_ID, ButtonCallback[Button]);\n\n```\n\nwhich registers a callback,  and further down the line in stm32n6xx-hal-driver-exti.c there is an [HAL\\_EXTI\\_IRQHandler](https://github.com/STMicroelectronics/stm32n6xx-hal-driver/blob/0a07a27bcef917fa584335212cb8e031ccfbfc8c/Src/stm32n6xx_hal_exti.c#L507)  implementation which is not called.\n\nLong story short, the example code seems to miss init code for the actual EXTIxx\\_IRQHandler.\n\n```\n\n// GPIO C13 USER button / exti channel 13\n\nvoid EXTI13_IRQHandler(void) {\n\nHAL_EXTI_ClearPending(&hpb_exti_user, EXTI_TRIGGER_FALLING);\n\nbtnCallback(); // in my code I simply perform the action needed not going through HAL\n\n}\n\n```\n\nthe IRQ handler needs a reference to the exti configuration, which the BSP code initialized:\n\n```\n\nstatic EXTI_HandleTypeDef hpb_exti_user;\n\n//... near the top of main(), after calling BSP_PB_Init():\n\nHAL_EXTI_GetHandle(&hpb_exti_user, EXTI_LINE_13); // USER\n\n```\n\nI had a look at a fresh CubeMX project, and seemingly the EXTI...IRQHandler functions are not generated.\n\nThis code works, but it is a hack - did I miss some code generator option for EXTI?\n\nThanks for some insights\n\nSimon",
+            "images": [],
+            "author": "svogl",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello!<br/>Have you checked the NVIC enabled in the GPIO config to generate interrupt?<br/>Best regards<br/>ANJS</p><div class=\"\"> </div></div>",
+                    "author": "ANJS",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ahhh, THERE it is, thanks :)</p></div>",
+                    "author": "svogl",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ANJS",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

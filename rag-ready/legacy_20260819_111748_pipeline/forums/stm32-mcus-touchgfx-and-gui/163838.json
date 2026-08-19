@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "163838",
+            "publicId": "163838",
+            "title": "How to skip download part of .elf file to internal flash?",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/how-to-skip-download-part-of-elf-file-to-internal-flash-163838",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-03-16T13:15:07+00:00",
+            "views": 316,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "As stated by  @Radosław , using NOLOAD.\n\nExample:\n\n```\n\nTextFlashSection (NOLOAD):\n\n{\n\n*(TextFlashSection TextFlashSection.*)\n\n*(.gnu.linkonce.r.*)\n\n. = ALIGN(0x4);\n\n} >Flash\n\n```",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I use touchgfx on u599 ,internal flash is 4MB.\n\nMy project have 2.4M fonts and images,so I devide internal flash to two parts,like this:\n\nRAM (xrw) : ORIGIN = 0x20000000, LENGTH = 2496K\n\nSRAM4 (xrw) : ORIGIN = 0x28000000, LENGTH = 16K\n\nFLASH (rx) : ORIGIN = 0x08000000, LENGTH = 1024K\n\nASSETSFLASH (rx) : ORIGIN = 0x08100000, LENGTH = 3096K\n\nbecause the assets are not changed everytime ,So I am thinking stop CUBEIDE to download\n\nASSETSFLASH and only download FLASH form 0x08000000.\n\nHow can I do this ?",
+            "images": [],
+            "author": "amb",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>NOLOAD  in linkerscript,  that is all You need.</p></div>",
+                    "author": "Radosław",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As stated by  <user-mention data-id=\"34154\">@Radosław</user-mention> , using NOLOAD.</p>\n<p>Example:</p>\n<pre class=\"lia-code-sample language-c\"><code> TextFlashSection (NOLOAD):\n\t{\n\t\t*(TextFlashSection TextFlashSection.*)\n\t\t*(.gnu.linkonce.r.*)\n . = ALIGN(0x4);\n\t} &gt;Flash</code></pre></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks,it works.</p></div>",
+                    "author": "amb",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

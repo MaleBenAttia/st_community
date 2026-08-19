@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "163618",
+            "publicId": "163618",
+            "title": "STM32H5xxLL_ADC.H bug in STM32Cube FW_H5 V1.6.0",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h5xxll-adc-h-bug-in-stm32cube-fw-h5-v1-6-0-163618",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H5 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-09T22:19:10+00:00",
+            "views": 501,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi @JBrown\n\nThank you for reporting the issue. An internal ticket CDM0060549 is submitted to dedicated team!",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Post edited by ST moderator to be compliant with the ST community rules especially for sharing a code.*\n\nThe latest Cube H5 package (STM32Cube FW\\_H5 V1.6.0) has broken the use of ADC2\\_INP0 with the following changes to LL\\_ADC\\_EnableChannel0\\_GPIO and LL\\_ADC\\_DisableChannel0\\_GPIO in STM32H5xxLL\\_ADC.H.\n\nPrevious,\n\n```\n\n__STATIC_INLINE void LL_ADC_EnableChannel0_GPIO(const ADC_TypeDef *ADCx)\n\n{\n\n/* Prevent unused argument(s) compilation warning */\n\n(void)(ADCx);\n\nSET_BIT(ADC1->OR, ADC_OR_OP0);\n\n}\n\n```\n\nCurrent,\n\n```\n\n__STATIC_INLINE void LL_ADC_EnableChannel0_GPIO(ADC_TypeDef *ADCx)\n\n{\n\nSET_BIT(ADCx->OR, ADC_OR_OP0);\n\n}\n\n```\n\nPrevious,\n\n```\n\n__STATIC_INLINE void LL_ADC_DisableChannel0_GPIO(const ADC_TypeDef *ADCx)\n\n{\n\n/* Prevent unused argument(s) compilation warning */\n\n(void)(ADCx);\n\nCLEAR_BIT(ADC1->OR, ADC_OR_OP0);\n\n}\n\n```\n\nCurrent,\n\n```\n\n__STATIC_INLINE void LL_ADC_DisableChannel0_GPIO(ADC_TypeDef *ADCx)\n\n{\n\nCLEAR_BIT(ADCx->OR, ADC_OR_OP0);\n\n}\n\n```\n\nAccording to the reference manual the OP0 bit is applicable to ADC1 only for control of INP0/INN1, which is consistent with the old code. However HAL\\_ADC\\_ConfigChannel() does not check that the ADC instance is ADC1 before calling LL\\_ADC\\_EnableChannel0\\_GPIO on CHANNEL\\_0, which means ADC2->OR bit OP0 is set, which is actually \"VDDCORE channel\" enable.\n\nIn current state reads of ADC2 channel 0 ADC give unexpected results; I guess ADC2-CH0 is now reading VDDCORE instead.",
+            "images": [],
+            "author": "JBrown",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Looks like someone tried to fix something that wasn't broken. The comments of the function even say this isn't available on ADC2.</p><p>Arguably, since this is LL, maybe they shouldn't be holding your hand here and you just can't call this with ADC2 as an argument. LL should not do parameter checking.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In this case, it is the HAL that is calling the LL function with the incompatible peripheral.</p><p>In stm32h5xx_hal_adc.h,</p><p>HAL_StatusTypeDef HAL_ADC_ConfigChannel(ADC_HandleTypeDef *hadc, const ADC_ChannelConfTypeDef *pConfig)</p><p> </p><p>No check is made which ADC is being passed,</p><p>if ((pConfig-&gt;Channel == ADC_CHANNEL_0)<br/>|| ((pConfig-&gt;Channel == ADC_CHANNEL_1) &amp;&amp; (pConfig-&gt;SingleDiff == ADC_DIFFERENTIAL_ENDED)))<br/>{<br/>LL_ADC_EnableChannel0_GPIO(hadc-&gt;Instance);<br/>}</p></div>",
+                    "author": "JBrown",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ah, so then it's a question of whether the bug is in HAL or in LL.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>手动修改验证，试试呢？</p></div>",
+                    "author": "full_stack",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The bug is in the LL driver.<br/>When sampling channel 0, ADC1-&gt;OR bit 0 must be set regardless of whether ADC1 or ADC2 is sampling the channel.<br/><br/>The real villain here is the reference manual documentation itself, it says:<br/><br/></p><pre class=\"lia-code-sample language-c\"><code>Bit 0 OP0: Option bit 0\nFor ADC1:\n0: INP0/INN1 GPIO switch control disabled\n1: INP0/INN1 GPIO switch control enabled\nNote: This option bit must be set to 1 when ADCx_INP0 or ADCx_INN1 channel is selected.\nFor ADC2:\n0: VDDCORE channel disabled\n1: VDDCORE channel enabled</code></pre><p>Leading you to believe that this only impacts ADC1, and not that both ADC1 and ADC2 depend on it.</p></div>",
+                    "author": "KaiY",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"42657\">@JBrown</user-mention> </p>\n<p> </p>\n<p>Thank you for reporting the issue. An internal ticket CDM0060549 is submitted to dedicated team!</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

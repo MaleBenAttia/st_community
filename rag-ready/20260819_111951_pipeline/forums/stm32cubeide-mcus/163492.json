@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "163492",
+            "publicId": "163492",
+            "title": "Assembler error after upgrade to Ver 2.1: bad instruction `rtc ldr sp,=_estack'",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/assembler-error-after-upgrade-to-ver-2-1-bad-instruction-rtc-ldr-sp-estack-163492",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-03-05T13:45:13+00:00",
+            "views": 610,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Note that everybody can see all posts - there's no need to repeat the same thing in separate replies to each person.\n\nYou can mention multiple people in a post using '@'\n\n> ---\n\n>\n\n> @erastusC wrote:\n\n>\n\n> I did a search in the C code .\n\n>\n\n> ---\n\nAs [noted above](https://community.st.com/t5/stm32cubeide-mcus/assembler-error-after-upgrade-to-ver-2-1-bad-instruction-rtc-ldr/m-p/884037/highlight/true#M41221), it's not in the C code - it's an **Assembler** error.\n\nThe error message tells you this, and identifies the file & line number where the error occurred:\n\n```\n\n../Startup/startup_stm32f411ceux.s: Assembler messages:\n\n../Startup/startup_stm32f411ceux.s:61: Error: bad instruction `rtc ldr sp,=_estack'\n\n```\n\nSo the file name is **startup\\_stm32f411ceux.s**\n\nThat file is located in the **Startup** folder\n\nThe **:61:** is the line number within the file.",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "Good day,\n\nAfter I did an upgrade to the latest version when I compile I get this error.\n\nWhere can I get documentation on this.\n\nNever did an upgrade without issues.\n\nmake -j48 all\n\narm-none-eabi-gcc -mcpu=cortex-m4 -g3 -DDEBUG -c -x assembler-with-cpp -MMD -MP -MF\"Startup/startup\\_stm32f411ceux.d\" -MT\"Startup/startup\\_stm32f411ceux.o\" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o \"Startup/startup\\_stm32f411ceux.o\" \"../Startup/startup\\_stm32f411ceux.s\"\n\n../Startup/startup\\_stm32f411ceux.s: Assembler messages:\n\n../Startup/startup\\_stm32f411ceux.s:61: Error: bad instruction `rtc ldr sp,=\\_estack'\n\nmake: \\*\\*\\* [Startup/subdir.mk:19: Startup/startup\\_stm32f411ceux.o] Error 1",
+            "images": [],
+            "author": "erastusC",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Note that everybody can see all posts - there's no need to repeat the same thing in separate replies to each person.</p><p>You can mention multiple people in a post using '@'</p><p> </p><blockquote><hr/><user-mention data-id=\"86708\">@erastusC</user-mention> wrote:<br/><p>I did a search in the C code .</p><hr/></blockquote><p>As <a href=\"https://community.st.com/t5/stm32cubeide-mcus/assembler-error-after-upgrade-to-ver-2-1-bad-instruction-rtc-ldr/m-p/884037/highlight/true#M41221\" target=\"_blank\">noted above</a>, it's not in the C code - it's an <strong>Assembler</strong> error.</p><p>The error message tells you this, and identifies the file &amp; line number where the error occurred:</p><pre><span>../Startup/startup_stm32f411ceux.s: </span>Assembler <span>messages:</span><br/><br/><span>../<font color=\"#FF0000\"><strong><font color=\"#0000FF\">Startup</font>/startup_stm32f411ceux.s<font color=\"#FF00FF\">:61</font></strong></font><font color=\"#FF00FF\">:</font> Error: bad instruction `rtc ldr sp,=_estack'</span></pre><p>So the file name is <font face=\"courier new,courier\"><span><font color=\"#FF0000\"><strong>startup_stm32f411ceux.s</strong></font></span></font></p><p>That file is located in the <font face=\"courier new,courier\"><span><font color=\"#FF0000\"><strong><font color=\"#0000FF\">Startup</font> </strong></font></span></font>folder</p><p>The <font face=\"courier new,courier\"><span><font color=\"#FF0000\"><strong><font color=\"#FF00FF\">:61:</font></strong></font></span></font> is the line number within the file.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"86708\">@erastusC</user-mention> wrote:<br/>\n<p>After I did an upgrade to the latest version when I compile I get this error.</p>\n<hr/></blockquote>\n<p>last update of what? tool? software package? which one?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Looks like \"rtc\" was typed somewhere it shouldn't have been. Maybe that window was active when you didn't expect.</p><p>Create a new project and copy the startup file to recover.</p><p>I don't think this has anything to do with upgrading STM32CubeIDE. The compiler hasn't changed. This is a compiler error. If the file is the same, it will produce the same results.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"8205\">@TDK</user-mention> wrote:<br/><p>This is a compiler error. .</p><hr/></blockquote><p>Actually, it's an <strong>Assembler</strong> error:</p><pre><span>../Startup/startup_stm32f411ceux.s: <font color=\"#FF0000\">Assembler</font> messages:</span><br/><br/><span>../Startup/startup_stm32f411ceux<font color=\"#FF0000\">.s</font>:61: Error: bad instruction `rtc ldr sp,=_estack'</span></pre><p> </p><blockquote><hr/><user-mention data-id=\"8205\">@TDK</user-mention> wrote:<br/><p>Looks like \"rtc\" was typed somewhere it shouldn't have been. </p><hr/></blockquote><p>Indeed.</p><p>I think the code should be something like this:</p><div><div><pre><span>Reset_Handler:</span><br/><strong> ldr r0, =_estack</strong><br/><span> mov sp, r0 </span><span>/* set stack pointer */</span></pre><p> </p><p> </p></div></div><blockquote><hr/><user-mention data-id=\"8205\">@TDK</user-mention> wrote:<br/><p>Maybe that window was active when you didn't expect.</p><hr/></blockquote><p>Possibly due to this long-running issue: <em><a href=\"https://community.st.com/t5/stm32cubeide-mcus/jumping-to-random-file-after-pressing-run-button/td-p/246693\" target=\"_blank\" title=\"Jumping to random file after pressing Run button\">Jumping to random file after pressing Run button</a></em></p><p><user-mention data-id=\"86708\">@erastusC</user-mention> - Specifically, <a href=\"https://community.st.com/t5/stm32cubeide-mcus/jumping-to-random-file-after-pressing-run-button/td-p/246693/page/23#:~:text=The%20real%20problem%20is%20that%20if%20you%20are%20doing%20any%20keyboard%20input%20when%20this%20happens%2C%20this%20file(s)%20obtains%20focus%20and%20receives%20the%20keystrokes.%20You%20need%20to%20carefully%20close%20these%20files%2C%20saying%20NO%20to%20the%20Save%3F%20invitation%2C%20otherwise%20you%20corrupt%20your%20project.\" target=\"_blank\">this</a>.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the pedantic correction. I'm not sure it changes the overall message.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

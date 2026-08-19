@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "163992",
+            "publicId": "163992",
+            "title": "Option to not have a GPIO port typecasted to a pointer",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/option-to-not-have-a-gpio-port-typecasted-to-a-pointer-163992",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Feature request"
+            ],
+            "published_at": "2026-03-19T14:30:13+00:00",
+            "views": 241,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @unsigned\\_char\\_array\n\nA change request **#0060932**  has been raised to dev team for feasibility check.\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Split from [Inconsistent pin naming](https://community.st.com/t5/stm32cubemx-mcus/inconsistent-pin-naming/td-p/887090 \"Inconsistent pin naming\") - this is a separate suggestion.*\n\n---\n\nI would like the option to have the define of a particular GPIO port, or all defines, not typecasted to a pointer. So only the base address as an uint32\\_t (or uintptr\\_t). This would make using it in C++ in constexpr easier. Because reinterpret\\_cast and pointer comparison is not allowed in a constant expression. This should be an additional define for backwards compatibility.\n\n```\n\n#define CLK_A_GPIO_PIN GPIO_PIN_0\n\n#define CLK_A_GPIO_PORT GPIOF\n\n#define CLK_A_GPIO_PORT_BASE GPIOF_BASE // <- for use in constexpr\n\n```\n\nIn C++ it would be much easier to do things at compile time using templates and constexpr this way. Example:\n\n* you want to create a function at compile time that sets 2 defined pins high\n\n* if they are the same port they can be combined in one call to GPIO\\_set()\n\n* if they are not the same port they need to be separate calls\n\n* no macros needed in user code, no runtime checks needed, no manual tweaks needed, just optimal code for a specific pinout",
+            "images": [],
+            "author": "unsigned_char_array",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"27597\">@unsigned_char_array</user-mention> </p>\n<p>A change request <strong>#0060932</strong>  has been raised to dev team for feasibility check.</p>\n<p>I will keep you posted with updates.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

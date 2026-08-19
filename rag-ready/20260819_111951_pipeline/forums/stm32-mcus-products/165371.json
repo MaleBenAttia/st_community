@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "165371",
+            "publicId": "165371",
+            "title": "STM32N6 Nucleo Target Not Responding After Intial Success",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32n6-nucleo-target-not-responding-after-intial-success-165371",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-05-05T04:41:01+00:00",
+            "views": 233,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I was able to find the issue which was a VSCode extension update. Specifically with the STM32 Debug Core extension. I suggest to roll back that extension as well as the Cmake Support one as I couldn't run a project with Cmake Support updated but Debug Core rolled-back.\n\nHere is a link to a post about the issue which hopefully will be resolved in the future.\n\n[Solution](https://community.st.com/t5/stm32cubeide-for-visual-studio/vscode-extension-v3-9-0-breaks-debugger/td-p/896684)",
+            "best_answer_author": "bsgursta",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi everybody.\n\nI'm currently trying to use the N6 Nucleo for a personal application but am having trouble starting the debugger after initially successes. I am using the Nx\\_TCP\\_Echo\\_Server example, and after a couple of successful iterations my debugger stopped working entirely.\n\nI am using the VSCode extension. When I start my debug session with ST-Link GDB server it will connect to the debugger, but an error will follow in the terminal as shown (\"target not responding\"). After disconnecting and re-initializing the debugger I will get the following error (\"error in intializing... please check power\"). I get the same issues after power-cycling the board. LED 2 (Red) will then remain off until I power cycle the board after the first error.\n\n![bsgursta_0-1777955391246.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da6de484-c9b0-1c75-0d7c-ac79a49817e9.png \"bsgursta_0-1777955391246.png\")\n\n![bsgursta_1-1777955450403.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42099131-089c-6e38-1a7c-22969874e90f.png \"bsgursta_1-1777955450403.png\")\n\nPrevious issues led me to believe I re-wrote the SWD lines so I connected BOOT0 to 3.3V and used the CubeProgrammer to perform a chip erase. Specifically for the external memory since to my knowledge the N6 doesn't maintain internal memory. After the chip erase and unplugging the BOOT0 jumper I'm still stuck with the same issue.\n\nIf I could be offered some guidance to remedy my problem. I still suspect issues with the SWD but I might be overlooking an architectural aspect with the board that could resolve the issue.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/da6de484-c9b0-1c75-0d7c-ac79a49817e9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/42099131-089c-6e38-1a7c-22969874e90f.png"
+            ],
+            "author": "bsgursta",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Here is the initial error for more visibility.<br/><br/>Nx_TCP_Echo_Server/Core/Src/main.c:100<br/>100 MPU_Config();<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>Target is not responding, retrying...<br/>GdbSession, Lost target connection, Exiting...<br/>Shutting down...<br/>Exit.<br/>cube has exited with code 0</p></div>",
+                    "author": "bsgursta",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was able to halt the debugger in the reset hander but once I run the code below the target is lost.</p><pre class=\"lia-code-sample language-c\"><code>mov sp, r0 /* set stack pointer */</code></pre><p>Here is the entire snippet:</p><pre class=\"lia-code-sample language-c\"><code>Reset_Handler:\nldr r0, =_sstack\nmsr MSPLIM, r0\nldr r0, =_estack\nmov sp, r0 /* set stack pointer */\n/* Call the clock system initialization function.*/\nbl SystemInit</code></pre><p> </p></div>",
+                    "author": "bsgursta",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was able to resolve the issue with the example by running it in the STMCubeIDE. I still have no idea what could be the issue as I was running the ST-Link GDB server in the IDE, just like VSCode. I never ran into the target lost issue in the IDE so I assume it's a configuration I had messed with somewhere throughout the code.</p></div>",
+                    "author": "bsgursta",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I was able to find the issue which was a VSCode extension update. Specifically with the STM32 Debug Core extension. I suggest to roll back that extension as well as the Cmake Support one as I couldn't run a project with Cmake Support updated but Debug Core rolled-back.<br/><br/>Here is a link to a post about the issue which hopefully will be resolved in the future.</p><p><a href=\"https://community.st.com/t5/stm32cubeide-for-visual-studio/vscode-extension-v3-9-0-breaks-debugger/td-p/896684\" target=\"_self\">Solution</a> </p></div>",
+                    "author": "bsgursta",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

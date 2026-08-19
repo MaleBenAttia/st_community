@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163615",
+            "publicId": "163615",
+            "title": "MotorControlWorkbench Project with ARM RTOS2 RTX5",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/motorcontrolworkbench-project-with-arm-rtos2-rtx5-163615",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "STM32 motor control",
+                "MC firmware",
+                "MC workbench"
+            ],
+            "published_at": "2026-03-09T17:40:40+00:00",
+            "views": 448,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Nicholas Yunker\\_2,\n\nWith Free Rtos disabled, SysTick is used by the Motor Control firmware and then *SysTick\\_Handler  is*already defined.\n\nThe TIM6 is the default timer used for the MCSDK Free Rtos feature, but it is configurable through MC Workbench, Application Configuration tab.",
+            "best_answer_author": "GMA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have created a project in MotorControlWorkbench version 6.4.0 with both no RTOS and FreeRTOS (by clicking the radio button in MotorControlWorkbench) and gotten it to work successfully on my custom hardware based on the EVLServo1 eval kit.  However, because I use he Keil toolchain I would prefer to use RTOS2 RTX5 for my RTOS instead.  I have managed to create the project with MotorControlWorkbench (with no FreeRTOS) and then when I open it in Keil I go into the Manage RunTime Environment and enable the RTOS2 RTX5 RTOS.  This adds a number of files to the project.  I have worked through a number of compilation errors and am now getting one last error:\n\n*Error: L6200E: Symbol SysTick\\_Handler multiply defined (by irq\\_armv7m.o and stm32\\_mc\\_common\\_it.o).*\n\nI understand this to mean that RTOS2 RTX5 has a SysTick\\_Handler of it's own and so does the HAL libraries created by MotorControlWorkbench and I need to switch one of them over to use a hardware timer like TIM6 instead.  Everywhere I've read recommends switching HAL over to TIM6 but with the motor control libraries it appears that they use this IRQ handler to run the motor software.  Can anyone tell me exactly what I need to do resolve this error?",
+            "images": [],
+            "author": "Nicholas Yunker_2",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"37793\">@Nicholas Yunker_2</user-mention>,</p>\n<p>With Free Rtos disabled, SysTick is used by the Motor Control firmware and then <em>SysTick_Handler<span>  is </span></em>already defined.<br/><span>The TIM6 is the default timer used for the MCSDK Free Rtos feature, but it is configurable through MC Workbench, Application Configuration tab.</span></p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My plan was to use RTOS2 RTS5 instead of FreeRTOS.  I would like to configure the MotorControl software to use Tim6 instead of either FreeRTOS OR SysTick_Handler.</p></div>",
+                    "author": "Nicholas Yunker_2",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

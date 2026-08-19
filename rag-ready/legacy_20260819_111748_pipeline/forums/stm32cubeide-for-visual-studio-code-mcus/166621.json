@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "166597",
+            "publicId": "166621",
+            "title": "[Bug] Can't use LTO (-flto) on macOS, because GNU Tools for STM32 is located in \"Application Support\" folder which contains a space",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/bug-can-t-use-lto-flto-on-macos-because-gnu-tools-for-stm32-is-located-in-application-support-folder-which-contains-a-space-166621",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "Bug-report"
+            ],
+            "published_at": "2026-07-02T10:38:32+00:00",
+            "views": 93,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "​@Cartu38 OpenDev Yep, that worked perfectly! Thank you!\n\nyou can change it in command line with:\n\n```\n\ncube --set cube_bundle_path <path>\n\n```\n\nand check:\n\n```\n\ncube --get-current-value cube_bundle_path\n\n```\n\nMNA\n\n[https://community.st.com/stm32cubeide%2Dfor%2Dvisual%2Dstudio%2Dcode%2Dmcus%2D133/stm32%2Dvscode%2Dclangd%2Dnot%2Dworking%2Dunder%2Dwindows%2Dwith%2Dspace%2Din%2Duser%2Dfolder%2D161573?postid=728022#post728022](https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/stm32-vscode-clangd-not-working-under-windows-with-space-in-user-folder-161573?postid=728022#post728022)",
+            "best_answer_author": "Motla1",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Create a new project on macOS using STM32CubeIDE for VSCode.\n\nIn the CMakeLists.txt file, add:\n\n```\n\nadd_link_options(-flto=auto -ffat-lto-objects)\n\n```\n\nBuild the project.\n\nYou should get a linker error like this, because GNU Tools for STM32 is located in the “Application Support” folder which contains a space, so lto-wrapper can’t manage to access its dependencies:\n\n```\n\n[build] Linking C executable core_mcu_firmware.elf\n\n[build] make[3]: /Users/romain/Library/Application: Permission denied\n\n[build] make[3]: /Users/romain/Library/Application: Permission denied\n\n[build] make[3]: *** [/var/folders/hb/49ldjdz961l9dtpyqq8dqhcr0000gn/T//ccLALceE.ltrans1.ltrans.o] Error 1\n\n[build] make[3]: *** Waiting for unfinished jobs....\n\n[build] make[3]: *** [/var/folders/hb/49ldjdz961l9dtpyqq8dqhcr0000gn/T//ccLALceE.ltrans0.ltrans.o] Error 1\n\n[build] lto-wrapper: fatal error: make returned 2 exit status\n\n[build] compilation terminated.\n\n[build] /Users/romain/Library/Application Support/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/bin/ld: error: lto-wrapper failed\n\n[build] collect2: error: ld returned 1 exit status\n\n```",
+            "images": [],
+            "author": "Motla1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"26339\">@Motla1</user-mention> <br/>Maybe clue is to locate yourself bundles repository to a more convinient place. See </p><oembed url=\"https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/stm32-vscode-clangd-not-working-under-windows-with-space-in-user-folder-161573\"></oembed><p> </p></div>",
+                    "author": "Cartu38 OpenDev",
+                    "role": "Graduate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"27674\">@Cartu38 OpenDev</user-mention> Yep, that worked perfectly! Thank you!</p><content-quote data-username=\"MNASTM\"><div class=\"content-quote-content\"> <p>you can change it in command line with: </p> <pre><code>cube --set cube_bundle_path &lt;path&gt;</code></pre> <p>and check: </p> <pre><code>cube --get-current-value cube_bundle_path</code></pre> <p> </p> <p>MNA</p> </div></content-quote><p><a href=\"https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/stm32-vscode-clangd-not-working-under-windows-with-space-in-user-folder-161573?postid=728022#post728022\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">https://community.st.com/stm32cubeide%2Dfor%2Dvisual%2Dstudio%2Dcode%2Dmcus%2D133/stm32%2Dvscode%2Dclangd%2Dnot%2Dworking%2Dunder%2Dwindows%2Dwith%2Dspace%2Din%2Duser%2Dfolder%2D161573?postid=728022#post728022</a></p></div>",
+                    "author": "Motla1",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "164886",
+            "publicId": "164886",
+            "title": "Strange Core Debug Unit behavior -- writes to DEMCR fail",
+            "url": "https://community.st.com/stm32-mcus-products-25/strange-core-debug-unit-behavior-writes-to-demcr-fail-164886",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L4 series"
+            ],
+            "published_at": "2026-04-18T21:12:55+00:00",
+            "views": 198,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Case is solved.  Went back through the BOM and found the wrong part number for the reset capacitor -- 1uf vs 0.1uf.  Waiting (a lot) longer after deasserting reset enabled my communication software to work as expected.  An embarrassing and difficult error to diagnose.",
+            "best_answer_author": "Geoffrey1",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I've built at least a dozen boards using the same communication interface -- a custom debug monitor for communication through stlink -- all on stm32l42x processors. The debug monitor looks roughly like the following code. Although the macros are for ChibiOS, their purpose should be clear.\n\nBasically, the host software, after attaching to the debug interface, communicates by passing small commands through DCRDR and getting 32 bit results (which may be memory addresses) in DCRDR.  The DEMCR is used for triggering the monitor interrupt and the MON\\_REQ bit is used as a semaphore.\n\nThis has worked great until now.  I received prototypes of a new design.  Reading/writing of DCRDR works fine, but writes to DEMCR have no effect.  I can debug the code on the board with gdb, and I can write test code that triggers the monitor interface running on the board and even stop in the monitor with a breakpoint, but I don't seem to be able to write a value to DEMCR through stlink that triggers the monitor.   The same code works on an earlier prototype board (I debug on something that looks like custom nucleo) with exactly the same external peripherals with the same pin configurations.\n\nThe actual board that is failing to thrive is a tiny data logger --  0.2g 9x20mm -- so there are no pins beyond the stlink interface.\n\nI'm at a loss on how to diagnose the problem and am looking for suggestions on what may be causing this behavior.\n\n```\n\nCH_IRQ_HANDLER(DebugMon_Handler) {\n\nCH_IRQ_PROLOGUE();\n\nuint32_t input = (CoreDebug->DCRDR);\n\nuint8_t operation = (input & 0xff);\n\nint operand = (input >> 8);\n\nuint32_t demcr = CoreDebug->DEMCR\n\nif ((demcr & CoreDebug_DEMCR_MON_REQ_Msk)) {\n\nswitch (operation) {\n\ncases ...\n\ndefault:\n\n(CoreDebug->DEMCR) = demcr & ~CoreDebug_DEMCR_MON_REQ_Msk;\n\nbreak;\n\n}\n\n}\n\nCH_IRQ_EPILOGUE();\n\n}\n\n```",
+            "images": [],
+            "author": "Geoffrey1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"34438\">@Geoffrey1</user-mention> </p>\n<p>Can you halt the CPU using CubeProgrammer? </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Case is solved.  Went back through the BOM and found the wrong part number for the reset capacitor -- 1uf vs 0.1uf.  Waiting (a lot) longer after deasserting reset enabled my communication software to work as expected.  An embarrassing and difficult error to diagnose.</p></div>",
+                    "author": "Geoffrey1",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

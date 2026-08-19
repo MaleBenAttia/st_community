@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164568",
+            "publicId": "164568",
+            "title": "TouchGFX: Visual artifacts and ghosting on Scroll Wheel (STM32F767)",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/touchgfx-visual-artifacts-and-ghosting-on-scroll-wheel-stm32f767-164568",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "DMA2D",
+                "TouchGFX"
+            ],
+            "published_at": "2026-04-08T13:16:38+00:00",
+            "views": 339,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello Trampler,\n\nBased on your video, I think it looks like you are missing some screen area validation in you GUI code. When you do standard animations in TouchGFX, like e.g. scrolling a list, the framework knows that it needs to redraw the relevant area in the framebuffer. But when you manually manipulates widgets in GUI code, like changing the color of your text area, you need manually tell the framework to redraw this area. This is normally done by calling the invalidate method for the relevant widget, e.g.: myTextArea.invalidate().\n\nFor testing, you can try just directly calling invalidate() every tick or everytime you change something. This will invalidate the entire and thereby quickly reveal if the issue is related to invalidation. This should however only be used for testing, since redrawing the entire screen all the time can slow done performance a lot.\n\nBest regards\n\nPeter",
+            "best_answer_author": "PeterVang",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone,\n\nI am developing a UI using TouchGFX on a custom board based on the **STM32F767**. I am encountering visual artifacts during screen updates.\n\nAs seen in the attached video:\n\n1. In the date selection wheel, the text overlaps, tears, and leaves ghosting artifacts during scrolling.\n\n2. The first menu (\"Date & Time\", \"Language\" etc.) is inside a ScrollableContainer with a ListLayout. Initially, the text is corrupted. However, **as soon as I scroll this container, the artifacts disappear completely** and the screen draws correctly.\n\n**System Info:**\n\n* **MCU:** STM32F767\n\n* **GUI:** TouchGFX (Version: *[Sürüm]* )\n\n* **Memory:** Framebuffer is located in *[SDRAM vb.]*\n\n* **Configuration:** MPU is **ENABLED**, D-Cache is ENABLED.\n\nWhat could be causing this issue? Any suggestions on which configurations or settings I should check?\n\nThank you!",
+            "images": [],
+            "author": "Trampler",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Any suggestions on this? Still looking for a solution. Thanks in advance!</p></div>",
+                    "author": "Trampler",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>GPT says:</p><p>this is a <strong>very typical TouchGFX issue</strong>, and the symptoms you describe point quite strongly to <strong>framebuffer / cache / invalidation problems</strong>, not a widget bug.</p><p>Let’s decode your two observations:</p><hr/><h2 id=\"toc-hId-1824706434\">What your symptoms mean</h2><h3 id=\"toc-hId--923964032\">1. “Text overlaps / tears / ghosting during scrolling”</h3><p>Classic sign of:</p><ul><li><strong>framebuffer not being fully updated</strong></li><li>or <strong>DMA / CPU writing out of sync</strong></li></ul><hr/><h3 id=\"toc-hId-818846303\">2. “Artifacts disappear after scrolling once”</h3><p>This is the big clue.</p><p>It usually means:</p><blockquote><p>The screen is <strong>not properly initialized or invalidated</strong>, and scrolling forces a full redraw → fixing it temporarily.</p></blockquote><hr/><h1 id=\"toc-hId--1340283648\">Most likely causes (ranked)</h1><h2 id=\"toc-hId-206013182\">1. D-Cache issue (VERY common on STM32F767)</h2><p>The F7 has <strong>data cache</strong>, and TouchGFX uses DMA.</p><p>If you don’t manage cache properly:</p><ul><li>CPU writes to framebuffer → stays in cache</li><li>DMA reads old data → artifacts / ghosting</li></ul><h3 id=\"toc-hId-1752310012\">Fix</h3><p>You must ensure <strong>cache clean</strong> before DMA reads framebuffer:</p><p>Typical places:</p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><span class=\"\">SCB_CleanDCache_by_Addr</span><span>(...)</span></div></div></div></div></div></div></div></div></div></div></div></div><p>Or enable TouchGFX cache handling:</p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><span class=\"\">#define USE_BPP 16 </span><span class=\"\">// example</span></div></div></div></div></div></div></div></div></div><div class=\"\"><div class=\"\"> </div></div></div></div></div><p>Also check:</p><ul><li>framebuffer in <strong>AXI SRAM</strong> (not DTCM!)</li><li>cache maintenance enabled in BSP</li></ul><hr/><h2 id=\"toc-hId--603333444\">2. Framebuffer location (critical)</h2><p>If framebuffer is in:</p><ul><li>DTCM → DMA cannot access it properly</li><li>wrong SRAM region → corruption</li></ul><p>It should be in:</p><ul><li>AXI SRAM (e.g. 0x20010000 region)</li></ul><hr/><h2 id=\"toc-hId-1139476891\">3. Missing / incorrect invalidation</h2><p>TouchGFX relies on <strong>dirty rectangles</strong>.</p><p>If something isn’t invalidated:</p><ul><li>old pixels remain → ghosting</li><li>scrolling forces redraw → fixes it</li></ul><h3 id=\"toc-hId--1609193575\"> Check:</h3><ul><li>custom widgets calling invalidate()</li><li>dynamic text updates</li></ul><hr/><h2 id=\"toc-hId-330130265\">4. Double buffering not configured properly</h2><p>If using:</p><ul><li>single buffer → tearing possible</li><li>double buffer → must sync correctly</li></ul><p>Check:</p><ul><li>LTDC line event</li><li>buffer swap timing</li></ul><hr/><h2 id=\"toc-hId--1336750131\">5. LTDC / DMA2D sync issue</h2><p>If LTDC reads while DMA2D writes:<br/>→ tearing / partial updates</p><p>Ensure:</p><ul><li>proper use of:<ul><li>HAL_LTDC_ProgramLineEvent</li><li>VSYNC synchronization</li></ul></li></ul><hr/><h1 id=\"toc-hId--2091955733\"> Why scrolling “fixes” it</h1><p>Scrolling a ScrollableContainer:</p><ul><li>invalidates entire region</li><li>forces full redraw</li><li>flushes bad framebuffer state</li></ul><p>That’s why it suddenly looks correct</p><hr/><h1 id=\"toc-hId--349145398\">What I would check first (fast checklist)</h1><ol><li><strong>Framebuffer location</strong><ul><li>NOT in DTCM</li><li>in AXI SRAM</li></ul></li><li><strong>Cache enabled?</strong><ul><li>If yes → are you cleaning it?</li></ul></li><li><strong>TouchGFX config</strong><ul><li>FrameBufferAllocator</li><li>HAL::flushFrameBuffer()</li></ul></li><li><strong>Linker script</strong><ul><li>correct memory region</li></ul></li></ol><hr/><h1 id=\"toc-hId-1393664937\">Most likely root cause (based on your exact symptoms)</h1><blockquote><p>:warning:<strong>D-Cache not cleaned before LTDC/DMA reads framebuffer</strong></p></blockquote><p>This EXACT pattern:</p><ul><li>corrupted initially</li><li>fixed after interaction<br/>→ screams cache coherency issue on F7</li></ul><h1 id=\"toc-hId--1158492024\">Typical fix approach</h1><p>In TouchGFX HAL:</p><p> </p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><span class=\"\">void</span> <span class=\"\">TouchGFXHAL</span><span>::</span><span class=\"\">flushFrameBuffer</span><span>(</span><span class=\"\">const</span> <span class=\"\">touchgfx</span><span>::</span><span class=\"\">Rect</span><span class=\"\">&amp;</span> <span class=\"\">rect</span><span>)</span><br/><span>{</span><br/><span class=\"\">SCB_CleanDCache</span><span>();</span><br/><span>}</span></div></div></div></div></div></div></div></div></div></div></div></div><hr/><h1 id=\"toc-hId-584318311\">Bottom line</h1><ul><li>This is almost certainly <strong>not a UI bug</strong></li><li>It’s a <strong>memory/cache/sync issue</strong></li><li>On F7, <strong>D-cache + framebuffer placement</strong> is the #1 suspect</li></ul></div>",
+                    "author": "ferro",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Trampler,</p><p>Based on your video, I think it looks like you are missing some screen area validation in you GUI code. When you do standard animations in TouchGFX, like e.g. scrolling a list, the framework knows that it needs to redraw the relevant area in the framebuffer. But when you manually manipulates widgets in GUI code, like changing the color of your text area, you need manually tell the framework to redraw this area. This is normally done by calling the invalidate method for the relevant widget, e.g.: myTextArea.invalidate().</p><p>For testing, you can try just directly calling invalidate() every tick or everytime you change something. This will invalidate the entire and thereby quickly reveal if the issue is related to invalidation. This should however only be used for testing, since redrawing the entire screen all the time can slow done performance a lot.</p><p>Best regards</p><p>Peter</p></div>",
+                    "author": "PeterVang",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>Thank you so much for your help! You were spot on—adding the invalidation fixed the issue completely.</p><p>For now, I think I will keep the code as is. The screens where I encountered this problem are quite simple and don't have many elements, so the performance impact is minimal. However, I'll definitely keep your advice in mind and look into using specific rectangle invalidation (invalidateRect) in the future if I need to optimize.</p><p>Thanks again for taking the time to share your insight!</p></div>",
+                    "author": "Trampler",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PeterVang",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "163824",
+            "publicId": "163824",
+            "title": "Sharing my repo - Apply Tiny Vision Transformer on STM32N6",
+            "url": "https://community.st.com/edge-ai-134/sharing-my-repo-apply-tiny-vision-transformer-on-stm32n6-163824",
+            "category": "Edge AI",
+            "tags": [
+                "STM32N6 series",
+                "Neural-ART Accelerator"
+            ],
+            "published_at": "2026-03-16T07:34:23+00:00",
+            "views": 240,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @mincho00,\n\nThank you for sharing.\n\nI will show this to my colleague working on the compiler. It may be useful for them.\n\nHave a good day,\n\nJulian",
+            "best_answer_author": "Julian E.",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I've implemeted a vision transformer for STM32N6 NPU.\n\nRepository: <https://github.com/minchoCoin/stm32n6-transformer>\n\nBatchMatmul operator is not yet supported on NPU and run on the CPU, but it is much faster than STM32H7(inference time was reduced by about 90% than STM32H7) because fully connected layer and convolutions is executed on NPU.\n\nVision Transformer for STM32N6 NPU has three differences from the original ViT(A. Dosovitskiy et al., 2020)\n\n1. Patch Embedding (PE) is configured to be performed in the pre-processing process before model input: Because if the model has PE and self attention, it is not possible to interpret the model structure using STEdgeAI (I don't know why yet...)\n\n2. Remove bias parameter from Fully Connected layer or change fully connected layer to 1x1 Conv2D:  fully connected layer of onnx should have 2-dimensional input. however, fully connected layer of ViT has 3 dimensional input(batch,patch,embedding), so compiler removed the batch axis, and make patch axis as batch axis. however, an error occured when batch size is not 1 and the fully connected layer has bias.\n\n3. Use ReLU activation function for MLP: because TFLite GELU is not supported\n\nFor detailed information, please refer the PPT: <https://github.com/minchoCoin/stm32n6-transformer/blob/main/assets/stm32n6_transformer.pdf>",
+            "images": [],
+            "author": "mincho00",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"99403\">@mincho00</user-mention>,</p>\n<p> </p>\n<p>Thank you for sharing.</p>\n<p>I will show this to my colleague working on the compiler. It may be useful for them.</p>\n<p> </p>\n<p>Have a good day,</p>\n<p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

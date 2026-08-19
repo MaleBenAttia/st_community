@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "165694",
+            "publicId": "165694",
+            "title": "generated CMakeLists.txt for STM32WBA25 BLE projects fails to link",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/generated-cmakelists-txt-for-stm32wba25-ble-projects-fails-to-link-165694",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32WB series"
+            ],
+            "published_at": "2026-05-14T13:48:29+00:00",
+            "views": 210,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@oriinbar\n\nThis issue has been fixed in the latest version of STM32CubeMX 6.18.0\n\nDownload STM32CubeMX6.18.0 from [this link.](https://www.st.com/en/development-tools/stm32cubemx.html)\n\nRegards,\n\nSouhaib",
+            "best_answer_author": "Souhaib MAZHOUD",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "missing --start-group around WBA2\\_LinkLayer\\_BLE\\_Full\\_lib.\n\n**Environment**\n\n* STM32CubeMX version: 6.17.0\n\n* STM32CubeWBA firmware package: 1.9.0\n\n* Target device: STM32WBA25CG (NUCLEO-48 board)\n\n* Toolchain: GNU Tools for STM32 14.3.1+st.2 (arm-none-eabi-gcc/ld)\n\n* Build system: CMake (toolchain selected via \"CMake\" in CubeMX project settings)\n\n* Host OS: Windows 11\n\n**Steps to reproduce**\n\n1. Create a new STM32CubeMX project for STM32WBA25 (NUCLEO board).\n\n2. Enable BLE (peripheral role, BLE\\_Full stack).\n\n3. In Project Manager → Toolchain/IDE, select **CMake**.\n\n4. Generate code.\n\n5. Build with the generated CMakeLists (e.g. cube-cmake --build build/Debug).\n\n**Expected** Build links cleanly.\n\n**Actual** Link fails with:\n\n```\n\nld.exe: stm32wba_ble_stack_full.a(le_ctrl.o): in function `LECTRL_LL_Init':\n\nle_ctrl.c:(.text.LECTRL_LL_Init+0xa): undefined reference to `ll_ble_events_init'\n\nld.exe: (ll_ble_events_init): Unknown destination type (ARM/Thumb) in\n\nstm32wba_ble_stack_full.a(le_ctrl.o)\n\nle_ctrl.c:(.text.LECTRL_LL_Init+0xa): dangerous relocation: unsupported relocation\n\n```\n\n**Root cause** The generated cmake/stm32cubemx/CMakeLists.txt emits the BLE archives in this order in MX\\_LINK\\_LIBS:\n\n```\n\nset(MX_LINK_LIBS\n\n:WBA2_LinkLayer_BLE_Full_lib.a\n\n:stm32wba_ble_stack_full.a\n\n...\n\n)\n\n```\n\nwhich produces the link line:\n\n```\n\n... -l:WBA2_LinkLayer_BLE_Full_lib.a -l:stm32wba_ble_stack_full.a -lm\n\n```\n\nThe two archives are mutually dependent:\n\n* stm32wba\\_ble\\_stack\\_full.a (le\\_ctrl.o) → LECTRL\\_LL\\_Init → references ll\\_ble\\_events\\_init\n\n* WBA2\\_LinkLayer\\_BLE\\_Full\\_lib.a (ll\\_ble\\_events.o) → defines ll\\_ble\\_events\\_init → references ll\\_sys\\_ble\\_cntrl\\_init (defined in project sources / ll\\_sys\\_startup.c)\n\nGNU ld only scans static archives in the order they appear and does not re-scan earlier archives by default. When stm32wba\\_ble\\_stack\\_full.a is processed and pulls in le\\_ctrl.o, the new undefined reference to ll\\_ble\\_events\\_init cannot be resolved because the link-layer archive has already been scanned. The follow-up Unknown destination type (ARM/Thumb) is a secondary error from ld attempting to emit an interworking veneer to a still-unresolved symbol.\n\nI confirmed ll\\_ble\\_events\\_init is present and defined in WBA2\\_LinkLayer\\_BLE\\_Full\\_lib.a (arm-none-eabi-nm shows T ll\\_ble\\_events\\_init, size 8 bytes — a small Thumb-2 trampoline into ll\\_sys\\_ble\\_cntrl\\_init). So this is purely a link-ordering bug, not a missing-library issue.\n\n**Suggested fix in the CubeMX CMake template** Wrap the two BLE archives in --start-group/--end-group so ld re-scans until all references are resolved:\n\n```\n\nset(MX_LINK_LIBS\n\n-Wl,--start-group\n\n:WBA2_LinkLayer_BLE_Full_lib.a\n\n:stm32wba_ble_stack_full.a\n\n-Wl,--end-group\n\nSTM32_Drivers\n\n${TOOLCHAIN_LINK_LIBRARIES}\n\nUtilities STM32_WPAN Common\n\n)\n\n```\n\n(Or, for CMake ≥ 3.24, use $<LINK\\_GROUP:RESCAN,...>.) Simply swapping the order works for this specific symbol chain too, but the group is robust against any future circular dependency between the link-layer and BLE-stack archives. The IAR/MDK/Makefile templates appear unaffected because of how they emit the link command.\n\n**Workaround** Manually edit cmake/stm32cubemx/CMakeLists.txt after each regeneration to add the --start-group/--end-group flags.",
+            "images": [],
+            "author": "oriinbar",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106966\">@oriinbar</user-mention> </p>\n<p>Could you please provide your ioc in order to investigate the issue?</p>\n<p>KR, Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>sure - see attached.</p><p>i simply tried to follow your hands on video.</p></div>",
+                    "author": "oriinbar",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106966\">@oriinbar</user-mention> </p>\n<p>Thank you for sharing your feedback and the workaround. We truly appreciate your helpful explanation. This issue has already been escalated internally to the dedicated team and tracked by <em>Internal ticket number: CDM0059620 </em><em>(This is an internal tracking number and is not accessible or usable by customers.)</em></p>\n<p>A fix will be implemented in the upcoming releases of STM32CubeMX.</p>\n<p>BR, Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"106966\">@oriinbar</user-mention> </p><p>This issue has been fixed in the latest version of STM32CubeMX 6.18.0 </p><p>Download STM32CubeMX6.18.0 from <a href=\"https://www.st.com/en/development-tools/stm32cubemx.html\" rel=\"noopener noreferrer\" target=\"_blank\">this link.</a> </p><p>Regards,</p><p>Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

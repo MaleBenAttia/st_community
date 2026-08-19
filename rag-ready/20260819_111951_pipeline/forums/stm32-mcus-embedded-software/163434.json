@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "163434",
+            "publicId": "163434",
+            "title": "calling NVIC_SystemReset() in the os task will trigger hard fault",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/calling-nvic-systemreset-in-the-os-task-will-trigger-hard-fault-163434",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G4 series"
+            ],
+            "published_at": "2026-03-04T13:59:27+00:00",
+            "views": 431,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Do your RTOS tasks run in non-privileged mode? Then of course NVIC\\_SystemReset() will cause a fault.\n\n>  so what is the proper way to call NVIC\\_SystemReset() in the os task?\n\nMaybe, do this in SVC handler and make the task execute SVC. Or just leave it as is.",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "When I calling NVIC\\_SystemReset() in the os task, the system will enter into hard fault handler error, so I have to call NVIC\\_SystemReset() again in the HardFault\\_Handler() to reset the system, so what is the proper way to call NVIC\\_SystemReset() in the os task?\n\n![st_code.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/796a411f-6145-6fcd-946c-bd14e0c5f0cf.png \"st_code.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/796a411f-6145-6fcd-946c-bd14e0c5f0cf.png"
+            ],
+            "author": "xyxiao82",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>NVIC_SystemReset() is one correct way to reset the chip.  Calling this from a task as opposed to the main thread should not cause issues.</span></p><p><span>If a hardfault occurs, I recommend finding the root cause and solving that. STM32CubeIDE has a hard fault analyzer that could be used.</span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The root cause of hardfault is \"Precise Data Bus Error\", and the <span>BFAR register is </span>0xE000ED0C which is <span>SCB-&gt;AIRCR register (the reset register). </span></p><p><span>The root cause of my problem is that I run NVIC_SystemReset() under non-privileged mode, so I change the task mode to privileged mode to solve this problem.</span></p><p>Thank you for your support.</p></div>",
+                    "author": "xyxiao82",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As <user-mention data-id=\"8205\">@TDK</user-mention> said, you should find out what's causing the Hard Fault:</p><p><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/tac-p/708193/highlight/true#M51\" target=\"_blank\"><em>Debugging Cortex-M Hard Faults</em></a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Do your RTOS tasks run in non-privileged mode? Then of course <span>NVIC_SystemReset() will cause a fault.</span></p><p>&gt; <span> so what is the proper way to call NVIC_SystemReset() in the os task?</span></p><p>Maybe, do this in SVC handler and make the task execute SVC. Or just leave it as is.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, you are right. The os task is running in the non-privileged mode. <span class=\"\">As the OS has taken over the<span> </span></span>SVC_Handler<span class=\"\">, I configured the OS task to run in<span> </span></span><strong><span class=\"\">Privileged Mode</span></strong><span class=\"\"><span> </span>instead.</span></p><p><span class=\"\">Thank you for the help.</span></p><p> </p></div>",
+                    "author": "xyxiao82",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

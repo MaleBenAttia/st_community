@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "167051",
+            "publicId": "167070",
+            "title": "Issue regarding the failure of memory-mapped functionality on STM32N657X0H3Q",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/issue-regarding-the-failure-of-memory-mapped-functionality-on-stm32n657x0h3q-167070",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32N6 series",
+                "External memory",
+                "XSPI"
+            ],
+            "published_at": "2026-07-20T04:04:55+00:00",
+            "views": 58,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "it’s has been solved. the reason of this problem is the speed of XSPI is to high for my PCB’s designation. When i made a test that it not include memory-mapped mode, in fact, the speed of XSPI is 50MHz,not 200MHz。",
+            "best_answer_author": "jungle_bert",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I currently have two boards equipped with different specific models of N6, namely STM32N647X0H3Q and STM32N657X0H3Q. I have an IDE project for testing the memory-mapped functions of each of these two chips.\n\nThe problem lies in that this project can be implemented on the STM32N647X0H3Q in a manner similar to:\n\n```\n\ndata = *(volatile uint8_t *)0x70100000;\n\n```\n\nSuch code reads the content from the external FLASH. However, on the STM32N657X0H3Q, it is impossible to read. The specific manifestation is that when I run this line of code in the debug mode, the program directly jumps to\n\n```\n\nvoid SysTick_Handler(void)\n\n```\n\nand the debugging connection is disconnected, as shown in the following figure.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5f7b0a45-2209-4489-9644-d5173a6d786e.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5eaf0b01-1ab9-4d97-93d7-c7d80263c132.png)\n\nI have wondered whether it was an issue with the external FLASH soldering, or a problem with the PCB traces (my two circuit boards were not produced on the same PCB. The circuit board with STM32N647X0H3Q was purchased from the internet, while the one with STM32N657X0H3Q was designed based on the schematic diagram of the N647 board). However,... My external FLASH is MX25UM25645GXDI00 and it communicates via XSPI2. Then I did not use memory\\_mapped to access the internal data of the flash. Therefore, I conducted simulations on the following code.\n\n```\n\nuint32_t test_address = 0x01000000;   // 16MBlocation\n\nuint8_t write_buf[16] =\n\n{\n\n0xA5, 0x5A, 0x11, 0x22,\n\n0x33, 0x44, 0x55, 0x66,\n\n0x77, 0x88, 0x99, 0xAA,\n\n0xBB, 0xCC, 0xDD, 0xEE\n\n};\n\nuint8_t read_buf[16] =\n\n{\n\n0\n\n};\n\nNORFlash_StatusTypeDef erase_status;\n\nNORFlash_StatusTypeDef write_status;\n\nNORFlash_XSPI_StatusTypeDef read_status;\n\n/*\n\n* 1. Erase one sector\n\n*/\n\nerase_status =\n\nNORFlash_EraseSector(\n\nNORFlashObject,\n\ntest_address,\n\nNORFlashObject->Information.SectorSize\n\n);\n\nvolatile NORFlash_StatusTypeDef debug_erase_status =\n\nerase_status;\n\n/*\n\n* 2. Write 16 bytes\n\n*/\n\nwrite_status =\n\nNORFlash_Write(\n\nNORFlashObject,\n\ntest_address,\n\nwrite_buf,\n\nsizeof(write_buf)\n\n);\n\nvolatile NORFlash_StatusTypeDef debug_write_status =\n\nwrite_status;\n\n//        HAL_Delay(500);\n\n/*\n\n* 3. Read back\n\n* OPI 8D8D8D Read Command = 0xEE\n\n*/\n\nread_status =\n\nNORFlash_XSPI_CommandSendAddressReadData(\n\n&(NORFlashObject->XSPIObject),\n\nNORFlashObject->Command.MapRead.Command,\n\ntest_address,\n\nread_buf,\n\nsizeof(read_buf)\n\n);\n\nvolatile NORFlash_XSPI_StatusTypeDef debug_read_status =\n\nread_status;\n\n/*\n\n* 4. Compare result\n\n*/\n\nvolatile uint8_t debug_read0 = read_buf[0];\n\nvolatile uint8_t debug_read1 = read_buf[1];\n\nvolatile uint8_t debug_read2 = read_buf[2];\n\nvolatile uint8_t debug_read3 = read_buf[3];\n\nvolatile uint8_t debug_read4 = read_buf[4];\n\nvolatile uint8_t debug_read5 = read_buf[5];\n\nvolatile uint8_t debug_read6 = read_buf[6];\n\nvolatile uint8_t debug_read7 = read_buf[7];\n\nuint8_t verify_result = 1;\n\nfor(uint32_t i = 0; i < sizeof(write_buf); i++)\n\n{\n\nif(write_buf[i] != read_buf[i])\n\n{\n\nverify_result = 0;\n\nbreak;\n\n}\n\n}\n\nvolatile uint8_t debug_verify_result = verify_result;\n\n```\n\nThis code performs erasure, writing and reading operations by directly controlling the XSPI communication. By writing specific values at the designated location and then reading them, it can be proven that communication with the external FLASH memory is possible without being in the memory-mapped mode. The execution result of the code is as follows.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0af0d1f-ba58-4aa5-88d1-b1954ca37374.png)\n\nObviously, the data in read\\_buf is the same as that in write\\_buf. I think this would prove that there is no problem with the circuit and no issue with the components. If there is a better method, or if there is anything wrong with my verification method, please point it out. Thank you.\n\nThen I asked GPT, and GPT said it might be a problem with the continuous reading timing in the memory-mapped mode. I also tried changing the configuration from 8D8D8D to 1S1S1S, and changing the clock frequency to 25 MHz. But the problem remained the same.\n\nI also considered that it might be an illegal access to the memory address. Therefore, I changed the access address as follows.\n\n```\n\nuint8_t data;\n\ndata = *(volatile uint8_t *)0x00000000;\n\n```\n\nThen I conducted the debug, and the result is shown in the following figure. The debug directly jumped to the HardFault\\_Handler and did not disconnect the simulation connection. So I believe that when accessing the external flash through memory mapping, it is not accessing an illegal address. Because it jumped to SysTick\\_Handler and disconnected the simulation link. I still don't understand what might have happened inside the microcontroller in such a situation.\n\nIn summary, I would like to know exactly what went wrong that allowed my engineering code to successfully retrieve the value from the external flash on the original STM32N647 board that I purchased, but on my own-designed STM32N657 board, the debugging connection was disconnected and it displayed that it had jumped to the systick\\_handler.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0af0d1f-ba58-4aa5-88d1-b1954ca37374.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5f7b0a45-2209-4489-9644-d5173a6d786e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5eaf0b01-1ab9-4d97-93d7-c7d80263c132.png"
+            ],
+            "author": "jungle_bert",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>it’s has been solved. the reason of this problem is the speed of XSPI is to high for my PCB’s designation. When i made a test that it not include memory-mapped mode, in fact, the speed of XSPI is 50MHz,not 200MHz。</p></div>",
+                    "author": "jungle_bert",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "163815",
+            "publicId": "163815",
+            "title": "Clarification about OPERATION constants in VL53L8CX ULD",
+            "url": "https://community.st.com/imaging-sensors-49/clarification-about-operation-constants-in-vl53l8cx-uld-163815",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Time of flight"
+            ],
+            "published_at": "2026-03-15T23:58:55+00:00",
+            "views": 259,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Yes, the values are correct, there is no #define for 1.",
+            "best_answer_author": "Zhiyuan.Han",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi, just wondering if these constants (specifically NONE and OR both being 0) in the ULD for VL53L8CX are correct\n\n```\n\n#define VL53L8CX_OPERATION_NONE\t\t\t\t((uint8_t)0U)\n\n#define VL53L8CX_OPERATION_OR\t\t\t\t((uint8_t)0U)\n\n#define VL53L8CX_OPERATION_AND\t\t\t\t((uint8_t)2U)\n\n```\n\nit look like it should be a sequence (0, 1, 2) so the repeated (0, 0, 2) appears out of place. It's hard to tell from the examples if this is intentional though.",
+            "images": [],
+            "author": "PGibs.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It looks like the VL53L<strong>5</strong>CX has the same values</p></div>",
+                    "author": "PGibs.1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi </p>\n<p> </p>\n<p>VL53L8CX interrupt thresholds could be set as below conditions.</p>\n<p>• Resolution 4x4: using 1 threshold per zone (total of 16 thresholds)<br/>• Resolution 4x4: using 2 thresholds per zone (total of 32 thresholds)<br/>• Resolution 8x8: using 1 threshold per zone (total of 64 thresholds)</p>\n<p>The interrupt function also support mathematic operation, but it works only for 4x4 – 2 threshold combinations per zone. The user can set a combination using several thresholds in one zone.  you should set <span>mathematic_operation as either OR or AND. </span></p>\n<ul>\n<li><span>thresholds[2*i].mathematic_operation = VL53LCX_OPERATION_OR;</span></li>\n<li><span> thresholds[2*i+1].mathematic_operation = VL53LCX_OPERATION_AND;</span></li>\n</ul>\n<p>But for the 1st and 3rd trig method, it doesn't support mathematic operation, but the structure parameter <span>mathematic_operation</span> you need to initialize, here you should set NONE  </p>\n<ul>\n<li><span>thresholds[i].mathematic_operation = VL53LCX_OPERATION_NONE;</span></li>\n</ul>\n<p> </p>\n<p><span>Br</span></p>\n<p><span>Zhiyuan.Han</span></p></div>",
+                    "author": "Zhiyuan.Han",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are the values correct? Both VL53L8CX_OPERATION_NONE and VL53L8CX_OPERATION_OR are supposed to be zero, and VL53L8CX_OPERATION_AND is 2? And there is no corresponding #define for 1</p></div>",
+                    "author": "PGibs.1",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, the values are correct, there is no <span>#define for 1.</span></p></div>",
+                    "author": "Zhiyuan.Han",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Zhiyuan.Han",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Zhiyuan.Han",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

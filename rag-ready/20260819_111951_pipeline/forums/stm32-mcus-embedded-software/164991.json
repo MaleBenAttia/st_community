@@ -1,0 +1,126 @@
+{
+    "forum": [
+        {
+            "id": "164991",
+            "publicId": "164991",
+            "title": "Starting the second channel of a timer causes assert failure",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/starting-the-second-channel-of-a-timer-causes-assert-failure-164991",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "TIM",
+                "STM32C5 series",
+                "HAL2"
+            ],
+            "published_at": "2026-04-22T08:01:05+00:00",
+            "views": 397,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hello @gil\\_dobjanschi,\n\nAfter testing, I realized I was mistaken: all the debug options in the screenshot above need to be enabled to generate the necessary functions for the application to work. I tested it with a logic analyzer and confirmed that it works. Attached, you will find the project.\n\n![STackPointer64_0-1776940302365.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1f93f425-2829-f171-58c5-8e88f417dd35.png \"STackPointer64_0-1776940302365.png\")\n\nBest regards,",
+            "best_answer_author": "STackPointer64",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI configured a timer in STM32CubeMX2 to use 2 channels (HAL\\_TIM\\_CHANNEL\\_1 and HAL\\_TIM\\_CHANNEL\\_3). After the mx\\_system\\_init() I use the following code:\n\n```\n\nhal_tim_handle_t *htim5 = mx_tim5_gethandle();\n\nif (HAL_TIM_OC_StartChannel(htim5, HAL_TIM_CHANNEL_1) != HAL_OK) {\n\nreturn (-1);\n\n}\n\nif (HAL_TIM_OC_StartChannel(htim5, HAL_TIM_CHANNEL_3) != HAL_OK) {\n\nreturn (-1);\n\n}\n\nif (HAL_TIM_Start(htim5) != HAL_OK) {\n\nreturn (-1);\n\n}\n\n```\n\nThe first channel starts as expected, but when I attempt to start the second channel the code causes an assert in HAL\\_TIM\\_OC\\_StartChannel:\n\n```\n\n/* Check and update the channel state */\n\nASSERT_DBG_STATE(htim->channel_states[channel],\n\nHAL_TIM_OC_CHANNEL_STATE_IDLE);\n\n```\n\nDo I need to do anything different?\n\nRegards,\n\n-Gil",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/52c6f86a-f5b7-90fe-fad4-b31895c86a3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1f93f425-2829-f171-58c5-8e88f417dd35.png"
+            ],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention>, </p>\n<p>After testing, I realized I was mistaken: all the debug options in the screenshot above need to be enabled to generate the necessary functions for the application to work. I tested it with a logic analyzer and confirmed that it works. Attached, you will find the project.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"STackPointer64_0-1776940302365.png\" style=\"width: 999px;\"><img alt=\"STackPointer64_0-1776940302365.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1f93f425-2829-f171-58c5-8e88f417dd35.png\" title=\"STackPointer64_0-1776940302365.png\"/></span></p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention>,</p>\n<p>Let me check this out and get back to you ASAP.</p>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105834\">@gil_dobjanschi</user-mention> </p>\n<p>Please, can you share the .ioc file or your example? I have tested it, and I noted that this line does not have any issue.</p>\n<p> </p></div>",
+                    "author": "T_Hamdi",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"98681\">@T_Hamdi</user-mention> ,</p><p> </p><p>I attached the ioc2 file. Since I wrote the message I also enabled channel 4.</p><p>Thank you,</p><p>Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After inspecting the IOC, I believe you forgot to enable output channel<span> </span><strong>CH3</strong>, just as you did with<span> </span><strong>CH1</strong>. I suggest that you inspect the<span> </span><strong>pwm_output HAL2</strong><span> </span>example in the software package.</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93235\">@STackPointer64</user-mention> ,</p><p>In STM32CubeMx2 I enabled both channel 3 and channel 4. I attached the screenshots for the channel 3 and 4 configurations and I reattached the ioc2 just to make sure the mx2 configuration I'm looking at corresponds to the ioc2 file.</p><p>Thanks,</p><p>Gil</p><p> </p><p> </p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>To resolve the issue, you need to enable <strong>Use default assert state function </strong>and </p>\n<div class=\"CubeParamBlockItem-label\">\n<p>To resolve the issue, you need to enable<span> </span><strong>Use default assert state function</strong><span> </span>and<span> </span><strong>Generate default assert parameter handler</strong><span> </span>in the<span> </span><strong>HAL System Init</strong><span> </span>configuration. These options are required for the program to build and run successfully when the parameter assert option is enabled. Doing so adds the template implementations of the<span> </span><strong>assert_dbg_param_failed</strong><span> </span>and<span> </span><strong>assert_dbg_state_failed</strong><span> </span>functions in the<span> </span><strong>mx_system.c</strong><span> </span>source file.</p>\n</div>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-center\" image-alt=\"STackPointer64_0-1776867081998.png\" style=\"width: 999px;\"><img alt=\"STackPointer64_0-1776867081998.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/52c6f86a-f5b7-90fe-fad4-b31895c86a3e.png\" title=\"STackPointer64_0-1776867081998.png\"/></span></p>\n<p> </p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93235\">@STackPointer64</user-mention> ,</p><p> </p><p>Yes, I provided my own implementation of the assert functions which print the file name and line number where the assert occurs. This is how I learned where the assert occurs. My code builds without problems. When I run it and try to start channel 3 the problem occurs.</p><p> </p><p>Regards.</p><p>-Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I commented out the asserts and I verified on the oscilloscope that channel 3 and 4 are working and outputting the expected waveform.</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"93235\">@STackPointer64</user-mention> ,</p><p> </p><p>Thank you for looking into this issue! I used your ioc2 file, I generated the project, added the application code you used and I could not reproduce the problem. Then I went back to my project regenerated the code, compiled, ran the code and it ran fine (I made sure to uncomment the assert lines in <span>HAL_TIM_OC_StartChannel).</span></p><p> </p><p>I think that this issue occurs because my channels were not initialized properly meaning that there was a discrepancy between what I saw in MX2 and the actual code generated in mx_tim5.c. I am not blaming MX2 for not generating the code; it could have been a user error. If this issue happens again I will look at the generated code to see if all required channels were initialized.</p><p> </p><p>Sorry for the trouble,</p><p>-GIl</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You’re very welcome! If you come across any other issues, please open a thread, and we’ll be happy to help.</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "T_Hamdi",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

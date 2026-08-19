@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "165557",
+            "publicId": "165557",
+            "title": "How to limit TouchGFX to 30 fps",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/how-to-limit-touchgfx-to-30-fps-165557",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "LCD-LTDC",
+                "TouchGFX"
+            ],
+            "published_at": "2026-05-11T07:42:05+00:00",
+            "views": 274,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "You can increase the front and back porches in your LTDC.\n\nThis way you use more LTDC clock cycles per frame so your frame rate drops.\n\n![unsigned_char_array_0-1778487810723.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bcee4dd-cbcc-5893-8486-375723f96bad.png \"unsigned_char_array_0-1778487810723.png\")\n\n![unsigned_char_array_1-1778487931547.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8528e05a-924d-003e-2bbb-0d4cc0a3e128.png \"unsigned_char_array_1-1778487931547.png\")",
+            "best_answer_author": "unsigned_char_array",
+            "best_answer_author_role": "Lead III",
+            "content_text": "I'm using an STM32H7S78-DK with TouchGFX and FreeRTOS. I would like to limit the framerate of the target to 30fps but withouth reducing the LTDC frequency.\n\nBasically having the VSYNC fired at 30fps\n\nI've already set the\n\n```\n\n((touchgfx::HALSDL2*)&hal)->setVsyncInterval(33.333);\n\n```\n\nIn the simulator\n\nIs there a way to force it on the target?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8528e05a-924d-003e-2bbb-0d4cc0a3e128.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a871f2c-2a6c-59bb-2697-471d6acdf11c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bcee4dd-cbcc-5893-8486-375723f96bad.png"
+            ],
+            "author": "nico23",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Increase your porch sizes.</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>what? Would you be more precise</p></div>",
+                    "author": "nico23",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You can increase the front and back porches in your LTDC. <br/>This way you use more LTDC clock cycles per frame so your frame rate drops.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"unsigned_char_array_0-1778487810723.png\" style=\"width: 999px;\"><img alt=\"unsigned_char_array_0-1778487810723.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2bcee4dd-cbcc-5893-8486-375723f96bad.png\" title=\"unsigned_char_array_0-1778487810723.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"unsigned_char_array_1-1778487931547.png\" style=\"width: 999px;\"><img alt=\"unsigned_char_array_1-1778487931547.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8528e05a-924d-003e-2bbb-0d4cc0a3e128.png\" title=\"unsigned_char_array_1-1778487931547.png\"/></span></p><p> </p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"27597\">@unsigned_char_array</user-mention> </p><p>Thanks a lot for the answer. My goal in reducing the refresh rate was to save CPU cycles for other operations; with the approach you propose, it feels like I'm just burning CPU cycles to drop the FPS, without really removing work to process the frame, or am I wrong?</p><p>Studying a bit, I've found out that another way is to use a custom timer set to 30Hz and toggle the VSYNC pin, but I think that's way more tricky than changing parameters in CubeMX</p></div>",
+                    "author": "nico23",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"18247\">@nico23</user-mention> wrote:<br/><p>Hi <user-mention data-id=\"27597\">@unsigned_char_array</user-mention> </p><p>Thanks a lot for the answer. My goal in reducing the refresh rate was to save CPU cycles for other operations; with the approach you propose, it feels like I'm just burning CPU cycles to drop the FPS, without really removing work to process the frame, or am I wrong?</p><hr/></blockquote><p> The CPU is not busy waiting (blocking) for LTDC interrupts. You'll actually get more idle time per frame.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"unsigned_char_array_0-1778573687454.png\" style=\"width: 999px;\"><img alt=\"unsigned_char_array_0-1778573687454.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a871f2c-2a6c-59bb-2697-471d6acdf11c.png\" title=\"unsigned_char_array_0-1778573687454.png\"/></span></p><p> </p><p><a href=\"https://support.touchgfx.com/docs/development/touchgfx-hal-development/scenarios/scenarios-measure-performance#performance-metrics\" rel=\"noopener noreferrer\" target=\"_blank\">https://support.touchgfx.com/docs/development/touchgfx-hal-development/scenarios/scenarios-measure-performance#performance-metrics</a></p><p> </p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

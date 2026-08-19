@@ -1,0 +1,97 @@
+{
+    "forum": [
+        {
+            "id": "166977",
+            "publicId": "166997",
+            "title": "Using 2 SAI as master / slave to reduce latency on Nucleo F756ZG",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/using-2-sai-as-master-slave-to-reduce-latency-on-nucleo-f756zg-166997",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "SAI",
+                "STM32F7 series"
+            ],
+            "published_at": "2026-07-16T09:48:42+00:00",
+            "views": 133,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nthe “trick” is quite simple :\n\n* set in Cube the master SAI , to be master transmit - ok.\n\n* set all other to slave transmit, sync to this master -ok.\n\n* set to each an DMA channel in circular mode, for continuous data stream, callbacks enabled; generate...\n\n* then in main set all DMA channels (circular !) : HAL\\_DMA\\_Init(&hdma\\_sai1...);\n\n* then start all the slave SAI -only slaves !  :  HAL\\_SAI\\_Transmit\\_DMA(&hsai\\_Block...);\n\n* ***then*** start the master SAI !  :  HAL\\_SAI\\_Transmit\\_DMA(&hsai\\_BlockA1….);\n\n* Now all SAI sending sync to master from the first bit … :)",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello everyone,\n\nI am currently working on a project on Nucleo F756ZG where I need to :\n\n* Use SAI1A and SAI2B to send audio data at the same time using TDM with 8 slots each\n\n* SAI parameters are 128 bits data frames (so 16 bits per slot)\n\n* Audio frequency 96k\n\n* Master mode\n\n* Use of HAL\\_SAI\\_Transmit\\_DMA to send the data\n\nI managed to configure the SAIs, send and monitor the output data and it is working well but I noticed (an obvious I guess) latency between the payloads of the signals, between the 2 calls of the HAL\\_SAI\\_Transmit\\_DMA function, as you can see on the screenshot (12 us approximately).\n\nI would like to reduce this latency under 1 microsecond if possible. During my experimentations I noticed it was possible to set one SAI as master and the other one as its slave and only call HAL\\_SAI\\_Transmit\\_DMA once, but haven’t managed to make it work for now. Is it really possible ? I am looking for a code example to be sure to setup the SAIs properly.\n\nI can share more details of my code if necessary.\n\nThanks!\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40c57f6c-253b-44f0-acf1-12ba8eccfae1.png)\n\nSD pin monitored for SAI1A and SAI2B",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/75ae6246-cb27-4b41-a899-f1a40ba25f7c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14ddb6a9-fdea-4f97-9937-02f398b962c4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/40c57f6c-253b-44f0-acf1-12ba8eccfae1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f79cc614-bde2-42e1-96ea-32447948324d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7518a145-b21e-4086-b4b3-b68ab442c05e.png"
+            ],
+            "author": "pti_ju",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>i use also the SAI to drive my dacs, 6 ch (only, compared to your 16 ch), but basically same, sending on 3 SAI to 3 DACs. (for active crossover, so no delays to have here.)</p><p>No problem here, so you doing it not the correct way, if getting some delay/gap.</p><p>just - what you wanna do ? get continuous output on all dacs or ...what ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thanks for your answer. </p><p>After some testing I managed to send data with SAI1A as master and SAI1B as slave so the slave is synchronized with the master. The slave waits for the master signal to send the data so the delay disappears.</p><p> </p><p>However, I would like to do the same with 2 different SAI (SAI1A and SAI2B), not 2 from the same block. I used the exact same config and set the sync input to synchronous with sai1 but I do not see any data when monitoring SD pin.</p><p>I am trying to send the output on all dacs at the exact same time, timing is really important because of phase-shift on the data.</p><p>Are your SAIs configured as Masters ? And if so, how can you have no delay between the different HAL_SAI_Transmit_DMA calls if the SAIs are not synchronized together ?</p><p>You can see attached the SAI1A and SAI2B configs.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/75ae6246-cb27-4b41-a899-f1a40ba25f7c.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7518a145-b21e-4086-b4b3-b68ab442c05e.png\"/></figure><p> </p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>the “trick” is quite simple :</p><ul><li>set in Cube the master SAI , to be master transmit - ok.</li> <li>set all other to slave transmit, sync to this master -ok.</li> <li>set to each an DMA channel in circular mode, for continuous data stream, callbacks enabled; generate...</li> <li>then in main set all DMA channels (circular !) : HAL_DMA_Init(&amp;hdma_sai1...);</li> <li>then start all the slave SAI -only slaves !  :  HAL_SAI_Transmit_DMA(&amp;hsai_Block...);</li> <li><em><strong>then</strong></em> start the master SAI !  :  HAL_SAI_Transmit_DMA(&amp;hsai_BlockA1….);</li> <li>Now all SAI sending sync to master from the first bit … :)</li></ul></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, </p><p>Thanks for the precisions.</p><p> </p><p>That’s what I did and it is working well if I use SAI1A and SAI1B but if I use SAI1A and SAI2B it doesn’t work…</p><p>I use the exact same config for SAI1B and SAI2B in my tests so I do not understand what I am doing wrong. Maybe a clock issue because the SAIs are not from the same block ?</p><p>My pin config is correct because I can see the data output on SAI2B if I set it as master.</p><p> </p><p>To sum up, following your guide:</p><ul><li>SAI1A Master + SAI1B Slave = OK</li> <li>SAI1A Master + SAI2B Slave = Not OK (no data output)</li> <li>SAI1A Master + SAI2B Master = OK but with 15 microseconds delay between both data</li></ul><p> </p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No, only one is master !!!</p><p>All other slave , sync to this one.</p><p>And you have to use the clk+frame from master for all slave dacs, as slave they send just data !</p><p>And select the correct sync source , the from the one as master you set.</p><p>And maybe try using the fifo:  (i have I2S format, for audio dacs, but not much different)</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f79cc614-bde2-42e1-96ea-32447948324d.png\"/></figure><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In your example I see the synchronization is with other block of the same SAI. This one is working fine indeed, the issue is when the sync is with another SAI not from the same block. (SAI1A with SAI2B)</p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>right, here the “other”: SAI 2</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/14ddb6a9-fdea-4f97-9937-02f398b962c4.png\"/></figure><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>But here i see : data size 8 bit, master is 16b. Is this what you want ? Because how it fits to the 16b frame from master ?</p><p>(I have I2S format, there is no problem having 32b and 16b frames, as i use for my dacs.)</p><p>And i use IDE v 1.18.1 , or 1.19 . and you ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No that is not what I want, I would like both master and slave to be Data Size = 16 bits, but here I somehow cannot change the frame length of the slave if it is set as synchronous. </p><p>So I cannot change the data size either because it cannot be bigger than the Frame Size.</p><p>I am using CubeIDE version 2.1.1</p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok I forced the Frame length and data size values to what I wanted despite CubeMx not letting me to, and found the answer to my problem. </p><p>I forgot to tick the external synchro output on SAI1A and now it’s working for SAI1A master and SAI2B slave.</p><p>Thanks for your time and explainations :)</p></div>",
+                    "author": "pti_ju",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

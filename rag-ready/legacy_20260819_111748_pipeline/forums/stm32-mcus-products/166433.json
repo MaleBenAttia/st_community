@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "166410",
+            "publicId": "166433",
+            "title": "Reassigning an LTDC pin to DAC after MspInit — is this safe?",
+            "url": "https://community.st.com/stm32-mcus-products-25/reassigning-an-ltdc-pin-to-dac-after-mspinit-is-this-safe-166433",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-06-24T22:38:22+00:00",
+            "views": 64,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "We haven’t checked what happens on PA5 during the config transition period (and I suspect it is just a few microseconds?) because we thought it’s not that important what happens the first few miliseconds you plug the device in.\n\nWe don’t expect the device to work flawlessly the moment you plug it in, there is an explicit warm-up period (actually 2 seconds) for various stuff (capacitors, etc elsewere in device) to settle.\n\nAfter that period, DAC worked as expected alongside with VGA signal.\n\nAnd with that, I think the issue is settled as → “It works” if I am not terribly mistaken?\n\nBased on that feedback it’s OK. you can go ahead with that config: no risk.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello ST Community,\n\nI am working on a custom PCB using the STM32H743ZIT.\n\nMy project uses the LTDC to generate a VGA signal.\n\nI also need at least 1 DAC output and USB\\_FS.\n\nThe issue is, in this specific MCU, the only 2 DAC’s are on:\n\nPA4 (conflicts with LTDC\\_VSYNC)\n\nPA5 (possibly conflicts with LTDC\\_R4)\n\nNow, I can move LTDC\\_R4 to PA11 but now it conflicts with USB\\_FS pins.\n\nImportantly, LTDC\\_R4 is **not physically connected** on our PCB. We only use 8 simple colors so I can use any LTDC pin to connect it to VGA signal. I’m completely fine losing LTDC\\_R4 altogether because we don’t use it at all.\n\nQuestion:\n\nIf I do the following, will it cause any conflict issues due to the way the MCU works internally?\n\n1- Assign LTDC\\_R4 to PA5 in CubeMX to satisfy the configurator\n\n2- Immediately after `HAL_LTDC_MspInit()` completes, override PA5 to analog mode using `HAL_GPIO_Init()` for DAC use\n\n3- Configure DAC1 channel 2 manually in code and importantly, I call it AFTER `HAL_LTDC_MspInit()`\n\nNote: We are not reinitializing LTDC at runtime, so MspInit will only be called once at startup.\n\nThanks in advance :)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/585080a6-23f4-445d-9e77-d1c86b034f7c.png"
+            ],
+            "author": "CAdat.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Yes that’s feasible by configuring DAC and PA5 GPIO in the user code in HAL_LTDC_MspInit() in the user code in between:</p><pre><code class=\"language-c\">    /* USER CODE BEGIN LTDC_MspInit 1 */<br/><br/>    /* USER CODE END LTDC_MspInit 1 */</code></pre><p>The only suspicion I have is about the transition between LTDC R4 IO config and the DAC IO config and its impact on the device you need to connect to the DAC output: disturbing the device input in transients. Most probably no impact but you need anyway to perform tests.</p><p>There is no impact on the internal LTDC function with this.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK - so we tested it today with a custom board, generating a DAC output and VGA output at the same time, independant of each other. It does seem to work.</p><p> </p><p>1- Disabled the PA5 pin in LTDC_MspInit:</p><pre><code class=\"language-c\">/* USER CODE BEGIN LTDC_MspInit 1 */<br/>/* <br/> * IMPORTANT: PA5 is assigned to LTDC_R4 in CubeMX to satisfy the configurator.<br/> * LTDC_R4 is NOT physically connected on the PCB.<br/> * PA5 is reconfigured here as analog for DAC1_OUT2.<br/> * This override must remain here and execute after LTDC MSP init.<br/> */<br/>GPIO_InitTypeDef GPIO_Override = {0};<br/>GPIO_Override.Pin = GPIO_PIN_5;<br/>GPIO_Override.Mode = GPIO_MODE_ANALOG;<br/>GPIO_Override.Pull = GPIO_NOPULL;<br/>HAL_GPIO_Init(GPIOA, &amp;GPIO_Override);<br/>/* USER CODE END LTDC_MspInit 1 */</code></pre><p>2- Configured DAC1 OUT2 manually (easier said than done, Cube IDE fights you at every step by removing the driver files and stuff each time you generate code, but it is doable with some effort).</p><p> </p><p>3- Both DAC and VGA monitor signal works as intended on test board so far... </p><p> </p><p>I just don’t know what you meant when you said:</p><blockquote><p>The only suspicion I have is about the transition between LTDC R4 IO config and the DAC IO config and its impact on the device you need to connect to the DAC output: <strong>disturbing the device input in transients</strong>. Most probably no impact but you need anyway to perform tests.</p></blockquote><p> </p><p>If you meant “<strong>During the config transition, the device might not work as intended</strong>” by “<strong>disturbing the device input in transients</strong>” that’s totally fine by us, because we anyways have some seconds of warm-up period for our device when we first power it and the configuration is done during that warm-up period.</p><p>If you meant “disturbing the device input in transients” as in “this can bite you later on”, well I hope it won’t, on test board it worked as intended so far?</p></div>",
+                    "author": "CAdat.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"CAdat.1\"><div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <p>If you meant “<strong>During the config transition, the device might not work as intended</strong>” by “<strong>disturbing the device input in transients</strong>” that’s totally fine by us, because we anyways have some seconds of warm-up period for our device when we first power it and the configuration is done during that warm-up period.</p> <p>If you meant “disturbing the device input in transients” as in “this can bite you later on”, well I hope it won’t, on test board it worked as intended so far?</p> </div> </div> </div> </div> </div> </div></content-quote><p>Yes this is what I meant as I don’t have idea about what you have connected to the DAC. You need to check with the an oscilloscope what happens on PA5 in between configuring the LCD and the DAC configuration. Is there any glitch appearing during this transient? If there is no glitch (that could disturb your devices) that’s fine.</p><p>PS: in next time please kindly use the Code button to paste your code:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/585080a6-23f4-445d-9e77-d1c86b034f7c.png\"/></figure><p>I’m editing your post then..</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>We haven’t checked what happens on PA5 during the config transition period (and I suspect it is just a few microseconds?) because we thought it’s not that important what happens the first few miliseconds you plug the device in.</p><p>We don’t expect the device to work flawlessly the moment you plug it in, there is an explicit warm-up period (actually 2 seconds) for various stuff (capacitors, etc elsewere in device) to settle.</p><p>After that period, DAC worked as expected alongside with VGA signal.</p><p> </p><p>And with that, I think the issue is settled as → “It works” if I am not terribly mistaken?</p><p> </p></div>",
+                    "author": "CAdat.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"CAdat.1\"><div class=\"content-quote-content\"> <p>We haven’t checked what happens on PA5 during the config transition period (and I suspect it is just a few microseconds?) because we thought it’s not that important what happens the first few miliseconds you plug the device in.</p> <p>We don’t expect the device to work flawlessly the moment you plug it in, there is an explicit warm-up period (actually 2 seconds) for various stuff (capacitors, etc elsewere in device) to settle.</p> <p>After that period, DAC worked as expected alongside with VGA signal.</p> <p> </p> <p>And with that, I think the issue is settled as → “It works” if I am not terribly mistaken?</p> <p> </p> </div></content-quote><p>Based on that feedback it’s OK. you can go ahead with that config: no risk.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

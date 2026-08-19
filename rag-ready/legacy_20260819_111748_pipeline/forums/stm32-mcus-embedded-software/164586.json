@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164586",
+            "publicId": "164586",
+            "title": "Cannot access memory at address SRAM3: 0x34200000",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/cannot-access-memory-at-address-sram3-0x34200000-164586",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "I2C",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-09T05:37:40+00:00",
+            "views": 267,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @stmobject ,\n\n0x34200000 is in an NPU-associated SRAM bank, so the HOST CPU/debugger may not be able to read it unless that region is explicitly configured as shared and accessible. The fact that ISP\\_Init() and HAL\\_DCMIPP\\_CSI\\_PIPE\\_Start() succeed does not guarantee that direct CPU access to the buffer is valid. In your recreated project, the most likely issue is a mismatch in memory configuration compared with the original example especially the linker script, MPU setup, and cache/shared-memory settings. The safest test is to place BUFFER\\_ADDRESS in a known CPU-accessible RAM region first; if that works, then the problem is definitely the AXISRAM/NPU memory configuration rather than DCMIPP itself.\n\nYou can see these memories in this block diagram:\n\n![Khaled_DHIF_0-1776073829062.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/75572b71-a5e8-5543-a663-4ff543e9d4c6.png \"Khaled_DHIF_0-1776073829062.png\")\n\nYou can find out more about the NPU memory subsystem in this **[link](https://stm32ai-cs.st.com/assets/embedded-docs/stneuralart_programming_model.html#ref_epoch_definition)**.\n\nKind regards,\n\nDHIF Khaled",
+            "best_answer_author": "Khaled_DHIF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello\n\nI've been trying to recreate the DCMIPP\\_SnapshotDecimation example with STM32CubeIDE, I have been running into several issues. I have solved most of them, I am encountering a memory error while debugging my code. I was able to flash and debug the original example successfully on the STM32N6570-DK. However, when I try to read a value from the AXISRAM address (0x34200000), it fails: (address does not exist and unable to reconnect to target device).\n\nAXISRAM3 which it should be the address 0x3420000 is activated and initialized in the main.\n\nInitialization of  the signal processor and starting the DCMIPP pipeline was passed without any problem:\n\n```\n\nif( ISP_Init(&hcamera_isp, &hdcmipp, 0, &appliHelpers, ISP_IQParamCacheInit[0] ) != ISP_OK )\n\n{\n\nError_Handler();\n\n}\n\nif( HAL_DCMIPP_CSI_PIPE_Start(&hdcmipp, DCMIPP_PIPE1, DCMIPP_VIRTUAL_CHANNEL0, BUFFER_ADDRESS, DCMIPP_MODE_CONTINUOUS ) != HAL_OK )\n\n{\n\nError_Handler();\n\n}\n\n```\n\nBut, trying to access the buffer address throws this error: Cannot access memory at address 0x34200000, which is the value of BUFFER\\_ADDRESS parameter\n\nThank you in advance for your response and help. I will appreciate it\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/75572b71-a5e8-5543-a663-4ff543e9d4c6.png"
+            ],
+            "author": "stmobject",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104343\">@stmobject</user-mention> ,</p><p>0x34200000 is in an NPU-associated SRAM bank, so the HOST CPU/debugger may not be able to read it unless that region is explicitly configured as shared and accessible. The fact that ISP_Init() and HAL_DCMIPP_CSI_PIPE_Start() succeed does not guarantee that direct CPU access to the buffer is valid. In your recreated project, the most likely issue is a mismatch in memory configuration compared with the original example especially the linker script, MPU setup, and cache/shared-memory settings. The safest test is to place BUFFER_ADDRESS in a known CPU-accessible RAM region first; if that works, then the problem is definitely the AXISRAM/NPU memory configuration rather than DCMIPP itself. </p><p>You can see these memories in this block diagram:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Khaled_DHIF_0-1776073829062.png\" style=\"width: 400px;\"><img alt=\"Khaled_DHIF_0-1776073829062.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/75572b71-a5e8-5543-a663-4ff543e9d4c6.png\" title=\"Khaled_DHIF_0-1776073829062.png\"/></span></p><p>You can find out more about the NPU memory subsystem in this <strong><a href=\"https://stm32ai-cs.st.com/assets/embedded-docs/stneuralart_programming_model.html#ref_epoch_definition\" rel=\"nofollow noopener noreferrer\" target=\"_self\">link</a></strong>.</p><p>Kind regards, </p><p>DHIF Khaled</p></div>",
+                    "author": "Khaled_DHIF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p> </p><p>I encountered similar difficulties, and most of the times, it was solved by adding manually the following line in the RAMCFG initialization. </p><pre class=\"lia-code-sample language-c\"><code>__HAL_RCC_AXISRAM3_MEM_CLK_ENABLE();</code></pre><p>I do not know how to configure the IOC in CubeMX in order to generate this missing part, however I noticed it was present in working examples that used the SRAM regions 3, 4, 5 and/or 6.</p><p> </p><p>I hope this will be useful.</p></div>",
+                    "author": "JMar",
+                    "role": "Graduate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104343\">@stmobject</user-mention> </p>\n<p>Please any update on this thread ? </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Khaled_DHIF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

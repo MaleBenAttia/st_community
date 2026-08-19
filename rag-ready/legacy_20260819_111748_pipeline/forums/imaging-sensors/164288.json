@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "164288",
+            "publicId": "164288",
+            "title": "VL53L7CX erratic readings / no data when measuring black object",
+            "url": "https://community.st.com/imaging-sensors-49/vl53l7cx-erratic-readings-no-data-when-measuring-black-object-164288",
+            "category": "Imaging (sensors)",
+            "tags": [
+                "Time of flight",
+                "CMOS Image Sensors"
+            ],
+            "published_at": "2026-03-30T06:57:43+00:00",
+            "views": 212,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "The VL53L7 is a VL53L5 with a defuser that spreads the light from 45 degrees square to 60 degrees square. And that almost doubles the square area and, unfortunately, almost halves the light shining on your black object.\n\nAnd it's those reflected photons that enable the ranging. If you don't get enough light, you don't get a measurement.\n\nSo if your black object is black enough, and your distance is far enough, you end up with either highly variable distances, or no measurement at all.\n\nSo what happens when you place a white object in the field of view?\n\nWith that white object, there are going to be a lot of photons that are returned, and they hit the lens on top of the receiver. But the lens is not completely transparent. The vast majority are going to pass right through, but some unfortunately reflect of the surface of the lens, bounce around and pop out in seemingly random places.\n\nWhen the target is very black, the sensor will enable all the Single Photon Avalanche Diodes (photon detectors), but with a very white target the sensor will shut down most of the SPADs to save some power and not collect unnecessary photon strikes.\n\nThe issue is with the half and half case where the detectors in the black areas are all enabled and they are picking up the photons returned by the white area which have been bounced around by the lens.\n\nThis gives a result that one may consider 'blur'. It's not really, but it sure looks like blur. The white areas appear larger than they should.\n\nRead the section of the user manual on the 'sharpener'. It sets some limits on how many photons are needed to find an object.\n\nSo you have a couple of issues. One can be helped by the sharpener, so read that section.\n\nBut the only way around physical limitation of how far away a black object can be seen is to increase the timing budget. More time means more photons which means a better range. But there a limits to how much this can help.\n\nSo set the sharpener and increase the timing budget and see what the sensor can do.\n\nThat's all I can think of - unless you want to paint your target a lighter shade.\n\n- john",
+            "best_answer_author": "John_Kvam",
+            "best_answer_author_role": "Graduate",
+            "content_text": "I am using the VL53L7CX to measure a black object. When the object is placed at a distance beyond 200 mm, the readings become very unstable and a large number of erroneous points appear.\n\nAdditionally, when a highly reflective object enters the sensor’s field of view, the points that were previously showing valid data for the black object also start returning errors. Once I remove the highly reflective object, those points recover and start reporting correctly again.\n\nIn the error state, the affected points return no data at all — it seems as if the sensor does not detect any object. However, the black object is still present in the scene. The only change is the removal of the white object, which causes the sensor data to change significantly. Has anyone encountered a similar issue?\n\nCould this be related to crosstalk, or are there specific configuration settings recommended for black targets at longer distances? Any advice would be greatly appreciated.",
+            "images": [],
+            "author": "AUV",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The VL53L7 is a VL53L5 with a defuser that spreads the light from 45 degrees square to 60 degrees square. And that almost doubles the square area and, unfortunately, almost halves the light shining on your black object. </p><p>And it's those reflected photons that enable the ranging. If you don't get enough light, you don't get a measurement. </p><p>So if your black object is black enough, and your distance is far enough, you end up with either highly variable distances, or no measurement at all.</p><p>So what happens when you place a white object in the field of view?</p><p>With that white object, there are going to be a lot of photons that are returned, and they hit the lens on top of the receiver. But the lens is not completely transparent. The vast majority are going to pass right through, but some unfortunately reflect of the surface of the lens, bounce around and pop out in seemingly random places. </p><p>When the target is very black, the sensor will enable all the Single Photon Avalanche Diodes (photon detectors), but with a very white target the sensor will shut down most of the SPADs to save some power and not collect unnecessary photon strikes. </p><p>The issue is with the half and half case where the detectors in the black areas are all enabled and they are picking up the photons returned by the white area which have been bounced around by the lens. </p><p>This gives a result that one may consider 'blur'. It's not really, but it sure looks like blur. The white areas appear larger than they should. </p><p>Read the section of the user manual on the 'sharpener'. It sets some limits on how many photons are needed to find an object. </p><p>So you have a couple of issues. One can be helped by the sharpener, so read that section.</p><p>But the only way around physical limitation of how far away a black object can be seen is to increase the timing budget. More time means more photons which means a better range. But there a limits to how much this can help.</p><p>So set the sharpener and increase the timing budget and see what the sensor can do. </p><p>That's all I can think of - unless you want to paint your target a lighter shade. </p><p>- john</p><p> </p></div>",
+                    "author": "John_Kvam",
+                    "role": "Graduate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you very much for your detailed explanations and kind help.</p><p>Setting the sharpener parameter has successfully solved my problem. Earlier, I had been trying to adjust the integration time, also known as the timing budget, but it made no difference at all. Now I suspect that longer integration time increases not only the reflection from black objects but also the reflection from bright white areas significantly, which causes the sensor to turn off a large number of SPADs, explaining why it showed no improvement in my results. After lowering the sharpener value, the sensor immediately detected reflections from the black regions, so thanks again for your advice.</p><p>I still have a few questions and would really appreciate your guidance. In my application, the measuring distance is about 500 mm, and the target contains both black and white areas, with the goal of detecting black objects. Theoretically, signal strength should increase with longer integration time, but I found that adjusting integration time did not lead to any obvious change in the returned signal strength. I therefore conducted a comparison test in Autonomous mode using integration times of 99 and 5, and the average difference in signal strength between the two datasets was only 1 (32 vs. 33). Is this also caused by the sensor disabling SPADs, or is the signal value returned by the sensor already internally normalized?</p></div>",
+                    "author": "AUV",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,145 @@
+{
+    "forum": [
+        {
+            "id": "165380",
+            "publicId": "165380",
+            "title": "how to set PCROP Protection to default STM32H755",
+            "url": "https://community.st.com/stm32-mcus-security-36/how-to-set-pcrop-protection-to-default-stm32h755-165380",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32CubeProgrammer",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-05T09:12:06+00:00",
+            "views": 620,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hello @Domy\\_ST,\n\nwhat you describe to me looks like SBSFU application. You definitely do not need to perform RDP regression to update the Application SW. It should even work in RDP2 without any problem. Unless modification of OB is involved, of course.\n\nPlease have a look at [X-CUBE-SBSFU | Product - STMicroelectronics](https://www.st.com/en/embedded-software/x-cube-sbsfu.html) examples, which you can use as inspiration and starting point.\n\nIt's well tested to provide security to Application SW while retaining the flexibility of secure firmware update.\n\nBR,\n\nJ",
+            "best_answer_author": "Bubbles",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "hello ST Community,\n\nI'm trying to protect sector 0 of the flash drive from mass erasure using the PCCOP Protection option on the NUCLEO-H755ZI-Q.\n\nAfter tinkering around a bit to understand its functions, I can no longer reset its protection to its default state. Currently, it looks like the one in the photo:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/26afb61b-bf98-e5d3-8ae0-55643d9b8a21.png \"image.png\")\n\nWhen I try to set these values\n\n**PROT\\_AREA\\_START1 = 0x0801FF00**\n\n**PROT\\_AREA\\_END1 = 0x080100FF**\n\nwhich i believe are their default values, both in the RDP=0xAA and RDP=0xBB states, I get this error.\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/120ef601-cdc4-ce25-05e6-b189727ba06f.png \"image.png\")\n\nHow can I fix this? Is there a way to reset PCROP Protection to its default mode?\n\nThanks for the support.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/26afb61b-bf98-e5d3-8ae0-55643d9b8a21.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f037f87-3537-8a2e-6d60-39873fd3629a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/88558b97-892d-10e6-7413-ea67acf9156d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1a17a22-25f4-520e-d540-d71e9be1595c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0e68aff5-5e56-e44b-22d8-93cd4fef01a4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/120ef601-cdc4-ce25-05e6-b189727ba06f.png"
+            ],
+            "author": "Domy_ST",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104470\">@Domy_ST</user-mention> ,</p><p>yes, you can reset the PCROP, but only when the RDP is changed at the same time:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bubbles_1-1778056620310.png\" style=\"width: 400px;\"><img alt=\"Bubbles_1-1778056620310.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0f037f87-3537-8a2e-6d60-39873fd3629a.png\" title=\"Bubbles_1-1778056620310.png\"/></span></p><p>Which means that you need to set the RDP to 0xBB and then, in the same step, request both RDP=0xAA and the PCROP modification.</p><p>BR,</p><p>J</p></div>",
+                    "author": "Bubbles",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>@hello <user-mention data-id=\"826\">@Bubbles</user-mention>,</p><p>I managed to get PCROP to enable and disable protection depending on the size of the flash drive I wanted. But another problem arose:</p><p>The problem is that before enabling PCROP protection, you write data to the flash drive from 0x08000000 to 0x0801FFFF (a single 128KB page in sector 0). After enabling PCROP protection, you only write data to that area with DMEP = 0 to protect it from deletion. However, after enabling PCROP protection, the data is still deleted; after PCROP protection, it cannot be overwritten.</p><p>Is there a way to prevent data from being deleted while enabling PCROP?</p><p>Thanks for support</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hello <user-mention data-id=\"104470\">@Domy_ST</user-mention> , <br/>Enabling PCROP should not erase the data. <br/>The DMEP is feature that protects a PCROP-ed region from being erased by an RDP regression. </p>\n<ul>\n<li>DMEP = 1  (checked) the PCROP region is erased when an RDP regression is performed. </li>\n<li>DMEP = 0 (unchecked) the PCROP region is kept when RDP regression is performed. </li>\n</ul>\n<p>you have to program the flash with the your program (upload the elf to the device), then enabled the PCROP region. <br/><span>Could you clarify how you determine that the data has been deleted?</span></p>\n<p>Also what do you mean by data is deleted: </p>\n<ul>\n<li>when you try to read a PCROP region the <strong>expected</strong> behavior is to return <strong>zeros</strong>. </li>\n<li>If you read 0xFF, that usually means the region has been <strong>erased</strong>.  </li>\n</ul>\n<p><span>Possible causes of the PCROP region being erased include:</span></p>\n<ul>\n<li>An incorrect configuration in the linker script.</li>\n<li>A routine that erases that sector as soon as the device starts (when you are configuring and applying the PCROP region).</li>\n</ul>\n<p>Best regards. </p>\n<p> </p></div>",
+                    "author": "Moktar SELLAMI",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hello <user-mention data-id=\"104263\">@Onizuka09</user-mention>,</p><p>Here's the sequence of how I write data to that flash area, again using the STM32Cubeprogrammer tool:</p><ul><li>I load from a binary file, and that area is populated as shown in the following figure:</li></ul><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Immagine 2026-05-06 140603.png\" style=\"width: 999px;\"><img alt=\"Immagine 2026-05-06 140603.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0e68aff5-5e56-e44b-22d8-93cd4fef01a4.png\" title=\"Immagine 2026-05-06 140603.png\"/></span></p><ul><li>I enable PCROP only for that area of ​​sector 0, as shown in the following figure:</li></ul><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Immagine 2026-05-06 142309.png\" style=\"width: 999px;\"><img alt=\"Immagine 2026-05-06 142309.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/88558b97-892d-10e6-7413-ea67acf9156d.png\" title=\"Immagine 2026-05-06 142309.png\"/></span></p><ul><li>After that, I reread the data in that flash area. I see that we're all zero, as shown in the following figure:</li></ul><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Immagine 2026-05-06 141805.png\" style=\"width: 999px;\"><img alt=\"Immagine 2026-05-06 141805.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1a17a22-25f4-520e-d540-d71e9be1595c.png\" title=\"Immagine 2026-05-06 141805.png\"/></span></p><p>Is there a way to prevent it from returning zero, but instead return data from binary files as before, but still need to be protected by PCROP during the regression from RDP = 1 to RDP = 0?</p><p>Thanks</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104470\">@Domy_ST</user-mention>,</p><p>enabling PCROP should not erase the protected memory.</p><p>I suspect there's some other problem. How do you determine it's deleted?</p><p>BR,</p><p>J</p></div>",
+                    "author": "Bubbles",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I simply write data and verify that they are populated on STM32CubeProgrammer and it's ok. Then I enable PCROP and DMEP = 0 only for that area and then I recheck that they are still populated on STM32CubeProgrammer and instead they are all populated at 0x00000000 for that area of ​​sector 0.</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"104470\">@Domy_ST</user-mention>,</p><p>the very purpose of PCROP is to return zeros when being read. The fact that it's not erased during regression is secondary. Maybe you can try using secure area instead? It may be better fitting your use case.</p><p>BR,</p><p>J</p></div>",
+                    "author": "Bubbles",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>OK, thanks <user-mention data-id=\"826\">@Bubbles</user-mention> <user-mention data-id=\"104263\">@Onizuka09</user-mention>,</p><p>So, in my case, PCROP doesn't work. What is the safe area in the flash (at least 128KB) that I can write data to and that can be accessed not only by the CPU but also externally (UART and YMODEM management) for the bootloader, and that prevents deletion during the RDP = 1 to RDP = 0 regression?</p><p>Or is there a way other than the PCROP option that permanently protects sector 0 of the flash from deletion during RDP = 1 to RDP = 0 regression?</p><p>Thanks for support</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104470\">@Domy_ST</user-mention> ,</p><p>no, there is no such setting. But let me ask, what is the use case here? You don't seem to be too concerned with security (just my impression) so what use is to you the RDP1?</p><p>If you describe the goal, we can help you find the correct means.</p><p>BR,</p><p>J</p></div>",
+                    "author": "Bubbles",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hello <user-mention data-id=\"826\">@Bubbles</user-mention>,</p><p>My goal is to load two pieces of software into the flash area: in sector 0, only the Bootloader SW, and the rest of the sectors are the Application SW, which must be protected at RDP level 1 for security.</p><p>But I also need to be able to update the Application SW (reprogramming) from the Bootloader SW in sector 0. To do this, I have to reset the RDP level to 0, which involves a mass erasure, including the Bootloader SW, and I cannot reprogram.</p><p>I know that the STM32 factory bootloader exists, with BOOT0 = 1, and this is fine for updating only the Bootloader SW in sector 0 but not the Application SW. I can update the Application SW only from the Bootloader SW in sector 0, and after the update, it must be protected at level 1 for security.</p><p>This is my goal. Is there a way, like in my case, to avoid the mass erasure of just sector 0 during RDP regression?</p><p>Thanks</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104470\">@Domy_ST</user-mention>,</p><p>what you describe to me looks like SBSFU application. You definitely do not need to perform RDP regression to update the Application SW. It should even work in RDP2 without any problem. Unless modification of OB is involved, of course.</p><p>Please have a look at <a href=\"https://www.st.com/en/embedded-software/x-cube-sbsfu.html\" rel=\"noopener noreferrer\" target=\"_blank\">X-CUBE-SBSFU | Product - STMicroelectronics</a> examples, which you can use as inspiration and starting point.</p><p>It's well tested to provide security to Application SW while retaining the flexibility of secure firmware update.</p><p>BR,</p><p>J</p><p> </p></div>",
+                    "author": "Bubbles",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hello <user-mention data-id=\"826\">@Bubbles</user-mention>,</p><p>Ok, thanks for the help. I'll take a look at the examples you provided.</p><p> </p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104470\">@Domy_ST</user-mention> </p>\n<p>your current question which is : </p>\n<p><span>are the examples still compatible with this STM32H755 series?</span></p>\n<p><span>Is different from your initial question :</span></p>\n<p><span>Is there a way to reset PCROP Protection to its default mode?</span></p>\n<p>for to moderation purposes , we are going to split this thread, you can find the new thread <a href=\"https://community.st.com/t5/stm32-mcus-security/is-there-any-x-cube-sbsfu-examples-that-are-compatible-with/td-p/896942\" target=\"_self\">here.</a><br/>B.R</p>\n<p> </p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Moktar SELLAMI",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Bubbles",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Moktar SELLAMI",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Bubbles",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Bubbles",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Bubbles",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Bubbles",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Moktar SELLAMI",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

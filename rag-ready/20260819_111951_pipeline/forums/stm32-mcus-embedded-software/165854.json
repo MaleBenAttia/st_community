@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "165854",
+            "publicId": "165854",
+            "title": "STM32H7xx HAL_FLASHEx_ComputeCRC Burst Size Bug",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h7xx-hal-flashex-computecrc-burst-size-bug-165854",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "Flash",
+                "HAL"
+            ],
+            "published_at": "2026-05-21T02:26:49+00:00",
+            "views": 155,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @mycodeworksIdontknowwhy\n\nThis issue has already been addressed in [STM32CubeH7 v1.13.0](https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/367a0a097b03a3d417dd6f6b02fd17e32b2a5742/Src/stm32h7xx_hal_flash_ex.c#L744). We recommend updating your firmware to the latest available version to benefit from the fix.",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Original post: <https://community.st.com/t5/stm32-mcus-products/stm32h7-flash-crc/td-p/887279>\n\nGithub: <https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/1501be883dae6f202c1d3f856ee6b11407dc257d/Src/stm32h7xx_hal_flash_ex.c#L733>\n\n```\n\nHAL_StatusTypeDef HAL_FLASHEx_ComputeCRC(FLASH_CRCInitTypeDef *pCRCInit, uint32_t *CRC_Result)\n\n{\n\n...\n\n...\n\nFLASH->CRCCR1 |= FLASH_CRCCR_CLEAN_CRC | pCRCInit->BurstSize | pCRCInit->TypeCRC;\n\n...\n\n...\n\n}​\n\n```\n\n|= will not program the expected burst size if the reset value is not b00. It looks like on reset the value is b01 (16 flash words). So if user try to set to burst size of 4 flash words (b00) it'll remain set to b01.",
+            "images": [],
+            "author": "mycodeworksIdontknowwhy",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104763\">@mycodeworksIdontknowwhy</user-mention> </p>\n<p style=\"background: white; margin: 7.5pt 0in 0in 0in;\"><span>Thank you for bringing this issue to our attention.</span></p>\n<p style=\"background: white; box-sizing: border-box; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; word-spacing: 0px; margin: 7.5pt 0in 0in 0in;\"><span>I reported this internally.</span></p>\n<p style=\"background: white; box-sizing: border-box; font-variant-ligatures: normal; font-variant-caps: normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; word-spacing: 0px; margin: 7.5pt 0in 0in 0in;\"><span>Internal ticket number<strong>: CDM0062824 </strong><i><u>(This is an internal tracking number and is not accessible or usable by customers).</u></i></span></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104763\">@mycodeworksIdontknowwhy</user-mention> </p>\n<p>This issue has already been addressed in <a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/367a0a097b03a3d417dd6f6b02fd17e32b2a5742/Src/stm32h7xx_hal_flash_ex.c#L744\" rel=\"nofollow noopener noreferrer\" target=\"_self\">STM32CubeH7 v1.13.0</a>. We recommend updating your firmware to the latest available version to benefit from the fix.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

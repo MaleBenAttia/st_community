@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163308",
+            "publicId": "163308",
+            "title": "SPI2 On STM32F44RE not working with SD Card",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/spi2-on-stm32f44re-not-working-with-sd-card-163308",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-01T05:46:27+00:00",
+            "views": 284,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Completely all my fault, probably been at it too long. When you set high and the Logic Analyzer says no, check the wiring. In fairness I am dyslexic but also a massive wally. Upside pinout Arrrrghhh. Still refreshed on my Logic Analyzer skills hahaha.",
+            "best_answer_author": "bibble235",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi,\n\nHave this working on STM32F302R8 but cannot seem to get my SD Card working on an STM32F446RE. Using hal 0.23.0 with stm32F446 and embedded-sdmm 0.9.0);\n\n```\n\nlet sd_mosi = gpiob.pb15.into_alternate::<5>();\n\nlet sd_miso = gpiob.pb14.into_alternate::<5>();\n\nlet sd_sck = gpiob.pb13.into_alternate::<5>();\n\nlet mut sd_spi = Spi::new(\n\ndp.SPI2,\n\n(Some(sd_sck), Some(sd_miso), Some(sd_mosi)),\n\nMode {\n\npolarity: Polarity::IdleLow,\n\nphase: Phase::CaptureOnFirstTransition,\n\n},\n\n400.kHz(),\n\n&mut rcc,\n\n);\n\nlet sd_spi_dev = ExclusiveDevice::new_no_delay(sd_spi, sd_cs).unwrap();\n\nrprintln!(\"Reading file...\");\n\nlet num_bytes = sdcard.num_bytes().unwrap();\n\nrprintln!(\"SD Card Size: {} bytes\", num_bytes);\n\n```\n\nWhich gives\n\n```\n\n[2026-03-01T05:30:04.085Z, +020837ms] panicked at both_test/src/main.rs:184:40:\n\n[2026-03-01T05:30:04.085Z, +020837ms] called `Result::unwrap()` on an `Err` value: CardNotFound\n\n```\n\nVery new to all this but certain of wiring. The SD Adaptor has an Ams117 chip but I have tried in 3.3V 5V, tried lower speeds, set CS high, etc with no joy. Added 4.7k pullup to CS.\n\nI can move it back to F302R8 and it works straight away.\n\nThanks all",
+            "images": [],
+            "author": "bibble235",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have you tried using any other SPI on the chip?</p><p>Have you looked at the SPI lines using an oscilloscope and/or logic analyser?</p><p> </p><p>What programming language are you using - is that Rust ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Tested with an ILI9341 on SPI1 and all good but no joy with SDMMC. Learning to use my scope and should get it out but figured working on my ESP32 and STM32F302R8 meant it probably was not the boards (I have 3 with ASM117, and built in one on the ILI module)</p><p>Currently working through STM32CubeMx through WSL as I no longer run Linux. Long time since I left C behind for Rust but nice seeing an old friend.</p><p>Thanks for replying and will feedback for others</p></div>",
+                    "author": "bibble235",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Completely all my fault, probably been at it too long. When you set high and the Logic Analyzer says no, check the wiring. In fairness I am dyslexic but also a massive wally. Upside pinout Arrrrghhh. Still refreshed on my Logic Analyzer skills hahaha.</p></div>",
+                    "author": "bibble235",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "163682",
+            "publicId": "163682",
+            "title": "Flash failure for batch of STR731",
+            "url": "https://community.st.com/others-hardware-and-software-57/flash-failure-for-batch-of-str731-163682",
+            "category": "Others: hardware and software",
+            "tags": [
+                "Discontinued products"
+            ],
+            "published_at": "2026-03-11T08:28:54+00:00",
+            "views": 273,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @m\\_schubert and welcome to the ST community.\n\nThat's indeed a quite old MCU (STR7xx family) from early 2000's. I don't think there is one here can help you on that issue as most of ST employees worked on that product are retired, left the company or moved to another position.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "We have a bit of an issue with a batch of STR731FV2T7 microcontrollers (oldschool, I know) not being able to be flashed properly. Any help would be appreciated. We've verified all the usual suspects are not a problem (signal integrity, crystal oscillation, power supply rails all OK). We've also x-ray inspected the packages and the dies, bond wire and package all look the same as known working batches.\n\nAnyway, when we try to flash the board with a SEGGER Flasher, we get the following:\n\n```\n\nSEGGER J-Link Commander V6.44h (Compiled May 3 2019 17:37:48)\n\nDLL version V6.44h, compiled May 3 2019 17:37:09\n\nConnecting to J-Link via USB...O.K.\n\nFirmware: J-Link ARM / Flasher ARM V4 compiled Apr 18 2019 16:17:53\n\nHardware version: V4.02\n\nS/N: 164215152\n\nLicense(s): JFlash, GDB\n\nIP-Addr: 10.0.0.156 (DHCP)\n\nVTref=5.019V\n\nType \"connect\" to establish a target connection, '?' for help\n\nJ-Link>Please specify device / core. <Default>: STR731FV2\n\nType '?' for selection dialog\n\nDevice>Please specify target interface:\n\nJ) JTAG (Default)\n\nTIF>Device position in JTAG chain (IRPre,DRPre) <Default>: -1,-1 => Auto-detect\n\nJTAGConf>Specify target interface speed [kHz]. <Default>: 4000 kHz\n\nSpeed>Device \"STR731FV2\" selected.\n\nConnecting to target via JTAG\n\nCould not measure total IR len. TDO is constant high.\n\nCould not measure total IR len. TDO is constant high.\n\nCould not measure total IR len. TDO is constant high.\n\nCould not measure total IR len. TDO is constant high.\n\nCannot connect to target.\n\n```\n\nI can get the emulator to recognise the microcontroller by either holding it in reset (pulling RST low), or by changing the boot mode to system memory, but in both cases the emulator can't flash or erase anything because it can't halt the CPU:\n\n```\n\nSEGGER J-Link Commander V6.44h (Compiled May 3 2019 17:37:48)\n\nDLL version V6.44h, compiled May 3 2019 17:37:09\n\nConnecting to J-Link via USB...O.K.\n\nFirmware: J-Link ARM / Flasher ARM V4 compiled Apr 18 2019 16:17:53\n\nHardware version: V4.02\n\nS/N: 164215152\n\nLicense(s): JFlash, GDB\n\nIP-Addr: 10.0.0.156 (DHCP)\n\nVTref=5.024V\n\nType \"connect\" to establish a target connection, '?' for help\n\nJ-Link>Please specify device / core. <Default>: STR731FV2\n\nType '?' for selection dialog\n\nDevice>Please specify target interface:\n\nJ) JTAG (Default)\n\nTIF>Device position in JTAG chain (IRPre,DRPre) <Default>: -1,-1 => Auto-detect\n\nJTAGConf>Specify target interface speed [kHz]. <Default>: 4000 kHz\n\nSpeed>Device \"STR731FV2\" selected.\n\nConnecting to target via JTAG\n\nTotalIRLen = 4, IRPrint = 0x01\n\nJTAG chain detection found 1 devices:\n\n#0 Id: 0x3F0F0F0F, IRLen: 04, ARM7TDMI Core\n\nARM7 identified.\n\nJ-Link>Using DBGRQ to halt CPU\n\nResetting TRST in order to halt CPU\n\n****** Error: Unable to halt CPU core\n\nDownloading file [C:\\firmware\\binaries\\20200423.hex]...\n\n****** Error: Failed to download RAMCode.\n\nFailed to prepare for programming.\n\nFailed to download RAMCode!\n\nCan not read register 0 (R0) while CPU is running\n\nCan not read register 1 (R1) while CPU is running\n\nCan not read register 2 (R2) while CPU is running\n\nCan not read register 3 (R3) while CPU is running\n\nCan not read register 4 (R4) while CPU is running\n\nCan not read register 5 (R5) while CPU is running\n\nCan not read register 6 (R6) while CPU is running\n\nCan not read register 7 (R7) while CPU is running\n\nCan not read register 10 (R8_USR) while CPU is running\n\nCan not read register 11 (R9_USR) while CPU is running\n\nCan not read register 12 (R10_USR) while CPU is running\n\nCan not read register 13 (R11_USR) while CPU is running\n\nCan not read register 14 (R12_USR) while CPU is running\n\nCan not read register 15 (R13_USR) while CPU is running\n\nCan not read register 16 (R14_USR) while CPU is running\n\nCan not read register 9 (R15 (PC)) while CPU is running\n\nCan not read register 8 (CPSR) while CPU is running\n\nCan not read register 30 (R14_ABT)\n\nUnspecified error -1\n\nJ-Link>\n\n```\n\nChanging JTAG clock speeds doesn't help, either.\n\nAny ideas? The package markings on the IC show:\n\n```\n\nSTR731FV2T7\n\nY\n\n22 3VT VG\n\nMLT 22 748\n\n```",
+            "images": [],
+            "author": "m_schubert",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104986\">@m_schubert</user-mention> and welcome to the ST community.</p>\n<p>That's indeed a quite old MCU (STR7xx family) from early 2000's. I don't think there is one here can help you on that issue as most of ST employees worked on that product are retired, left the company or moved to another position.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"104986\">@m_schubert</user-mention> In addition to what <user-mention data-id=\"499\">@mƎALLEm</user-mention>  said, it should be mentioned that the STR731 has also been obsolete for a long time. This reduces the chance that anyone can help to an extremely low level.</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi folks, understood. It's kind of the reason I've reached out here - we'll have to write off a decent batch of microcontrollers, and they're getting hard to source. Might be time for a redesign...</p></div>",
+                    "author": "m_schubert",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"104986\">@m_schubert</user-mention> wrote:<br/>\n<p>Might be time for a redesign...</p>\n<hr/></blockquote>\n<p>Indeed.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

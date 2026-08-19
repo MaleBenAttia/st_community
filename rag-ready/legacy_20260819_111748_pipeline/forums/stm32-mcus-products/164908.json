@@ -1,0 +1,78 @@
+{
+    "forum": [
+        {
+            "id": "164908",
+            "publicId": "164908",
+            "title": "Using crystal HSE configuration with external HSE source?",
+            "url": "https://community.st.com/stm32-mcus-products-25/using-crystal-hse-configuration-with-external-hse-source-164908",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "RCC",
+                "STM32F1 series"
+            ],
+            "published_at": "2026-04-20T09:30:42+00:00",
+            "views": 362,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "You can leave any output open and nothing will happen, short term or long term.\n\nBUT\n\nremember that unused outputs with some signal inside can be a source of RF noise and that can limit RF compliance.\n\nAs a general law, better not to take out unused signals in new design.",
+            "best_answer_author": "mbarg.1",
+            "best_answer_author_role": "Senior III",
+            "content_text": "Hi!\n\nI have a STM32103 processor and I wonder if something bad can occurs if I use an external oscillator to OSC\\_IN and leave the OSC,\\_OUT floating. With a ceramic crystal HSE configuration in CubeMX.\n\nI know that the **BYPASS clock source** is the best HSE configuration for an external source (as I have) because then the OCS\\_OUT is not oscilating.\n\nBut for me, it won't make any difference because my OSC\\_OUT is floating and not connected to anything. Or will this break after few years of running?\n\nI know that my OSC\\_OUT have the same oscillations as OSC\\_IN due to the \"wrong\" configuration.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8088f8cc-9e83-fccf-6574-d485cf9d36e5.png"
+            ],
+            "author": "DMårt",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You can leave any output open and nothing will happen, short term or long term.</p><p>BUT</p><p>remember that unused outputs with some signal inside can be a source of RF noise and that can limit RF compliance.</p><p>As a general law, better not to take out unused signals in new design.</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"42266\">@mbarg.1</user-mention> </p><p>Thank you!</p><p>Understand that this might cause bad RF. Luckily, I don't have any RF requirements, only functional requirements.</p></div>",
+                    "author": "DMårt",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"44549\">@DMårt</user-mention> wrote:<br/><p>I don't have any RF requirements</p><hr/></blockquote><p>That's not true!</p><p><em><strong>All</strong> </em>electronic products need to comply with the relevant EMC regulations wherever they're used/sold.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"44549\">@DMårt</user-mention> wrote:\n<p>I have a STM32103 processor and I wonder if something bad can occurs if I use an external oscillator to OSC_IN and leave the OSC,_OUT floating. With a ceramic crystal HSE configuration in CubeMX.</p>\n<hr/></blockquote>\n<p>That statement is a bit ambiguous.</p>\n<p>Are you using a crystal (XTAL) or a crystal oscillator (XO)?</p>\n<p>If you are using a crystal oscillator (XO) that's the hardware configuration you should adopt in Bypass mode. OSC_IN connected to the oscillator output and OSC_OUT should kept floating. </p>\n<p>From the reference manual <a href=\"https://www.st.com/resource/en/reference_manual/rm0008-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">RM0008</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776678147860.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776678147860.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8088f8cc-9e83-fccf-6574-d485cf9d36e5.png\" title=\"mALLEm_0-1776678147860.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention> </p><p>I'm using a XO with a ceramic configuration. But OSC_OUT is floating.</p><p>Yes, i know that I should adopt Bypass mode. But in this case it's ceramic/resonator mode.</p><p>I hope this won't cause any functional troubles.</p></div>",
+                    "author": "DMårt",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"44549\">@DMårt</user-mention> wrote:<br/>\n<p>Hi <user-mention data-id=\"499\">@mƎALLEm</user-mention> </p>\n<p>I hope this won't cause any functional troubles.</p>\n<hr/></blockquote>\n<p>No this is what it was suggested in the RM as I stated in my previous post.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

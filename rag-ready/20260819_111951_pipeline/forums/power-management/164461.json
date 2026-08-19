@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "164461",
+            "publicId": "164461",
+            "title": "L9963E FSM Status Register",
+            "url": "https://community.st.com/power-management-53/l9963e-fsm-status-register-164461",
+            "category": "Power management",
+            "tags": [
+                "Battery management",
+                "Automotive Power"
+            ],
+            "published_at": "2026-04-04T09:46:39+00:00",
+            "views": 286,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi Lorenzo.\n\nL9963E does not have any register called \"FSMstatus\"\n\n**FSMstatus** is actually the name of a field of the **FSM** register [address 0x12]\n\n![SRomeo_0-1777012776007.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ea9a040-b93b-7a09-08e7-19e5e9d0c276.png \"SRomeo_0-1777012776007.png\")\n\nThis register contains the **current state** of the device.\n\nRegarding exiting from Sleep state, take a look to page 15 of the datasheet:\n\n![SRomeo_2-1777014646282.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e884fc72-d715-2d2b-edc8-4c9f5a880c70.png \"SRomeo_2-1777014646282.png\")\n\nSo, for example, two SPI transactions are required **to exit** the sleep state.\n\nProbably, you \"may\" be able to read a sleep state if enough SPI signals are sent faster than the Twakeup.\n\nA good solution to keep trace of the state of your device is to create a \"current\\_FSM\" variable in your code, mirroring the FSM of your IC.\n\nObviously, you have to maintain it updated, reading periodically the **FSM register.** But you can also change it manually when a GO2SLP command is sent.\n\nIf you need help on coding your **L9963E** **application**, you may download the **[AutodevKit Studio IDE.](https://www.st.com/en/embedded-software/stsw-autodevkit.html)**\n\nIt contains a lot of **C examples** which triggers every L9963E BMS functionality.\n\nTo understand more, take a look to the [**AEK\\_BMS\\_Getting started GUIDE**](https://www.st.com/resource/en/user_manual/um3185-getting-started-with-autodevkit-battery-management-system-bms-evaluation-boards-stmicroelectronics.pdf)\n\nBest regards,\n\nSimone\n\nAEK\\_Team",
+            "best_answer_author": "SRomeo",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nIm using the L9963E for a Battery Management System. I noticed that the device has a register called \"FSMstatus\". I don't understand if reports the **current** status or the **previous** status. For example, if the device is in SLEEP, in order to read the FSMstatus register, I have to wake it up, and the device goes to the NORMAL state. Now the FSMstatus reports the SLEEP or NORMAL state?\n\nUnfortunately I cannot try the code.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e884fc72-d715-2d2b-edc8-4c9f5a880c70.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ea9a040-b93b-7a09-08e7-19e5e9d0c276.png"
+            ],
+            "author": "NoHandsMate",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>can anyone please :folded_hands: help me out..i am new to this L9961 chip i connected chip to esp8266 i2c got add 0x49 but i cant get voltages or anything from chip n 0x00 register gives 0x41 always.i did put 5v to pin 15 n also high to pin 14 n gnd pin 1-27-13 also n did short c5 c4 for 4s pack n did wiring for cells as per datasheet n tested VB to both external vcc 5v n pack 14v n also connected ntc,pin 11 high but nothing i just want a simple code to get voltages of cells ,current n charge accumulated.i previously used ina219 easily.i am not even a coder if someone can help me with example code for esp32 that will help a lot i did search on google but couldn't find anything.thanks i will appreciate any kind of help 🥹</span></p></div>",
+                    "author": "rizwan99",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Lorenzo.<br/>L9963E does not have any register called \"FSMstatus\"<br/><br/><strong>FSMstatus</strong> is actually the name of a field of the <strong>FSM</strong> register [address 0x12]</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"SRomeo_0-1777012776007.png\" style=\"width: 511px;\"><img alt=\"SRomeo_0-1777012776007.png\" height=\"556\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ea9a040-b93b-7a09-08e7-19e5e9d0c276.png\" title=\"SRomeo_0-1777012776007.png\" width=\"511\"/></span></p><p>This register contains the <strong>current state</strong> of the device. <br/>Regarding exiting from Sleep state, take a look to page 15 of the datasheet:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"SRomeo_2-1777014646282.png\" style=\"width: 554px;\"><img alt=\"SRomeo_2-1777014646282.png\" height=\"327\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e884fc72-d715-2d2b-edc8-4c9f5a880c70.png\" title=\"SRomeo_2-1777014646282.png\" width=\"554\"/></span><br/>So, for example, two SPI transactions are required <strong>to exit</strong> the sleep state.<br/><br/>Probably, you \"may\" be able to read a sleep state if enough SPI signals are sent faster than the Twakeup.<br/><br/>A good solution to keep trace of the state of your device is to create a \"current_FSM\" variable in your code, mirroring the FSM of your IC.<br/>Obviously, you have to maintain it updated, reading periodically the <strong>FSM register. </strong>But you can also change it manually when a GO2SLP command is sent.<br/><br/>If you need help on coding your <strong>L9963E</strong> <strong>application</strong>, you may download the<strong><a href=\"https://www.st.com/en/embedded-software/stsw-autodevkit.html\" rel=\"noopener noreferrer\" target=\"_self\"> AutodevKit Studio IDE.</a></strong><br/>It contains a lot of <strong>C examples</strong> which triggers every L9963E BMS functionality.<br/>To understand more, take a look to the <a href=\"https://www.st.com/resource/en/user_manual/um3185-getting-started-with-autodevkit-battery-management-system-bms-evaluation-boards-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\"><strong>AEK_BMS_Getting started GUIDE</strong></a><br/><br/>Best regards,<br/>Simone<br/>AEK_Team <br/><br/><br/></p></div>",
+                    "author": "SRomeo",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Simone,</p><p>thank you for all the information. Eventually I figured it out that the best way to handle the L9963E's FSM is by code and validate it by reading the FSMStatus field, as you suggested. </p><p>Thank you for sharing the material on AutodevKit, which I didn't know anything about; it will be helpful as I continue with the development.</p></div>",
+                    "author": "NoHandsMate",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "SRomeo",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

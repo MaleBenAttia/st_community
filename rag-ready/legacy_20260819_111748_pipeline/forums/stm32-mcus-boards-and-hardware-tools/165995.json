@@ -1,0 +1,74 @@
+{
+    "forum": [
+        {
+            "id": "165983",
+            "publicId": "165995",
+            "title": "STM32U5G9J-DK1: Significance of unusued 1.8 V LDO",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stm32u5g9j-dk1-significance-of-unusued-1-8-v-ldo-165995",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32U5 series",
+                "ST boards"
+            ],
+            "published_at": "2026-06-10T04:56:27+00:00",
+            "views": 89,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@RandomGaurav ,\n\nIf you are using pull-ups for some signals to 3V3 and 1V8, please check that both supplies are really independant, to not modify the power-up-/down sequence. If current flows from 1V8 to 3V3 due to your pull-ups or your peripherals, this may change the overall power-up/down behaviour. 1V8 shall start and being regulated before 3V3 starts.\n\nBest Regards,",
+            "best_answer_author": "GET",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI was going through the schematic of STM32U5G9J-DK1 where I came across the unused LDO (U19) for generating 1.8 V on this board. I wanted to know the significance of this LDO and what were the reasons to keep it unpopulated?\n\nAlso, can I expect to see an improvement in the driving capability of this rail in case I wish to populate U19 with TPS76301? If yes, which orderable part no. of the same would be recommended?",
+            "images": [],
+            "author": "RandomGaurav",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"94892\">@RandomGaurav</user-mention>,</p><p>“I wanted to know the significance of this LDO and what were the reasons to keep it unpopulated?” :</p><ul><li>no Audio codec populated, no 1.8V LDO was required : lowered BOM. If a very clean power supply such as a LDO is not necessary, using the VDDMCU_SMPS by default on the 1V8 rail (through R62) is ok and recommended, especially if using the default LCD.</li> <li>if a power supply with LDO is requested on 1V8 rail for any DSI_V3 or for expansion connectors board (as an analogue power supply for exemple) it is possible to use the TPS76301, but verify the power sequencing is fitting your need and power consumption Vs any peripherals used on DSI_V3 or on expansion board.</li></ul><p>“Also, can I expect to see an improvement in the driving capability of this rail in case I wish to populate U19 with TPS76301?”</p><p>TPS76301 is only 150 mA. Use U19 only if a very clean power supply is needed for some other perpiherals than the default LCD.</p><p>Hope this answers your questions.</p><p> </p><p> </p></div>",
+                    "author": "GET",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have been using the discovery kit with a custom board on which i have used peripherials which are supplied by the 1V8 rail. It is observed that once in a while, my LCD display doesn't turn on although the LEDs on the MB1829 do turn on. I suspect that my LCD isn't receibving enough power and hence this issue occurs.</p><p> </p><p>Looking forward to your insights on this matter.</p></div>",
+                    "author": "RandomGaurav",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"94892\">@RandomGaurav</user-mention> ,</p><p>Did you make an overall estimation of the power consumptions in your configuration ? The VDD raill (which is supplying 1V8 rail and IOREF rail by default) can support 800 mA with good accuracy and can even withstand up to 1A (TPS62140), providing that your global 5V power input consumpiton configuration supports it. IOREF can be used instead of 1V8 rail if using expansion connectors. 1V8 may be used preferably for clean power supplies to be filtered with less consumption. IOREF is dedicated to interface with logic power supply (150 mA or even more can be withstand depending on the rest of power consumption on VDD). </p><p>Are you using MB1835 LCD daughterboard ( if it is the case, we never experienced startup issues with this LCD on production kits) or you are unsing another LCD on DSI_V3 connector ? In our case, the only specific thing to know is that the DSI.CK_N and DSI.CK_P pairs are inverted Vs standard DSI_V3 connector pinout : the lanes need to be swapped in Software on MCU side (which is the case in the default SW Demo).</p><p>Commonly, issues of non-starting LCD can be : power-up/down configuration Vs LCD Reset , I2C if using I2C, bad LCD driver parameters settings.</p><p>Best Reagrds,</p></div>",
+                    "author": "GET",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>The circuit I designed uses LM2678S-5.0 for generating 5 VDC which can supply 5 A of current. The 5 VDC generated is fed to an LED (551-0207F) which has a max. forward current of 20 mA. Apart from that, this 5 VDC is fed to the 5 V_VIN pin of CN9 of MB1829.</p><p>3V3 and 1V8 pins on CN9 are further used either as pull-ups to signals, or to supply any other peripherial or device connected to DK1. Max. current drawn by our circuit (including peripherials) from 1V8 is around 3 mA, and 156 mA from 3V3.</p><p> </p><p>Also, the issue with the MB1835 LCD daughterboard isn't something which occurs on every power cycle. Its occurence is very random. </p></div>",
+                    "author": "RandomGaurav",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"94892\">@RandomGaurav</user-mention> ,</p><p>If you are using pull-ups for some signals to 3V3 and 1V8, please check that both supplies are really independant, to not modify the power-up-/down sequence. If current flows from 1V8 to 3V3 due to your pull-ups or your peripherals, this may change the overall power-up/down behaviour. 1V8 shall start and being regulated before 3V3 starts.</p><p>Best Regards,</p></div>",
+                    "author": "GET",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GET",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "GET",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "GET",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

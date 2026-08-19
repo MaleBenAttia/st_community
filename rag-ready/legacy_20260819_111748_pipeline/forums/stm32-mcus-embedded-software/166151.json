@@ -1,0 +1,76 @@
+{
+    "forum": [
+        {
+            "id": "166137",
+            "publicId": "166151",
+            "title": "How should the FMAC of STM32G474 be configured to obtain correct calculation data?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/how-should-the-fmac-of-stm32g474-be-configured-to-obtain-correct-calculation-data-166151",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G4 series",
+                "ADC"
+            ],
+            "published_at": "2026-06-14T11:51:54+00:00",
+            "views": 163,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@TakingLee\n\nPlease found some issues or incoherence in your code that could be the cause of your dysfonctionnement:\n\n1- HAL\\_FMAC\\_FilterPreload is called with the wrong parameters.\n\naInputValues is sized with ARRAY\\_SIZE (1) but INPUT\\_BUFFER\\_SIZE is 3.\n\nThis may cause the function to read two values beyond the array.\n\n2- HAL\\_FMAC\\_FilterStart is called with the wrong parameters\n\nWith your FMAC configuration, the expected output size should configure the number of data for DMA transfer.\n\nIf you want a one-shot operation, use 1U.\n\n3- error in CNTRL\\_1p1zFloat:\n\nThe local variable \"acc\" is not initialized and you did a first \"+=\" operation. The result could be unpredictable.\n\nI recommend making an initial assignment instead of a compoud assignment.\n\n4- FMAC works with Q1.15 format data, while your \"CNTRL\\_1p1zFloat\" function works in float data.\n\nThis may naturally create small differences in results.\n\n5- The A1 coefficient is inconsistent:\n\n- For FMAC, the coefficient A1 is set to 0x8147 (Q1.15 format) which is the approxmatively the float value -0.989.\n\n- For CNTRL\\_1p1zFloat, the coefficient A1 is set to the float value +0.99 which is the 0x7EB8 in Q1.15 format.\n\nThe FMAC implements the IIR formula: IIR filter Y = B\\*X + A\\*Y’. By using a negative A coefficient the formula is resume to Y = B\\*X - A\\*Y’\n\nThen if this equation is fine for you, then CNTRL\\_1p1zFloat should used the same negative value.\n\nOtherwise, if you want the initial IIR filter formula Y = B\\*X + A\\*Y’, then you must use a positive coefficient\n\nWhich coefficicent do you want to keep?\n\nBest regards\n\nOmar",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI encountered problems during the development process of using FMAC. To illustrate the problem simply, I used FMAC to implement an RC filter, by which I mean to illustrate the calculation problems of FMAC.\n\nRC filter:10K+10nF\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/73749891-40c5-490b-a5ae-be3b253b9c9c.png)\n\nIts discrete z-domain expression：（Ts=1e-6,Tustin）\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/de3e8744-5bcd-4188-b92f-47e46280bc8d.png)\n\nso I get fixed-point parameters :\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54362759-b3d6-4f6c-9611-38da3c70bca3.png)\n\nI referred to the example program of AN5305 and used a 1-us timer to trigger ADC sampling. After the ADC sampling is completed, DMA writes to the WriteData of FMAC, and then the ReadData is processed in the interrupt as follows:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6e364b1-38bc-4c4d-998c-862a9e7d02b3.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a5822d14-5f37-40f8-8c44-e8609c17f464.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/986f4ab2-459d-4cb6-a712-5aabd225be60.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf65d567-873b-43c6-9ce4-1591e06e03de.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ab9dfe1a-c610-4691-bbd7-ece06e31e9f4.png)\n\nAs shown above, my current ADC sample is 0, and my Vref is set to 800. I think the output of FMAC as an RC filter should be around 800 in the DC case, but actually it is not. It is a relatively small value. Why is that?\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/753ca4c4-0328-46e1-876e-ebc5e7f4e37a.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7cfc743d-2f40-46aa-8258-8e5348ebfbf6.png)\n\nMay I ask if there is a problem with my configuration of FMAC?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6e364b1-38bc-4c4d-998c-862a9e7d02b3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cf65d567-873b-43c6-9ce4-1591e06e03de.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/de3e8744-5bcd-4188-b92f-47e46280bc8d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/54362759-b3d6-4f6c-9611-38da3c70bca3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a5822d14-5f37-40f8-8c44-e8609c17f464.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/753ca4c4-0328-46e1-876e-ebc5e7f4e37a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b80caa3-c21d-4a9b-b2b9-9f91d0fe9403.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/73749891-40c5-490b-a5ae-be3b253b9c9c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ab9dfe1a-c610-4691-bbd7-ece06e31e9f4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/986f4ab2-459d-4cb6-a712-5aabd225be60.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7cfc743d-2f40-46aa-8258-8e5348ebfbf6.png"
+            ],
+            "author": "TakingLee",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105695\">@TakingLee</user-mention> </p><p>About your question \"May I ask if there is a problem with my configuration of FMAC?\" and based on the information provided, the FMAC configuration seems to be correct.<br/> <br/>A quick reminder regarding the use of variables in callbacks: they must be declared as \"volatile\".<br/>Then we invite you to verify that the \"Fmac_output\" array is correctly declared as volatile in your application.<br/> <br/>Otherwise, about your problem, we have no enough data to make a correct analysis.<br/>Then could you give us more details about your ADC configuration ?<br/>What sampling time is it using ?<br/>Is the raw ADC measurement correct relative to your input signal ?<br/> </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thanks for your answers.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b80caa3-c21d-4a9b-b2b9-9f91d0fe9403.png\"/></figure><p>Please refer to the attachment for relevant project codes. As shown in the figure above, the calculation result of FMAC is different from that calculated by the software. In this project, the period time of Timer6 is set to 10 μs. FMAC is calculated once and calculated by the software method once every 10 μs. This project is modified from the official ST example program.</p><p>Why are the calculation results of the FMAC module different from those of the software mode?</p></div>",
+                    "author": "TakingLee",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"105695\">@TakingLee</user-mention> </p><p>Please found some issues or incoherence in your code that could be the cause of your dysfonctionnement:<br/>    1- HAL_FMAC_FilterPreload is called with the wrong parameters.<br/>        aInputValues is sized with ARRAY_SIZE (1) but INPUT_BUFFER_SIZE is 3.<br/>        This may cause the function to read two values beyond the array.<br/>    2- HAL_FMAC_FilterStart is called with the wrong parameters<br/>        With your FMAC configuration, the expected output size should configure the number of data for DMA transfer.<br/>        If you want a one-shot operation, use 1U.<br/>    3- error in CNTRL_1p1zFloat:<br/>        The local variable \"acc\" is not initialized and you did a first \"+=\" operation. The result could be unpredictable.<br/>        I recommend making an initial assignment instead of a compoud assignment.<br/>    4- FMAC works with Q1.15 format data, while your \"CNTRL_1p1zFloat\" function works in float data. <br/>        This may naturally create small differences in results.<br/>    5- The A1 coefficient is inconsistent:<br/>         - For FMAC, the coefficient A1 is set to 0x8147 (Q1.15 format) which is the approxmatively the float value -0.989.<br/>         - For CNTRL_1p1zFloat, the coefficient A1 is set to the float value +0.99 which is the 0x7EB8 in Q1.15 format.<br/>         <br/>        The FMAC implements the IIR formula: IIR filter Y = B*X + A*Y’. By using a negative A coefficient the formula is resume to Y = B*X - A*Y’<br/>        Then if this equation is fine for you, then CNTRL_1p1zFloat should used the same negative value.<br/>        Otherwise, if you want the initial IIR filter formula Y = B*X + A*Y’, then you must use a positive coefficient<br/>        <br/>        Which coefficicent do you want to keep?</p><p> </p><p>Best regards</p><p>Omar</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,@<a href=\"https://community.st.com/members/saket-om-1684\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">Saket_Om</a></p><p>Thank you for your answer. My problem has been solved. </p><p>INPUT_BUFFER_SIZE shall be 2, and A1 shall be negative; that is, as you said, A1 shall be +0.99 (0x7EB8).</p><p>Thank you very much.</p></div>",
+                    "author": "TakingLee",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

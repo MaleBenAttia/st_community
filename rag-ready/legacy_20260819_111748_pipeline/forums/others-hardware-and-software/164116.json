@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "164116",
+            "publicId": "164116",
+            "title": "st1s06xx datasheet error and incomplete",
+            "url": "https://community.st.com/others-hardware-and-software-57/st1s06xx-datasheet-error-and-incomplete-164116",
+            "category": "Others: hardware and software",
+            "tags": [
+                "Other hardware"
+            ],
+            "published_at": "2026-03-24T16:23:45+00:00",
+            "views": 247,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Thank you very much for the careful observation regarding the diagram fig 10: the labels Vi and Vo were indeed swapped. I will gladly report this further, but I am unsure whether it will be corrected anytime soon given the age of the device (it was released in 2006).\n\n**Regarding the output voltage vs current:**\n\nFor a current‑mode synchronous buck like the ST1S06, a static “VOUT vs IOUT curve” (as for an LDO) is not very meaningful. The DC output voltage is set by the reference and the resistor divider and should be in your case at 3.37V. Your result (3.36V at 600mA, 3.16V at 800mA) corresponds to roughly 6% drop, so the device is clearly not in its normal regulation region. Typical causes might be:\n\n* input voltage droop at the IC pins (wiring / track resistance) - probably not the largest portion in the observed 200mV voltage drop\n\n* inductor saturating or underrated\n\n* excessive series resistance in the high‑current loop or poor layout\n\nUseful checks:\n\n* Probe VIN  directly at VIN\\_SW / VIN\\_A at 600 mA / 800 mA\n\n* Check that the inductor is ≥2.5A rated and in the recommended value range\n\n* Measure V​FB; if it falls well below 0.8V at higher load, the converter has already hit its limit (maximum duty cycle, current limit or supply sag)\n\n**Dropout voltage of a synchronous buck**\n\n*Dropout voltage* is a well‑defined parameter for linear regulators, but for a synchronous buck it strongly depends on the application, not only on the IC: in regulation, approximately Vout ~ D(Vin-Iout\\*Rpath), where D is the duty cycle (limited by Dmax) and Rpath includes MOSFET RDS(on), inductor DCR, PCB tracks, etc. The minimum Vin for a given Vout and Iout is therefore set by Dmax (80...87 % from the datasheet) plus all external losses. This is why there is no single dropout vs current curve.\n\nHope that answers your questions?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "The ST1S06xx datasheet (<https://www.st.com/resource/en/datasheet/st1s06.pdf>) contains an error: Figure 10 \"Input voltave vs output voltage\" has the axes labels swapped:\n\n![Screenshot 2026-03-24 at 12.14.51.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7a2b923b-adac-5aec-3f6a-673a8b2c8db1.png \"Screenshot 2026-03-24 at 12.14.51.png\")\n\nA correct version of the Input voltage vs output voltage characteristic can be found in figure 7 of Application Note 2371 <https://www.st.com/resource/en/application_note/an2371-st1s06-high-frequency-synchronous-buck-converter-stmicroelectronics.pdf> :\n\n![Screenshot 2026-03-24 at 12.15.31.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/66c9218b-a49c-2293-f564-33b7beccb50a.png \"Screenshot 2026-03-24 at 12.15.31.png\")\n\nThe datasheet is also missing details on a crucial characteristic: output voltage vs current. In my circuit I have R1=18k, R2=5.6k. Nominal output should be Vout = 0.8V\\*(1+18/5.6). With a load of 600mA I measure Vout = 3.36V; increasing the load to 800mA, Vout = 3.16V.\n\nAnother crucial characteristic that's missing detail is dropout voltage: the only indication is figure 11 mentioned above, which suggest for a 1.2V / 1.5A output the dropout voltage is approx 1.1V, but there's no indication of how that changes with input/output voltage or current.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/66c9218b-a49c-2293-f564-33b7beccb50a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7a2b923b-adac-5aec-3f6a-673a8b2c8db1.png"
+            ],
+            "author": "haleecaero.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you very much for the careful observation regarding the diagram fig 10: the labels Vi and Vo were indeed swapped. I will gladly report this further, but I am unsure whether it will be corrected anytime soon given the age of the device (it was released in 2006).</p>\n<p><strong>Regarding the output voltage vs current:</strong><br/>For a current‑mode synchronous buck like the ST1S06, a static “VOUT vs IOUT curve” (as for an LDO) is not very meaningful. The DC output voltage is set by the reference and the resistor divider and should be in your case at 3.37V. Your result (3.36V at 600mA, 3.16V at 800mA) corresponds to roughly 6% drop, so the device is clearly not in its normal regulation region. Typical causes might be:</p>\n<ul>\n<li>input voltage droop at the IC pins (wiring / track resistance) - probably not the largest portion in the observed 200mV voltage drop</li>\n<li>inductor saturating or underrated</li>\n<li>excessive series resistance in the high‑current loop or poor layout</li>\n</ul>\n<p>Useful checks:</p>\n<ul>\n<li>Probe VIN  directly at VIN_SW / VIN_A at 600 mA / 800 mA</li>\n<li>Check that the inductor is ≥2.5A rated and in the recommended value range</li>\n<li>Measure V​FB; if it falls well below 0.8V at higher load, the converter has already hit its limit (maximum duty cycle, current limit or supply sag)</li>\n</ul>\n<p><strong>Dropout voltage of a synchronous buck</strong></p>\n<p><em>Dropout voltage</em> is a well‑defined parameter for linear regulators, but for a synchronous buck it strongly depends on the application, not only on the IC: in regulation, approximately Vout ~ D(Vin-Iout*Rpath), where D is the duty cycle (limited by Dmax) and Rpath includes MOSFET RDS(on), inductor DCR, PCB tracks, etc. The minimum Vin for a given Vout and Iout is therefore set by Dmax (80...87 % from the datasheet) plus all external losses. This is why there is no single dropout vs current curve.</p>\n<p>Hope that answers your questions?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for taking the time, that answers my question.</p></div>",
+                    "author": "haleecaero.1",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

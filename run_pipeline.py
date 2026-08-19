@@ -67,6 +67,11 @@ def main():
 
         LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
+        # Identifiant du run (= nom du dossier logs/<ts>_pipeline), réutilisé pour
+        # conserver chaque run dans output/<run_id>/ et rag-ready/<run_id>/.
+        run_id = rl.folder.name
+        print(f"  >> Run ID : {run_id} (output/ et rag-ready/ seront organisés par run)")
+
         # Mode ré-extraction complète (tous les topics re-scrapés), activé via
         # l'env FULL_RESCRAPE=1 (posé par le Dashboard quand "Full re-scrape" est coché).
         force_rescrape = os.getenv("FULL_RESCRAPE", "0") == "1"
@@ -94,6 +99,7 @@ def main():
                 active_forum_ids=active_forum_ids,
                 active_kb_ids=active_kb_ids,
                 force_rescrape=force_rescrape,
+                run_id=run_id,
             )
         except Exception as e:
             rl.error(f"Erreur lors de l'extraction : {e}")
@@ -101,13 +107,13 @@ def main():
 
         print("\n--- ÉTAPE 2bis : MISE À JOUR DES RÔLES D'AUTEURS ---")
         try:
-            build_author_roles.main()
+            build_author_roles.main([BASE_DIR / "output" / run_id / "forums"])
         except Exception as e:
             rl.error(f"Erreur lors de la mise à jour de author_roles.json : {e}")
 
         print("\n--- ÉTAPE 3 : PRÉPARATION RAG ---")
         try:
-            prepare_stats = run_prepare()
+            prepare_stats = run_prepare(run_id=run_id)
         except Exception as e:
             rl.error(f"Erreur lors de la préparation RAG : {e}")
             prepare_stats = {"error": str(e)}

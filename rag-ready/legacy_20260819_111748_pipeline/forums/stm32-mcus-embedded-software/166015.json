@@ -1,0 +1,82 @@
+{
+    "forum": [
+        {
+            "id": "166003",
+            "publicId": "166015",
+            "title": "FileX with file unicode 16 bit characters",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/filex-with-file-unicode-16-bit-characters-166015",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F4 series",
+                "FileX"
+            ],
+            "published_at": "2026-06-10T09:02:15+00:00",
+            "views": 94,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "hello ​@Gengiz ,\n\nYes, FileX supports file names containing Cyrillic characters through its 16-bit Unicode APIs.\n\nIn practice, the file must first be created or renamed using the Unicode services, such as fx\\_unicode\\_file\\_create(...) or fx\\_unicode\\_file\\_rename(...). Once this is done, the generated short name can be used with the standard FileX APIs such as fx\\_file\\_open(...), fx\\_file\\_read(...), and fx\\_file\\_write(...).\n\nExample:\n\nUCHAR unicode\\_name[] = {\n\n0x14, 0x04,  /\\* Д \\*/\n\n0x30, 0x04,  /\\* а \\*/\n\n0x3D, 0x04,  /\\* н \\*/\n\n0x3D, 0x04,  /\\* н \\*/\n\n0x4B, 0x04,  /\\* ы \\*/\n\n0x35, 0x04,  /\\* е \\*/\n\n0x2E, 0x00,  /\\* . \\*/\n\n0x74, 0x00,  /\\* t \\*/\n\n0x78, 0x00,  /\\* x \\*/\n\n0x74, 0x00,  /\\* t \\*/\n\n0x00, 0x00\n\n};\n\nCHAR short\\_name[13];\n\nFX\\_FILE file;\n\nULONG length;\n\nULONG bytes\\_read;\n\nCHAR buffer[20];\n\nUINT status;\n\nlength = fx\\_unicode\\_length\\_get(unicode\\_name);\n\nstatus = fx\\_unicode\\_file\\_create(&media, unicode\\_name, length, short\\_name);\n\nstatus = fx\\_file\\_open(&media, &file, short\\_name, FX\\_OPEN\\_FOR\\_WRITE);\n\nstatus = fx\\_file\\_write(&file, \"Bonjour\", sizeof(“Bonjour”));\n\nstatus = fx\\_file\\_close(&file);\n\nstatus = fx\\_file\\_open(&media, &file, short\\_name, FX\\_OPEN\\_FOR\\_READ);\n\nstatus = fx\\_file\\_read(&file, buffer, sizeof(“Bonjour”), &bytes\\_read);\n\nstatus = fx\\_file\\_close(&file);\n\nRegards,\n\nMaher",
+            "best_answer_author": "MFARH.1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I need to create, read and modify files using filex. Such files have names that uses cyrillic characters set (they must be codified using unicode 16 bit). It is possible to manage such files?\n\nThanks",
+            "images": [],
+            "author": "Gengiz",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107315\">@Gengiz</user-mention> </p><p>Yes, <strong>FileX can handle filenames with Cyrillic characters</strong>, provided you use the <strong>Unicode filename APIs</strong> and the filesystem is configured with <strong>Long File Name (LFN)</strong> support. In practice, filenames must be passed as <strong>16-bit Unicode strings</strong> to the corresponding FileX Unicode services for file or directory creation/opening. Standard read/write operations on the file content remain unchanged once the file is opened. So, if LFN/Unicode support is enabled in the FileX configuration, creating, reading, and modifying files whose names contain Cyrillic characters is supported.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Now I use  fx_file_create(), fx_file_open(), fx_file_close() and read and write.</p><p> </p><p>It will work if I call:</p><p>uint16_t NameFile[10];</p><p>FX_FILE File; </p><p>NameFile[0]= 0x418;           //‘И’</p><p>NameFile[0]=0x43C;           //’м’</p><p>NameFile[0]=0x435;           //’е’</p><p>NameFile[0]=0;</p><p>fx_filex_create(#disk#, NameFile);</p><p>fx_filex_open(File,NameFile, READ_ONLY);</p></div>",
+                    "author": "Gengiz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>NameFile[0]= 0x418;           //‘И’</p><p>NameFile[0]=0x43C;           //’м’</p><p>NameFile[0]=0x435;           //’е’</p><p>NameFile[0]=0;</p></blockquote><p>That will give you an empty string!</p><p>I presume you meant:</p><pre><code class=\"language-c\">NameFile[0]= 0x418;          //‘И’<br/>NameFile[1]=0x43C;           //’м’<br/>NameFile[2]=0x435;           //’е’<br/>NameFile[3]=0;</code></pre><p> </p><p>And please note <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413\" rel=\"noreferrer nofollow ugc\" target=\"_self\">how to properly post source code</a></em></p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Or should I set any properly #define?</p></div>",
+                    "author": "Gengiz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>hello ​<user-mention data-id=\"107315\">@Gengiz</user-mention> ,</p><p>Yes, FileX supports file names containing Cyrillic characters through its 16-bit Unicode APIs.</p><p>In practice, the file must first be created or renamed using the Unicode services, such as fx_unicode_file_create(...) or fx_unicode_file_rename(...). Once this is done, the generated short name can be used with the standard FileX APIs such as fx_file_open(...), fx_file_read(...), and fx_file_write(...).<br/> </p><p>Example:</p><p>UCHAR unicode_name[] = {<br/>    0x14, 0x04,  /* Д */<br/>    0x30, 0x04,  /* а */<br/>    0x3D, 0x04,  /* н */<br/>    0x3D, 0x04,  /* н */<br/>    0x4B, 0x04,  /* ы */<br/>    0x35, 0x04,  /* е */<br/>    0x2E, 0x00,  /* . */<br/>    0x74, 0x00,  /* t */<br/>    0x78, 0x00,  /* x */<br/>    0x74, 0x00,  /* t */<br/>    0x00, 0x00<br/>};</p><p>CHAR short_name[13];<br/>FX_FILE file;<br/>ULONG length;<br/>ULONG bytes_read;<br/>CHAR buffer[20];<br/>UINT status;</p><p>length = fx_unicode_length_get(unicode_name);</p><p>status = fx_unicode_file_create(&amp;media, unicode_name, length, short_name);<br/>status = fx_file_open(&amp;media, &amp;file, short_name, FX_OPEN_FOR_WRITE);<br/>status = fx_file_write(&amp;file, \"Bonjour\", sizeof(“Bonjour”));<br/>status = fx_file_close(&amp;file);</p><p>status = fx_file_open(&amp;media, &amp;file, short_name, FX_OPEN_FOR_READ);<br/>status = fx_file_read(&amp;file, buffer, sizeof(“Bonjour”), &amp;bytes_read);<br/>status = fx_file_close(&amp;file);</p><p> </p><p>Regards,</p><p>Maher</p><p> </p><p> </p></div>",
+                    "author": "MFARH.1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes. It was a mistake the index all the time set to 0</p></div>",
+                    "author": "Gengiz",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks.</p><p> </p></div>",
+                    "author": "Gengiz",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "MFARH.1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

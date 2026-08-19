@@ -1,0 +1,46 @@
+{
+    "forum": [
+        {
+            "id": "165398",
+            "publicId": "165398",
+            "title": "Incorrect Symbol Names for STMCubeMX Generated Project IRQ Handlers",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/incorrect-symbol-names-for-stmcubemx-generated-project-irq-handlers-165398",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "Interrupt",
+                "STM32WL series"
+            ],
+            "published_at": "2026-05-05T19:48:30+00:00",
+            "views": 149,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @ncdanie\n\nUsing the latest version of STM32CubeMX6.17.0\n\n```\n\n.word MRSUBG_BUSY_IRQHandler /* IRQ20: MR SUBG BUSY interrupt */\n\n.word MRSUBG_IRQHandler /* IRQ21: MR SUBG interrupt */\n\n.word MRSUBG_TX_RX_SEQUENCE_IRQHandler /* IRQ22: MR SUBG TX RX Sequence interrupt */\n\n.word MRSUBG_TIMER_CPU_WKUP_IRQHandler /* IRQ23: MR SUBG TIMER CPU Wakeup interrupt */\n\n.word MRSUBG_WKUP_IRQHandler /* IRQ24: MR SUBG Wakeup interrupt */\n\n```\n\n![GhofraneGSOURI_0-1778057683519.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ddce7f67-c926-509a-0f18-2b82e60355f0.png \"GhofraneGSOURI_0-1778057683519.png\")\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "STM32CubeMX Version: 6.13.0\n\nChip: STM32WL33CCVx\n\nToolchain: Makefile\n\nSnippet from startup file startup\\_stm32wl33ccvx.s:\n\n```\n\n.word MRSUBG_BUSY_IRQHandler /* IRQ20: MR SUBG BUSY interrupt */\n\n.word MRSUBG_IRQHandler /* IRQ21: MR SUBG interrupt */\n\n.word TX_RX_SEQUENCE_IRQHandler /* IRQ22: TX RX SEQUENCE interrupt */\n\n.word CPU_WKUP_IRQHandler /* IRQ23: CPU Wakeup interrupt */\n\n.word SUBG_WKUP_IRQHandler /* IRQ24: SUBG Wakeup interrupt */\n\n```\n\nSnippet from IT header file stm32wl3x\\_it.h:\n\n```\n\nvoid MRSUBG_BUSY_IRQHandler(void);\n\nvoid MRSUBG_IRQHandler(void);\n\nvoid MRSUBGTX_RX_SEQUENCE_IRQHandler(void);\n\nvoid MRSUBG_CPU_WKUP_IRQHandler(void);\n\nvoid MRSUBG_WKUP_IRQHandler(void);\n\n```\n\nPerhaps I'm missing something, but I would assume the function names in the header file need to match the names used for the weak definitions in the assembly file.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ddce7f67-c926-509a-0f18-2b82e60355f0.png"
+            ],
+            "author": "ncdanie",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"87482\">@ncdanie</user-mention> </p>\n<p>Using the latest version of STM32CubeMX6.17.0 </p>\n<pre class=\"lia-code-sample language-c\"><code> .word MRSUBG_BUSY_IRQHandler /* IRQ20: MR SUBG BUSY interrupt */\n .word MRSUBG_IRQHandler /* IRQ21: MR SUBG interrupt */\n .word MRSUBG_TX_RX_SEQUENCE_IRQHandler /* IRQ22: MR SUBG TX RX Sequence interrupt */\n .word MRSUBG_TIMER_CPU_WKUP_IRQHandler /* IRQ23: MR SUBG TIMER CPU Wakeup interrupt */\n .word MRSUBG_WKUP_IRQHandler /* IRQ24: MR SUBG Wakeup interrupt */</code></pre>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GhofraneGSOURI_0-1778057683519.png\" style=\"width: 400px;\"><img alt=\"GhofraneGSOURI_0-1778057683519.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ddce7f67-c926-509a-0f18-2b82e60355f0.png\" title=\"GhofraneGSOURI_0-1778057683519.png\"/></span></p>\n<p> </p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

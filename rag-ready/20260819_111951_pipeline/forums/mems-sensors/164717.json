@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "164717",
+            "publicId": "164717",
+            "title": "iis3dwb Sampling Rate Driver Issue",
+            "url": "https://community.st.com/mems-sensors-48/iis3dwb-sampling-rate-driver-issue-164717",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Ecosystem"
+            ],
+            "published_at": "2026-04-14T02:34:17+00:00",
+            "views": 217,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @Leo\\_leo ,\n\nYour observation is correct: the overhead introduced by the `iis3dwb_acceleration_raw_get()` function—including SPI transactions, data conversion, and context handling—reduces the maximum achievable data rate, even with an 18 Mbps SPI clock. This is why you see a lower acquisition frequency when this function is used.\n\nTo maximize throughput:\n\n* Minimize function call overhead by reading sensor registers directly in a tight loop or using burst SPI reads.\n\n* Prefer FIFO mode and read multiple samples in a single SPI transaction.\n\n* Consider using DMA for SPI transfers if your MCU supports it.\n\nThe official ST driver prioritizes portability over raw speed. For high-speed applications, a streamlined, application-specific readout routine is recommended.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "While using the iis3dw sensor, I discovered that when I employed an interrupt-based polling method to read data—where, ideally, the sensor captures data, triggers an interrupt, and then the data is read—the data acquisition frequency should be around 26 kHz (based on SPI transmission and code execution time). However, I found that reading the data was taking up some of that time; when I disabled this process, the issue disappeared. My SPI rate is 18 Mbps. Subsequent testing with FIFO reading also exhibited this behavior. Specifically, when I disabled the function `iis3dwb\\_acceleration\\_raw\\_get(&IIS3DWB\\_ctx, accel)` during the read process, reading 10,240 data points took approximately 391 ms (about 26k). Without disabling it, reading the same 10,240 data points took 523 ms (about 19k). Below is my read code without using FIFO. The attachment contains the official ST driver. `uint8\\_t iis3dwb\\_init\\_drdy\\_mode(void)` is the initialization function without using FIFO,\n\n```\n\nint16_t iis3dwb_read(void)\n\n{\n\nint16_t accel[3];\n\niis3dwb_acceleration_raw_get(&IIS3DWB_ctx, accel);\n\n//\tif(IisINITNum % 10 == 0)\n\n{\n\nAllData[IisDataNum].Iis[0] = accel[0];//iis3dwb_from_fs16g_to_mg(accel[0]) * 9.8 / 1000;\n\nAllData[IisDataNum].Iis[1] = accel[1];//iis3dwb_from_fs16g_to_mg(accel[1]) * 9.8 / 1000;\n\nAllData[IisDataNum].Iis[2] = accel[2];//iis3dwb_from_fs16g_to_mg(accel[2]) * 9.8 / 1000;\n\nIisDataNum++;\n\nif(IisDataNum >= DATA_MAX_NUM)\n\n{\n\nIisDataNum = 0;\n\niis3dwb_xl_data_rate_set(&IIS3DWB_ctx, IIS3DWB_XL_ODR_OFF);\n\ng_events |= MAIN_EVENT_SEND_IIS;\n\nreturn 0;\n\n}\n\n}\n\nIisINITNum++;\n\nreturn 0;\n\n}\n\n```\n\n*The ST Community moderator has translated the post to comply with the language of the Community which is English.  For more information, see: [ST Community Terms and Conditions - STMicroelectronics Community](https://community.st.com/t5/community-guidelines/st-community-terms-and-conditions/ta-p/575227)\n\nTranslated with DeepL.com (free version)*",
+            "images": [],
+            "author": "Leo_leo",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>..</p></div>",
+                    "author": "Leo_leo",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106068\">@Leo_leo</user-mention> ,</p>\n<p>Your observation is correct: the overhead introduced by the<span> </span><code>iis3dwb_acceleration_raw_get()</code><span> </span>function—including SPI transactions, data conversion, and context handling—reduces the maximum achievable data rate, even with an 18 Mbps SPI clock. This is why you see a lower acquisition frequency when this function is used.</p>\n<p>To maximize throughput:</p>\n<ul>\n<li>Minimize function call overhead by reading sensor registers directly in a tight loop or using burst SPI reads.</li>\n<li>Prefer FIFO mode and read multiple samples in a single SPI transaction.</li>\n<li>Consider using DMA for SPI transfers if your MCU supports it.</li>\n</ul>\n<p>The official ST driver prioritizes portability over raw speed. For high-speed applications, a streamlined, application-specific readout routine is recommended.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

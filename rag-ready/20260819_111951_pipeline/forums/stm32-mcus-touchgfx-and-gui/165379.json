@@ -1,0 +1,100 @@
+{
+    "forum": [
+        {
+            "id": "165379",
+            "publicId": "165379",
+            "title": "Double buffer flicker / inequality",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/double-buffer-flicker-inequality-165379",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX",
+                "TouchGFX Designer"
+            ],
+            "published_at": "2026-05-05T08:47:19+00:00",
+            "views": 315,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Well, that was yesterday, today is another day and I can’t leave things unresolved, so more time spent figuring this out and finally an answer.\n\nThe fix is to remove the duplicate task creation in app\\_freertos.c , supplied in the Riverdi TouchGFX template files . For clarity, I’ll attach an updated version of that file.\n\nI’ve switched to using a DK2 based version of the project adapted for the Riverdi hardware, which gets the GPU2D hardware acceleration and is a bit cleaner. Whilst making that new version I noticed the duplicate task creation that had been tripping me up all along on the original version!",
+            "best_answer_author": "wildcard",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi,\n\nfirst time TouchGFX user but not new to graphics programming and hoping to get some help understanding a TouchGFX problem I'm having on a Riverdi RVT50HQSNWC01-B I'm thinking of using for an automotive dashboard display.\n\nIf I don't throttle my display changes, the display buffers don't have the same content. The buffer with the most complete looking content does have a small glitch towards the bottom right hand side of the RPM segmented display, so I'm guessing it's not as simple as TouchGFX didn't get around to doing all updates on both buffers but more like it ran out of space somewhere to manage the updates? I've tried putting invalidate()'s either side of making changes, as suggested in this (<https://community.st.com/t5/stm32-mcus-touchgfx-and-gui/double-buffer-one-buffer-is-not-updated/m-p/165271#M9822>) thread, but that doesn't help. The only thing that helps is to throttle updates inside the screen handleTickEvent() to every other tick (and not do them the first 3 ticks either or it freezes ...) and then the display is rock solid.\n\nIs this expected behaviour? Is there a buffer size I can increase to overcome this? I'm trying to understand if TouchGFX is not the right solution for this project and I should look elsewhere, or I just need to understand the limitations and how to work around them better and it'll be fine?\n\nI've tried to include screen grabs to better quantify how much content there is on this screen. Note that the ValueElementType1 elements aren't even dynamic yet, they're just displaying the content from the designer program so there's going to be a lot more going on when those are live.\n\nI'm assuming the segmented RPM component (many circle segments) is likely to be the main problem here so I'll paste code for that but am happy to share any of the code:\n\n```\n\nvoid RPM_SPEED_Type_1::Refresh()\n\n{\n\n//\n\n// Speed numbers\n\n//\n\nstatic uint32_t lastSpeed = -1 ;\n\nif( gSpeed != lastSpeed ) {\n\nlastSpeed = gSpeed ;\n\n// convert to MPH\n\nuint32_t speed = (gSpeed * 621371u + 500000u) / 1000000u;\n\nuint32_t speedFraction = speed - ( ( speed / 10 ) * 10) ;\n\nspeed /= 10 ;\n\nRPM_T1_SPEED_NUM_TEXT1.invalidateContent();\n\ntouchgfx::Unicode::snprintf(RPM_T1_SPEED_NUM_TEXT1Buffer,RPM_T1_SPEED_NUM_TEXT1_SIZE,\"%d\",speed);\n\nRPM_T1_SPEED_NUM_TEXT1.invalidateContent();\n\n//RPM_T1_SPEED_NUM_TEXT1.invalidate();\n\n// Now the fraction bar graph\n\nstatic uint8_t speedFractionStates[5] = { 1,1,1,1,1 } ;\n\nstatic touchgfx::BoxWithBorder* speedFractionBoxes[5] = { &RPM_T1_SPEED_FracBar1, &RPM_T1_SPEED_FracBar2, &RPM_T1_SPEED_FracBar3, &RPM_T1_SPEED_FracBar4, &RPM_T1_SPEED_FracBar5 };\n\nspeedFraction+=1;\n\nspeedFraction/=2;\n\nfor( uint i = 0; i < 5; i++ ) {\n\nif( ( speedFraction > i ) && ( speed < 100 ) ) {\n\nif( speedFractionStates[i] == 0 ) {\n\nspeedFractionStates[i] = 1 ;\n\nspeedFractionBoxes[i]->invalidate();\n\nspeedFractionBoxes[i]->setVisible(true);\n\nspeedFractionBoxes[i]->invalidate();\n\n}\n\n} else {\n\nif( speedFractionStates[i] != 0 ) {\n\nspeedFractionStates[i] = 0 ;\n\nspeedFractionBoxes[i]->invalidate();\n\nspeedFractionBoxes[i]->setVisible(false);\n\nspeedFractionBoxes[i]->invalidate();\n\n}\n\n}\n\n}\n\n}\n\n//\n\n// MPH / KPH : Calib text\n\n//\n\nstatic uint16_t lastTripFlagsSpeed = -1;\n\nif( ( gTripFlags&(16+8) ) != lastTripFlagsSpeed ) {\n\nlastTripFlagsSpeed = gTripFlags&(16+8) ;\n\nuint32_t calib = 1 ;\n\nif( (gTripFlags & 16) != 0 ) calib = 2 ;\n\nRPM_T1_TRIPFLAGStextArea.invalidateContent();\n\nif( ( gTripFlags & 8 ) != 0 ) {\n\ntouchgfx::Unicode::snprintf(RPM_T1_TRIPFLAGStextAreaBuffer,RPM_T1_TRIPFLAGSTEXTAREA_SIZE,\"MPH : %d\",calib);\n\n} else {\n\ntouchgfx::Unicode::snprintf(RPM_T1_TRIPFLAGStextAreaBuffer,RPM_T1_TRIPFLAGSTEXTAREA_SIZE,\"KPH : %d\",calib);\n\n}\n\nRPM_T1_TRIPFLAGStextArea.invalidateContent();\n\n//RPM_T1_TRIPFLAGStextArea.invalidate();\n\n}\n\n//\n\n// RPM graphic and numbers\n\n//\n\nstatic uint8_t rpmStates[24] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };\n\nstatic touchgfx::Circle* rpmSegments[24] = { &RPM_T1_seg_01, &RPM_T1_seg_02, &RPM_T1_seg_03, &RPM_T1_seg_04, &RPM_T1_seg_05, &RPM_T1_seg_06, &RPM_T1_seg_07, &RPM_T1_seg_08,\n\n&RPM_T1_seg_09, &RPM_T1_seg_10, &RPM_T1_seg_11, &RPM_T1_seg_12, &RPM_T1_seg_13, &RPM_T1_seg_14, &RPM_T1_seg_15, &RPM_T1_seg_16,\n\n&RPM_T1_seg_17, &RPM_T1_seg_18, &RPM_T1_seg_19, &RPM_T1_seg_20, &RPM_T1_seg_21, &RPM_T1_seg_22, &RPM_T1_seg_23, &RPM_T1_seg_24 };\n\nstatic touchgfx::PainterRGB565* rpmPainters[24] = { &RPM_T1_seg_01Painter, &RPM_T1_seg_02Painter, &RPM_T1_seg_03Painter, &RPM_T1_seg_04Painter, &RPM_T1_seg_05Painter, &RPM_T1_seg_06Painter, &RPM_T1_seg_07Painter, &RPM_T1_seg_08Painter,\n\n&RPM_T1_seg_09Painter, &RPM_T1_seg_10Painter, &RPM_T1_seg_11Painter, &RPM_T1_seg_12Painter, &RPM_T1_seg_13Painter, &RPM_T1_seg_14Painter, &RPM_T1_seg_15Painter, &RPM_T1_seg_16Painter,\n\n&RPM_T1_seg_17Painter, &RPM_T1_seg_18Painter, &RPM_T1_seg_19Painter, &RPM_T1_seg_20Painter, &RPM_T1_seg_21Painter, &RPM_T1_seg_22Painter, &RPM_T1_seg_23Painter, &RPM_T1_seg_24Painter };\n\nstatic uint32_t rpmColours[24];\n\nstatic uint32_t minRPM = 500 ;\n\nstatic uint32_t maxRPM = 4300 ;\n\nstatic uint32_t lastRPM = maxRPM ;\n\nstatic uint32_t lastSegRPM = maxRPM ;\n\nstatic uint32_t rpmOffColour = touchgfx::Color::getColorFromRGB(0, 30, 0);\n\nuint32_t segRPMRange = ( maxRPM - minRPM ) / 24 ;\n\nstatic bool rpmGotColours = false ;\n\nif( rpmGotColours == false ) {\n\nrpmGotColours = true ;\n\nfor( int i = 0 ; i < 24 ; i++ ) {\n\nrpmColours[ i ] = rpmPainters[ i ] -> getColor() ;\n\n}\n\n}\n\n// Text RPM display\n\nif( gRPM != lastRPM ) {\n\nlastRPM = gRPM ;\n\nRPM_T1_RPMtextArea.invalidateContent();\n\ntouchgfx::Unicode::snprintf(RPM_T1_RPMtextAreaBuffer,RPM_T1_RPMTEXTAREA_SIZE,\"%d\",gRPM);\n\nRPM_T1_RPMtextArea.invalidateContent();\n\n//RPM_T1_RPMtextArea.invalidate();\n\n}\n\n// Segmented RPM display\n\nuint32_t rpm;\n\nint32_t rpmDelta = gRPM - lastSegRPM ;\n\nif( rpmDelta > 0 ) {\n\nif( rpmDelta > (int32_t)segRPMRange ) {\n\nrpm = lastSegRPM + segRPMRange ;\n\n} else {\n\nrpm = gRPM ;\n\n}\n\n} else {\n\nif( (0-rpmDelta) > (int32_t)segRPMRange ) {\n\nrpm = lastSegRPM - segRPMRange ;\n\n} else {\n\nrpm = gRPM ;\n\n}\n\n}\n\nif( rpm != lastSegRPM ) {\n\nlastSegRPM = rpm ;\n\nif( rpm > maxRPM ) rpm = maxRPM ;\n\nif( ( rpm > 0 ) && ( rpm < minRPM ) ) rpm = minRPM ;\n\nif(rpm > 0) {\n\nrpm -= minRPM ;\n\n// scale RPM (0 - maxRPM) to segment index 0 - 23\n\nrpm += segRPMRange / 2 ; // add half a segment\n\nrpm /= segRPMRange ;\n\nif( rpm > 23 ) rpm = 23 ;\n\n}\n\n// update all of the segments\n\nfor(uint32_t i=0; i < 24; i++ ) {\n\nif( (rpm > 0 ) && ( i <= rpm ) ) {\n\n// all segments that should be lit\n\nif(rpmStates[i] == 0) {\n\nrpmStates[i] = 1 ;\n\n//rpmSegments[i]->setVisible(true);\n\nrpmSegments[i]->invalidate();\n\nrpmPainters[ i ] -> setColor( rpmColours[ i ] ) ;\n\nrpmSegments[i]->invalidate();\n\n}\n\n} else {\n\n// all segments that should be hidden / dim\n\nif( rpmStates[i] != 0 ) {\n\nrpmStates[i] = 0 ;\n\n//rpmSegments[i]->setVisible(false);\n\nrpmSegments[i]->invalidate();\n\nrpmPainters[ i ] -> setColor( rpmOffColour ) ;\n\nrpmSegments[i]->invalidate();\n\n}\n\n}\n\n}\n\n}\n\n}\n\n```\n\nThanks for reading this far!",
+            "images": [],
+            "author": "wildcard",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Well, that was yesterday, today is another day and I can’t leave things unresolved, so more time spent figuring this out and finally an answer.</p><p>The fix is to remove the duplicate task creation in app_freertos.c , supplied in the Riverdi TouchGFX template files . For clarity, I’ll attach an updated version of that file.</p><p>I’ve switched to using a DK2 based version of the project adapted for the Riverdi hardware, which gets the GPU2D hardware acceleration and is a bit cleaner. Whilst making that new version I noticed the duplicate task creation that had been tripping me up all along on the original version!</p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Please place code in snip &lt;/&gt;</p><pre class=\"lia-code-sample language-c\"><code>static uint32_t rpmColours[24];\nstatic uint32_t minRPM = 500 ;\nstatic uint32_t maxRPM = 4300 ;\nstatic uint32_t lastRPM = maxRPM ;\nstatic uint32_t lastSegRPM = maxRPM ;\nstatic uint32_t rpmOffColour = touchgfx::Color::getColorFromRGB(0, 30, 0);\nuint32_t segRPMRange = ( maxRPM - minRPM ) / 24 ;\nstatic bool rpmGotColours = false ;\n\nif( rpmGotColours == false ) {\n rpmGotColours = true ;\n for( int i = 0 ; i &lt; 24 ; i++ ) {\n rpmColours[ i ] = rpmPainters[ i ] -&gt; getColor() ;\n }\n}</code></pre><p>and for your design try show how you realise refresh call . Plus use containers objects require precise knowledge, i recommend start without containers.</p><p>Plus invalidate only required objects = compare getcolor and required new color and invalidate once only changing segment. </p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>thanks for taking the time to reply. My original experiment was without containers and I got the same result. I already track the state of each segment so I know if the state changed, the colour has to change - no need to compare the colours. I also limit the number of segments that can change per Refresh() so there's not actually that much change going on in any single frame.</p><p>Refresh() is called from the screen handleTickEvent(). In the no containers version, all that code as in the handleTickEvent() and it had the same behaviour.</p><p> </p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I think something got lost in the transition to this new platform? I replied to a post by Johan (ST Employee) but neither his post nor my reply are shown now, and now I have a notification Johan replied but I don’t see it here!</p><p>Replying to Johan’s latest not shown post - I do have a STM32U5G9J-DK2 board which I will try porting this project to and report back - I’m guessing that will be easier for you to test? It’s unfortunate timing but I’ll be away on vacation for a few weeks now and won’t get to do that until I return but this is still a current and important project for me so don’t take the delay as a lack of interest on my part :)</p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><blockquote><p>Content created between May 22nd and June 9th is not part of the initial migration. New posts, especially new topics, will be transferred in the coming days.</p></blockquote><p>according to this announcement: </p><oembed url=\"https://community.st.com/community-blog-161/now-live-your-new-st-community-platform-165935\"></oembed><p>I expect our conversation from that period to be transferred in the coming days.</p><p>Great that you have the STM32U5G9J-DK2. I don't have the RVT50HQSNWC01-B, but I do have the STM32U5G9J-DK2, so if you can port it to that board fairly easily, I can test it here as well.<br/>No worries - I will wait patiently :)</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>Ok, I did an import and edit for the STM32U5G9J-DK2 keeping as close to the original code as possible by using #ifdef 0 / #endif to remove unsupported code e.g. CAN bus, my FRAM code I use for config storage, and USART1 for debug output / console command line config.</p><p> </p><p>It runs on the DK2 without artifacts, even with the handleTickEvent() refreshing the content every tick starting with the very first call / tick.</p><p> </p><p>I had to split the zip into 2 parts to keep under 50MB per file for this platform. I think you’ll know how to put it together.</p><p> </p><p>It’s not a completely 1:1 comparison - for example I can’t feed it live data from CAN bus because the DK2 doesn’t leave a set of CAN pins available as far as I can see, but apart from that. perhaps something else must be causing the problem on the Riverdi version which is a PITA - the DK is too big and I was hoping to avoid having to design and build custom hardware.</p><p> </p><p> </p><p> </p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ve done a lot more testing on the Riverdi, lots of comparing code and config with the working DK2 version and sad to say after investing so much time trying to make this work that after a promising start, when it has to do real work, the Riverdi just isn’t fit for purpose. I can’t even turn on GPU2D / hardware vector rendering - that’s instant death. The Riverdi template code looks ancient compared to the DK2 template code and I don’t see a viable way of updating it. Looks like a custom board using the DK2 as a reference is the only way to get what I need which is frustrating setback after investing so much in the Riverdi.</p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have not reported it to Riverdi - I don’t see any support options for them to report it to.</p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have been in contact with Riverdi, and they say it will be fixed in the next version of the TBS.</p><p>Thank you for sharing the solution!</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok, great. If they are making changes, it might help the next new user if they also set it to 16 bit double buffered instead of the 24 bit it is now. iirc it takes some editing of raw config files to make a 16 bit double buffered config possible. It’s a shame they don’t have any kind of user /dev support contact. Now I know wtf is going on it should be a very useful product.</p></div>",
+                    "author": "wildcard",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

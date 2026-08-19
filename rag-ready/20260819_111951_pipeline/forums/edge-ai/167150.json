@@ -1,0 +1,53 @@
+{
+    "forum": [
+        {
+            "id": "167125",
+            "publicId": "167150",
+            "title": "Problems running relocatable ai model",
+            "url": "https://community.st.com/edge-ai-134/problems-running-relocatable-ai-model-167150",
+            "category": "Edge AI",
+            "tags": [
+                "STM32CubeAI",
+                "ST Edge AI Core",
+                "STM32N6 series"
+            ],
+            "published_at": "2026-07-22T12:54:09+00:00",
+            "views": 57,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @rphii,\n\nThe way to install and initialize the model seems correct. However, I note that LL\\_ATON\\_Set\\_User\\_Input\\_Buffer() is used to set the address of the input buffer in the ai\\_run fct. As for the output, the ll\\_aton\\_reloc\\_set\\_input() fct should be also used.\n\nHave a good day.\n\njm",
+            "best_answer_author": "jean-michel.d",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "hi all,\n\nI am trying to flash + run a relocatable / runtime loadable model.\n\n**The problem is that the inference results are wrong (they never change, no matter what the buffer contains when I start the inference). If I use the stai\\_model files from the AI Cube Studio, the model works correctly, but is not relocatable…**\n\n* [Am aware of matching the address where I flash the network\\_rel.bin and generating the model.](https://community.st.com/edge-ai-134/problems-with-building-relocatable-binary-model-using-stm32ai-cli-6754?tid=6754&fid=134) (← see URL)\n\n* I am using [these docs](https://stedgeai-dc.st.com/assets/embedded-docs/stneuralart_reloc_mode.html). (← see URL)\n\n* I am enabling all AXISRAM3...6\n\n* I generate the model as follows:\n\n```\n\nstedgeai.exe generate -m \"path/to/model.tflite\" --input-data-type uint8 --no-inputs-allocation --no-outputs-allocation --target stm32n6 --st-neural-art --reloc\n\n# final output something like this:\n\n+--------------------------+-------------------------------+------+------------+--------+\n\n| name (addr)              | flags                         | foff | dst        | size   |\n\n+--------------------------+-------------------------------+------+------------+--------+\n\n| xSPI2 (0x20009332)       | 0x02010500 COPY.PARAM.RCACHED | 0    | 0x72000000 | 984321 |\n\n| AXISRAM5 (0x20009338)    | 0x03020200 RESET.ACTIV.WRITE  | 0    | 0x342e0000 | 409600 |\n\n| AXISRAM4 (0x20009341)    | 0x03020200 RESET.ACTIV.WRITE  | 0    | 0x34270000 | 196608 |\n\n| <undefined> (0x00000000) | 0x00000000 UNUSED             | 0    | 0x00000000 | 0      |\n\n+--------------------------+-------------------------------+------+------------+--------+\n\n```\n\nI try to run the inference as such:\n\n```\n\nuint32_t ai_run(uint32_t buf) {\n\nLL_ATON_RT_RetValues_t ll_aton_ret;\n\nLL_ATON_RT_Reset_Network(&nn_instance);\n\nLL_ATON_Set_User_Input_Buffer(&nn_instance, 0, buf, BUF_SIZE);\n\nLL_ATON_Cache_MCU_Clean_Invalidate_Range(buf, BUF_SIZE);\n\ndo {\n\nll_aton_ret = LL_ATON_RT_RunEpochBlock(&nn_instance);\n\n/* do NOT wait for event (WFE) as it blocks all other things, potentially corrupting i2c communication.. */\n\n#if 0\n\nif (ll_aton_ret == LL_ATON_RT_WFE) {\n\nLL_ATON_OSAL_WFE();\n\n}\n\n#endif\n\n} while (ll_aton_ret != LL_ATON_RT_DONE);\n\nLL_ATON_Cache_MCU_Invalidate_Range(g_npu_out_buf, g_npu_out_len);\n\nreturn 0;\n\n}\n\n```\n\nAnd I try to load the model as follows:\n\n```\n\nint ai_init(const uintptr_t file_ptr) {\n\nll_aton_reloc_info rt;\n\nint res;\n\n/* Retrieve the requested RAM size to install the model */\n\nres = ll_aton_reloc_get_info(file_ptr, &rt);\n\n/* Reserve executable memory region to install the model */\n\nuintptr_t exec_ram_addr = (uint32_t)malloc(rt.rt_ram_copy + 0x1f) & ~0x1f;\n\nassert_param(rt.ext_ram_sz == 0);\n\n/* Create and install an instance of the relocatable model */\n\nll_aton_reloc_config config;\n\nconfig.exec_ram_addr = exec_ram_addr;\n\nconfig.exec_ram_size = rt.rt_ram_copy;\n\nconfig.ext_ram_addr = 0;\n\nconfig.ext_ram_size = rt.ext_ram_sz;\n\nconfig.ext_param_addr = NULL;\n\nconfig.mode = AI_RELOC_RT_LOAD_MODE_COPY; // | AI_RELOC_RT_LOAD_MODE_CLEAR;\n\nres = ll_aton_reloc_install(file_ptr, &config, &nn_instance);\n\nif (res != 0) {\n\nError_Handler();\n\n}\n\n/* Init the LL ATON stack and the instantiated model */\n\nLL_ATON_RT_RuntimeInit();\n\nLL_ATON_RT_Init_Network(&nn_instance);\n\nLL_Buffer_InfoTypeDef *bufout = ll_aton_reloc_get_output_buffers_info(&nn_instance, 0);\n\ng_npu_out_len = LL_Buffer_len(bufout);\n\ng_npu_out_buf = (uint32_t)malloc(g_npu_out_len + 0x1f) & ~0x1f;\n\nres = ll_aton_reloc_set_output(&nn_instance, 0, g_npu_out_buf, g_npu_out_len);\n\nif (res != 0) {\n\nError_Handler();\n\n}\n\nassert_param(ll_aton_reloc_is_valid(&nn_instance));\n\nreturn res;\n\n}\n\n```\n\ndoes anyone know what I might be doing wrong?\n\nbest regards, rphii",
+            "images": [],
+            "author": "rphii",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107305\">@rphii</user-mention>,</p><p> </p><p>In the Studio, we don’t support it yet.</p><p>For the cause in your code, I asked for help, I’ll let you know.</p><p> </p><p>If you could maybe attach your model (in zip probably) in the meantime.</p><p> </p><p>Have a good day,</p><p>Julian.</p><p> </p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi @rphii,</p><p>The way to install and initialize the model seems correct. However, I note that LL_ATON_Set_User_Input_Buffer() is used to set the address of the input buffer in the ai_run fct. As for the output, the ll_aton_reloc_set_input() fct should be also used.</p><p>Have a good day.</p><p>jm</p></div>",
+                    "author": "jean-michel.d",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "jean-michel.d",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

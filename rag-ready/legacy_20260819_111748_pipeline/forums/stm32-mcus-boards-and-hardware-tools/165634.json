@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "165634",
+            "publicId": "165634",
+            "title": "B-U585I-IOT02A: No ADC1 data from PC0 pin",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/b-u585i-iot02a-no-adc1-data-from-pc0-pin-165634",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32U5 series",
+                "ST boards"
+            ],
+            "published_at": "2026-05-13T06:18:52+00:00",
+            "views": 95,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Rubber ducking success!!\n\nAfter re-reading my own post here, and playing around with the CubeMX settings for the ADC, I finally got it to work.\n\n![EmbeddedN00b_0-1778664790306.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3846862-9fa1-d313-852c-65839f99bf34.png \"EmbeddedN00b_0-1778664790306.png\")\n\nAfter changing \"Enable Regular Conversions\" to Enable, it magically started to work.\n\n![EmbeddedN00b_1-1778664834899.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69675008-fe81-f25e-18e4-932b42dcb4e7.png \"EmbeddedN00b_1-1778664834899.png\")\n\nBut... I do not now know why.....",
+            "best_answer_author": "EmbeddedN00b",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello all!\n\nI need some rubber ducking help here.\n\nI have got hold of a B-U585I-IOT02A dev board, where I'm trying to get learn and get to know the STM32 family.\n\nI have got a lot of things working, but the ADC1 is giving me a hard time:\n\nHere is my MX config:\n\n![EmbeddedN00b_0-1778651326810.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/49279363-191d-7c69-a141-df3c6d049c38.png \"EmbeddedN00b_0-1778651326810.png\")\n\nIN1 enabled, and expecting the data to be stored in the DR register.\n\nPC0 is selected as ADC1\\_IN1:\n\n![EmbeddedN00b_1-1778651419752.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ab93eb1b-e362-117e-d06a-d04f0883bb2d.png \"EmbeddedN00b_1-1778651419752.png\")\n\n![EmbeddedN00b_2-1778651472759.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b26f63f2-0cfe-4600-40a5-bcf8c713ff67.png \"EmbeddedN00b_2-1778651472759.png\")\n\nGlobal interrupts are enabled:\n\n![EmbeddedN00b_3-1778651511216.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7784498f-1a45-a85e-c18b-8be32f516b2e.png \"EmbeddedN00b_3-1778651511216.png\")\n\nSo far, so good( I think ).\n\nmy application code:\n\n```\n\n/* Running in my main while(1) loop */\n\n// Other stuff before here\n\nif (StartConv) {\n\nif (HAL_ADC_Start_IT(&hadc1) != HAL_OK)\n\n{\n\n/* Start Conversation Error */\n\nError_Handler();\n\n}\n\nStartConv = 0;\n\n}\n\nHAL_Delay(10);\n\n```\n\nAnd when above is executed, I can see that I'm getting a interrupt and call to my own ConversionCallback function:\n\n```\n\nvoid HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle)\n\n{\n\n/* Get the converted value of regular channel */\n\nadc_raw = HAL_ADC_GetValue(AdcHandle);\n\nprintf(\"ADC Raw Value: %lu\\r\\n\", adc_raw);\n\n// Retrigger convertion\n\nStartConv = 1;\n\n}\n\n```\n\n(Remember folks, this is just for learning, I would never but a printf call in my ISR ;) )\n\nAnd the prints i'm getting:\n\nFluctuating values between 0 and 2:\n\n![EmbeddedN00b_4-1778652295991.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a8e9fab-3288-d614-0ab3-01bb850b3cbb.png \"EmbeddedN00b_4-1778652295991.png\")\n\n\"But hey, have he even applied any voltage on the PC0 pin?\" you might be thinking.\n\nAnd the answer is: Yes, I have tried to direct hot wire the 3.3V pin from connector CN17.\n\nI have also tried to use a potentiometer(This is my standard setup):\n\n![EmbeddedN00b_5-1778652763187.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7c9c78f1-930e-f7bf-b78f-7dc1906b1a9b.png \"EmbeddedN00b_5-1778652763187.png\")\n\n![EmbeddedN00b_6-1778652782017.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/235a60e1-a902-75fe-dd28-5ee27093454b.png \"EmbeddedN00b_6-1778652782017.png\")\n\nWhen I measure the PC0 pin (Green cable in my setup), I can see that it is between 0 and 3.3V based on the potentiometer position.\n\nI base the board pins on the documentation:\n\n![EmbeddedN00b_7-1778653098159.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89551c44-809b-40dc-a7ee-b1fa9c12ea60.png \"EmbeddedN00b_7-1778653098159.png\")\n\nSo, so far during my rubber ducking session I have not found the problem!\n\nCan someone else see my probably n00b mistake?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/49279363-191d-7c69-a141-df3c6d049c38.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a8e9fab-3288-d614-0ab3-01bb850b3cbb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/235a60e1-a902-75fe-dd28-5ee27093454b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89551c44-809b-40dc-a7ee-b1fa9c12ea60.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69675008-fe81-f25e-18e4-932b42dcb4e7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b26f63f2-0cfe-4600-40a5-bcf8c713ff67.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7784498f-1a45-a85e-c18b-8be32f516b2e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ab93eb1b-e362-117e-d06a-d04f0883bb2d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3846862-9fa1-d313-852c-65839f99bf34.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7c9c78f1-930e-f7bf-b78f-7dc1906b1a9b.png"
+            ],
+            "author": "EmbeddedN00b",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Rubber ducking success!!</p><p>After re-reading my own post here, and playing around with the CubeMX settings for the ADC, I finally got it to work.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"EmbeddedN00b_0-1778664790306.png\" style=\"width: 400px;\"><img alt=\"EmbeddedN00b_0-1778664790306.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f3846862-9fa1-d313-852c-65839f99bf34.png\" title=\"EmbeddedN00b_0-1778664790306.png\"/></span></p><p>After changing \"Enable Regular Conversions\" to Enable, it magically started to work.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"EmbeddedN00b_1-1778664834899.png\" style=\"width: 400px;\"><img alt=\"EmbeddedN00b_1-1778664834899.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69675008-fe81-f25e-18e4-932b42dcb4e7.png\" title=\"EmbeddedN00b_1-1778664834899.png\"/></span></p><p>But... I do not now know why.....</p></div>",
+                    "author": "EmbeddedN00b",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

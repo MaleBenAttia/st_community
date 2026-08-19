@@ -1,0 +1,152 @@
+{
+    "forum": [
+        {
+            "id": "166213",
+            "publicId": "166232",
+            "title": "Systick Interrupt handler not executed and gets reset if any interrupt is enabled",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/systick-interrupt-handler-not-executed-and-gets-reset-if-any-interrupt-is-enabled-166232",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32G4 series"
+            ],
+            "published_at": "2026-06-17T12:26:58+00:00",
+            "views": 264,
+            "reply_count": 13,
+            "best_answer": true,
+            "best_answer_content": "[RESET PROBLEMS WITH STM32G474RET6 | Community](https://community.st.com/stm32-mcus-products-25/reset-problems-with-stm32g474ret6-125030)\n\nThis did the trick.",
+            "best_answer_author": "STuser2",
+            "best_answer_author_role": "Senior III",
+            "content_text": "I have used the HAL\\_Delay function as below, the micro is stm32g474ret6.\n\n```\n\nwhile (1)\n\n{\n\n/* USER CODE END WHILE */\n\n/* USER CODE BEGIN 3 */\n\nHAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, SET);\n\nHAL_GPIO_WritePin(Buzzer_GPIO_Port, Buzzer_Pin, RESET);\n\nHAL_Delay(1000);\n\nHAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, RESET);\n\n}\n\n/* USER CODE END 3 */\n\n}\n\n```\n\nThe problem is the code always struck in the HAL\\_Delay function\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa7c68ba-95a8-460a-adc6-d9b3f94a6759.png)\n\nwith uwTick always returning 0. The systick interrupt handler is not called.\n\nAnother observation if i enable the timer1 interrupt (i assume enable any interrupt) the code is reset. I generated the PWM using timer1 without interrupts.\n\nWhat is the problem when i enable interrupts how do i check it? Is it something to do with the Interrupt vector table.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7764984d-0e17-419c-a08a-06179ce56f05.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/387ea552-dc11-4526-9ce9-b3c4d1578fe1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2dcb6a7e-fa82-439e-b2f0-258c91cfd08f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f564894d-faaf-4dc1-b87a-372991995643.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4a1edfb9-f2cd-482b-b43b-966a78fa3b65.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/462e581c-856e-4bbb-a7b3-839b700cdb45.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b1e72b06-0a4e-4c46-adee-3106523b763c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/70143140-1637-4360-9c5e-628f7935ba08.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/85fc8a77-12e3-4235-ab1a-109cb2277f50.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8b7efff1-cf81-49e6-8909-1ab320578115.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dbdd5d21-9fcc-40b0-9741-22351eaaaa06.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/aa7c68ba-95a8-460a-adc6-d9b3f94a6759.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1bfc3614-9b00-420a-9b1b-6ca287c2a9c5.png"
+            ],
+            "author": "STuser2",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p><a href=\"https://community.st.com/stm32-mcus-products-25/reset-problems-with-stm32g474ret6-125030\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">RESET PROBLEMS WITH STM32G474RET6 | Community</a></p><p>This did the trick.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is my CubeMX project for reference, request to please suggest resolving the issue.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; The systick interrupt handler is not called. </em></span></p><p>Are you sure, i.e. had you set a breakpoint in the handler ?</p><p>I ask because the main loop of you code does not do what you probably think it does.<br/>After the 1000ms delay you reset the LED, and then immediately set it.<br/>A human eye is not capable of detecting events of a few microsend duration, the LED appears to be always on.</p><p> </p><p> </p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes i have set the break point</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1bfc3614-9b00-420a-9b1b-6ca287c2a9c5.png\"/></figure><p>The program does not halt. Is it related to hardware or software to find the root cause.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>These are the settings when i read from the stlink utility</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/462e581c-856e-4bbb-a7b3-839b700cdb45.png\"/></figure><p>Below are the option byte settings</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f564894d-faaf-4dc1-b87a-372991995643.png\"/></figure><p> </p><p>Anything wrong with them please advise.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don’t use CubeIDE, but the settings look ok to me.</p><p>When you start debugging, does the IDE download and verify your application successfully ?</p><p>Does it stop on “main()”, as supposed ?</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes it does stops at main(). </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/85fc8a77-12e3-4235-ab1a-109cb2277f50.png\"/></figure><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/387ea552-dc11-4526-9ce9-b3c4d1578fe1.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2dcb6a7e-fa82-439e-b2f0-258c91cfd08f.png\"/></figure><p>when i step over the Timer</p><p>HAL_TIM_Base_Start_IT(&amp;htim1); it resets and also systick handler does not happen. I verified the systick handler without the timer interrupt as well.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As said, I don’t use Cube/HAL, nor CubeIDE.</p><p>Have you stepped into the HAL_Init() code, to see if Systick is initialized ?</p><p>Or stop before entering the “while (1)” loop in main, and check in the peripheral view if the Systick registers are initialized.</p><p>If I’m not mistaken, you can set another timer than Systick to drive the Cube/HAL timings.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I will check it now and post my observations. </p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4a1edfb9-f2cd-482b-b43b-966a78fa3b65.png\"/></figure><p>This code is commented but still executing. The file is core_cm4.h. </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b1e72b06-0a4e-4c46-adee-3106523b763c.png\"/></figure><p> </p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; This code is commented but still executing. The file is core_cm4.h. </em></span></p><p>What you see in the CubeIDE is the interpretation of the editor’s parser, but not of the compiler. <br/>I’m pretty sure you could set a breakpoint there, and it will work.<br/>Those parsers usually do not see #defines that don’t come from include files but from makefiles or other meta-files (like<strong>__Vendor_SysTickConfig</strong> in this case).</p><p>At least the register values suggest it is executed, as all required flags are set, and the reload value seems plausible.<br/>You can try to locate the actual interrupt handler (somewhere in the Cube code), and set a breakpoint there and see if it fires.<br/>And check if respective HAL delay routines get called.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p> if i enable the timer1 interrupt (i assume enable any interrupt) the code is reset. </p></blockquote><p>What, exactly, do you mean by “the code is reset” here ?</p><p> </p><blockquote><p>These are the settings when i read from the stlink utility</p></blockquote><p>The STLink Utility has long been obsolete - it was probably obsolete before the G0 was introduced.</p><p> </p><p>Have you tried using <a href=\"https://www.st.com/en/development-tools/stm32cubeprog.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">STM32CubeProgrammer </a>?</p><p> </p><p>You haven’t said what versions of CubeMX or CubeIDE you’re using.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>The CubeMx version is</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7764984d-0e17-419c-a08a-06179ce56f05.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/70143140-1637-4360-9c5e-628f7935ba08.png\"/></figure><p>I like using STLink Utility may be i will switch over to ST Cube Programmer.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p> if i enable the timer1 interrupt (i assume enable any interrupt) the code is reset. </p></blockquote><p>What, exactly, do you mean by “<em>the code is reset</em>” here ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8b7efff1-cf81-49e6-8909-1ab320578115.png\"/></figure><p> </p><p>Once the code is executed after line 96 the control is lost and does not execute the next instructions.</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>Once the code is executed after line 96 the control is lost and does not execute the next instructions</p></blockquote><p>It must be executing instructions somewhere - a microcontroller doesn’t just stop.</p><p>If you let it run in the debugger, then halt it - where is it?</p><p> </p><p>My guess would be that it’s in the Default Handler - which is an infinite loop - because you haven’t provided a handler for the timer interrupt.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Strangely when i cross verified with some of the older projects i found this missing</p><p>static void MX_NVIC_Init(void); Need to use older version of Cube mx and generate code. I am not sure if that is the problem.</p><p> </p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I have changed to CubeMx 13.0 no change</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dbdd5d21-9fcc-40b0-9741-22351eaaaa06.png\"/></figure><p>Do you recommend changing the controller? I mean is the controller damaged?</p></div>",
+                    "author": "STuser2",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

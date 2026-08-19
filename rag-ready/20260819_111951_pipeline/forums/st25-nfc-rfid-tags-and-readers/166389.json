@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "166368",
+            "publicId": "166389",
+            "title": "STEVAL 25R200A: How to actively stream tag UID via UART on detection?",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/steval-25r200a-how-to-actively-stream-tag-uid-via-uart-on-detection-166389",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID readers - ST25Rx00 series"
+            ],
+            "published_at": "2026-06-23T19:15:14+00:00",
+            "views": 40,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nThe ST25R200 evaluation board firmware has two modes:\n\n* GUI mode, where the firmware communicates with the PC graphical user interface (GUI) through the STLINK virtual COM port (VCP). In this mode, the firmware waits for commands from the PC graphical user interface.\n\n* Demo mode, where the firmware runs the discovery loop autonomously.\n\nFor this application, use one of the following options:\n\n1. Use GUI mode and use the various application programming interfaces (APIs) from `ser_Rfal.dll` through Python.\n\n2. Use demo mode and redirect the firmware log to the STLINK virtual COM port.\n\nFor option 1, the `Py_Example_DiscoverLooper.py` file is available in the STSW-ST25R023 package. This file is for the STEVAL-25R300KA, but the remote application programming interface (API) follows the same structure.\n\nFor option 2, force the boot mode in `demo_rpt.c` by setting `DEMO_RPT_BOOTMODE_DEMO` in `demoRptPersistantDefaultValue`, or use the graphical user interface to switch from GUI mode to demo mode. Then, in `demoRptMain`, redirect the log to UART2 with `logUsartInit(&huart2);`. In `accessoryDemo()`, add `platformLog` with the required string when `rfalNfcIsDevActivated` is true, that is, when a device is found.\n\nRgds\n\nBT",
+            "best_answer_author": "Brian TIDAL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am using the **ST25R200 evaluation board** with the **STSW-ST25R020** firmware package.\n\nI am planning to develop a custom Python GUI that displays a specific text string whenever an NFC tag is detected by the board. To achieve this, I want to modify the C firmware so it actively streams out a text string via UART/VCP as soon as a tag enters the field.\n\nCould you please guide me on the following?\n\n1. **Which specific source file and function** in the STSW-ST25R020 package handle the successful tag detection/inventory loop where the tag's UID is retrieved?\n\n2. **Where is the best place** to insert a custom printf or logging function to stream this text data out via UART immediately upon detection?\n\nThank you very much for your help!",
+            "images": [],
+            "author": "JW1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>The ST25R200 evaluation board firmware has two modes:</p><ul><li>GUI mode, where the firmware communicates with the PC graphical user interface (GUI) through the STLINK virtual COM port (VCP). In this mode, the firmware waits for commands from the PC graphical user interface.</li> <li>Demo mode, where the firmware runs the discovery loop autonomously.</li></ul><p>For this application, use one of the following options:</p><ol><li>Use GUI mode and use the various application programming interfaces (APIs) from <code>ser_Rfal.dll</code> through Python.</li> <li>Use demo mode and redirect the firmware log to the STLINK virtual COM port.</li></ol><p>For option 1, the <code>Py_Example_DiscoverLooper.py</code> file is available in the STSW-ST25R023 package. This file is for the STEVAL-25R300KA, but the remote application programming interface (API) follows the same structure.</p><p>For option 2, force the boot mode in <code>demo_rpt.c</code> by setting <code>DEMO_RPT_BOOTMODE_DEMO</code> in <code>demoRptPersistantDefaultValue</code>, or use the graphical user interface to switch from GUI mode to demo mode. Then, in <code>demoRptMain</code>, redirect the log to UART2 with <code>logUsartInit(&amp;huart2);</code>. In <code>accessoryDemo()</code>, add <code>platformLog</code> with the required string when <code>rfalNfcIsDevActivated</code> is true, that is, when a device is found.</p><p>Rgds</p><p>BT</p><p> </p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

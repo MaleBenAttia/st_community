@@ -1,0 +1,79 @@
+{
+    "forum": [
+        {
+            "id": "164333",
+            "publicId": "164333",
+            "title": "STM32N6 NUCLEO - Infinite loop issue in LL_ATON_RT_RunEpochBlock() during NPU inference",
+            "url": "https://community.st.com/edge-ai-134/stm32n6-nucleo-infinite-loop-issue-in-ll-aton-rt-runepochblock-during-npu-inference-164333",
+            "category": "Edge AI",
+            "tags": [
+                "STM32N6 series",
+                "Neural-ART Accelerator",
+                "X Cube AI"
+            ],
+            "published_at": "2026-03-31T08:38:28+00:00",
+            "views": 445,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Student\\_0726,\n\nI don't have any issue doing so with the debugger, with STM32N6570-DK and NUCLEO-N657X0-Q.\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7c67b9c-d39c-4f21-9289-826a26b65584.png \"image.png\")\n\nOn your side, are you working through the debugger or through loading scripts?\n\nIs your board having correct power supply ? You should have the a green color in led LD4. If it is orange, it means the power is not sufficient.\n\nBest regards,\n\nYanis",
+            "best_answer_author": "hamitiya",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am currently experiencing difficulties using the **STM32N6 NUCLEO board**.\n\nMy goal is to test NPU execution using **X-CUBE-AI** within CubeMX. However, I am stuck in an infinite loop inside the MX\\_X\\_CUBE\\_AI\\_Process function. Specifically, LL\\_ATON\\_RT\\_RunEpochBlock() continuously returns only the LL\\_ATON\\_RT\\_DONE status, preventing the loop from terminating as expected.\n\ndo {\n\nret = LL\\_ATON\\_RT\\_RunEpochBlock(&NN\\_Instance\\_Default);\n\nif (ret == LL\\_ATON\\_RT\\_WFE) LL\\_ATON\\_OSAL\\_WFE();\n\n} while (ret != LL\\_ATON\\_RT\\_DONE);\n\nI Can't get the LL\\_ATON\\_RT\\_DONE, only LL\\_ATON\\_RT\\_WFE.\n\nThis issue persists even when using files generated via **Cube AI Studio**.\n\nI have configured the **AXI and Clock settings** in CubeMX (CPU: 600MHz, NPU: 800MHz, AXI: 800MHz). Since the model is simple, I am using **internal memory only** and have not enabled any security (TrustZone) or external memory settings.\n\n**Environment Versions:**\n\n* **CubeIDE:** 2.1.1\n\n* **CubeMX:** 6.16.1\n\n* **CubeAI Studio:** 1.1.0\n\n* **CubeProgrammer:** 2.22.0\n\n* **ST Edge AI:** 4.0\n\n* **ST-LINK:** V3J17M10\n\nI have attached one of the project files I’ve been testing. It would be a huge help if you could guide me to a solution for this issue.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7c67b9c-d39c-4f21-9289-826a26b65584.png"
+            ],
+            "author": "Student_0726",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105612\">@Student_0726</user-mention>,</p><p>I don't have any issue doing so with the debugger, with STM32N6570-DK and NUCLEO-N657X0-Q.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"image.png\" style=\"width: 999px;\"><img alt=\"image.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7c67b9c-d39c-4f21-9289-826a26b65584.png\" title=\"image.png\"/></span></p><p> </p><p>On your side, are you working through the debugger or through loading scripts?</p><p>Is your board having correct power supply ? You should have the a green color in led LD4. If it is orange, it means the power is not sufficient.</p><p> </p><p>Best regards,</p><p>Yanis</p></div>",
+                    "author": "hamitiya",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong><user-mention data-id=\"1795\">@hamitiya</user-mention> Thank you for the reply.</strong></p><p>I checked your feedback and tried running it again—now it passes through correctly!</p><p>I was testing in the <strong>CubeIDE debug environment</strong>, and the LD4 green LED was on as expected.</p><p> </p><p>Honestly, I’m not sure why it’s working now, as I haven't changed any code and the USB connection wasn't unstable before. It’s a bit mysterious why it was consistently failing earlier but works fine now.</p><p> </p><p>I feel a bit bad for taking up your time with this, but I'm just glad it's resolved! Now I can move forward with my experiments with a much lighter heart. Thank you again!</p></div>",
+                    "author": "Student_0726",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105612\">@Student_0726</user-mention> </p><p>No problem! Glad it helped!</p><p>Feel free to ask again if you have any questions :)</p><p> </p><p>Best regards,</p><p>Yanis</p></div>",
+                    "author": "hamitiya",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ve discovered a new issue with the test code I posted in my previous question.<br/><br/></p><p>To verify the NPU operation, I modified the input values and checked for corresponding changes in the output. However, I noticed that the <strong>output values remain unchanged</strong> regardless of the input.<br/><br/></p><p>I would like to know if I have <strong>misconfigured the AI Process structure</strong> or if there is an error elsewhere in my setup.<br/><br/>I feel like I'm missing something small, yet I'm still stuck. It’s a bit frustrating.<br/><br/><br/><br/><br/></p></div>",
+                    "author": "Student_0726",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey <user-mention data-id=\"105612\">@Student_0726</user-mention>,<br/><br/><strong>First</strong>, I would like to know if you have made any progress on this matter.<br/>Did you find that that was causing this last Issue?<br/><br/><strong>Second</strong>, I wonder how you were able to make the AI studio work for you case,<br/>I am curious If you are using the STM32N657 -DK or the Nucleo or a custom-made board, <br/>For My case I have faced Errors using this tool, <br/>It either fails at the cube programmer stage.<br/><em>\"Run failed: Error: STM32CubeProgrammer exited with code 1\"</em><br/>Or a during the code building stage at the specifically the USART implicit declaration point. <br/>alteast as seen from the build console logs.<br/><br/><strong>Lastly</strong> kindly check on you RIF security privelege for the NPU, its not set. you may be battling a security Issue.<br/><br/>Looking forward to hearing from you.<br/><br/><br/></p></div>",
+                    "author": "Kamurasi-Jordan-Arthur",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"98136\">@Kamurasi-Jordan-Arthur</user-mention> ,</p><p>Thanks for your interest in this thread, even though it's been a while.<br/><br/></p><p>The issue was actually due to a common oversight: I missed calling SCB_CleanInvalidateDCache(); after memcpy.</p><p>By the way, the hardware I'm using is a Nucleo board.<br/><br/></p><p>So far, Cube AI Studio has been working fine for me without any significant issues.</p><p>Could you share the versions of the other programs you are running? You can find the recommended versions under the Settings tab on the left.<br/><br/></p><p>Hope this helps.</p></div>",
+                    "author": "Student_0726",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "hamitiya",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "hamitiya",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

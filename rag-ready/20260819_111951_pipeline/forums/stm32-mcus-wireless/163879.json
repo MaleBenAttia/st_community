@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "163879",
+            "publicId": "163879",
+            "title": "BLE Thread dynamic stack broken in Cube v. 1.24?",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/ble-thread-dynamic-stack-broken-in-cube-v-1-24-163879",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "BLE",
+                "STM32WB series",
+                "Thread"
+            ],
+            "published_at": "2026-03-17T09:22:29+00:00",
+            "views": 255,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "So after a lot of lost hairs and no support through the official channels (“please do like in the example”). The issue I was facing with my code look like some debug options are running as default in the Thread Stack:\n\nI needed a TL\\_TRACES\\_Init( ); and to implement the ack on CLI send to get the Thread stack through SHCI\\_C2\\_THREAD\\_Init\n\n```\n\nvoid TL_THREAD_CliNotReceived( TL_EvtPacket_t * Notbuffer )\n\n{\n\n/* ignore the data */\n\n(void) Notbuffer;\n\n/* Ack the send request Notify so M0 continues */\n\nTL_THREAD_CliSendAck();\n\n}\n\n```",
+            "best_answer_author": "OliM",
+            "best_answer_author_role": "Senior II",
+            "content_text": "After a long time, i started to look into using the BLE\\_Thread\\_dynamic stack image on WB55 again. First without success with my own code on my own board, which I do think to remember worked before.\n\nBut afterwards with the BLE\\_Thread\\_dyn example on a WB55 Nucleo Board and that doesn't work as well.\n\nThis is how the FUS Info looks\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/381b5e79-049e-ec73-27fa-ff8b0ec58626.png \"image.png\")\n\nAnd this is where it gets stuck\n\n![Clipboard01.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bfa25dc6-4e65-f74e-4f1a-3b361b8c736e.jpg \"Clipboard01.jpg\")\n\nAny Ideas what I might be doing wrong?\n\nI already tested with and without \"Start Wireless Stack\" from the programmer. Not using it, makes it stop even earlier, at hci\\_reset.\n\nStarting to look into older stack images now.\n\nEdit: I went back up to 1.18 (using the example code from 1.24, which seems to be untouched since way back) and nothing worked :thinking\\_face:.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bfa25dc6-4e65-f74e-4f1a-3b361b8c736e.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/381b5e79-049e-ec73-27fa-ff8b0ec58626.png"
+            ],
+            "author": "OliM",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"20760\">@OliM</user-mention> ,</p>\n<p><span>Ensure FUS and stack versions are compatible. Always delete the previous stack before reinstalling, verify installation steps carefully and</span><span> verify that the stack is correctly installed by checking the version with 'Read FUS infos' or reading OB SBRV.</span></p>\n<p>Check the <span>value of the SBRV option bytes in </span>OB tab following this wiki article: <a href=\"https://wiki.st.com/stm32mcu/wiki/Connectivity%3ASTM32WB%20FUS\" rel=\"noopener noreferrer\" target=\"_blank\">STM32WB Firmware Upgrade Service - stm32mcu</a></p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Regarding the not running example I found the issue: I did not have the WB55RX to ST link TX jumper on the Nucleo. Apparently that floating RX was completely throwing off the example.<br/>For my own code i am still searching why I don't get a response to <span>SHCI_C2_THREAD_Init() .</span></p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>So after a lot of lost hairs and no support through the official channels (“please do like in the example”). The issue I was facing with my code look like some debug options are running as default in the Thread Stack:<br/>I needed a <u>TL_TRACES_Init</u>( ); and to implement the ack on CLI send to get the Thread stack through SHCI_C2_THREAD_Init </p><pre><code class=\"language-c\">void TL_THREAD_CliNotReceived( TL_EvtPacket_t * Notbuffer )<br/>{<br/>\t/* ignore the data */<br/>\t(void) Notbuffer;<br/>\t/* Ack the send request Notify so M0 continues */<br/>\tTL_THREAD_CliSendAck();<br/>}</code></pre><p> </p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

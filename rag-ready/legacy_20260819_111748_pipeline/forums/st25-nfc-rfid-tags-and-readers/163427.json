@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "163427",
+            "publicId": "163427",
+            "title": "AN6121 - Antenna selection circuit questions",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/an6121-antenna-selection-circuit-questions-163427",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Readers – ST25R391x series"
+            ],
+            "published_at": "2026-03-04T11:46:41+00:00",
+            "views": 660,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello CaptainW,\n\nclearly the antenna matching needs some further attention.\n\nThere are two ways to proceed:\n\n1.) use Figure 36 of AN6092 Rev 5 to tune the resonance to 13.56MHz for each antenna individually\n\n2.) measure the antenna parameters with the multiplexer activated and follow the guid in chapter 5 / Figure 13 of AN6092 Rev 5 to tune each antenna individually.\n\nYour smith chart should at the end show a similar picture, but with the marker set to 13.56MHz.\n\nPlease let me know if you have additional questions.\n\nbr Travis",
+            "best_answer_author": "Travis Palmer",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nI've implemented the antenna selection circuit as per AN6121 but I'm getting some strange behaviour.\n\nBackground\n\n- I have designed and manfactured a test pcb using the ST25R3916.   On it I have 2 ST25R3916 chips, one with a single antenna connected and the other with 6 antennae and a multiplexer circuit as described in AN6121\n\n- Each has a header where I can connect it to my MCU host board so I can use the same software on both to compare\n\n- I have the single antenna chip working - it can detect tags correctly.\n\nThe chip connected to the multiplexer is not doing so well.\n\nI have attached the circuit diagram which i'm pretty sure matches the diagram in AN6121, paying careful attention to which way round the FETs are.  Note I've used the same fets as in the AN.\n\nI'm assuming SW must be low to select the antenna?\n\nWhat i see, which i'm not expecting, is a large voltage drop across R1 in my diagram,  12v incoming drops to 7.6 volts on the gates of Q2 and Q3.\n\nI wondered if this was caused by current flowing through Q1 (number from my circuit diagram, sorry they don't all match),   so I removed R2, and it seems that the current is flowing into the gates of Q2 and Q3,  This makes no sense to me!\n\nMy understanding is that when the antenna is not selected, we should see 0v on SW+ and therefore at the gates of Q1, Q4 and Q5 and that this should have the effect of disabling the shorting out of hte antenna that happens when it is not being used, and that we should see 12V on the gates of Q2 and Q3 which has the effect of 'connecting' the antenna,  is that right?\n\nThe net effect of all of this is that I see a very small voltage going into the antenna, 0.3v peak to peak - I assume this is just because the imepdance it is driving into is too low because the multplexing isn't working quite right?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b661929d-afd4-0610-9c3d-08700cd13d31.png"
+            ],
+            "author": "CaptainW",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello CaptainW,</p><p> </p><p>Lets assume that the RFO signal coming from the ST25R device is between 0V and 5V. </p><p>The C+ Voltage coming from the ST8R00WPUR should then be higher, e.g. +12V.</p><p>To select a channel, SW+ should then be low.</p><p>According to the below schematic, it means that Q4, Q2 and Q3 are in off state (high ohmic) and Q1 and Q5 are on. The RFO signal present at Q1 and Q5 can propagate to the antenna. </p><p>If SW+ is high, the path from RFO to antenna will be high ohmic and the antenna will be pulled to GND via Q2 and Q3.<span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Antenna Selected.png\" style=\"width: 798px;\"><img alt=\"Antenna Selected.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b661929d-afd4-0610-9c3d-08700cd13d31.png\" title=\"Antenna Selected.png\"/></span></p><p>I would suggest that you measure the DS resistance of the transistor and gate voltage level, when the channel is selected and compare them with the expected values.</p><p>C1, C2, C3 and C4 may need to be adapted based on the antenna matching.</p><p>Could you share some smith charts and pictures of the different antennas? The RFO driver should be in high-Z state when executing VNA measurements. </p><p>BR Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Travis</p><p>Thanks for your email.  The 7.6V turned out to be a measurement issue,  I was using a meter with a 1M impedance so it was reading low when measuring between ground and the r1/r2 junction.  Measuring only across r1 and of course the voltage 'fixed' itself to a drop of pretty much 0 across the resistor.  </p><p>So I guess it's just a matter of antenna tuning.  I'll get readings from both and update this thread</p><p>Thanks for your help</p><p> </p></div>",
+                    "author": "CaptainW",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Travis</p><p>So a quick recap.  I've got a board (screenshot from KiCad attached) on which I've implemented a mux per AN6121.  The STM25R3916 is bottom centre with the 6 multiplexed coils above it.  I also have a second ST25R3916 and a single coil at the bottom left of the board to aid with debugging.</p><p>- I can read coils from a few cm away and detect the field with a little NFC fingernail sticker for the single coil, so the performance there is pretty good without even doing any tuning, just using the component values from AN6121.</p><p>- Though the multiplexer circuit i can't read a tag and i can see the AC voltage in the coil is less than 1v, whereas it's over 10v in the working coil</p><p>I've attached the VNA trace which shows its resonating at below 10MHz, so clearly the multiplexer circuit needs some compensating for.  The VNA was connected to the net RFO+ and RFO-, i.e. after the inductors, but near the chip rather than near the coil.  </p><p> </p><p>I'll try to get a comparative reading for the single coil circuit for comparison - i currently have an issue with the test cable for that and I'm waiting for a new one, but I can only assume the resonant frequency is much closer to 13.56Mhz given the performance. </p><p>Do you think changing the capacitor and inductor values can move the frequency far enough to get this working, or is this going to need layout changes?</p><p>I was also looking into implementing AAT in the next revision but it seems like the recommended voltage controlled capacitors in AN5322 are becoming hard to obtain.  The muRata LXRW0YV201-059 has a last time buy date later this year and I can't find a supplier for part 'STPTIC-0N200'.   Are there newer recommendations now? or a different approach.  AAT is a great feature so I'd love to be able to use it for years to come</p></div>",
+                    "author": "CaptainW",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello CaptainW,</p><p> </p><p>clearly the antenna matching needs some further attention.</p><p>There are two ways to proceed:</p><p>1.) use Figure 36 of AN6092 Rev 5 to tune the resonance to 13.56MHz for each antenna individually</p><p>2.) measure the antenna parameters with the multiplexer activated and follow the guid in chapter 5 / Figure 13 of AN6092 Rev 5 to tune each antenna individually. </p><p>Your smith chart should at the end show a similar picture, but with the marker set to 13.56MHz. </p><p> </p><p>Please let me know if you have additional questions.</p><p> </p><p>br Travis</p></div>",
+                    "author": "Travis Palmer",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi CaptainW,</p>\n<p>I don't have good news for you on the varicaps:</p>\n<p>Murata: <a href=\"https://community.st.com/t5/st25-nfc-rfid-tags-and-readers/st25r3916b-aat-variable-capacitors/m-p/788594\" target=\"_blank\">https://community.st.com/t5/st25-nfc-rfid-tags-and-readers/st25r3916b-aat-variable-capacitors/m-p/788594</a></p>\n<p>and STPTIC never saw the light: <a href=\"https://community.st.com/t5/st25-nfc-rfid-tags-and-readers/where-to-find-stptic-0n-series/m-p/222918\" target=\"_blank\">https://community.st.com/t5/st25-nfc-rfid-tags-and-readers/where-to-find-stptic-0n-series/m-p/222918</a></p>\n<p>For your other questions you may bear a bit with Travis due to holiday season.</p>\n<p>BR, Ulysses</p>\n<p> </p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Travis Palmer",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

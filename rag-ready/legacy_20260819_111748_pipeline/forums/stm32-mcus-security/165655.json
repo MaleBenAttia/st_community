@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "165655",
+            "publicId": "165655",
+            "title": "SBSFU 2.8 - Installation does not resume",
+            "url": "https://community.st.com/stm32-mcus-security-36/sbsfu-2-8-installation-does-not-resume-165655",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "STM32 Security",
+                "SBSFU"
+            ],
+            "published_at": "2026-05-13T14:39:37+00:00",
+            "views": 112,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "After discussing this with ST support, it appears that this is due to a limitation or bug.\n\nIf the encryption is set to ECDSA, then it works, but I'm using AES128.\n\nThis should be fixed in future versions.",
+            "best_answer_author": "Calamity5950",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello,\n\nI'm currently integrating the SBSFU 2.8 for one of our board, that use a STM32H753, with a dual-slot configuration.\n\nI'm adapting the example for the STM32H753ZI. For now, this mostly involves modifying the USART (use the 6 instead of the 3).\n\nI am currently trying to set up the system to resume operation after a power outage. I defined ENABLE\\_IMAGE\\_STATE\\_HANDLING in the projects SeCoreBin and SBSFU.\n\nThis is my scenario:\n\n1. Download of a UserApp\n\n2. Validation of the downloaded UserApp\n\n3. Decryption of the UserApp\n\n4. Start of the swap between the DownloadSlot and the ActiveSlot\n\n5. /!\\ Power outage!\n\n6. Power return\n\n7. Resume of the installation process\n\nCurrently, the resume always fails when checking the trailer (in CheckTrailerMagic).\n\nI checked what he wrote as trailer (in WriteTrailerHeader), and what is written is indeed what is read after the reset.\n\nWhat's strange is how he slices up what he's checking.\n\nIf we look at the names of the arrays in the CheckTrailerMagic function, we have:\n\n|  |  |\n\n| --- | --- |\n\n| Field | Value read |\n\n| magic | 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF |\n\n| clean | 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF |\n\n| signature\\_valid | 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF |\n\n| signature\\_test | 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF |\n\nSo, everything is equal to erased\\_flash\\_pattern! So the function CheckTrailerMagic always return SFU\\_ERROR (no installation to resume).\n\nIt also doesn't initiate a rollback (which would be OK in our case), but instead clears the contents of the ActiveSlot. In the end, we're just left without UserApp.\n\nThe documentation (AN5056) seems to suggest that all you need to do is to define ENABLE\\_IMAGE\\_STATE\\_HANDLING, but is that really enough? What could I have missed to enable this feature? Is this a bug?\n\nThanks for the support.",
+            "images": [],
+            "author": "Calamity5950",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After discussing this with ST support, it appears that this is due to a limitation or bug.</p><p>If the encryption is set to ECDSA, then it works, but I'm using AES128.</p><p>This should be fixed in future versions.</p></div>",
+                    "author": "Calamity5950",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

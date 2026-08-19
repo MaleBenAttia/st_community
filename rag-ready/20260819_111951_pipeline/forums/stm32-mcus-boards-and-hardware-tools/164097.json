@@ -1,0 +1,68 @@
+{
+    "forum": [
+        {
+            "id": "164097",
+            "publicId": "164097",
+            "title": "Clarification on ST-LINK/V2 VTref (VAPP) Pin Behavior",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/clarification-on-st-link-v2-vtref-vapp-pin-behavior-164097",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "ST boards"
+            ],
+            "published_at": "2026-03-24T05:54:10+00:00",
+            "views": 477,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nPlease note that one of your ST-Link might be a clone, the one marked \"A2017 10\", especially if this model# is written in blue. That can explain the difference in behavior that you're observing.\n\nPlease check this article:\n\n[How to recognize a genuine ST-LINK/V2 versus a cloned one](https://community.st.com/t5/stm32-mcus/how-to-recognize-a-genuine-st-link-v2-versus-a-cloned-one/ta-p/49471 \"How to recognize a genuine ST-LINK/V2 versus a cloned one \")\n\n*>> Is there any pin on the ST-LINK/V2 20-pin connector (CN3) that can be used to supply power to the target device during programming? Or is it mandatory that the target board provides its own supply (VDD) to the VTref (VAPP) pin?*\n\nAs mfgkw wrote above: no.\n\nPlease check the ST-Link user's manual section 4.2:\n\n[ST-Link UM](https://www.st.com/resource/en/user_manual/dm00026748-st-link-v2-in-circuit-debugger-programmer-for-stm8-and-stm32-stmicroelectronics.pdf \"ST-Link UM\")\n\nThere is a VDD 3.3V on pin 19, but please don't use it, it is not designed for power supply.",
+            "best_answer_author": "Mike_ST",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear STMicroelectronics Support Team,\n\nI am working with two ST-LINK/V2 debuggers and have observed a difference in the VTref (VAPP) signal location on the 20-pin connector.\n\nI would like to understand whether this is expected behavior.\n\nDetails of the debuggers:\n\n1. ST-LINK/V2 marked: B2025 16\n\n2. ST-LINK/V2 marked: A2017 10\n\nUsed board to flash :\n\nBLUENRG-M2SP\n\nUsed flasher tool :\n\nRF-Flasher utility v4.5.0\n\nObservation:\n\n\\* In the B2025 16 debugger, the target voltage (~3.3 V) is measured on Pin 1 of the 20-pin connector.\n\n\\* In the A2017 10 debugger, the target voltage (~3.3 V) is measured on Pin 19 of the 20-pin connector.\n\nBoth debuggers are being used under similar conditions with the same target hardware.\n\nCould you please clarify:\n\n1. Whether such variation in VTref (VAPP) pin location is expected across different ST-LINK/V2 units?\n\n2. If there are any known hardware variations or revisions related to this behavior?\n\n3. Any guidance to ensure correct usage in this scenario?\n\nWe want to ensure safe and reliable operation in our setup.\n\nLooking forward to your clarification.\n\nBest regards,\n\nSelvakumar G",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d7ea576b-942d-a311-d0d2-5fff1487416c.png"
+            ],
+            "author": "Selva_emcus",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Selakumar,</p><p> </p><p>When do you measure your 3.3V voltage? With target connected or pins open?</p><p> </p><p>Since targets may have different voltages the programmer needs to know the voltage to be used while a target is connected.</p><p>So your target's voltage VDD (maybe 3v3 or something below) must be connected to pin  1 or 2 of ST-Link's 20 pin connector CN3, This is VAPP: the voltage of your application, connected to ST-Link. It is an input pin for ST-Link.</p><p>It's level while unconnected has no meaning on ST-Link side.</p><p> </p><p>Ignore pin 19. This is neither  suitable to measure the target's voltage nor to supply anything. It is simply irrelevant.</p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">Dear STMicroelectronics Support Team,<br/>Thank you for your clarification.<br/>I would like to confirm that my earlier measurements were taken without connecting the target board. In that condition, I observed approximately 3.3 V on Pin 19, which led to my confusion.<br/>Based on your explanation, I understand that this reading is not meaningful and that Pin 19 should be ignored.<br/>I have one further question:<br/>Is there any pin on the ST-LINK/V2 20-pin connector (CN3) that can be used to supply power to the target device during programming? Or is it mandatory that the target board provides its own supply (VDD) to the VTref (VAPP) pin?<br/>Your guidance will help ensure correct and safe usage in my setup.<br/></div>",
+                    "author": "Selva_emcus",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear Selvakumar,</p><p> </p><p>&gt; Dear STMicroelectronics Support Team,</p><p>I'm not related to ST in any way, as well as most contributors here.</p><p>It is a forum of users. (Nevertheless some members are ST employees.)</p><p> </p><p>&gt; Is there any pin on the ST-LINK/V2 20-pin connector (CN3) that can be used to supply power to the target device during programming?</p><p>No.</p><p> </p><p>&gt; Or is it mandatory that the target board provides its own supply (VDD) to the VTref (VAPP) pin?</p><p>Yes, this is correct.</p><p> </p><p>HTH Klaus</p></div>",
+                    "author": "mfgkw",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Please note that one of your ST-Link might be a clone, the one marked \"A2017 10\", especially if this model# is written in blue. That can explain the difference in behavior that you're observing.</p>\n<p>Please check this article:</p>\n<p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-recognize-a-genuine-st-link-v2-versus-a-cloned-one/ta-p/49471\" target=\"_self\" title=\"How to recognize a genuine ST-LINK/V2 versus a cloned one \">How to recognize a genuine ST-LINK/V2 versus a cloned one </a> </p>\n<p><em>&gt;&gt; Is there any pin on the ST-LINK/V2 20-pin connector (CN3) that can be used to supply power to the target device during programming? Or is it mandatory that the target board provides its own supply (VDD) to the VTref (VAPP) pin?</em></p>\n<p data-unlink=\"true\">As mfgkw wrote above: no.</p>\n<p>Please check the ST-Link user's manual section 4.2:</p>\n<p><a href=\"https://www.st.com/resource/en/user_manual/dm00026748-st-link-v2-in-circuit-debugger-programmer-for-stm8-and-stm32-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\" title=\"ST-Link UM\">ST-Link UM</a> </p>\n<p>There is a VDD 3.3V on pin 19, but please don't use it, it is not designed for power supply.</p>\n<p> </p></div>",
+                    "author": "Mike_ST",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"439\">@Mike_ST</user-mention> wrote:<br/><p><a href=\"https://www.st.com/resource/en/user_manual/dm00026748-st-link-v2-in-circuit-debugger-programmer-for-stm8-and-stm32-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\" title=\"ST-Link UM\">ST-Link UM</a> </p><p>There is a VDD 3.3V on pin 19, but please don't use it, it is not designed for power supply.</p><hr/></blockquote><p>The User Manual could be <strong>a lot</strong> clearer about this:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Image1.png\" style=\"width: 999px;\"><img alt=\"Image1.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d7ea576b-942d-a311-d0d2-5fff1487416c.png\" title=\"Image1.png\"/></span></p><p>It does, indeed, show that it should not be connected to the Target - but gives no indication as to why, nor what purpose this pin <em>does</em> serve.</p><p>Also, the description of VAPP could be a lot clearer that it's an input to the ST-Link <strong>from</strong> the Target.</p><p> </p><p>This is such a common question that it really should be made clearer!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mike_ST",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "165180",
+            "publicId": "165180",
+            "title": "STM32N6 - Unable to reset using NRST pin",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32n6-unable-to-reset-using-nrst-pin-165180",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-28T06:03:49+00:00",
+            "views": 345,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi Romain\n\nI managed to solve the problem! I went digging through the reference manual and found the RCC reset duration control register (RCC\\_RDCR). Setting the Minimum Reset Duration (MRD) bits makes the NRST pin reset work perfectly.\n\nMy sequence is now:\n\n1. Call \\_\\_HAL\\_RCC\\_SYSCFG\\_CLK\\_ENABLE()\n\n2. Set the CORE\\_RESET\\_TYPE bit in the SYSCFG\\_CM55RSTCR register\n\n3. Restore registers RCC\\_CCIPR6 through RCC\\_CCIPR13 to their defaults\n\n4. Set the MRD bits in the RCC\\_RDCR register to 0x05 (haven't tried any other value at this point, a shorter duration might also work)\n\n5. \\_\\_DSB(); \\_\\_ISB();\n\n6. call NVIC\\_SystemReset()\n\nThank you very much for your guidance\n\nBest regards,\n\nSilvia",
+            "best_answer_author": "silvia_b",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nI am working with a custom board using an STM32N657X0H3Q and cannot for the life of me bring about a reset via the NRST pin.\n\nI have tried applying the workarounds from errata sheet ES0620 - Rev 3, sections 2.2.19 and 2.2.23, but my device still just hangs when any reset is attempted and needs a power cycle to recover.\n\nIn our setup:\n\n+ MCUboot and the application are both built as secure firmware\n\n+ the application runs from AXISRAM1 after RAM-load\n\nSince it runs from AXISRAM1 which is where the errata recommends to place the First power-on reset flag, I instead decided to set the CORE\\_RESET\\_TYPE bit in the SYSCFG\\_CM55RSTCR register before each reset (in addition to resetting the clock switch control bitfields to their defaults).\n\nDoes this type of setup have any implications regarding using the SYSRESETREQ bit to generate a software reset?\n\nThank you\n\n/ Silvia",
+            "images": [],
+            "author": "silvia_b",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"90605\">@silvia_b</user-mention> </p>\n<div>\n<p>If you apply workaround 2.2.19 from ES0620 Rev. 3 and if yout want to change the CORE_RESET_TYPE bit in the SYSCFG_CM55RSTCR register, you must enable the SYSCFG clock. This is mandatory for the proposed workaround. <br/>Bit 0 – SYSCFGEN: SYSCFG enable bit in the RCC_APB4HENR register first.</p>\n<pre class=\"lia-code-sample language-c\"><code>/* Enable SYSCFG Clock */\n__HAL_RCC_SYSCFG_CLK_ENABLE()</code></pre>\n<p>Then apply the workaround.</p>\n<pre class=\"lia-code-sample language-c\"><code>if (*init_p != 0x11223344) // First power-on reset is detected\n{\n *init_p = 0x11223344; // Change init_p variable to a known value\n SYSCFG-&gt;CM55RSTCR |= 1; // Set power-on reset from NRST pin\n __ISB(); // Instruction Synchronization Barrier\n __DSB(); // Data Synchronization Barrier\n NVIC_SystemReset(); // Generate a system reset\n}</code></pre>\n<p>Note: This will added in the next ES0620 revision.<br/>Best regards,</p>\n<p>Romain,</p>\n</div></div>",
+                    "author": "RomainR.",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Romain,</p><p>Thank you for that info :)</p><p>Sadly, adding that call does not seem to help in my case. My device still just hangs.</p><p> </p><p>Could my issue have something to do with this note from workaround 2.2.23?:</p><p>\"To successfully switch from one clock signal to another, ensure that both clock signals are present at their clock<br/>switch inputs before updating the control bitfield value to reflect the new clock switch state.\"</p><p>I wasn't quite sure how exactly to ensure this</p><p> </p><p>/ Silvia</p></div>",
+                    "author": "silvia_b",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"90605\">@silvia_b</user-mention> </p>\n<div>The issue you are encountering is due to attempts by the CPU to access peripherals or memory regions that are not valid or whose clocks are not enabled. This can include AXI SRAM, external memories connected through XSPI, RAM used by the D‑cache or I‑cache, as well any peripherals located on the AHB or APB buses.</div>\n<div>When such an access occurs, the bus can end up waiting indefinitely, the CPU is no longer able to raise an exception, and the core becomes completely frozen.</div>\n<div>\n<div>But normally, the code that acts on CORE_RESET_TYPE should nevertheless resolve your issue.</div>\n<br/>If the reset cannot recover the STM32N6 in DEV_BOOT mode, it means the BootROM cannot restart properly. <br/>A link with errata 2.2.23 is indeed possible, since a reset causes the internal BootROM to restart. <br/>And it would therefore be necessary to analyze your code in more detail and specifically check whether it modifies the contents of the registers RCC_CCIPR6 through RCC_CCIPR13.<br/>\n<div>I understand that this is a custom hardware design. If you are not able to resolve the issue, it will be also important to perform a review of your design, particularly regarding the power supplies, but also to verify whether the reset signals of the external Flash and RAM memories are correctly connected to the STM32N6 reset pin.<br/>You can refer to the schematic of the STM32N657‑DK.<br/><a href=\"https://www.st.com/resource/en/schematic_pack/mb1939-n6570-c02-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">st.com/resource/en/schematic_pack/mb1939-n6570-c02-schematic.pdf</a></div>\n<br/>Best regards,<br/>romain</div>\n<div> </div></div>",
+                    "author": "RomainR.",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Romain</p><p>I managed to solve the problem! I went digging through the reference manual and found the RCC reset duration control register (RCC_RDCR). Setting the Minimum Reset Duration (MRD) bits makes the NRST pin reset work perfectly.</p><p>My sequence is now:</p><ol><li>Call __HAL_RCC_SYSCFG_CLK_ENABLE<span>()</span></li><li><span>Set <span>the CORE_RESET_TYPE bit in the SYSCFG_CM55RSTCR register</span></span></li><li><span>Restore registers RCC_CCIPR6 through RCC_CCIPR13 to their defaults</span></li><li><span>Set the MRD bits in the RCC_RDCR register to 0x05 (haven't tried any other value at this point, a shorter duration might also work)</span></li><li><div><div><span>__DSB</span><span>(); </span><span>__ISB</span><span>();</span></div></div></li><li><span>call NVIC_SystemReset()</span></li></ol><p> </p><p><span>Thank you very much for your guidance</span></p><p><span>Best regards,</span></p><p><span>Silvia</span></p></div>",
+                    "author": "silvia_b",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "RomainR.",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "RomainR.",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

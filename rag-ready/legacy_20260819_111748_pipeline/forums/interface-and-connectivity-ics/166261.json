@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "166240",
+            "publicId": "166261",
+            "title": "STM32U575 + ST67W611M1 hangs in W61_Net_SendData() after continuous data transmission",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/stm32u575-st67w611m1-hangs-in-w61-net-senddata-after-continuous-data-transmission-166261",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "STM32U5 series",
+                "Wi-Fi",
+                "ST67W series"
+            ],
+            "published_at": "2026-06-18T09:51:24+00:00",
+            "views": 85,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi Andrew,\n\nI realized that the SDK version I was using didn’t match.\n\nAfter updating to the new version 2.0.106, I can now stably receive data exceeding 1MB.",
+            "best_answer_author": "Jerrylin00",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi everyone,\n\nI am encountering an issue where my MCU freezes during continuous data transmission, and I am looking for some advice or debugging directions.\n\n**Hardware & Setup:**\n\n* **MCU:** STM32U575\n\n* **Network Module:** ST67W611M1\n\n* **Protocol:** TCP\n\n* **Driver/Firmware Version:** V1.3.0\n\n**Issue Description:** My application is designed to send a 1KB data packet to a remote server every 3 seconds. The transmission works perfectly fine at the beginning. However, after successfully transmitting several hundred KBs in total, the MCU gets stuck.\n\nThrough debugging, I found that the firmware completely hangs inside the `W61_Net_SendData()` API.\n\n**Observations:**\n\n1. The remote server is confirmed to be alive and functioning normally when the hang occurs.\n\n2. The MCU does not hard fault; it simply blocks indefinitely inside `W61_Net_SendData()`.\n\n**My Questions:**\n\n1. Are there any known issues regarding buffer overflows or memory leaks in this specific API when sending large amounts of data over time?\n\n2. Is there a way to configure a non-blocking mode or set a timeout for `W61_Net_SendData()` to prevent the MCU from freezing?\n\n3. What are the recommended troubleshooting steps to find out exactly what this API is waiting for (e.g., waiting for an ACK semaphore, TX buffer full, etc.)?\n\nAny suggestions or guidance would be greatly appreciated. Thank you in advance!",
+            "images": [],
+            "author": "Jerrylin00",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><ol start=\"2\" type=\"1\"><li>blocks indefinitely inside <code>W61_Net_SendData()</code>.</li></ol></blockquote><p>So have you tried stepping <em>into</em> that function to see exactly where &amp; why it is hanging ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Andrew,</p><p>I realized that the SDK version I was using didn’t match.<br/>After updating to the new version 2.0.106, I can now stably receive data exceeding 1MB.</p></div>",
+                    "author": "Jerrylin00",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Good news!</p><p>please <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">mark <em><strong>that post</strong></em> as the solution</a>  - not this one!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

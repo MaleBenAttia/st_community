@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "165147",
+            "publicId": "165147",
+            "title": "STM32H745I-DISCO – External flash erase/init failure with TouchGFX project",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/stm32h745i-disco-external-flash-erase-init-failure-with-touchgfx-project-165147",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "QSPI",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-04-27T08:57:07+00:00",
+            "views": 334,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nI don't have your project so I couldn't tell what problem you have.\n\nI've attached a TouchGFX project running on STM32H745I-DISCO board.\n\nYou can use the TouchGFX Designer tool to directly generate code, compile, simulate and upload the application.\n\nAs shown in the below screenshot:\n\n1- You need to generate the code by clicking  ![mALLEm_2-1778057877758.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0bb4915-17ee-b1cc-b7f1-e642e4264d6f.png \"mALLEm_2-1778057877758.png\")\n\n2- (Optional step) to compile and simulate the graphics on PC: ![mALLEm_3-1778057985557.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e234bae1-c631-5dea-9bc9-350c9c39f91e.png \"mALLEm_3-1778057985557.png\")\n\n3- To Compile and upload your TouchGFX application to the target (The DISCO board in your case): ![mALLEm_4-1778058047536.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c36e8a21-7793-0a4f-6fdd-b20d67d37a43.png \"mALLEm_4-1778058047536.png\")\n\n![mALLEm_1-1778057781454.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/92a5ecad-6bd8-6e6b-4fd8-394e191e4ad2.png \"mALLEm_1-1778057781454.png\")\n\nWith the attached project, please test it by following step 1 and step 3. You should see this screen in the LCD:\n\n![mALLEm_0-1778057387237.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2addb612-f2fc-feff-da45-42a7779e51eb.png \"mALLEm_0-1778057387237.png\")",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi Community,\n\nI am using **STM32H745I-DISCO board** and generated a TouchGFX project and attempted to flash/debug from CubeIDE. The flashing process fails during the erase stage.\n\n### Observed Errors\n\n* Initially: **“Error: failed to erase memory”**\n\n* After enabling external loader (without initialization):\n\n+ Erase still fails\n\n* After enabling external loader with **Initialize = true**:\n\n+ **“Failed to initialize external memory”**\n\n+ **“Error in initializing ST-LINK device”**\n\n* In CubeProgrammer:\n\n+ External flash is detected when selecting loader MT25TL01\\_STM32H745I-DISCO\n\n+ However:\n\n- **Mass erase fails**\n\n- **Sector erase also fails**\n\n- Error message:\n\n* *“Sector erase operation has failed… please verify flash protection”*\n\nI am using ***STM32CubeIDE v1.18.1** and **STM32CubeProgrammer:** v2.16.x*\n\nI have attached screenshots.\n\nCan someone help what could be the issue?\n\nThanks.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0bb4915-17ee-b1cc-b7f1-e642e4264d6f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2addb612-f2fc-feff-da45-42a7779e51eb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e234bae1-c631-5dea-9bc9-350c9c39f91e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/92a5ecad-6bd8-6e6b-4fd8-394e191e4ad2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c36e8a21-7793-0a4f-6fdd-b20d67d37a43.png"
+            ],
+            "author": "Tharun123",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"86492\">@Tharun123</user-mention> wrote:\n<ul>\n<li><span>In CubeProgrammer:</span>\n<ul>\n<li><span>External flash is detected when selecting loader MT25TL01_STM32H745I-DISCO</span></li>\n<li><span>However:</span>\n<ul>\n<li><strong><span>Mass erase fails</span></strong></li>\n<li><strong><span>Sector erase also fails</span></strong></li>\n<li><span>Error message:</span>\n<ul>\n<li><em><span>“Sector erase operation has failed… please verify flash protection” </span></em></li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n<hr/></blockquote>\n<p>Based on this statement I have the impression there is a problem with the external memory.</p>\n<p>Try to run the QSPI example provided in CubeH7: <a href=\"https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H745I-DISCO/Examples/QSPI/QSPI_MemoryMappedDual\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeH7/tree/master/Projects/STM32H745I-DISCO/Examples/QSPI/QSPI_MemoryMappedDual</a></p>\n<p>If it doesn't work there is an issue with the external memory, either the memory is broken or there is something gone wrong on the board/PCB!</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <span class=\"\"><a class=\"\" href=\"https://community.st.com/t5/user/viewprofilepage/user-id/499\" target=\"_blank\"><span class=\"\">mƎALLEm</span></a></span>,</p><p>I tried the QSPI_MemoryMappedDual example from CubeH7 on the STM32H745I-DISCO board.</p><p>Results:</p><ul><li><p>The example flashed successfully</p></li><li><p>It ran successfully without any errors</p></li><li><p>QSPI erase/write/read operations are working correctly</p></li></ul><p>I also tested another example:</p><ul><li><p>LTDC_Layer1</p></li><li><p>The image is displayed correctly on the LCD</p></li></ul><p>So it looks like:</p><ul><li><p>QSPI hardware is working</p></li><li><p>External flash is working</p></li><li><p>LCD/LTDC is also working</p></li></ul><p>However, when I generate a simple TouchGFX project (small image only):</p><ul><li><p>If I flash without enabling external loader:</p><ul><li><p>Flashing succeeds</p></li><li><p>Code runs</p></li><li><p>But nothing appears on the display</p></li></ul></li><li><p>If I enable and initialize the external loader:</p><ul><li><p>I get:</p><ul><li><p>“Failed to initialize external memory”</p></li><li><p>“Error in initializing ST-LINK device”</p></li></ul></li></ul></li></ul><p>At this point I am confused about the correct workflow for TouchGFX on STM32H745I-DISCO.</p><p>Could you please clarify:</p><ol><li><p>What is the exact process to generate and flash a TouchGFX project on STM32H745I-DISCO?</p></li><li><p>Is external QSPI flash mandatory even for a very small image/UI?</p></li><li><p>Which external loader should be selected for this board?</p></li><li><p>Are there any specific TouchGFX memory configuration settings required for this board?</p></li></ol><p>Thanks.</p></div>",
+                    "author": "Tharun123",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>I don't have your project so I couldn't tell what problem you have.</p>\n<p>I've attached a TouchGFX project running on <span>STM32H745I-DISCO board.</span></p>\n<p><span>You can use the TouchGFX Designer tool to directly generate code, compile, simulate and upload the application.</span></p>\n<p><span>As shown in the below screenshot:</span></p>\n<p><span>1- You need to generate the code by clicking  </span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_2-1778057877758.png\" style=\"width: 50px;\"><img alt=\"mALLEm_2-1778057877758.png\" height=\"31\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0bb4915-17ee-b1cc-b7f1-e642e4264d6f.png\" title=\"mALLEm_2-1778057877758.png\" width=\"50\"/></span></p>\n<p>2- (Optional step) to compile and simulate the graphics on PC: <span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_3-1778057985557.png\" style=\"width: 35px;\"><img alt=\"mALLEm_3-1778057985557.png\" height=\"29\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e234bae1-c631-5dea-9bc9-350c9c39f91e.png\" title=\"mALLEm_3-1778057985557.png\" width=\"35\"/></span></p>\n<p>3- To Compile and upload your TouchGFX application to the target (The DISCO board in your case): <span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_4-1778058047536.png\" style=\"width: 39px;\"><img alt=\"mALLEm_4-1778058047536.png\" height=\"36\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c36e8a21-7793-0a4f-6fdd-b20d67d37a43.png\" title=\"mALLEm_4-1778058047536.png\" width=\"39\"/></span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1778057781454.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1778057781454.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/92a5ecad-6bd8-6e6b-4fd8-394e191e4ad2.png\" title=\"mALLEm_1-1778057781454.png\"/></span></p>\n<p>With the attached project, please test it by following step 1 and step 3. You should see this screen in the LCD:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1778057387237.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1778057387237.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2addb612-f2fc-feff-da45-42a7779e51eb.png\" title=\"mALLEm_0-1778057387237.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164773",
+            "publicId": "164773",
+            "title": "HAL_TIM_IC_ReadChannelCapturedValue returns 0",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/hal-tim-ic-readchannelcapturedvalue-returns-0-164773",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32C5 series",
+                "HAL2"
+            ],
+            "published_at": "2026-04-15T12:39:09+00:00",
+            "views": 260,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The problem was that I called HAL\\_TIM\\_IC\\_StartChannel\\_IT:\n\n```\n\nHAL_TIM_IC_StartChannel_IT(mx_tim2_gethandle(), HAL_TIM_CHANNEL_4)\n\n```\n\nbut I did not call:\n\n```\n\nHAL_TIM_Start(mx_tim2_gethandle());\n\n```\n\nThe example from [TIM input capture Github](https://github.com/STMicroelectronics/STM32CubeC5/blob/main/examples/hal/tim/input_capture/application/example.c) was very useful.\n\nSorry for the trouble,\n\nGil",
+            "best_answer_author": "gil_dobjanschi",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello,\n\nI used STM32CubeMX2 to configure a timer (timer 2, channel 4) for input capture. I'm starting the timer and then applying the signal on the timer input pin. Since I configured the TIM interrupt, the interrupt callbacks do occur.\n\n```\n\nvoid HAL_TIM_InputCaptureCallback(hal_tim_handle_t *htim,\n\nhal_tim_channel_t channel) {\n\nif (htim == mx_tim2_gethandle() && channel == HAL_TIM_CHANNEL_4) {\n\nuint32_t value = HAL_TIM_IC_ReadChannelCapturedValue(htim,\n\nHAL_TIM_CHANNEL_4);\n\n#ifdef DEBUG\n\nSWD_printf(\"ICTIM: %d\\n\", value);\n\n#endif\n\n}\n\n}\n\n```\n\nThe problem that I am having is that  HAL\\_TIM\\_IC\\_ReadChannelCapturedValue always returns 0. The number of callbacks is actually correct (it matches the number of positive and negative edges of the signal). The timer frequency is 10,000Hz (the period is 0.1ms) and the signal pulses are between 2ms and 9ms so the timer is not overflowing. I would expect timer readings to be between 20 and 90.\n\nI attached the timer configuration screenshots.\n\nI wonder what am I doing wrong,\n\n-Gil",
+            "images": [],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The problem was that I called HAL_TIM_IC_StartChannel_IT:</p><p> </p><pre class=\"lia-code-sample language-c\"><code>HAL_TIM_IC_StartChannel_IT(mx_tim2_gethandle(), HAL_TIM_CHANNEL_4)</code></pre><p> but I did not call:</p><pre class=\"lia-code-sample language-c\"><code>HAL_TIM_Start(mx_tim2_gethandle());</code></pre><p> </p><p>The example from <a href=\"https://github.com/STMicroelectronics/STM32CubeC5/blob/main/examples/hal/tim/input_capture/application/example.c\" rel=\"nofollow noopener noreferrer\" target=\"_self\">TIM input capture Github</a> was very useful.</p><p> </p><p>Sorry for the trouble,</p><p>Gil</p></div>",
+                    "author": "gil_dobjanschi",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span data-teams=\"true\">Hello, </span></p>\n<p><span data-teams=\"true\">this thread has been moved to the <a aria-label=\"Link STM32 MCUs Embedded software\" class=\"fui-Link ___1q1shib f2hkw1w f3rmtva f1ewtqcl fyind8e f1k6fduh f1w7gpdv fk6fouc fjoy568 figsok6 f1s184ao f1mk8lai fnbmjn9 f1o700av f13mvf36 f1cmlufx f9n3di6 f1ids18y f1tx3yz7 f1deo86v f1eh06m1 f1iescvh fhgqx19 f1olyrje f1p93eir f1nev41a f1h8hb77 f1lqvz6u f10aw75t fsle3fq f17ae5zn\" href=\"https://community.st.com/t5/stm32-mcus-embedded-software/bd-p/mcu-embedded-software-forum\" id=\"menurlr6\" target=\"_blank\" title=\"https://community.st.com/t5/stm32-mcus-embedded-software/bd-p/mcu-embedded-software-forum\">STM32 MCUs Embedded software</a> forum because it relates only to HAL2, not STM32CubeMX2. This will help improve visibility and ensure the right experts are involved.</span></p>\n<p><span data-teams=\"true\">Regards,</span></p>\n<p><span data-teams=\"true\">Sara.</span></p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

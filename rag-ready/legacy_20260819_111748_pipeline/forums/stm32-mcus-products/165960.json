@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "165948",
+            "publicId": "165960",
+            "title": "STM32G0B1VET6 USB boot",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g0b1vet6-usb-boot-165960",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bootloader",
+                "USB",
+                "STM32G0 series"
+            ],
+            "published_at": "2026-06-09T10:56:38+00:00",
+            "views": 79,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The data sheet has the correct information. AN2606 is just some copy/paste note.\n\n3.0 V is sufficient for USB operation. VBUS is not used. Only D+/D-/GND need connected for correct functionality.\n\nTechnically, if the device is self-powered, you need to monitor VBUS before energizing the data lines per the USB standard, but this is not required in practice.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hi,\n\nI am using an STM32G0B1VET6. All power rails in my design, including VDDIO2/VDDUSB, are supplied from 3.0 V (2.95 min).\n\nI would like to use the USB interface and the built-in USB DFU bootloader for firmware updates.\n\nAN2606 states that VDDUSB must be connected to 3.3 V. However, AN4879 appears to specify a USB supply operating range down to 2.7 V, with 3.0 V as the minimum recommended operating voltage in some cases. Based on that, I would expect USB to operate correctly with VDDUSB supplied from 3.0 V.\n\nCould you please confirm whether USB DFU is supported on the STM32G0B1 when VDDUSB/VDDIO2 is powered from 3.0 V rather than 3.3 V?\n\nThe board will be powered from its own 3.0 V supply. For the USB programming connection, I am planning to bring out only three wires:\n\n* USB D+\n\n* USB D−\n\n* GND\n\nThe USB 5 V VBUS line will not be used to power the board.\n\nAre these three connections sufficient for entering the system bootloader and performing a firmware update through USB DFU, or is the USB VBUS line or a separate VBUS-detection signal also required?\n\nThank you.",
+            "images": [],
+            "author": "Alex_7777",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Why you first not test with 3V3 ??? Condition for boot is in AN2606<br/>and VDDUSBIO writed in AN 3V3 mean require power, value isnt strict.</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The data sheet has the correct information. AN2606 is just some copy/paste note.</p><p>3.0 V is sufficient for USB operation. VBUS is not used. Only D+/D-/GND need connected for correct functionality.</p><p>Technically, if the device is self-powered, you need to monitor VBUS before energizing the data lines per the USB standard, but this is not required in practice.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,147 @@
+{
+    "forum": [
+        {
+            "id": "166095",
+            "publicId": "166109",
+            "title": "M24LR16E-R RF Read/Write issue",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/m24lr16e-r-rf-read-write-issue-166109",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 Dynamic NFC Tags – M24LR series"
+            ],
+            "published_at": "2026-06-12T08:36:43+00:00",
+            "views": 265,
+            "reply_count": 13,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nIt is all explained in the datasheet, but let me describe a few important points.\n\nThe M24LR16E is using the ISO15693 protocol to communicate over RF.\n\nIn ISO15693, the EEPROM is seen as a memory addressed in blocks of 4 bytes. Block address 0 corresponds to EEPROM addresses 0 to 3, block address 1 corresponds to EEPROM addresses 4 to 7, etc. On top of ISO15693 block addressing, the M24LR16E defines sectors that can be protected individually, as you already experimented.\n\nThe ISO15693 defines commands to read and write the memory:\n\n* READ SINGLE BLOCK to read on block of 4 bytes in the EEPROM\n\n* READ MULTIPLE BLOCKS to read several blocks in EEPROM in one command\n\n* WRITE SINGLE BLOCK to write a block of 4 bytes in the EEPROM\n\nThe M24LR16E-R as READ SINGLE BLOCK, READ MUTLIPLE BLOCKS and WRITE SINGLE BLOCK commands that are not fully compliant with the ISO15693 standard (this is because the M24LR16E-R has been released before the ISO15693 specification support memory size larger than 8Kbits). Thos 3 commands require that Protocol\\_extension flag is set to 1 in the Request\\_flag byte of the command, and also require that the block address is coded on 2 Bytes (instead of 1 in the standard). That’s the main caveat for the M24LR16E-R\n\nIf you don’t know the ISO15693 protocol, you can read the chapter 16 to 26 of the datasheet that explains it.\n\nBest regards.",
+            "best_answer_author": "JL. Lebon",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello Team,\n\nI am facing RF read and write issues with the **M24LR16E‑R** EEPROM.\n\nThe exact problem is as follows:\n\n* When I take a new EEPROM and write data to it using an RF NFC reader for the first time, the operation is successful.\n\n* However, during subsequent attempts to read and write:\n\n+ In some EEPROMs, RF read works but write fails but I2C read/Write working.\n\n+ In some devices, both read and write operations fail but I2C read/Write working.\n\n+ A few EEPROMs work correctly without any issues.\n\nIn our application, we are using **Sector 2 and Sector 3** for user data storage.\n\nWhen I read data from the problematic EEPROMs through St25 mobile application, I observe the following:\n\n* **Sector 0 and Sector 1 Security** Status is 0x00. And the data read and write is working in these 2 sectors.\n\n* **Sector 2 to Sector 15 Security status:**\n\n+ **Current Security Status: 0x09**\n\n+ **New Security Status: 0x09**\n\nAdditionally, I receive the warning:\n\n> “Sector locked. Security Status can only be changed through I2C.”\n\nI am not sure why the security status has changed or why the sectors are locked.\n\nCould you please provide clarification on the following points?\n\n1. Is it possible to unlock the EEPROM once it is locked?\n\n2. Can the EEPROM be unlocked via **RF (NFC reader)**, or is **I2C** the only method?\n\n3. What could be the possible causes for the EEPROM sectors getting locked in this scenario?\n\nThanks,\n\nNaveen\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/de71a4e6-f469-40e0-87fe-f9779afe353d.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d79b1721-2750-4fee-9fc8-93242dfb16ca.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d69ed40b-9606-44e6-91a3-3280faa6af45.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/de71a4e6-f469-40e0-87fe-f9779afe353d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d79b1721-2750-4fee-9fc8-93242dfb16ca.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d69ed40b-9606-44e6-91a3-3280faa6af45.png"
+            ],
+            "author": "Naveen_Kongari",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello, </p><p>It is all explained in the datasheet, but let me describe a few important points.</p><p>The M24LR16E is using the ISO15693 protocol to communicate over RF.</p><p>In ISO15693, the EEPROM is seen as a memory addressed in blocks of 4 bytes. Block address 0 corresponds to EEPROM addresses 0 to 3, block address 1 corresponds to EEPROM addresses 4 to 7, etc. On top of ISO15693 block addressing, the M24LR16E defines sectors that can be protected individually, as you already experimented.</p><p>The ISO15693 defines commands to read and write the memory:</p><ul><li>READ SINGLE BLOCK to read on block of 4 bytes in the EEPROM</li> <li>READ MULTIPLE BLOCKS to read several blocks in EEPROM in one command</li> <li>WRITE SINGLE BLOCK to write a block of 4 bytes in the EEPROM</li></ul><p>The M24LR16E-R as READ SINGLE BLOCK, READ MUTLIPLE BLOCKS and WRITE SINGLE BLOCK commands that are not fully compliant with the ISO15693 standard (this is because the M24LR16E-R has been released before the ISO15693 specification support memory size larger than 8Kbits). Thos 3 commands require that Protocol_extension flag is set to 1 in the Request_flag byte of the command, and also require that the block address is coded on 2 Bytes (instead of 1 in the standard). That’s the main caveat for the M24LR16E-R</p><p>If you don’t know the ISO15693 protocol, you can read the chapter 16 to 26 of the datasheet that explains it.</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>It is possible to unlock a sector, but only from the I2C interface. Once locked, a sector cannot be unlocked from the RF interface,</p><p>To unlock the sector, the I2C password must first be presented, then it is possible to write in the system area from I2C to unlock the sector.</p><p>There is no clue in what you describe that can explain why those sectors become locked. Most probably a lock-sector RF command has been issued at some point, or the sector security status byte has been programmed from I2C at some point. If you describe more your setup and what you are doing with the tag it may help understanding.</p><p>Best regards.</p><p> </p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your response.</p><p>Let me explain our setup in detail to help identify the issue:</p><p>We are using motors equipped with NFC-enabled M24LR16E‑R tags. The EEPROM is programmed using an NFC programmer, and in our application, we are specifically using <strong>Sector 2 and Sector 3 for user memory storage</strong>.</p><p>Recently, we observed that these sectors are not writable through the NFC interface (RF). Based on your explanation, it appears that the sectors might have been locked, possibly due to:</p><ul><li>An unintended <strong>lock-sector RF command</strong>, or</li> <li>Accidental modification of the <strong>Sector Security Status (SSS) bytes via I²C</strong></li></ul><p>At this point, we are trying to understand:</p><ol><li>What could be causing these sectors (2 and 3) to become locked in our use case where only NFC programming is intended</li> <li>Whether the NFC programming tool itself could be issuing a lock command unintentionally</li> <li>How to confirm definitively (via I²C) if the sector is:\t<ul><li>Permanently locked, or</li> <li>Password/write-protected but recoverable</li> </ul></li></ol><p>We are planning to access the device over I²C to:</p><ul><li>Present the I²C password (if required)</li> <li>Attempt to clear the SSS configuration and restore write access</li></ul><p>If you have any guidance on:</p><ul><li>Specific registers or bits to check to confirm lock status</li> <li>Recommended safe configuration for sectors used only for NFC writable memory</li></ul><p>that would be very helpful.</p><p>Looking forward to your suggestions.</p><p>Best regards,<br/>Naveen</p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Thank you for the explanation.</p><p>To access the SSS configuration from I2C you can:</p><p>Read the SSS from I2C:</p><ul><li>the device select code must be with E2=1: 0xAE/AF</li> <li>the memory address of the SSS starts at 0x0000 (SSS0 sector 0), 0x0001 (SSS1 sector 1), 0x0002 (SSS2 sector 2) and 0x0003 (SSS3 sector 3), etc…</li> <li>Example to read the SSS3 of sector 3: Start/0xAE/0x00/0x03/Restart/0xAF/<strong>SSS3</strong>/Stop</li></ul><p>If bit 0 (Sector lock) is set, it means that the sector is protected. The bits 2 and 1 determine the type R/W of protection and the bits 4 and 3 determine the password used to protect.</p><p>Write the SSS from I2C:</p><ul><li>Example to write all bits to 0 for SSS1: Start/0xAE/0x00/0x01/0x00/Stop</li></ul><p>Best regards, </p><p>Jean-louis</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for the detailed explanation. It was very helpful.</p><p>Based on your guidance, I was able to understand the SSS configuration and successfully unlock the sectors using I²C commands. After unlocking, I am also able to read and write the memory using the ST25 mobile application via NFC without any issues.</p><p>However, in our application, we are using a custom tool to program the EEPROM through an NFC programmer. When I attempt to perform read/write operations using this tool over RF, I observe that the sectors are getting locked again automatically. This behavior is occurring specifically during RF read/write operations.</p><p>I am unable to identify the root cause of this issue. Could you please help clarify the following:</p><ul><li>What are the possible conditions under which sectors can get locked again during RF operations?</li> <li>Is it possible that any RF write operation (intentional or unintended) is modifying the SSS configuration?</li> <li>Can there be any conflict or side effects when using I²C and RF interfaces (NFC) alternately or simultaneously?</li></ul><p>Additionally, I have one observation:<br/>For both working EEPROMs and those where write fails or sectors appear locked, the sector status (SSS) is showing <strong>0x09</strong>. Since the SSS value is the same in both cases, I am unable to understand why the RF write is failing even when the sector status appears identical.</p><p>Your guidance will help us understand and resolve this issue.</p><p>Best regards,<br/>Naveen</p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I’m glad my comments have been helpful.</p><p>Actually, the sectors can be locked in two ways:</p><ul><li>from RF: using the Lock-sector command (code B2)</li> <li>from I2C: you must first present the I2C password, then writing in the system memory (device select code 0xAE) at the address of the SSS.</li></ul><p>Those are the two ways of locking sectors. there is no effect or side effect of simultaneous or alternate I2C /RfF commands.</p><p>I guess that during your process, a Lock-sector command is sometime issued, or the I2C is writing the SSS, difficult to say. <br/>If you have a trace of all RF command sent by your application, you can search for an RF command with command code 0xB2.</p><p>As for your last question, I assume that you are able to write in EEPROMs with SSS=0x09 because somehow the correct Present sector password command has been issued at some point (command code 0xB3). Once the correct password has been presented (here with SSS-0x09 it should be password 0x01), the security session is opened and the write is possible.</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for the detailed explanation. It is very helpful.</p><p>Based on your inputs, I understand that sectors can only be locked either through the RF interface using the <strong>0xB2 (Lock Sector) command</strong> or through the I²C interface by writing to the SSS after providing the password. In my case, there is currently no issue from the I²C side, and the sector locking is occurring only during RF operations.</p><p>I will check the RF command trace from our application and specifically look for any unintended <strong>0xB2 (Lock Sector) command</strong> being issued during the programming sequence.</p><p>Regarding the SSS value (0x09), your explanation clarifies that the write operation is possible when the correct <strong>Present Password command (0xB3)</strong> has already been issued, opening a secure session. This helps explain the intermittent write success observed in our testing.</p><p>I will analyze the RF communication logs in our tool and verify if any unintended lock command is being triggered during read/write operations.</p><p>Thank you for your support.</p><p>Best regards,<br/>Naveen</p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Is there any possibility to read RF Password 1, RF Password 2, and RF Password 3 using an I2C interface or an RF device?</p><p>Best regards,</p><p>Naveen Kongari</p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Unfortunately (or fortunately for security reasons) it is not possible to read the passwords values, neither from RF interface nor from I2C interface.</p><p>Best reagrds.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for the clarification. I understand that reading the actual RF password values is not allowed for security reasons.</p><p>However, during my testing, I attempted to read RF Password 1, RF Password 2, and RF Password 3 through the I2C interface and received a value of <strong>0xFFFFFFFF</strong> for each password location. I assume this is a placeholder value and not the actual password.</p><p>I have one additional question:</p><p>if the RF password is forgotten or lost, is there any method to recover or reset it? If recovery is not possible, would the RF-protected functionality become permanently inaccessible, effectively making that portion of the EEPROM unusable?</p><p>Thank you for your support.</p><p>Best regards,<br/>Naveen Kongari</p><p> </p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>The 0xFFFFFFF value you read through the i2C is the result of the I2C bus architecture: the SDA line is open-drain and pulled-up to VCC through a pull-up resistor. So if no I2C device drives the line to low, the signal is always high and data is read as 0xFF. This is what happens when you try to read the password: the ST25DV doesn’t return data and the line is read at 0xFF thanks to the pull-up.</p><p>There is no way to reset any of the passwords. If a password is lost, it is not possible to recover it other than guessing, which may take very long…</p><p>If you have a portion of the EEPROM protected by a forgotten RF password for RF access, you can still unprotect it if you know the I2C password, since after presenting the I2C password you can change the SSS value from I2C interface.</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for the detailed explanation.</p><p>Could you please provide information on the communication protocol used by the <strong>M24LR16E-R</strong> EEPROM?</p><p>Specifically, I would like to understand:</p><ul><li>The protocol required for EEPROM read and write operations.</li> <li>The command frame structure for <strong>read</strong> and <strong>write</strong> accesses.</li> <li>Any details regarding addressing (device address, memory address format, etc.).</li> <li>Example command frames for reading and writing data.</li></ul><p>This information will help us better understand the communication flow and debug our implementation.</p><p>Thank you for your support.</p><p>Best regards,<br/>Naveen Kongari</p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p>Are you talking about read and write access from the RF interface or from the I2C interface ?</p><p>Best regards.</p></div>",
+                    "author": "JL. Lebon",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I am taking about the read and write access from the RF interface.</p><p> </p><p>Thanks.</p></div>",
+                    "author": "Naveen_Kongari",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "JL. Lebon",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

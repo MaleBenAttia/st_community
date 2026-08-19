@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "166895",
+            "publicId": "166913",
+            "title": "Correct Git strategy for STM32CubeMX2 projects",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/correct-git-strategy-for-stm32cubemx2-projects-166913",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32CubeMX2",
+                "Version control"
+            ],
+            "published_at": "2026-07-13T17:17:22+00:00",
+            "views": 168,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@mgandi ,\n\nThank you for the detailed description.\n\nWhat you are observing is expected behavior in this case. The **`.settings`** folder contains the **`exported-files.json`** file, which STM32CubeMX2 uses to track the previously generated content. If this file is present, STM32CubeMX2 will not trigger the regeneration of missing generated files.\n\nPlease add the **`.settings`** folder to your **`.gitignore`**, so it is not versioned in Git.\n\nThis ensures that when another developer clones the project and opens it in STM32CubeMX2, the missing generated content can be properly recreated.\n\nRegards,\n\nSara.",
+            "best_answer_author": "Sara BEN HADJ YAHYA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am working on a new Project for the STM32C562MET6 with STM32CubeMX2 and VS Code.\n\nOn the first run of toolchain generation, CubeMX generates all expected folders like arch, generated, stm32c5xx\\_dfp and stm32c5xx\\_drivers.\n\nBut I dont want to version all files if they can be generated so i added the folders above to the .gitignore file.\n\nAfter running it a second time but with those folders missing, CubeMx2 doesnt generate it. I already tried to set the “conflict handling rules” to override.\n\nAny suggestions?",
+            "images": [],
+            "author": "mgandi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108203\">@mgandi</user-mention>, and welcome to the ST Community,</p><p>This behavior is <strong>not related to the <code>.gitignore</code> file</strong>. It is part of the <strong>code regeneration logic</strong> in <strong>STM32CubeMX2</strong>.</p><p>In <strong>STM32CubeMX2</strong>, user modifications are handled differently than in the classic <strong>STM32CubeMX</strong> flow.</p><p>The conflict rule is only applied when <strong>both</strong> conditions are met:</p><ul><li>The file was changed <strong>outside</strong> <strong>STM32CubeMX2</strong>, and</li> <li>The same file is also updated again from <strong>inside</strong> <strong>STM32CubeMX2</strong></li></ul><p>So, to summarize the three cases:</p><ol><li> <p><strong>If the file was changed outside the tool, but nothing was changed in the tool</strong>, then no conflict rule is applied.<br/>\tIn this case, <u>the user changes are kept, even if the file is deleted, so it will not be regenerated.</u></p> </li> <li> <p><strong>If the file was changed outside the tool and then you modify the related configuration in</strong> <strong>STM32CubeMX2</strong>, then the conflict handling is triggered.<br/>\tAt this stage, <u>you will be prompted to choose whether to keep your changes backup or overwrite them.</u></p> </li> <li> <p><strong>If the file was not changed outside the tool, but you update something in STM32CubeMX2</strong>, then the file will be <u>overwritten with the new content</u>.</p> </li></ol><h3 id=\"example\">Example</h3><p>Take <code>mx_rcc.c</code>:</p><ul><li>If you add or remove code manually in that file and then regenerate <strong>without changing RCC settings</strong> in <strong>STM32CubeMX2 UI</strong>, nothing happens and your code is kept.</li> <li>If you add or remove code manually <u>and also </u>change an RCC parameter in <strong>STM32CubeMX2 UI</strong> and regenerate, then <strong>STM32CubeMX2</strong> applies the conflict rule.</li> <li>If you only use <strong>STM32CubeMX2</strong> to update settings and do not modify the file externally, then the generated code will be overwritten.</li></ul><p>For more details, refer to <a href=\"https://dev.st.com/stm32cube-docs/stm32cubemx2/1.1.0/en/docs/markup/CubeMX2_UserManual/CubeMX2_UserManual_IDE_ProjectGen.html#ide-project-regeneration\" rel=\"noreferrer noopener\" target=\"_blank\">IDE project regeneration</a></p><p>Please do not hesitate to get back to me if you need more details or further assistance.</p><p>Regards,</p><p>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1242\">@Sara BEN HADJ YAHYA</user-mention> ,</p><p>the problem is not a modified file.</p><p>The “generated” folder for example is generated by the CubeMX2 IDE generation and is not touched by the developer at all, so its not Git versioned since it can be re-generated.</p><p>Steps:</p><ol><li>Developer #1 creates ioc2 file and generates IDE (all folders where generated)</li> <li>Developer #1 adds and commits user source code and ioc2 file</li> <li>Developer #2 wants to continue work on a different machine and clones the repo</li> <li>Developer #2 opens CubeMX2 to generate the missing files</li> <li><strong>Problem </strong>→ CubeMX2 does not generate them</li></ol><p>ioc2 in empty folder → everything is generated</p><p>delete e.g. the “generated” folder and re-run IDE generation → <strong>no </strong>folder generated.</p></div>",
+                    "author": "mgandi",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108203\">@mgandi</user-mention> ,</p><p>Thank you for the detailed description.</p><p>What you are observing is expected behavior in this case. The <strong><code>.settings</code></strong> folder contains the <strong><code>exported-files.json</code></strong> file, which STM32CubeMX2 uses to track the previously generated content. If this file is present, STM32CubeMX2 will not trigger the regeneration of missing generated files.</p><p>Please add the <strong><code>.settings</code></strong> folder to your <strong><code>.gitignore</code></strong>, so it is not versioned in Git.</p><p>This ensures that when another developer clones the project and opens it in STM32CubeMX2, the missing generated content can be properly recreated.</p><p>Regards,</p><p>Sara.</p></div>",
+                    "author": "Sara BEN HADJ YAHYA",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; But I dont want to version all files if they can be generated</p><p>IMHO the <strong>generated </strong>files (but not the files copied by CubeMX from the Cube library package) should be treated as “precious artifacts” and committed to version control, exactly like files generated by AI tools (cursor, codex and so on).</p><p>The reason for the latter is that the generation is “non-deterministic”. Even though CubeMX is not AI (yet), one can consider its generation non-deterministic too, because the rules or templates can change with CubeMX updates.</p><p>Now, if you agree with this argument, just check the generated files in, and be happy, the whole team.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>IMHO the <strong>generated </strong>files (but not the files copied by CubeMX from the Cube library package) should be treated as “precious artifacts” and committed to version control, exactly like files generated by AI tools (cursor, codex and so on).</p></blockquote><p>I agree. We add those to source repository so builds can always be reproduced without a specific CubeMX version installed. You just need the ARM toolchain. Though we also add the copied driver files. Arguably those should be in a submodule (self hosted, not depending on third party hosting).</p></div>",
+                    "author": "unsigned_char_array",
+                    "role": "Lead III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Sara BEN HADJ YAHYA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "164954",
+            "publicId": "164954",
+            "title": "STM32F4 data length assert failed for HAL_SPI_TransmitReceive_DMA",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f4-data-length-assert-failed-for-hal-spi-transmitreceive-dma-164954",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Others"
+            ],
+            "published_at": "2026-04-21T09:44:15+00:00",
+            "views": 265,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\none comment about DMA error, as previously I found the workaround only,\n\nnow I know what was causing the DMA error,\n\n```\n\n__HAL_DMA_DISABLE_IT(self->Spi->hdmarx,DMA_IT_HT); // mask half transfer interrupt\n\n```\n\ndigging in rx dma control register with enabled dma tx and rx interrupts was the root cause of race condition,\n\nany interrupt can jump at the moment when dma rx channel is disabled and tx channel continues transmission,\n\ndoing it inside critical section was ok, finally I decided that masking half transfer interrupt isn't worth the performance benefit.",
+            "best_answer_author": "Jaroslaw Hill",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello,\n\nI think I have interesting case, but from the beginning\n\nI use STM32F446ZEJx and HAL Drivers from STM32Cube\\_FW\\_F4\\_V1.28.3.\n\nWhen I use\n\n```\n\nHAL_StatusTypeDef HAL_SPI_TransmitReceive_DMA(SPI_HandleTypeDef *hspi, const uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)\n\n```\n\nwith Size=5 it internally checks the argument\n\n```\n\nif ((pTxData == NULL) || (pRxData == NULL) || (Size == 0U))\n\nreturn HAL_ERROR;\n\n```\n\nand passes the Size to\n\n```\n\n/* Set the transaction information */\n\nhspi->ErrorCode = HAL_SPI_ERROR_NONE;\n\nhspi->pTxBuffPtr = (const uint8_t *)pTxData;\n\nhspi->TxXferSize = Size;\n\nhspi->TxXferCount = Size;\n\nhspi->pRxBuffPtr = (uint8_t *)pRxData;\n\nhspi->RxXferSize = Size;\n\nhspi->RxXferCount = Size;\n\n```\n\nlater it configures the DMA channels,\n\nRx\n\n```\n\n/* Enable the Rx DMA Stream/Channel */\n\nHAL_DMA_Start_IT(hspi->hdmarx, (uint32_t)&hspi->Instance->DR, (uint32_t)hspi->pRxBuffPtr, hspi->RxXferCount)\n\n```\n\nTx\n\n```\n\n/* Enable the Tx DMA Stream/Channel */\n\nHAL_DMA_Start_IT(hspi->hdmatx, (uint32_t)hspi->pTxBuffPtr, (uint32_t)&hspi->Instance->DR, hspi->TxXferCount)\n\n```\n\nwhere is another control of DataLength parameter\n\n```\n\nHAL_StatusTypeDef HAL_DMA_Start_IT(DMA_HandleTypeDef *hdma, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)\n\n/* Check the parameters */\n\nassert_param(IS_DMA_BUFFER_SIZE(DataLength));\n\n// #define IS_DMA_BUFFER_SIZE(SIZE) (((SIZE) >= 0x01U) && ((SIZE) < 0x10000U))\n\n```\n\nwhich triggers the assertion\n\n```\n\nAssert failed in file ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c on line 459\n\n```\n\nAnd here is the problem, what could happen in the mean time?\n\nQuite obvious answer is interrupt that changed the structure fields\n\n```\n\nhspi->TxXferCount = 0;\n\nhspi->RxXferCount = 0;\n\n```\n\nbut the SPI and DMA interrupts are enabled at the end, after the configuration that failed.\n\nThe stack and heap is big enough, no nested interrupts, assert failed stops the execution and waits for watchdog reset.\n\nThe way I use HAL library is summarized below, the same callback for success and for error, when error I clean up using HAL\\_SPI\\_Abort, is it enough?\n\n```\n\nHAL_SPI_RegisterCallback(self->Spi,HAL_SPI_TX_RX_COMPLETE_CB_ID,SpiCallback);\n\nHAL_SPI_RegisterCallback(self->Spi,HAL_SPI_ERROR_CB_ID ,SpiCallback);\n\n// SpiCallback uses osSemaphoreRelease to resume the SpiTransaction\n\nstatic U8 SpiTransaction(tTmc* const self, U8* const data, U16 size)\n\n{\n\nassert_param(self);\n\nif(HAL_SPI_TransmitReceive_DMA(self->Spi,data,data,size)!=HAL_OK)\n\nreturn 2;\n\n__HAL_DMA_DISABLE_IT(self->Spi->hdmarx,DMA_IT_HT); // mask half transfer interrupt\n\nif(osSemaphoreAcquire(self->SpiSync,5)!=osOK)\n\n{\n\nHAL_SPI_Abort(self->Spi);\n\nosSemaphoreAcquire(self->SpiSync,0);\n\nreturn 3;\n\n}\n\nreturn HAL_SPI_GetError(self->Spi);\n\n};\n\n```\n\nThe problem happens once a few days, normally it works and transmission is executed every 200 ms.\n\nDid someone have similar issue?\n\nBest Regards\n\nJH",
+            "images": [],
+            "author": "Jaroslaw Hill",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"24526\">@Jaroslaw Hill</user-mention> </p>\n<p>Did you try to increase the heap and stack ?</p>\n<p>I would recommend protecting the whole SPI transaction with a mutex. Since the HAL stores the transfer state inside SPI_HandleTypeDef, concurrent access from another task/context during start, timeout, or abort can corrupt that state and lead to rare failures like this. A mutex ensures that only one transaction can use the SPI handle at a time, which can eliminate this kind of race condition.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There are strange things in the code:</p><p>1. Why do you disable DMA HT interrupt after starting transmission?</p><p>2. Why do you abort SPI transfer after starting it? Abort is needed when transfer times out or error occurs (although it's slightly gray area).</p><p>3. Semaphore is not relased, it's (tried) to acquire when first acquire failed. Very strange.</p><p>4. Why use semaphores on abort, but not on transfer? Is it possible that multiple tasks call SpiTransaction? That can create a lot of chaos. If SpiTransaction is called from one task only, then there is no need for semaphores or mutexes at all. If you have single chip on SPI bus then clean architecture would be to let only one task talk to that chip and use thread safety on task-to-task interface level.</p><p>5. HAL_SPI_GetError() returns 32-bit value, but SpiTransaction is U8.</p><p> </p></div>",
+                    "author": "Mikk Leini",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>thank you for your replies.</p><p>I checked the heap and the stack, they both are big enough and not corrupted.</p><p>All SPI operations are executed under a mutex, so there is no risk of concurrent access.</p><p>Semaphore is used to wake the executing task up as soon as possible after completed transaction or after an error.</p><p>Finally I figured out what was the scenario of negative assert</p><pre>assert_param(IS_DMA_BUFFER_SIZE(DataLength));</pre><p>inside</p><pre>HAL_SPI_TransmitReceive_DMA</pre><p>I assumed that only one callback (complete or error) is invoked at the end, but this is not true in case of DMA error or SPI error.</p><p>DMA transfer error can invoke transfer completed and transfer error inside the same interrupt, not much problem as my code isn't executed in the mean time,</p><p>SPI error triggers deferred DMA abort in interrupts for RX and TX channels, every channel invokes own error callback and in between them there is time for resuming my code. Sometimes it starts new transmission before the second error callback ends the previous transmission by releasing the semaphore that is ready to acquire before the second transmission finish. So the third transmission starts too early and triggers assertion.</p><p>The simplest solution was to not using error callback at all and aborting the transmission only after long enough timeout.</p><p>Honestly speaking I don't know how to use error callback that resumes a task immediately without the risk of being notified twice.</p><p> </p></div>",
+                    "author": "Jaroslaw Hill",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>one comment about DMA error, as previously I found the workaround only,</p><p>now I know what was causing the DMA error, </p><pre>__HAL_DMA_DISABLE_IT(self-&gt;Spi-&gt;hdmarx,DMA_IT_HT); // mask half transfer interrupt</pre><p>digging in rx dma control register with enabled dma tx and rx interrupts was the root cause of race condition,</p><p>any interrupt can jump at the moment when dma rx channel is disabled and tx channel continues transmission,</p><p>doing it inside critical section was ok, finally I decided that masking half transfer interrupt isn't worth the performance benefit.</p></div>",
+                    "author": "Jaroslaw Hill",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

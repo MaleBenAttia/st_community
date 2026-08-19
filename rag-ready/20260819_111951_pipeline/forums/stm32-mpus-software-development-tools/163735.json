@@ -1,0 +1,38 @@
+{
+    "forum": [
+        {
+            "id": "163735",
+            "publicId": "163735",
+            "title": "Unable to build Yocto scarthgap using CubeMX generated device tree",
+            "url": "https://community.st.com/stm32-mpus-software-development-tools-138/unable-to-build-yocto-scarthgap-using-cubemx-generated-device-tree-163735",
+            "category": "STM32 MPUs Software development tools",
+            "tags": [
+                "STM32CubeMX",
+                "Generate-Code",
+                "Build"
+            ],
+            "published_at": "2026-03-12T14:59:17+00:00",
+            "views": 320,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello STM32Community,\n\nI managed to solve the problem.\n\nThe root cause is user error/misconfiguration. Several peripherals were checked at boot stages, where they were not needed at all.\n\nDisabling these cleared the errors.\n\nI am now able to build successfully.",
+            "best_answer_author": "DavidStruggle",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi STM32Community,\n\ni am currently trying to build openSTLinux using the STM32CubeMX (6.17.0) generated device tree files with the yocto build process.\n\nFor this I am using the STM32MPU Distribution Package. (stm32mp-openstlinux-6.6-yocto-scarthgap-mpu-v26.02.18)\n\nI set up the Distribution Package according your Wiki [Installing\\_the\\_OpenSTLinux\\_distribution](https://wiki.st.com/stm32mpu/wiki/STM32MPU_Distribution_Package#Installing_the_OpenSTLinux_distribution) and I have set up the STM32CubeMX Project according [How\\_to\\_create\\_your\\_own\\_machine](https://wiki.st.com/stm32mpu/wiki/How_to_create_your_own_machine)  :\n\n* I created the STM32CubeMX project directory \"mx\" /layers/meta-st/meta-st-stm32mp-addons and generated the project files\n\n* I created a new machine config file under /layers/meta-st/meta-st-stm32mp-addons/conf/machine, using the example stm32mp25-mx.conf as a template.\n\n* I created the symlink for the EULA\n\n* I modified the cubemx class accordingly under <STM32MP BSP layer addons>/classes/cubemx-stm32mp.bbclass\n\nand started the build process with\n\n|  |\n\n| --- |\n\n| source layers/meta-st/scripts/envsetup.sh bitbake st-image-core |\n\nThe buildprocess runs fine until it tries to process the device tree for linux-stm32mp\\_6.6.116-stm32mp-r3:\n\n|  |\n\n| --- |\n\n| Error: /yocto/layers/meta-st/meta-st-stm32mp-addons/mx/SpikeOS/CA35/DeviceTree/SpikeOS/kernel/stm32mp257f-spikeos-mx.dts:521.1-6 Label or path boot not found FATAL ERROR: Syntax error parsing input tree |\n\nWhile debugging, I commented out the section in question in my device tree:\n\n|  |\n\n| --- |\n\n| &boot { pinctrl-names = \"default\", \"sleep\"; pinctrl-0 = <&boot\\_pins\\_mx>; pinctrl-1 = <&boot\\_sleep\\_pins\\_mx>; status = \"okay\"; }; |\n\nThis allowed me to pass this problem for now and continue further, looking for more clues whats going wrong. The buildprocess again fails now with multiple errors:\n\n|  |\n\n| --- |\n\n| Error: /yocto/build-openstlinuxweston-stm32mp25-spike-mx/tmp-glibc/work/stm32mp25\\_spike\\_mx-ostl-linux/tf-a-stm32mp/v2.10.24-stm32mp-r3/build/optee-emmc-stm32mp25-stm32mp257f-spikeos-mx/fdts/stm32mp257f-spikeos-mx-bl2.pre.dts:1295.1-6 Label or path boot not found Error: /yocto/build-openstlinuxweston-stm32mp25-spike-mx/tmp-glibc/work/stm32mp25\\_spike\\_mx-ostl-linux/tf-a-stm32mp/v2.10.24-stm32mp-r3/build/optee-emmc-stm32mp25-stm32mp257f-spikeos-mx/fdts/stm32mp257f-spikeos-mx-bl2.pre.dts:1306.1-6 Label or path eth1 not found Error: /yocto/build-openstlinuxweston-stm32mp25-spike-mx/tmp-glibc/work/stm32mp25\\_spike\\_mx-ostl-linux/tf-a-stm32mp/v2.10.24-stm32mp-r3/build/optee-emmc-stm32mp25-stm32mp257f-spikeos-mx/fdts/stm32mp257f-spikeos-mx-bl2.pre.dts:1326.1-6 Label or path lvds not found Error: /yocto/build-openstlinuxweston-stm32mp25-spike-mx/tmp-glibc/work/stm32mp25\\_spike\\_mx-ostl-linux/tf-a-stm32mp/v2.10.24-stm32mp-r3/build/optee-emmc-stm32mp25-stm32mp257f-spikeos-mx/fdts/stm32mp257f-spikeos-mx-bl2.pre.dts:1345.1-11 Label or path usb2\\_phy1 not found Error: /yocto/build-openstlinuxweston-stm32mp25-spike-mx/tmp-glibc/work/stm32mp25\\_spike\\_mx-ostl-linux/tf-a-stm32mp/v2.10.24-stm32mp-r3/build/optee-emmc-stm32mp25-stm32mp257f-spikeos-mx/fdts/stm32mp257f-spikeos-mx-bl2.pre.dts:1348.1-6 Label or path usbh not found |\n\nI would guess, that somewhere either in my machine configuration file or the device tree files an include is missing, but I don't know what include. I then compared the official machine configurations and device trees to my files and they (more or less) match in the most parts.\n\nMy build configuration:\n\n|  |\n\n| --- |\n\n| BB\\_VERSION = \"2.8.1\" BUILD\\_SYS = \"x86\\_64-linux\" NATIVELSBSTRING = \"universal\" TARGET\\_SYS = \"aarch64-ostl-linux\" MACHINE = \"stm32mp25-spike-mx\" DISTRO = \"openstlinux-weston\" DISTRO\\_VERSION = \"5.0.15-snapshot-20260312\" TUNE\\_FEATURES = \"aarch64 crc cortexa35\" TARGET\\_FPU = \"\" DISTRO\\_CODENAME = \"scarthgap\" ACCEPT\\_EULA\\_stm32mp25-spike-mx = \"1\" GCCVERSION = \"13.%\" PREFERRED\\_PROVIDER\\_virtual/kernel = \"linux-stm32mp\" MACHINE\\_FEATURES = \"usbhost usbgadget alsa screen ext2 pci splashscreen watchdog gpu m33copro optee tpm2 initrd autoresize fip fw-update\" |\n\nCubeMX Versions:\n\n|  |\n\n| --- |\n\n| TF-A v2.10 OP-TEE v4.0.0 Linux 6.6.116 TF-M v2.1.3 SCP-firmware v2.13.0 U-Boot v2023.10 |\n\nAs far as i can see, this all should match.\n\nAs for hardware, I am using a custom board which is more or less close to a stock STM32MP257F-DK.\n\nTo reproduce this behaviour, simply open the CubeMX board project for the STM32MP257F-DK with standard peripherals initialized and try to compile it using the yocto build process.\n\nAccording to the Github repository, the last change to the Distribution Package was 3 weeks ago - is the current CubeMX version 6.17.0 compatible to stm32mp-openstlinux-6.6-yocto-scarthgap-mpu-v26.02.18 ?\n\nAm I overseeing something?\n\nThanks in advance.",
+            "images": [],
+            "author": "DavidStruggle",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello STM32Community,</p><p>I managed to solve the problem.<br/>The root cause is user error/misconfiguration. Several peripherals were checked at boot stages, where they were not needed at all.<br/>Disabling these cleared the errors.</p><p>I am now able to build successfully.</p></div>",
+                    "author": "DavidStruggle",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

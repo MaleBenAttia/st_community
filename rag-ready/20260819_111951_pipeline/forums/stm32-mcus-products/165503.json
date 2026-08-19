@@ -1,0 +1,140 @@
+{
+    "forum": [
+        {
+            "id": "165503",
+            "publicId": "165503",
+            "title": "Strangely accurate ADC noise",
+            "url": "https://community.st.com/stm32-mcus-products-25/strangely-accurate-adc-noise-165503",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "HRTIM",
+                "STM32G4 series",
+                "DMA",
+                "ADC"
+            ],
+            "published_at": "2026-05-08T08:01:58+00:00",
+            "views": 688,
+            "reply_count": 9,
+            "best_answer": true,
+            "best_answer_content": "Indeed, the problem was caused by ADCs disturbing each other. And in a particularly nasty way, as the disturbances manifested as SAR bit-decision errors. That is why the patterns were so distinct.\n\nTo overcome this, I have completely changed the way the ADCs are triggered. In my main timer interrupt, I've made a sequence, so ADCs 1, 2, 4 and 5, are triggered at specific times, where they never collide.\n\nI couldn't do this with ADC3, as it runs at a much higher sampling frequency. But I moved it to be triggered by update events from a different timer, which runs at a slightly odd frequency, not in sync with the main timer interrupt. In addition, I've set that timer to dither, so the exact sampling time wobbles. I believe this should randomise disturbances even further.\n\nThe result is this, which is a stark contrast to the first graph I uploaded:\n\n![EThom3_0-1778423459916.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/332f0622-aeee-8cbf-5b43-842cc53f61eb.png \"EThom3_0-1778423459916.png\")\n\nThanks to all of you for your assistance! Should any of you find yourselves in Jutland some day, beer is on me!",
+            "best_answer_author": "EThom.3",
+            "best_answer_author_role": "Senior II",
+            "content_text": "I've been struggling with a strange ADC problem for a while, and have now made some interesting observations.\n\n**The scenario**\n\nI'm using an STM32G474, where HRTIM directly controls a peltier driver for temperature regulation. Temperatures are measured by ADC4 (12 bit resolution), running in DMA circular mode, triggered by TIM7, at 1 kHz. This works. Temperatures are coming in, and are being used for PID regulation.\n\n**The problem**\n\nQuite often – perhaps always – some of the temperature readings are being disturbed, but only at certain temperatures. At first, I thought that it was random noise, but in a graph the noise looks strange. Not random at all.\n\nAfter monitoring the raw ADC values that the DMA has thrown into memory, I discovered something that might be a clue – or it might just be a source of confusion. Every time a noisy sequence occurs, the ADC readout jumps to a lower nearby value where the five least significant bits are all 1, i.e. xxxx xxx1 1111. This is *not* random noise. It is if as the values are rounded down to nearest 0x001F.\n\nA single spurious readout once in a while can be handled. But when this occurs, it happens so much that the PID regulation is disturbed.\n\nThe disturbances are visible in this chart. The orange trace are raw ADC samples, copied directly from the array that the DMA dumps the ADC values in. ADC values are on the right hand axis (decimal). The blue trace is the converted temperature readout, which is where I first noticed the problem.\n\n![Big chart 1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/abfda16c-3d58-c64b-c390-e1c7aecc4063.png \"Big chart 1.png\")\n\nThe disturbing ADC values in this example are 0x073F, 0x07BF, 0x083F and 0x08BF. All ending with the 11111 bit pattern, and exactly 128 ADC counts apart. I have also run tests where the spacing was 64 counts. This also tells me that this isn't random noise.\n\nSome zoomed-in examples:\n\n![83F - 1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01adcb6a-95d2-9c8d-871f-a578a5b98870.png \"83F - 1.png\")\n\n![73F - 1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/67727426-a188-d74a-a1e1-16f0a7e25b46.png \"73F - 1.png\")\n\nApparently, it doesn't matter if the temperature is slowly moving up or down:\n\n![7BF - 1.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1943eb4-1eeb-7625-4508-729dab467251.png \"7BF - 1.png\")\n\n![83F - 2.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2288d32d-7d00-0cd8-5e12-a6af4d437636.png \"83F - 2.png\")\n\nDuring other tests, I have observed this behaviour at other values – but always with the xxxx xxx1 1111 pattern in the ADC value. I have watched the sampled values in RAM, by using STM32Programmer through the SWD interface. This is where I first spotted the recurring bit pattern.\n\nI've checked my code (obviously), to see that the ADC value array isn't overwritten before is is handled in the interrupt function. The only thing that overwrites this array is the DMA channel.\n\nWhat does the errata sheet say about this? The only section I've found that might be relevant, is this one:\n\n![EThom3_0-1778226117224.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45dacaca-3104-3802-ba9c-804805b2fdeb.png \"EThom3_0-1778226117224.png\")\n\nI'm using all five ADCs for different purposes, all using the same clock source, with prescalers set to 1. Perhaps ADC4 is being disturbed by one of the other ADCs. If this is the case, I may be able to make a work-around.\n\nBut again, these aren't *random* disturbances. They only happen in certain windows, hitting very specific values.\n\nI am unsure about what to show you, regarding setup and code. There is **a lot** of code in this project. But here is how ADC4 is setup in CubeMX:\n\n![EThom3_1-1778226575722.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35f4eebd-8ea9-53cc-2f3f-ed22941ee006.png \"EThom3_1-1778226575722.png\")\n\nSampling time and offset is the same for all channels.\n\nThe function that initialises DMA, and starts ADC4:\n\n```\n\nvoid adcInitADC4(void)\n\n{\n\nADC4Handle->Instance->CR = ADC_CR_ADVREGEN; // ADC disable\n\nADC4Handle->Instance->CR |= ADC_CR_ADCAL; // Start calibration\n\nADC4DMAHandle->Instance->CCR &=~ DMA_CCR_EN; // DMA channel off\n\nADC4DMAHandle->Instance->CCR |= DMA_CCR_TCIE; // Turn on DMA interrupt\n\nADC4DMAHandle->Instance->CNDTR = 10; // Ten transfers to memory\n\nADC4DMAHandle->Instance->CPAR = (uint32_t)&ADC4->DR; // Set peripheral address (ADC data register)\n\nADC4DMAHandle->Instance->CMAR = (uint32_t)&ADC4Buffer[0]; // Set memory address\n\nADC4DMAHandle->Instance->CCR |= DMA_CCR_EN; // Enable DMA\n\nwhile (ADC4Handle->Instance->CR & ADC_CR_ADCAL) __asm(\"NOP\");\n\nADC4Handle->Instance->CFGR |= ADC_CFGR_DMAEN; // DMA transfer enable\n\nADC4Handle->Instance->ISR = ADC_ISR_ADRDY; // Clear ADC ready Flag\n\nADC4Handle->Instance->CR |= ADC_CR_ADEN; // Enable ADC\n\nwhile (!(ADC4Handle->Instance->ISR & ADC_ISR_ADRDY)); // Wait for ADC ready\n\nADC4Handle->Instance->CR |= ADC_CR_ADSTART; // Start ADC\n\nTIM7->CR1 |= TIM_CR1_CEN;\n\n}\n\n```\n\nCan anyone help shed some light on this weirdness?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2288d32d-7d00-0cd8-5e12-a6af4d437636.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35f4eebd-8ea9-53cc-2f3f-ed22941ee006.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/332f0622-aeee-8cbf-5b43-842cc53f61eb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/45dacaca-3104-3802-ba9c-804805b2fdeb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/67727426-a188-d74a-a1e1-16f0a7e25b46.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5095b7d6-010e-2287-e150-9119b979347e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/01adcb6a-95d2-9c8d-871f-a578a5b98870.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b2fad483-3c82-f9dd-a706-b6bbbd4d9ca6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1943eb4-1eeb-7625-4508-729dab467251.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/abfda16c-3d58-c64b-c390-e1c7aecc4063.png"
+            ],
+            "author": "EThom.3",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#0000FF\"><em>&gt; During other tests, I have observed this behaviour at other values – but always with the xxxx xxx1 1111 pattern in the ADC value.</em></font></p><p><span>I tend to agree, this sounds like a systematic issue.<br/>Have you been able to reproduce it on different boards/PCBs, or is it just one ?</span></p><p><span>The xxx1.1111 pattern is just one bit short of a carry-over to to the next MSB, so I would not exclude a problem of the individual MCU. <br/>Although I don't have any G4xx board, to add that.</span></p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"48557\">@Ozone</user-mention> wrote:<br/><p><span>Have you been able to reproduce it on different boards/PCBs, or is it just one ?</span></p><hr/></blockquote><p>All the prototype boards of this batch exhibit this behaviour.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well, that sounds very systematic.<br/>I can't comment on G4xx internals, as mentioned.<br/>Perhaps there is some silicon issue, and ST staff can comment.</p><p>Peltier elements are usually quite power-hungry.<br/>Can you exclude power supply / V<font size=\"1 2 3 4 5 6 7\">DDA</font> / V<font size=\"1 2 3 4 5 6 7\">REF</font> issues caused by this external sources ?</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I would also try to rule out any external influence from the drivers and power supplies, ground bounces, whatever. So a poti sounds like a good idea.</p><p>Are you sure, that the DMA buffer size gives you enough time to handle the data?</p><p> </p><p><user-mention data-id=\"48557\">@Ozone</user-mention> said:</p><p>&gt; <span>The xxx1.1111 pattern is just <strong>one bit short of a carry-over</strong> to to the next MSB,<br/>&gt; so I would not exclude a problem of the individual MCU. </span></p><p> </p><p><span>Nice catch! </span></p><p><span>If this was an FPGA, I would check the internal FlipFlop placement and make the clock restraints stricter.</span></p><p><span>With the MCU I would play with everything that might affect timing:</span></p><p><span>- ADC clock prescaler - maybe increase this and reduce:</span></p><p><span>- sampling time</span></p><p><span>- DMA buffer size</span></p><p><span>- interrupt priorities</span></p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/><p>I would also try to rule out any external influence from the drivers and power supplies, ground bounces, whatever. So a poti sounds like a good idea.</p><p>Are you sure, that the DMA buffer size gives you enough time to handle the data?</p><p> </p><p><user-mention data-id=\"48557\">@Ozone</user-mention> said:</p><p>&gt; <span>The xxx1.1111 pattern is just <strong>one bit short of a carry-over</strong> to to the next MSB,<br/>&gt; so I would not exclude a problem of the individual MCU. </span></p><p> </p><p><span>Nice catch! </span></p><p><span>If this was an FPGA, I would check the internal FlipFlop placement and make the clock restraints stricter.</span></p><p><span>With the MCU I would play with everything that might affect timing:</span></p><p><span>- ADC clock prescaler - maybe increase this and reduce:</span></p><p><span>- sampling time</span></p><p><span>- DMA buffer size</span></p><p><span>- interrupt priorities</span></p><hr/></blockquote><p>Yes, there is plenty of time. I've made the trick of pulling a pin high in the beginning if the interrupt, and low in the end. Very little time – perhaps 1 % of the clock period or less – is spent in the interrupt.</p><p>A colleague fed my original post into some AI thing, which actually returned some interesting hints. While it had crossed my mind that the ADC is of the SAR type, I had not linked problem perhaps being related to the SAR comparator. But this fits very well. If something running in sync with the ADC (and TIM7) is disturbing the ADC, sometimes making the comparator generate a wrong bit in the middle of the conversion, then the remaining bits should all become either 0 or 1. If it always happens at the same time, in relation to the ADC trigger, then the same number of bits would be at fault every time, and the interval between the faulty values would be 2ⁿ. I have seen the intervals 64 and 128, but I'm pretty sure that the microcontroller had been restarted between these tests.</p><p>Now I have some things I wish to try, and I may have a work-around in mind. If I find a work-around (and, if possible, a reason), I will post it here.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What clock are you using for ADC?</p></div>",
+                    "author": "Mikk Leini",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35942\">@Mikk Leini</user-mention> wrote:<br/><p>What clock are you using for ADC?</p><hr/></blockquote><p>PLLP, delivering 56.66667 MHz. HSE is a 4 MHz crystal, multiplied by 85 to make 340 MHz, and then divided by 2 to make 170 MHz for the SYSCLK, and by 6 for ADC clocks.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>170/6 isn't 56.6 MHz, but please check that you fit into ADC clock limits in datasheet chapter <span class=\"\">5.3.19 Analog-to-digital converter characteristics</span>. If it matters, I am personally a bit sceptic about that asynchronous clock mode. Add to that several errata issues about ADC's interference. Also <a href=\"https://www.st.com/resource/en/application_note/an5346-stm32g4-adc-use-tips-and-recommendations-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AN5346</a> has quite a lot of information about setting up multiple ADC's properly and it further explains the errata issue that you pointed out. By the way, HRTIM has some errata also.</p><p>If you have a way to reproduce the issue, then you could try to isolate the problem by letting only ADC4 run or change the clocks, modes, sequences, etc. to see if anything has effect on the issue.</p></div>",
+                    "author": "Mikk Leini",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Changing the ADC clocks to synchronous divided by 4 didn't solve the problem, but the timing of the issue definitely changed. Also, the problem persists even when the TEC drivers are off (meaning that all potentially noisy stuff is off).</p><p>So I am more and more inclined to believe that the problem is caused by ADCs disturbing other ADCs. I'm not quite sure what I can do about it, as some of these ADCs are quite busy. But to begin with, I guess I can disable one at a time, and see if it makes a difference.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>My Goodness – it just dawned on me. I am starting two different ADCs with the same timer event. That is probably pretty unclever, given that they are prone to disturb each other.</p><p>I think I'll come up with a scheme where the different ADCs are started in a sequence where they don't overlap. This should be doable.</p><p>Thanks for all your assistance gentlemen (and, possibly, ladies). I'll let you know once I have a breakthrough.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Indeed, the problem was caused by ADCs disturbing each other. And in a particularly nasty way, as the disturbances manifested as SAR bit-decision errors. That is why the patterns were so distinct.</p><p>To overcome this, I have completely changed the way the ADCs are triggered. In my main timer interrupt, I've made a sequence, so ADCs 1, 2, 4 and 5, are triggered at specific times, where they never collide.</p><p>I couldn't do this with ADC3, as it runs at a much higher sampling frequency. But I moved it to be triggered by update events from a different timer, which runs at a slightly odd frequency, not in sync with the main timer interrupt. In addition, I've set that timer to dither, so the exact sampling time wobbles. I believe this should randomise disturbances even further.</p><p>The result is this, which is a stark contrast to the first graph I uploaded:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"EThom3_0-1778423459916.png\" style=\"width: 400px;\"><img alt=\"EThom3_0-1778423459916.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/332f0622-aeee-8cbf-5b43-842cc53f61eb.png\" title=\"EThom3_0-1778423459916.png\"/></span></p><p>Thanks to all of you for your assistance! Should any of you find yourselves in Jutland some day, beer is on me!</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm glad you found the solution and share it, so other people (and AI bots) can solve their issues also.</p></div>",
+                    "author": "Mikk Leini",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"57654\">@EThom.3</user-mention>  great you found it share the solution!</p><p>Also kudos for the really good documentation of the problem.</p><p> </p><p>But I'd like to understand this a little better - what's the theory for that noise source?</p><p>Looking at the G4 ref manual (I only ever played with G431, and only used 1 ADC), it seems that the hardware the ADCs share are the power supply, the VREF pin, and the input muxes. Which is already a lot... but my guess would have been it's good enough for 12 bit resolution.</p><p>Is this the cause of noise, that the simultaneously timed ADCs draw the most current / power at the same time, probably mostly influencing each other's sample &amp; hold stage ?</p><p>Could this be reduced with using better input driving, or at least some bigger input caps ?</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/><p><user-mention data-id=\"57654\">@EThom.3</user-mention>  great you found it share the solution!</p><p>Also kudos for the really good documentation of the problem.</p><p> </p><p>But I'd like to understand this a little better - what's the theory for that noise source?</p><p>Looking at the G4 ref manual (I only ever played with G431, and only used 1 ADC), it seems that the hardware the ADCs share are the power supply, the VREF pin, and the input muxes. Which is already a lot... but my guess would have been it's good enough for 12 bit resolution.</p><p>Is this the cause of noise, that the simultaneously timed ADCs draw the most current / power at the same time, probably mostly influencing each other's sample &amp; hold stage ?</p><p>Could this be reduced with using better input driving, or at least some bigger input caps ?</p><hr/></blockquote><p>Good question. The errata sheet dosn't say <em>why</em> it happens, but in my opinion they downplay the problem.</p><p><em>\"(...) the worst case (a few LSBs) being when all the ADCs on the device operate synchronously.\"</em></p><p>A few LSBs??? No, rather big-time SAR bit-decision errors! However, it is possible that the decoupling on my prototypes isn't good enough. On the new version, which I'm about to order, I have improved this greatly.</p><p>In fact, when I get the new boards, I think I'll first install an older version of the firmware, to see if the layout made a difference, and then I'll post my findings here.</p><p> </p><p>Edit to add: I actually <em>hope</em> that my main issue is caused by insufficient decoupling, because that will make the ADCs so much easier to use on properly designed boards.</p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Errata sheet of G431:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"LCE_0-1778487911707.png\" style=\"width: 400px;\"><img alt=\"LCE_0-1778487911707.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5095b7d6-010e-2287-e150-9119b979347e.png\" title=\"LCE_0-1778487911707.png\"/></span></p><p>Interesting, never heard of \"bulb sampling\".</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"39813\">@LCE</user-mention> wrote:<br/><p>Errata sheet of G431:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"LCE_0-1778487911707.png\" style=\"width: 400px;\"><img alt=\"LCE_0-1778487911707.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b2fad483-3c82-f9dd-a706-b6bbbd4d9ca6.png\" title=\"LCE_0-1778487911707.png\"/></span></p><p>Interesting, never heard of \"bulb sampling\".</p><hr/></blockquote><p>I hadn't either, until I began to use these micrcontrollers. I haven't tried using that mode, as it isn't relevant for my application.</p><p>Also, \"BULB\" seems to be an ST term. I haven't been able to find it anywhere else in relation to ADCs, but the term may originate from photography, as the \"bulb\" can be used to keep the shutter open:</p><p><a href=\"https://en.wikipedia.org/wiki/Bulb_(photography)\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Bulb (photography)</a> </p></div>",
+                    "author": "EThom.3",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

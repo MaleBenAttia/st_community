@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164745",
+            "publicId": "164745",
+            "title": "STM32H745 configure RDP levels over Lauterbach TRACE32 debugger",
+            "url": "https://community.st.com/stm32-mcus-security-36/stm32h745-configure-rdp-levels-over-lauterbach-trace32-debugger-164745",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "RDP"
+            ],
+            "published_at": "2026-04-14T19:03:54+00:00",
+            "views": 297,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n1- There is no official reference or recommended TRACE32 PRACTICE (.cmm) script provided by ST.\n\n2- Please refer to the knowledge base article: [How to change the Read Out Protection on STM32H7](https://community.st.com/t5/stm32-mcus/how-to-change-the-read-out-protection-on-stm32h7/ta-p/49411)\n\n3- The RDP regression from level 1 to level 0 the mass erase is automatically performed by hardware. This is the condition described in the reference manual [RM0399](https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf):\n\n![mALLEm_0-1776198385692.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c7812baa-1df7-b79b-5f42-06d7796ef1b7.png \"mALLEm_0-1776198385692.png\")\n\nHope that helps.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am working with the **STM32H745** using a **Lauterbach TRACE32 debugger** and i am evaluating ways to control **Readout Protection (RDP)**.\n\nI am able to configure RDP levels using **STM32CubeProgrammer**, however I would like to achieve the same using a **TRACE32 (.cmm) script**, without relying on the ST programmer.\n\n1. Is there any **recommended or reference TRACE32 PRACTICE (.cmm) script** for setting and reverting RDP levels (Level‑0 to Level‑1) and (Level‑1 to Level‑0) on STM32H7 devices? I could not find any official examples demonstrating direct RDP control using .cmm script.\n\n2. Is it supported or recommended to **control RDP level changes from firmware** on STM32H745? While setting RDP from Level‑0 to Level‑1 is possible, reverting from Level‑1 to Level‑0 results in a mass erase.\n\n3. When reverting RDP from **Level‑1 to Level‑0**, is the **mass erase automatically triggered by the hardware as part of the RDP regression**, or is there an additional register or command that must be explicitly programmed to initiate the mass erase?\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c7812baa-1df7-b79b-5f42-06d7796ef1b7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/395085fa-58a5-6f63-4da3-c5d56b24bbbf.png"
+            ],
+            "author": "Firmsol",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p><span>1- There is no official reference or recommended TRACE32 PRACTICE (.cmm) script provided</span> by ST.</p>\n<p>2- Please refer to the knowledge base article: <a href=\"https://community.st.com/t5/stm32-mcus/how-to-change-the-read-out-protection-on-stm32h7/ta-p/49411\" target=\"_blank\"><span>How to change the Read Out Protection on STM32H7</span></a></p>\n<p>3- The RDP regression from level 1 to level 0 the mass erase is automatically performed by hardware. This is the condition described in the reference manual <a href=\"https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">RM0399</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776198385692.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776198385692.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c7812baa-1df7-b79b-5f42-06d7796ef1b7.png\" title=\"mALLEm_0-1776198385692.png\"/></span></p>\n<p>Hope that helps.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thankyou for your reply.</p><p>I am working on a custom hardware board based on the STM32H745, and STM32CubeMX / STM32CubeProgrammer is not used in my setup. The article  <a href=\"https://community.st.com/t5/stm32-mcus/how-to-change-the-read-out-protection-on-stm32h7/ta-p/49411\" target=\"_blank\"><span>How to change the Read Out Protection on STM32H7</span></a> demonstrates RDP level changes using the CLI‑based STM32CubeProgrammer, which is not applicable in my case.</p><p>In my scenario, I intend to control the Read‑Out Protection (RDP) level directly from firmware logic by programming the Flash option bytes at runtime.</p><p>Could you please confirm:</p><p>Whether RDP level control via firmware(software) logic (without external programmer tools) possible.<br/>If supported, i want to know the exact and recommended sequence to:<br/>1) Change RDP from Level‑0 to Level‑1<br/>2) Change RDP from Level‑1 back to Level‑0<br/>3) Is MCU required to be in a reset state or anyother state to modifty the RDP levels.<br/>4) When mass erase is issued, whole flash memory will be erased?</p><p> </p><p> </p></div>",
+                    "author": "Firmsol",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105714\">@Firmsol</user-mention> wrote:<br/>\n<p>The article  <a href=\"https://community.st.com/t5/stm32-mcus/how-to-change-the-read-out-protection-on-stm32h7/ta-p/49411\" target=\"_blank\"><span>How to change the Read Out Protection on STM32H7</span></a> demonstrates RDP level changes using the CLI‑based STM32CubeProgrammer, which is not applicable in my case.</p>\n<hr/></blockquote>\n<p>I think you didn't read the article carefully. Please read again the section <strong>3. Coding</strong></p>\n<blockquote><hr/><user-mention data-id=\"105714\">@Firmsol</user-mention> wrote:<br/>\n<p>4) When mass erase is issued, whole flash memory will be erased?</p>\n<hr/></blockquote>\n<p>As stated in my previous post, that question has been answered in this section in the reference manual:<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776198385692.png\" style=\"width: 585px;\"><img alt=\"mALLEm_0-1776198385692.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/395085fa-58a5-6f63-4da3-c5d56b24bbbf.png\" title=\"mALLEm_0-1776198385692.png\"/></span></p>\n<p>If you need an explanation of that section you need to open a new post because that's a new question and close this one.</p>\n<p>Thank you.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

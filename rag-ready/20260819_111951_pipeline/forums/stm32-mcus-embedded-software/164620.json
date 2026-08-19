@@ -1,0 +1,79 @@
+{
+    "forum": [
+        {
+            "id": "164620",
+            "publicId": "164620",
+            "title": "disable hardware GoodCRC for SOP messages in UCPD for Active Cable (EMarker) applications?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/disable-hardware-goodcrc-for-sop-messages-in-ucpd-for-active-cable-emarker-applications-164620",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB Type-C and power delivery"
+            ],
+            "published_at": "2026-04-10T01:24:56+00:00",
+            "views": 398,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi @JamesC\n\nThe USB PD specification states that **cable plugs must meet the receiver requirements for both a Source and a Sink** during any transmission using the BMC signaling scheme.\n\nBased on this requirement, we should **raise a warning flag**: with the current STM32 UCPD behavior, we cannot confidently confirm that the device will satisfy **both receiver conditions at the same time** for a cable application. Therefore, using this setup as a production cable design carries a **risk of non-compliance**.\n\nRegarding the **USB-PD sniffer example on STM32G071B-DISCO**, this example appears to be intended for **debug / monitoring purposes** and may **not be electrically compliant** for a cable or eMarker design.\n\nSummary of what the example is doing:\n\n1. **Configure the analog path**\n\n* Set **ANAMODE = 0**\n\n* Set **ASASUBMODE = 0x00** (**disabled**)\n\n![FBL_1-1777562428898.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/af555570-047c-2246-7a49-e305c45820ae.png \"FBL_1-1777562428898.png\")\n\n2- Based on demo provided\n\n```\n\n/* Set the RX dma to allow reception */\n\nWRITE_REG(hdmarx->CPAR, (uint32_t)&husbpd->RXDR);\n\nWRITE_REG(hdmarx->CMAR, (uint32_t)ptr_RxBuff);\n\nhdmarx->CNDTR = SIZE_MAX_PD_TRANSACTION;\n\nhdmarx->CCR|= DMA_CCR_EN;\n\n/* disabled non Rd line set CC line enable */\n\n#define INTERRUPT_MASK UCPD_IMR_HRSTDISCIE | UCPD_IMR_HRSTSENTIE | \\\n\nUCPD_IMR_RXORDDETIE | UCPD_IMR_RXHRSTDETIE | UCPD_IMR_RXOVRIE | UCPD_IMR_RXMSGENDIE\n\nMODIFY_REG(husbpd->IMR, INTERRUPT_MASK, INTERRUPT_MASK);\n\n/* Handle CC enable */\n\n// Ports[PortNum].CCx = cc;\n\nLL_UCPD_SetccEnable(husbpd, LL_UCPD_CCENABLE_CC1CC2);\n\n/* Set CC pin for PD message */\n\nLL_UCPD_SetCCPin(husbpd, cc == CC1?LL_UCPD_CCPIN_CC1:LL_UCPD_CCPIN_CC2);\n\nLL_UCPD_SetRxMode(husbpd, LL_UCPD_RXMODE_NORMAL);\n\nLL_UCPD_RxDMAEnable(husbpd);\n\nLL_UCPD_RxEnable(husbpd);\n\n```",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello STM32 Community,\n\nI am currently developing a **USB Type-C Active Cable** application using an STM32 with the official USB-PD Middleware.\n\n**My Goal:** The MCU needs to behave as an **EMarker/Active Cable**. Therefore, it should:\n\n1. **Ignore all SOP messages** on the CC line (no response and **no GoodCRC** ).\n\n2. Only respond to **SOP'** and **SOP''** messages.\n\n3. Able to **monitor (Snoop) SOP messages** exchanged between the Source and Sink to maintain state awareness.\n\n**The Problem:** In the current X-CUBE-USB-PD middleware and STM32CubeMX configuration, there is no explicit option to disable SOP handling while keeping SOP'/SOP'' active. Since GoodCRC is typically handled by the UCPD hardware autonomous logic to meet the strict tTransmitSOP timeout, the hardware automatically sends a GoodCRC when it detects a valid SOP message CRC, even if the firmware isn't intended to process it.\n\n**Technical Details & Questions:** I am looking for a way to bypass or disable the hardware-level auto-response for **SOP only**.\n\n1. **Register Control:** Is there a specific bit in UCPD\\_CR or UCPD\\_CFG1/2 that can mask SOP detection while allowing SOP'/SOP''?\n\n* I noticed the RXORDSETEN bits in stm32g0b1xx.h. If I only enable bits for SOP' and SOP'', will the hardware still generate a GoodCRC for incoming SOP packets?\n\n2. **Middleware Bypass:** If the hardware doesn't support selective GoodCRC, has anyone successfully implemented a workaround in the USBPD\\_dpm\\_core.c or the lower-level stm32xx\\_it.c to drop SOP packets before the hardware triggers the TX response?\n\n3. **Active Cable Mode:** Does ST provide a specific configuration or a \"Silent SOP\" mode for UCPD when the device is defined as a Cable Plug?\n\nAny insights on which registers to manipulate to achieve \"SOP silence\" would be greatly appreciated.\n\nThank you in advance!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/af555570-047c-2246-7a49-e305c45820ae.png"
+            ],
+            "author": "JamesC",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105915\">@JamesC</user-mention> </p>\n<p>Thank you for the question. I'm currently investigating this request and will get back to you ASAP. I checked internally and will get back to you ASAP.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105915\">@JamesC</user-mention>  again</p>\n<p><strong>I still need to check if there is any viable solution internally</strong></p>\n<p><strong>RXORDSETEN </strong>is just a convenient way to filter certain types of message, UCPD does allow snooping/monitoring messages destined for the cable like SOP’. </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105915\">@JamesC</user-mention> </p>\n<p><span data-teams=\"true\">If the CC analog function is disabled</span> via <strong>ANASUBMODE</strong> being <strong>disabled</strong>, the rem<span data-teams=\"true\">aining observation of the line can only be done through an external sensing method such as ADC based polling. This is a workaround, not a supported silent Type-C / EMarker operating mode. </span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"2057\">@FBL</user-mention>,</p><p>Thank you for the update and for checking this internally.</p><p>I would like to follow up on one specific point regarding the <strong>STM32G071B-DISCO USB-PD Sniffer application</strong>.</p><p>I noticed that ST already provides a <strong>PD protocol sniffer example based on STM32G071B-DISCO</strong>, which is able to <strong>monitor CC line traffic without actively participating in the PD communication</strong>.</p><p>Because this seems very close to my Active Cable / EMarker requirement, could you please help clarify a few details?</p><ol><li><p><strong>How is the UCPD configured in the sniffer application to avoid interfering with bus traffic?</strong></p><ul><li><p>Which registers are specifically configured for this mode?</p></li><li><p>Is it using RXORDSETEN filtering only?</p></li><li><p>Is there any special use of ANASUBMODE, analog disable, or dead-battery / sink/source detach mode?</p></li></ul></li><li><p><strong>Does the sniffer configuration fully prevent automatic GoodCRC transmission for SOP packets?</strong><br/>This is the key point for my use case.<br/>I need to make sure the MCU can observe Source ↔ Sink SOP traffic while remaining electrically silent.</p></li><li><p>Is the sniffer example relying on any <strong>external analog sensing path</strong>, or is this achieved purely through internal UCPD peripheral configuration?</p></li></ol><p>If the sniffer example already demonstrates a “listen-only” UCPD mode, it would be extremely helpful to understand whether this is the recommended direction for cable applications.</p><p>Thank you again for your support.</p></div>",
+                    "author": "JamesC",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105915\">@JamesC</user-mention> </p>\n<p>The USB PD specification states that<span> </span><strong>cable plugs must meet the receiver requirements for both a Source and a Sink</strong><span> </span>during any transmission using the BMC signaling scheme.</p>\n<p>Based on this requirement, we should<span> </span><strong>raise a warning flag</strong>: with the current STM32 UCPD behavior, we cannot confidently confirm that the device will satisfy<span> </span><strong>both receiver conditions at the same time</strong><span> </span>for a cable application. Therefore, using this setup as a production cable design carries a<span> </span><strong>risk of non-compliance</strong>.</p>\n<p>Regarding the<span> </span><strong>USB-PD sniffer example on STM32G071B-DISCO</strong>, this example appears to be intended for<span> </span><strong>debug / monitoring purposes</strong><span> </span>and may<span> </span><strong>not be electrically compliant</strong><span> </span>for a cable or eMarker design.</p>\n<p tabindex=\"-1\">Summary of what the example is doing:</p>\n<ol>\n<li>\n<p><strong>Configure the analog path</strong></p>\n<ul>\n<li>Set<span> </span><strong>ANAMODE = 0</strong></li>\n<li>Set<span> </span><strong>ASASUBMODE = 0x00</strong><span> </span>(<strong>disabled</strong>)</li>\n</ul>\n</li>\n</ol>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FBL_1-1777562428898.png\" style=\"width: 999px;\"><img alt=\"FBL_1-1777562428898.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/af555570-047c-2246-7a49-e305c45820ae.png\" title=\"FBL_1-1777562428898.png\"/></span></p>\n<div class=\"markdown-block\">\n<div class=\"markdown-toolbar-wrapper\" data-v-app=\"\" id=\"toolbar_0_78505659483\">\n<div class=\"markdown-toolbar\" data-v-c2f29b64=\"\">\n<div class=\"base ux-text-field-label ux-text-semibold\" data-testid=\"uxtext_content\" data-v-67c59c52=\"\" data-v-c2f29b64=\"\">\n<div class=\"flex ux-text-style\" data-v-67c59c52=\"\"> </div>\n</div>\n</div>\n</div>\n</div>\n<p>2- Based on demo provided</p>\n<pre class=\"lia-code-sample language-c\"><code>/* Set the RX dma to allow reception */\n WRITE_REG(hdmarx-&gt;CPAR, (uint32_t)&amp;husbpd-&gt;RXDR);\n WRITE_REG(hdmarx-&gt;CMAR, (uint32_t)ptr_RxBuff);\n hdmarx-&gt;CNDTR = SIZE_MAX_PD_TRANSACTION;\n hdmarx-&gt;CCR|= DMA_CCR_EN;\n\n /* disabled non Rd line set CC line enable */\n#define INTERRUPT_MASK UCPD_IMR_HRSTDISCIE | UCPD_IMR_HRSTSENTIE | \\\n UCPD_IMR_RXORDDETIE | UCPD_IMR_RXHRSTDETIE | UCPD_IMR_RXOVRIE | UCPD_IMR_RXMSGENDIE\n\n MODIFY_REG(husbpd-&gt;IMR, INTERRUPT_MASK, INTERRUPT_MASK);\n\n /* Handle CC enable */\n// Ports[PortNum].CCx = cc;\n LL_UCPD_SetccEnable(husbpd, LL_UCPD_CCENABLE_CC1CC2);\n\n /* Set CC pin for PD message */\n LL_UCPD_SetCCPin(husbpd, cc == CC1?LL_UCPD_CCPIN_CC1:LL_UCPD_CCPIN_CC2);\n\n LL_UCPD_SetRxMode(husbpd, LL_UCPD_RXMODE_NORMAL);\n LL_UCPD_RxDMAEnable(husbpd);\n LL_UCPD_RxEnable(husbpd);</code></pre>\n<p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "163884",
+            "publicId": "163884",
+            "title": "STM32 KiCad PCB design problem",
+            "url": "https://community.st.com/others-hardware-and-software-57/stm32-kicad-pcb-design-problem-163884",
+            "category": "Others: hardware and software",
+            "tags": [
+                "Other hardware"
+            ],
+            "published_at": "2026-03-17T10:48:20+00:00",
+            "views": 505,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Welcome @eva\\_402, to the community!\n\nFor questions about using KiCAD, you should check the [KiCAD forums](https://www.kicad.org/community/forums/) or [KiCAD learning resources](https://www.kicad.org/help/learning-resources/). However, ST provides recommendations for hardware development and layout that you should definitely look at as a starting point: see [AN2586 Getting started with STM32F10xxx hardware development](https://www.st.com/resource/en/application_note/an2586-getting-started-with-stm32f10xxx-hardware-development-stmicroelectronics.pdf).\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hey guys.. new here.. I’m building a small STM32F103 board to read temp and pressure sensors… prototype works fine on breadboard but now want to make PCB..\n\nProblem is.. I tried to route VCC and GND planes in KiCad, but when I refill copper zones some areas near STM32 pins stay unconnected.. DRC shows some warnings for vias too..\n\nShould I place more vias near STM32 or maybe change copper zone settings?? Also decoupling caps.. some are far from pins because of routing.. will that cause issues?? I’m little worried about noise and stability.. never made 2-layer pcb with stm32 before..",
+            "images": [],
+            "author": "eva_402",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"105211\">@eva_402</user-mention>, to the community!</p>\n<p>For questions about using KiCAD, you should check the <a href=\"https://www.kicad.org/community/forums/\" rel=\"nofollow noopener noreferrer\" target=\"_self\">KiCAD forums</a> or <a href=\"https://www.kicad.org/help/learning-resources/\" rel=\"nofollow noopener noreferrer\" target=\"_self\">KiCAD learning resources</a>. However, ST provides recommendations for hardware development and layout that you should definitely look at as a starting point: see <a href=\"https://www.st.com/resource/en/application_note/an2586-getting-started-with-stm32f10xxx-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AN2586 Getting started with STM32F10xxx hardware development</a>.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the welcome, really appreciate it :) I’ll check out the KiCad forums for the tool side of things, and that AN2586 doc looks exactly like what I needed for the layout basics. Good to have a proper reference instead of guessing my way through it.<strong><br/></strong></p></div>",
+                    "author": "eva_402",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"105211\">@eva_402</user-mention> wrote:<br/><p><span>I tried to route VCC and GND planes in KiCad, but when I refill copper zones some areas near STM32 pins stay unconnected.. </span><span>..</span></p><hr/></blockquote><p>So that's a KiCAD problem - nothing to do with the STM32.</p><p>As <user-mention data-id=\"2379\">@Peter BENSCH</user-mention> said, you need to go to the KiCAD resources for help in using KiCAD</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yeah I get what you’re saying, it’s more of a KiCad behavior than anything STM32-specific. I just posted here since the layout concerns (like decoupling and planes) felt kinda MCU-related too. I’ll check the KiCad forums as well, thanks for pointing that out.</p></div>",
+                    "author": "eva_402",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Although, its not related to this forum as stated above but still as its posted so:</p><p>What you’re seeing is pretty normal on 2-layer boards with dense MCUs like STM32. The unfilled areas are usually due to clearance, minimum width, or thermal relief settings in the copper zone ..... not necessarily a real connection issue. First check those settings and make sure pads are actually assigned to the correct net (VCC/GND).</p><p>Adding more vias near the STM32 power pins is a good idea .... they help connect planes better and reduce impedance, especially on 2-layer boards. I would suggest you to use a solid ground plane if possible, read these guide to understand planes: <a href=\"https://www.pcbway.com/blog/PCB_Design_Layout/Power_and_Ground_Plane_Design_Considerations_in_PCB_Layout_862aaa8c.html\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://www.pcbway.com/blog/PCB_Design_Layout/Power_and_Ground_Plane_Design_Considerations_in_PCB_Layout_862aaa8c.html</a></p><p><a href=\"https://www.aivon.com/blog/pcb-design/the-art-of-grounding-pcb-ground-plane-techniques-for-analog-circuits/\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://www.aivon.com/blog/pcb-design/the-art-of-grounding-pcb-ground-plane-techniques-for-analog-circuits/</a></p><p>For decoupling caps .... yes, distance matters. If they’re 1-2 cm away, they become much less effective. Try to keep 0.1 uF caps as close as possible to each VCC pin, even if you have to adjust routing. A 10uF can sit a bit farther away, I think its called bulk caps. Read this guide on decoupling caps: <a href=\"https://learn.sparkfun.com/tutorials/capacitors/application-examples\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://learn.sparkfun.com/tutorials/capacitors/application-examples</a></p><p> </p></div>",
+                    "author": "ahsrabrifat",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That actually helps a lot, makes sense now why those areas weren’t filling in. I’ll double check the zone settings and net assignments, I probably messed something there without realizing. And yeah I think I underestimated the decoupling cap placement, I’ll try to move those closer even if routing gets a bit messy. Appreciate the pointers</p></div>",
+                    "author": "eva_402",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

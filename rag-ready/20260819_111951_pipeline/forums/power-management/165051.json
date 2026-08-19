@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "165051",
+            "publicId": "165051",
+            "title": "ST1S10PHR Buck Converter Not Regulating (Output 0.79V)",
+            "url": "https://community.st.com/power-management-53/st1s10phr-buck-converter-not-regulating-output-0-79v-165051",
+            "category": "Power management",
+            "tags": [
+                "Power"
+            ],
+            "published_at": "2026-04-23T13:23:26+00:00",
+            "views": 227,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "@MOHAMMED\\_NAVAS\n\nAccording to your schematics, you do not want to generate +5V, but -5V, which requires a buck-boost topology. By the way, where does the connection point of R2, C1, C3...5 lead to? In your schematics and in the layout, the track is hanging in mid-air.\n\nWith the ST1S10, buck-boost converter should be feasible if the environmental conditions are right - however, it would need to be set up correctly: in an inverting buck-boost based on a conventional buck, the regulator’s GND is no longer on input GND, but on the negative output voltage, as shown for example in [DN0011](https://www.st.com/resource/en/design_note/dn0011-st1s03-alternative-topology-using-a-buck-in-a-negative-buckboost-configuration---stmicroelectronics.pdf), fig. 2.\n\nThe problem is: because of the inversion, the regulator is no longer between VIN and GND, but between VIN and (-VOUT). And that creates a new problem: the voltage difference in your application is 12V - (-5V) = 17V, leaving you only 3V headroom to the absolute maximum rating of 20V. If a small unexpected spike comes in, the regulator can be destroyed quickly/immediately. Depending on the desired output current, you could instead consider the [L6982](https://www.st.com/en/power-management/l6982.html) or [L6983](https://www.st.com/en/power-management/l6983.html), each of which can handle 38V.\n\nIn summary, it is advisable to carefully work through DN0011 and correctly implement the principle of the inverting buck-boost.\n\nOne final note: please also take a look at the layout guidelines for switching regulators, which discuss the most important points, e.g.\n\n* a track from the switch output to the inductor that is as short and low-impedance (i.e. wide) as possible\n\n* a clearly defined current path for the input and output current paths (no vias, low-impedance and, because of the switching edges, as little angular routing as possible)\n\n* a feedback line that is as short as possible and routed far away from the inductor (otherwise there will be interference).\n\nHope that helps?\n\nGood luck!\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear ST Technical Support Team,\n\nI am currently using the ST1S10PHR buck converter in my custom PCB design to convert 12V input to 5V output.\n\nHowever, the regulator is not switching to the expected 5V output. The measured output voltage remains around 0.79V.\n\nBelow are the measured and design details:\n\n* Input Voltage: 12V\n\n* VIN\\_SW and VIN\\_A pins: Confirmed 12V present\n\n* EN (INH) pin: 12V present (device enabled)\n\n* Expected Output Voltage: 5V\n\n* Measured Output Voltage: ~0.79V\n\n* Feedback Resistors: R1 = 11kΩ, R2 = 2kΩ\n\n* Inductor: 3.3µH\n\n* Switching frequency: Internal 900kHz (SYNC connected directly to GND with short trace)\n\n* GND and EPAD connected to ground plane\n\nOne concern in my PCB layout is that the SW pin to inductor trace length is approximately 47mm. Although the inductor is placed near the IC, the copper routing from SW to the inductor became long due to layout constraints.\n\nThe board powers up correctly, and all input pins measure properly, but the output remains close to the feedback reference voltage (~0.8V) and does not regulate to 5V.\n\nCould the long SW trace be the reason for improper switching or instability?\n\nIs there any recommended workaround without redesigning the PCB (for example: the output inductor values changing, adding an RC snubber network at SW, increasing input/output capacitors, layout modification using jumper wire, or other corrective suggestions)?\n\nAdditionally, would increasing the inductor value (for example from 3.3µH to a higher value) help improve stability in this situation, or is the issue primarily layout-related?\n\nI can share the schematic and PCB layout files for your review if required.\n\nKindly advise on possible causes and recommended corrective actions.\n\nThank you for your support.\n\nBest regards,\n\nMOHAMMED NAVAS\n\nInThings Technology\n\nnavas@inthings.tech",
+            "images": [],
+            "author": "MOHAMMED_NAVAS",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Note that this is a <a href=\"https://community.st.com/t5/community-guidelines/st-community-welcome-guide/ta-p/575223#:~:text=The%20ST%20community%20brings%20together%20ST%20customers%2C%20students%2C%20technology%20enthusiasts%20and%20is%20open%20to%20anyone%20interested%20in%20the%20semiconductor%20industry\" target=\"_blank\">public forum</a> - not ST direct support.</p><p>For ST direct support, raise a case at: <a href=\"https://ols.st.com/s/\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://ols.st.com/s/</a></p><p> </p><p>You might wish to reconsider publishing your email address to all &amp; sundry on the internet ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"102973\">@MOHAMMED_NAVAS</user-mention> </p>\n<p>According to your schematics, you do not want to generate +5V, but -5V, which requires a buck-boost topology. By the way, where does the connection point of R2, C1, C3...5 lead to? In your schematics and in the layout, the track is hanging in mid-air.</p>\n<p>With the ST1S10, buck-boost converter should be feasible if the environmental conditions are right - however, it would need to be set up correctly: in an inverting buck-boost based on a conventional buck, the regulator’s GND is no longer on input GND, but on the negative output voltage, as shown for example in <a href=\"https://www.st.com/resource/en/design_note/dn0011-st1s03-alternative-topology-using-a-buck-in-a-negative-buckboost-configuration---stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">DN0011</a>, fig. 2.</p>\n<p>The problem is: because of the inversion, the regulator is no longer between VIN and GND, but between VIN and (-VOUT). And that creates a new problem: the voltage difference in your application is 12V - (-5V) = 17V, leaving you only 3V headroom to the absolute maximum rating of 20V. If a small unexpected spike comes in, the regulator can be destroyed quickly/immediately. Depending on the desired output current, you could instead consider the <a href=\"https://www.st.com/en/power-management/l6982.html\" rel=\"noopener noreferrer\" target=\"_self\">L6982</a> or <a href=\"https://www.st.com/en/power-management/l6983.html\" rel=\"noopener noreferrer\" target=\"_self\">L6983</a>, each of which can handle 38V.</p>\n<p>In summary, it is advisable to carefully work through DN0011 and correctly implement the principle of the inverting buck-boost.</p>\n<p>One final note: please also take a look at the layout guidelines for switching regulators, which discuss the most important points, e.g.</p>\n<ul>\n<li>a track from the switch output to the inductor that is as short and low-impedance (i.e. wide) as possible</li>\n<li>a clearly defined current path for the input and output current paths (no vias, low-impedance and, because of the switching edges, as little angular routing as possible)</li>\n<li>a feedback line that is as short as possible and routed far away from the inductor (otherwise there will be interference).</li>\n</ul>\n<p>Hope that helps?</p>\n<p>Good luck!<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

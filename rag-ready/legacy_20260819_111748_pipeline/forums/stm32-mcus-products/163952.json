@@ -1,0 +1,115 @@
+{
+    "forum": [
+        {
+            "id": "163952",
+            "publicId": "163952",
+            "title": "STM32L052 - Output PWM and Input Capture with the same Counter simultaneously",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32l052-output-pwm-and-input-capture-with-the-same-counter-simultaneously-163952",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32L0 series",
+                "TIM"
+            ],
+            "published_at": "2026-03-18T16:57:20+00:00",
+            "views": 591,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "*> TIM21->CCER = TIM\\_CCER\\_CC2E;*\n\nThis clears CC1E.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "**STM32L052**\n\n**TIM21, Channel 1: Output PWM**\n\n**TIM21, Channel 2: Switching between Output PWM and Input Compare\n\nSystem Clock: 32 MHz**\n\nHello,\n\nI want to use TIM21 of STM32L052 for PWM output on channel 1 and input capture on channel 2 simultaneously.\n\n```\n\nuint16_t TIM_CCMR1_backup;\n\nuint16_t TIM_CCER_backup;\n\n// PWM on channel 1 and channel 2\n\nvoid PWM_init(void)\n\n{\n\nRCC->APB2ENR |= RCC_APB2ENR_TIM21EN;\n\nTIM21->CR1 &= ~TIM_CR1_CEN;\n\nTIM21->ARR = 0xFFF;\n\nTIM21->CR1 = TIM_CR1_ARPE;\n\n// TIM21, channel 1\n\nTIM21->CCMR1 |= (0b111 << TIM_CCMR1_OC1M_Pos);\t// PWM mode 2\n\nTIM21->CCMR1 |= TIM_CCMR1_OC1PE;\t// output compare preload enable\n\nTIM21->CCR1 = 0;\t\t\t// reset output compare register\n\nTIM21->CCER |= TIM_CCER_CC1E;\t\t// enable output\n\n// TIM21, channel 2\n\nTIM21->CCMR1 |= (0b111 << TIM_CCMR1_OC2M_Pos);\t// PWM mode 2\n\nTIM21->CCMR1 |= TIM_CCMR1_OC2PE;\t\t// output compare preload enable\n\nTIM21->CCR2 = 0;\t\t\t\t// reset output compare register\n\nTIM21->CCER |= TIM_CCER_CC2E;\t\t\t// enable output\n\nTIM21->CNT = 0;\t\t\t\t// reset counter\n\nTIM21->EGR |= TIM_EGR_UG;\n\nTIM21->CR1 |= TIM_CR1_CEN;\t\t\t// enable counter\n\n}\n\nvoid switch_channel2_to_input_compare(void)\n\n{\n\nTIM_CCMR1_backup = TIM21->CCMR1;\n\nTIM_CCER_backup = TIM21->CCER;\n\nTIM21->CCER &= ~TIM_CCER_CC2E;\t\t// disable output\n\nMODIFY_REG(TIM21->CCMR1, TIM_CCMR1_CC2S_Msk, 0b10 << TIM_CCMR1_CC2S_Pos);\t// CC2 channel is configured as input, IC1 is mapped on TI1\n\nTIM21->OR = (0b101 << TIM21_OR_TI1_RMP_Pos);\t// TI1 input connected to LSI clock\n\nTIM21->CCER = TIM_CCER_CC2E;\t\t\t// capture on rising edge, enable CCR2\n\nTIM21->SR &= ~TIM_SR_CC2IF;\t\t\t// clear interrupt flag\n\nTIM21->SR &= ~TIM_SR_CC2OF;\t\t\t// clear interrupt flag\n\nTIM21->DIER = TIM_DIER_CC2IE;\t\t\t// enable capture interrupt\n\nNVIC_EnableIRQ(TIM21_IRQn);\t\t\t// enable interrupt\n\nTIM21->CR1 |= TIM_CR1_CEN;\t\t\t// enable counter\n\n}\n\nvoid switch_channel2_back_to_output_PWM(void)\n\n{\n\nTIM21->CCER &= ~TIM_CCER_CC2E;\n\nTIM21->CR1 &= ~TIM_CR1_CEN;\n\nTIM21->CCMR1 = TIM_CCMR1_backup;\n\nTIM21->CCER = TIM_CCER_backup;\n\nTIM21->CCR2 = 0;\n\nTIM21->CR1 |= TIM_CR1_CEN;\n\n}\n\n```\n\n**(1) *PWM\\_init()*:** The application starts with **both channels in output PWM mode**.\n\n**(2) .**.. then switches **channel 2 repeatedly to input compare mode,**while channel 1 stays in output PWM mode (***switch\\_channel2\\_to\\_input\\_compare()*)**, does its measurments and ...\n\n**(3)**... then switches **channel 2 back to output PWM mode (*switch\\_channel2\\_back\\_to\\_output\\_PWM()*).**\n\nThe problem:\n\nWhile channel 2 is in capture compare mode, channel 1 stops working (no more PWM).\n\nOnce channel 2 switches back to PWM mode, channel 1 PWM continues working.\n\nIs it not possible to have channel 1 running in PWM mode while channel 2 being input capture mode?",
+            "images": [],
+            "author": "Marc1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>timer channels are independent, so it is possible to use them like you describe. It is, however, hard to imagine how exactly are you going to connect this timer pin to anything reasonable if it is assumed to switch its direction on the fly,</p><p> </p><p>&lt;edit&gt; I didn't scroll down the code so I missed the point. Right, the solution should work. For easier debugging, remove the unnecessary logic operations on timer control registers and replace them with simple assignments.</p></div>",
+                    "author": "gbm",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; TIM21-&gt;CCER = TIM_CCER_CC2E;</em></p><p>This clears CC1E. </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That's the point! I was so blind. <strong>Thank you!</strong> You saved my day.</p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>There is still a weird behavior if I use the mentioned settings:</strong><br/><br/><strong>(1)</strong> After executing a <em>NVIC_SystemReset()</em> ,<strong>TIM21</strong> doesn't work any more. I need to hard reset the device to get <strong>TIM21</strong> working again.</p><p><strong>(2)</strong> If I use a <strong>SystemCoreClock &lt; 8 MHz</strong>, I need to stop also PWM of <strong>channel 1</strong>, before I can switch <strong>channel 2</strong> from PWM output to capture input. If I switch <strong>channel 2</strong> from PWM output to capture input without stopping also <strong>channel 1</strong>, <strong>TIM21</strong> doesn't work any more on both channels.</p><p> </p><pre class=\"lia-code-sample language-c\"><code>void switch_channel2_to_input_compare(void)\n{\n TIM_CCMR1_backup = TIM21-&gt;CCMR1;\n TIM_CCER_backup = TIM21-&gt;CCER;\n\n TIM21-&gt;CCER &amp;= ~TIM_CCER_CC2E;\n\n // Why do I need to stop channel 1 with SystemCoreClock &lt; 8 MHz\n if (SystemCoreClock &lt; 8000000)\n {\n TIM21-&gt;CCER &amp;= ~TIM_CCER_CC1E;\n TIM21-&gt;CCMR1 = 0;\n }\n\n TIM21-&gt;CCMR1 &amp;= 0x00FF; // clear channel 2, keep channel 1\n TIM21-&gt;CCMR1 |= (0b10 &lt;&lt; TIM_CCMR1_CC2S_Pos); // CC2 channel is configured as input, IC1 is mapped on TI1\n TIM21-&gt;CCMR1 |= (1 &lt;&lt; TIM_CCMR1_IC2PSC_Pos); // Input capture 2 prescaler\n TIM21-&gt;OR = (0b101 &lt;&lt; TIM21_OR_TI1_RMP_Pos); // TI1 input connected to LSI clock\n TIM21-&gt;CCER |= TIM_CCER_CC2E; // capture on rising edge, enable CCR2\n TIM21-&gt;SR &amp;= ~TIM_SR_CC2IF; // clear interrupt flag\n TIM21-&gt;SR &amp;= ~TIM_SR_CC2OF; // clear interrupt flag\n TIM21-&gt;DIER = TIM_DIER_CC2IE; // enable capture interrupt\n NVIC_EnableIRQ(TIM21_IRQn); // enable interrupt\n TIM21-&gt;CR1 |= TIM_CR1_CEN; // enable counter\n}</code></pre><p>Did I miss something? I'm confused.</p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It's clear you have other things happening in the program other than what is presented. The issue is likely a logic error somewhere in the program. The timer is a dumb state machine. It doesn't know about other parts of the chip, or how it got into that state, it just does its thing.</p><p>The timer peripheral is independent of the clock settings, apart from the frequency. If the register settings are the same, it will behave the same. I suggest looking at the register settings in the \"not working\" vs \"working\" scenario and compare. Use the SFR viewer in STM32CubeIDE.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Whatever the program does, shouldn't a <em>NVIC_SystemReset()</em> bring back all peripherals to original state?</p><p>TIM21 registers look the same, in working state and in not working state.</p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Consider creating a compileable minimal working example which illustrates the problem and sharing that issue in a new thread. Without that, there's nothing to dig into here.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"8205\">@TDK</user-mention> wrote:<br/><p>Consider creating a compileable minimal working example which illustrates the problem and sharing that issue in a new thread. Without that, there's nothing to dig into here.</p><hr/></blockquote><p>I'm trying.</p><p>Maybe I need to tell more about the firmware:</p><p>The bootloader is based on USB DFU_Standalone example from ST.<br/>The application is based on USB CDC_Standalone example from ST.</p><p>While the bootloader or application is running, it uses both channels of TIM21 as PWM outputs.</p><p>Within the application it is possible to reboot into bootloader DFU mode, using <em>NVIC_SystemReset().<br/></em>After finishing or aborting DFU mode, the bootloader executes a second <em>NVIC_SystemReset()</em> and returns to the application.</p><p>So far everything worked well ...</p><p>... until I added the above mentioned code in order to change channel 2 of TIM21 periodically from output PWM to input capture and back.</p><p>Since that firmware change, the second <em>NVIC_SystemReset()</em> from bootloader makes the TIM21 PWM outputs not working anymore.</p><p>If I replace the second <em>NVIC_SystemReset()</em> (during DFU mode) by a power cycle, TIM21 PWM outputs work well.</p><p>If I replace the second <em>NVIC_SystemReset()</em> (during DFU mode) by a reset, done by an external python tool (<em>pydfu.py)</em>, TIM21 PWM outputs work well.</p><p> </p><p><strong>Sequence:<br/></strong><strong>(1)</strong> Power Cycle -&gt; Passing the bootloader, starting the application. During the application: Switching channel 2 of TIM21 periodically between output and input. --&gt; PWM outputs of TIM21 are working<br/>(<strong>2)</strong> <em>NVIC_SystemReset()</em> -&gt; Rebooting into DFU mode<em> </em> --&gt; PWM outputs of TIM21 are still working<br/><strong>(3)</strong> <em>NVIC_SystemReset()</em> -&gt; Rebooting, passing the bootloader and starting the application again. --&gt; PWM outputs of TIM21 are not working anymore</p><p>Bootloader and application each perform the TIM21 initialization PWM_init().</p><p><strong>My main question is: What is the difference between a NVIC_SystemReset() and a hardware reset?</strong></p><p> </p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; (<strong>2)</strong> NVIC_SystemReset() -&gt; ... --&gt; PWM outputs of TIM21 are still working</em><br/><em><strong>&gt; (3)</strong> NVIC_SystemReset() -&gt; ... --&gt; PWM outputs of TIM21 are not working anymore</em></p><p>NVIC_SystemReset() is not at fault here. The difference in behavior is due to the \"...\" between the events. We don't have much insight into that.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; TIM21 registers look the same, in working state and in not working state.</p><p>&gt; the second <em>NVIC_SystemReset()</em> from bootloader makes the TIM21 PWM outputs not working anymore.</p><p>If TIM21 registers \"look the same\" means you have verified them having the same content which is also consistent with the RM's description for given functionality; and you don't observe PWM outputs toggling, then there are two possible things, again observable through registers content:</p><p>- different GPIO settings for the related pins</p><p>- different TIM21 kernel clock setting (if TIM21 in 'L0 is capable of being clocked from a non-APB clock)</p><p>There is also a third option, something in your setup you did not tell us (e.g. you don't measure directly at the PWM pin using oscilloscope, and there is some difference in hardware between the two states).</p><p>With additional questions, please always start a new thread.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; - different GPIO settings for the related pins<br/>I also checked the GPIO and RCC-Enable registers. They are ok.</p><p>&gt; - different TIM21 kernel clock setting (if TIM21 in 'L0 is capable of being clocked from a non-APB clock)<br/>How? I couldn't find anything about clock selection of TIM21 in the reference manual.</p><p>PWM outputs are connected to LEDs. So I can see if there is any signal or not.</p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There is very little difference between System Reset and Power-On Reset (and NRST-pin reset). I don't t</p><p>I agree with TDK that the difference is most likely in the code run at the different occassions.</p><p> </p><p>&gt; &gt; - different TIM21 kernel clock setting (if TIM21 in 'L0 is capable of being clocked from a non-APB clock)<br/>&gt; How? I couldn't find anything about clock selection of TIM21 in the reference manual.</p><p>I said, \"if\". It's quite likely it's not.</p><p> </p><p>&gt; PWM outputs are connected to LEDs. So I can see if there is any signal or not.</p><p>Are you sure? Would you see it even if the frequency is very low or very high? How are those LEDs exactly connected?</p><p>Post content of TIM21 and relevant GPIO registers in the \"non-working\" case.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt;&gt; PWM outputs are connected to LEDs. So I can see if there is any signal or not.</p><p>&gt; Are you sure? Would you see it even if the frequency is very low or very high? How are those LEDs exactly connected?<br/>LEDs are directly connected to the Pins</p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>I got it!</strong> And you were right. The problem was within the code.</p><p>And the difference between <em>NVIC_SystemReset()</em> and a hardware reset seem to be the timing. Maybe different clock settings? In one case the TIM21 destroying code got executed before TIM21 initialization and in the other case after TIM21 initialization.</p><p>Thank you for your help!</p></div>",
+                    "author": "Marc1",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

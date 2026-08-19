@@ -1,0 +1,119 @@
+{
+    "forum": [
+        {
+            "id": "166578",
+            "publicId": "166602",
+            "title": "LSM6DSV320X High Accuracy Mode",
+            "url": "https://community.st.com/mems-sensors-48/lsm6dsv320x-high-accuracy-mode-166602",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Accelerometers",
+                "MEMS sensors",
+                "MEMS"
+            ],
+            "published_at": "2026-07-01T17:30:34+00:00",
+            "views": 119,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@yk26\\_8 ,\n\nI think there may be a misunderstanding about the 320 g value.\n\nFor the low-g accelerometer, 320 g is not a limit where the MEMS structure is expected to be destroyed. If the applied acceleration exceeds this range, the sensor output may saturate and the measurement is no longer guaranteed.\n\nSo, as long as the device is used within the datasheet specifications, it should not be damaged just by being exposed to accelerations up to 320 g. Only excessive shock beyond the specified limits could potentially cause malfunction or permanent damage.\n\nFor your new question:\n\nYes, FIFO can be used to collect axis data on the LSM6DSV320X, as described in [AN6119](https://www.st.com/resource/en/application_note/an6119-lsm6dsv320x-6axis-imu-with-ai-highg-accelerometer-and-embedded-sensor-fusion-for-highend-applications-car-crash-detection-stmicroelectronics.pdf), especially in Section 9 (First-in, first-out buffer).\n\nThe FIFO supports batching of:\n\n* Main sensors: low-g accelerometer, high-g accelerometer, and gyroscope\n\n* Auxiliary sensors: temperature, timestamp, CFG-change\n\n* Virtual sensors: step counter, SFLP outputs, MLC/FSM events, sensor hub data, etc.\n\nFor raw axis data, the configuration depends on the sensor path in use:\n\n* Low-g accelerometer: configure the batch data rate through FIFO\\_CTRL3.BDR\\_XL\n\n* Gyroscope: configure FIFO\\_CTRL3.BDR\\_GY\n\n* High-g accelerometer: enable batching with COUNTER\\_BDR\\_REG1.XL\\_HG\\_BATCH\\_EN\n\n* Gyroscope EIS channel: enable batching with FIFO\\_CTRL4.G\\_EIS\\_FIFO\\_EN\n\nThe FIFO output is read through:\n\n* FIFO\\_DATA\\_OUT\\_TAG\n\n* FIFO\\_DATA\\_OUT\\_X\\_L / X\\_H\n\n* FIFO\\_DATA\\_OUT\\_Y\\_L / Y\\_H\n\n* FIFO\\_DATA\\_OUT\\_Z\\_L / Z\\_H\n\nThe tag byte identifies which sensor generated the data, as shown in Table 95 of the application note.\n\nSo if ASC is enabled, FIFO is still available, but only for the sensor outputs that are explicitly supported by the device architecture and described in the datasheet/application note.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am using LSM6DSV320X for my project. Initially to save power I have Low G accelerometer with 15Hz ODR and 16G with fifo enabled. Once an activity is detected i want to switch on High G as well with 4000 Hz (with High Accuracy mode) and use both high G and Low G accelerometer for data collection. Is this possible if I dont use FSM or ASC and will High Accuracy then work ?. or can this only be achieved with FSM ?\n\nI look forward to your reply.",
+            "images": [],
+            "author": "yk26_8",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"98506\">@yk26_8</user-mention> ,</p><p>Yes, it can be achieved without FSM.<br/>But it is not possible to keep low-g at 15 Hz low-power and have high-g running simultaneously.<br/>To use high-g, the low-g accelerometer must be moved to High-Performance or High-Accuracy ODR mode first.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hey ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention>.</p><p>So, HAODR is enabled for low-g accel with 15Hz ODR and also the fifo. So, after an interrupt, FIFO can be reconfigured during runtime and also ODR for low-g and High-G accelerometers can also be switched ? And if ODR is switched then new values need to be written into HAODR_CFG (62h) register or ? is this possible ?</p><p>The purpose is to achieve least possible current consumption during inactivity.</p></div>",
+                    "author": "yk26_8",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"98506\">@yk26_8</user-mention> ,</p><p>Yes, FIFO can be reconfigured at runtime and ODRs can be changed at runtime, but HAODR itself is not meant to be enabled/disabled on the fly. To change HAODR mode you must first put all sensors in power-down. If you only change ODR while staying in HAODR, you usually update the ODR registers; HAODR_CFG only needs to be changed if you want a different HAODR selection. Also, low-g 15 Hz low-power is not compatible with high-g enabled.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"1608\">@Federica Bossi</user-mention> </p></div>",
+                    "author": "yk26_8",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention>, Thanks a lot for your reply.</p><p>Just one last question, after talking to a guy from ST, I am told that this chip sometimes misbehaves and accelerometers stop working. Is this true and if yes, what is the solution if I want my device to be reliable for a long term ?</p><p>I hope to hear from you soon.</p><p> </p><p>Thanks</p></div>",
+                    "author": "yk26_8",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"98506\">@yk26_8</user-mention> ,</p><p>I am not aware of the specific context in which this issue may have occurred, so I cannot comment on that particular case.<br/>However, this is a mature product that is already on the market, and it has passed the full set of reliability checks required for production release. Under the recommended operating conditions and proper configuration, it is expected to operate correctly and reliably over the long term.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention>, Thankyou for your fast reply. Could you please clarify what \"operating conditions and proper configurations” actually mean ? Is there some disclaimer or document where we can access this information ? </p></div>",
+                    "author": "yk26_8",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"98506\">@yk26_8</user-mention> ,</p><p>The relevant operating conditions are defined in the public documents on the <a href=\"https://www.st.com/en/mems-and-sensors/lsm6dsv320x.html#documentation\" rel=\"noreferrer noopener\" target=\"_blank\">product page</a>, mainly the datasheet and application notes.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention>,</p><p>The documentation is clear and descriptive.</p><p>But the ST sales representative warned about the MEMS structure of the low g accelerometer being destroyed if the accelerometer gets exposed to regular accelerations near the upper end of the measurement range (320g). So, could you please give some clarity regarding this ? I would be really thankful.</p><p> </p><p>Regards</p><p> </p></div>",
+                    "author": "yk26_8",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"1608\">@Federica Bossi</user-mention> I hope to hear from you soon regarding the issue. Or if this really is an issue.</p><p>In addition, I also wanted to ask if we can use FIFO for collecting data from axis if we use ASC. Is there some documentation regarding this ? </p><p> </p><p>Regards</p></div>",
+                    "author": "yk26_8",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"98506\">@yk26_8</user-mention> ,</p><p>I think there may be a misunderstanding about the 320 g value.</p><p>For the low-g accelerometer, 320 g is not a limit where the MEMS structure is expected to be destroyed. If the applied acceleration exceeds this range, the sensor output may saturate and the measurement is no longer guaranteed.</p><p>So, as long as the device is used within the datasheet specifications, it should not be damaged just by being exposed to accelerations up to 320 g. Only excessive shock beyond the specified limits could potentially cause malfunction or permanent damage.</p><p>For your new question:</p><p>Yes, FIFO can be used to collect axis data on the LSM6DSV320X, as described in <a href=\"https://www.st.com/resource/en/application_note/an6119-lsm6dsv320x-6axis-imu-with-ai-highg-accelerometer-and-embedded-sensor-fusion-for-highend-applications-car-crash-detection-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN6119</a>, especially in Section 9 (First-in, first-out buffer).</p><p>The FIFO supports batching of:</p><ul><li>Main sensors: low-g accelerometer, high-g accelerometer, and gyroscope</li> <li>Auxiliary sensors: temperature, timestamp, CFG-change</li> <li>Virtual sensors: step counter, SFLP outputs, MLC/FSM events, sensor hub data, etc.</li></ul><p>For raw axis data, the configuration depends on the sensor path in use:</p><ul><li>Low-g accelerometer: configure the batch data rate through FIFO_CTRL3.BDR_XL</li> <li>Gyroscope: configure FIFO_CTRL3.BDR_GY</li> <li>High-g accelerometer: enable batching with COUNTER_BDR_REG1.XL_HG_BATCH_EN</li> <li>Gyroscope EIS channel: enable batching with FIFO_CTRL4.G_EIS_FIFO_EN</li></ul><p>The FIFO output is read through:</p><ul><li>FIFO_DATA_OUT_TAG</li> <li>FIFO_DATA_OUT_X_L / X_H</li> <li>FIFO_DATA_OUT_Y_L / Y_H</li> <li>FIFO_DATA_OUT_Z_L / Z_H</li></ul><p>The tag byte identifies which sensor generated the data, as shown in Table 95 of the application note.</p><p>So if ASC is enabled, FIFO is still available, but only for the sensor outputs that are explicitly supported by the device architecture and described in the datasheet/application note.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

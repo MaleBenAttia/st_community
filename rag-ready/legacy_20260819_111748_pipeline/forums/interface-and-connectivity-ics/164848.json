@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "164848",
+            "publicId": "164848",
+            "title": "W6X_Init hangs on STM32F767VIT6 — sem_if_ready never posted despite DMA completing",
+            "url": "https://community.st.com/interface-and-connectivity-ics-52/w6x-init-hangs-on-stm32f767vit6-sem-if-ready-never-posted-despite-dma-completing-164848",
+            "category": "Interface and connectivity ICs",
+            "tags": [
+                "ST67W series"
+            ],
+            "published_at": "2026-04-17T05:20:06+00:00",
+            "views": 152,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @carlosjoelcaceres ,\n\nCould you please give us more information about the software you are using, the version, the SPI configuration (the maximum recommended frequency is 40MHz).\n\nAlso attached you will find an example project done for STM32F746. Please compare with your project to try to find any difference in the configuration of the SPI, for example, that could lead to this issue.\n\nIf you are still facing this issue, please feel free to provide your project for us to analyze it, because the host should not hang forever.\n\nHope this will help !\n\nRegards\n\nLouis",
+            "best_answer_author": "Louis AUDOLY",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I am porting the ST67W611M1 WiFi/BLE driver (X-CUBE-ST67W61 v1.2.0) from a NUCLEO-U575ZI-Q to a custom PCB with STM32F767VIT6. The Nucleo version works perfectly. On the F767 custom board, W6X\\_Init() hangs indefinitely.\n\nHARDWARE\n\n- Host MCU: STM32F767VIT6 (216MHz, Cortex-M7)\n\n- WiFi module: ST67W611M1 (NCP firmware: mission\\_t01\\_v2.0.97.bin — confirmed flashed and verified)\n\n- SPI2: PB12=NSS(SW), PB13=SCK, PB14=MISO, PB15=MOSI\n\n- CHIP\\_EN: PD4, SPI\\_RDY: PD7 (EXTI rising+falling, NVIC enabled)\n\n- DMA1 Stream3 (RX, CH0), Stream4 (TX, CH0)\n\n- FreeRTOS heap: 102400, configMAX\\_PRIORITIES: 56\n\n- LOW\\_POWER\\_MODE: disabled, W6X\\_CLOCK\\_MODE: 1 (internal RC)\n\nSYMPTOMS\n\nPuTTY output stops at:\n\nW6X\\_Init...\n\n[hangs forever]\n\nW6X\\_Init() never returns. The FreeRTOS task blocks on sem\\_if\\_ready permanently.\n\nDEBUG FINDINGS\n\nI added debug prints to spi\\_port\\_transfer\\_dma() to log RX buffer contents. Here is what the module sends during init:\n\nRX[0]=0D [1]=0A [2]=72 len=12 → \"\\r\\nr...\" (boot message start)\n\nRX[0]=AA [1]=55 [2]=00 len=12 → SPI header\n\nRX[0]=2B [1]=43 [2]=57 len=16 → \"+CW...\"\n\nRX[0]=2B [1]=47 [2]=45 len=16 → \"+GE...\"\n\nRX[0]=41 [1]=54 [2]=20 len=256 → \"AT ...\" (AT command exchange)\n\nRX[0]=2B [1]=56 [2]=42 len=12 → \"+VB...\" (version/boot info)\n\nRX[0]=2B [1]=45 [2]=46 len=12 → \"+EF...\" (EFUSE reads begin, loop forever)\n\nThe module IS responding. DMA completes every transaction (HAL\\_SPI\\_TxRxCpltCallback fires). The driver progresses through GetModuleInfo (reads GMR, VBAT, EFUSE) but sem\\_if\\_ready is never posted and W6X\\_Init never returns.\n\nWHAT I HAVE TRIED\n\n- Verified EXTI9\\_5 NVIC enabled for PD7\n\n- DMA IRQ handlers present and calling HAL\\_DMA\\_IRQHandler\n\n- Tried blocking SPI (HAL\\_SPI\\_TransmitReceive) — same hang\n\n- Tried DMA (HAL\\_SPI\\_TransmitReceive\\_DMA) — DMA completes but still hangs\n\n- Disabled D-Cache and I-Cache (SCB\\_DisableDCache/SCB\\_DisableICache) — no change\n\n- configMAX\\_PRIORITIES=56 (above SPI engine task priority of 53)\n\n- Removed all UART debug prints from ISR/callback context\n\n- W6X\\_POWER\\_SAVE\\_AUTO=0, W6X\\_CLOCK\\_MODE=1\n\n- NCP firmware reflashed and verified via NCP\\_get\\_chip\\_info.bat — chip info reads successfully\n\nQUESTION\n\nWhat is different about the STM32F767 that would prevent sem\\_if\\_ready from being posted? The SPI data exchange appears correct — the module is sending valid responses. Is there a known issue with the modem command handler parser on Cortex-M7, or a specific spi\\_port.c adaptation required for F767?\n\nAny guidance appreciated. Happy to provide more debug output or code snippets.\n\nThank you.",
+            "images": [],
+            "author": "carlosjoelcaceres",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106190\">@carlosjoelcaceres</user-mention> ,</p><p>Could you please give us more information about the software you are using, the version, the SPI configuration (the maximum recommended frequency is 40MHz).<br/><br/>Also attached you will find an example project done for STM32F746. Please compare with your project to try to find any difference in the configuration of the SPI, for example, that could lead to this issue.</p><p>If you are still facing this issue, please feel free to provide your project for us to analyze it, because the host should not hang forever.</p><p><br/>Hope this will help !<br/>Regards<br/>Louis</p></div>",
+                    "author": "Louis AUDOLY",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Louis AUDOLY",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

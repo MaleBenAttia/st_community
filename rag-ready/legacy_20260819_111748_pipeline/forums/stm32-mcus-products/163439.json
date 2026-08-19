@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "163439",
+            "publicId": "163439",
+            "title": "FDCAN Classical STM32G473 not working with canBus",
+            "url": "https://community.st.com/stm32-mcus-products-25/fdcan-classical-stm32g473-not-working-with-canbus-163439",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FDCAN",
+                "STM32G4 series",
+                "CAN"
+            ],
+            "published_at": "2026-03-04T14:38:06+00:00",
+            "views": 495,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "> ---\n\n>\n\n> @DiogoPedrosa wrote:\n\n>\n\n> About the transceiver,I ve used with many stm32f7 and it worked fine. I will try to search for a substitute but i dont think thats the issue.\n\n>\n\n> ---\n\nIf that worked before that doesn't mean it will work forever. You are running out of spec here.. you are at the limit of voltage levels..\n\nIf in loopback mode is working but not in normal mode, you have either\n\n- A hardware issue a transceiver issue including the problem I cited previously.. solder joints, connection/wiring etc ..\n\n- Clock issue: not using a precise clock source such as using HSI introducing jitters..\n\n- Bitrate issue: you are not running at the exact CAN bitrate",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hey I am having trouble tryng to connect my stm32g473 to a canbus. I am using a l9616 as a transceiver and the bus is functions as I have connected to it with an stm32f722re with the same l9616.\n\nThe clock is 64Mhz,Ive used the canbit time calculation website to define the values of nominal time 1 and 2 to achive 500kbs.\n\nAlso using NVIC and it seems to be configured fine. When tested in loopback the interrupt is called and the messages are received.\n\nThis is the init with the filter config,as I ve understand I am not filtering anything and any of the messages on the bus should get to my uC.\n\nWhen running the state of hfdcan1 is Busy and also no error code show up.\n\n```\n\nFDCAN_HandleTypeDef hfdcan1;\n\n/* FDCAN1 init function */\n\nvoid MX_FDCAN1_Init(void)\n\n{\n\n/* USER CODE BEGIN FDCAN1_Init 0 */\n\n/* USER CODE END FDCAN1_Init 0 */\n\n/* USER CODE BEGIN FDCAN1_Init 1 */\n\n/* USER CODE END FDCAN1_Init 1 */\n\nhfdcan1.Instance = FDCAN1;\n\nhfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;\n\nhfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;\n\nhfdcan1.Init.Mode = FDCAN_MODE_NORMAL;\n\nhfdcan1.Init.AutoRetransmission = DISABLE;\n\nhfdcan1.Init.TransmitPause = DISABLE;\n\nhfdcan1.Init.ProtocolException = DISABLE;\n\nhfdcan1.Init.NominalPrescaler = 1;\n\nhfdcan1.Init.NominalSyncJumpWidth = 1;\n\nhfdcan1.Init.NominalTimeSeg1 = 111;\n\nhfdcan1.Init.NominalTimeSeg2 = 16;\n\nhfdcan1.Init.DataPrescaler = 1;\n\nhfdcan1.Init.DataSyncJumpWidth = 1;\n\nhfdcan1.Init.DataTimeSeg1 = 1;\n\nhfdcan1.Init.DataTimeSeg2 = 1;\n\nhfdcan1.Init.StdFiltersNbr = 1;\n\nhfdcan1.Init.ExtFiltersNbr = 0;\n\nhfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;\n\nif (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE BEGIN FDCAN1_Init 2 */\n\nFDCAN_FilterTypeDef sFilter;\n\nsFilter.IdType = FDCAN_STANDARD_ID;\n\nsFilter.FilterIndex = 0;\n\nsFilter.FilterType = FDCAN_FILTER_MASK;\n\nsFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;\n\nsFilter.FilterID1 = 0x000;\n\nsFilter.FilterID2 = 0x000;\n\nif (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilter) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nif (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,\n\nFDCAN_ACCEPT_IN_RX_FIFO0,\n\nFDCAN_ACCEPT_IN_RX_FIFO0,\n\nFDCAN_REJECT_REMOTE,\n\nFDCAN_REJECT_REMOTE) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/* USER CODE END FDCAN1_Init 2 */\n\n}\n\n```\n\nAlso here is the circuit of the transceiver if that helps,I have 5v stable and gnd on the transceiver itself",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dd98f90-1a86-85eb-4376-ccd62208d56c.png"
+            ],
+            "author": "DiogoPedrosa",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>The issue is not clear.</p>\n<p>You said:</p>\n<p>\"<span>Also using NVIC and it seems to be configured fine. When tested in loopback the interrupt is called and the messages are received.</span>\"</p>\n<p>Do you have an issue in Normal mode but not in Loopback mode (you can send and receive CAN frames)? </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yeah the issue happens in normal mode but not in loopback mode. When in loopback I can send packets and receive via nvic.</p><p>About the transceiver,I ve used with many stm32f7 and it worked fine. I will try to search for a substitute but i dont think thats the issue.</p><p>As testing continued I also changed the can divider to 4 and changed the nominal seg1 and to match my 500kbits/s baud rate.</p><p> </p><p>The issue is when in normal mode I cant receive and read any msg.</p><p> </p><p> </p></div>",
+                    "author": "DiogoPedrosa",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"76316\">@DiogoPedrosa</user-mention> wrote:<br/>\n<p>About the transceiver,I ve used with many stm32f7 and it worked fine. I will try to search for a substitute but i dont think thats the issue.</p>\n<hr/></blockquote>\n<p>If that worked before that doesn't mean it will work forever. You are running out of spec here.. you are at the limit of voltage levels..</p>\n<p>If in loopback mode is working but not in normal mode, you have either</p>\n<p>- A hardware issue a transceiver issue including the problem I cited previously.. solder joints, connection/wiring etc ..</p>\n<p>- Clock issue: not using a precise clock source such as using HSI introducing jitters..</p>\n<p>- Bitrate issue: you are not running at the exact CAN bitrate</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Looking at the transceiver datasheet:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 674px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5dd98f90-1a86-85eb-4376-ccd62208d56c.png\" title=\"screenshot.png\"/></span></p>\n<p>VTXO min = 0.7Vs = 0.7x5 = 3.5V &gt; MCU VDD.</p>\n<p>That tranceiver is an automotive grade ans it's not compatible with STM32. </p>\n<p>Use a 3.3V transceiver like SN65HVD230 .</p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

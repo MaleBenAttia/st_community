@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "165783",
+            "publicId": "165783",
+            "title": "Address swapping of SDRAM",
+            "url": "https://community.st.com/stm32-mcus-products-25/address-swapping-of-sdram-165783",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FMC-FSMC",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-05-18T13:34:39+00:00",
+            "views": 129,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nSTM32H5 has different approach vs STM32F7 and STM32H7 regarding the cache. No SDRAM swap on STM32H5.\n\nYou can refer to the [AN5872](https://www.st.com/resource/en/application_note/an5872-introduction-to-the-system-architecture-and-performance-in-the-stm32h5-mcus-stmicroelectronics.pdf) \"Introduction to the system architecture and performance in the STM32H5 MCUs\" especially the section 3.3 Cache features.\n\n![mALLEm_0-1779112166509.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83268f0d-ba5a-b495-57e1-4f6d940ca4a9.png \"mALLEm_0-1779112166509.png\")",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi ST Community,\n\nI am working on STM32H563 with external SDRAM connected through FMC.\n\nI am trying to use:\n\n* heap in SDRAM\n\n* global variables in SDRAM\n\n* execution/data access from SDRAM\n\n* DCACHE enabled\n\nCurrent SDRAM mapping:\n\n```\n\n0xC0000000\n\n```\n\nI noticed that in STM32F7/H7 examples there is support for:\n\n```\n\nHAL_REMAPMEMORY_FMC_SDRAM()\n\n```\n\nwhich remaps FMC SDRAM memory regions internally.\n\nI found this in STM32F7 HAL:\n\n```\n\n__HAL_SYSCFG_REMAPMEMORY_FMC_SDRAM()\n\n```\n\nBut on STM32H563 I cannot find any equivalent remap mechanism or SYSCFG macro.\n\nMy questions are:\n\n1. Is there any equivalent SDRAM remap functionality available on STM32H563 / STM32H5?\n\n2. Is SDRAM fixed permanently at 0xC0000000 on STM32H5 architecture?\n\n3. Does STM32H5 treat SDRAM at 0xC0000000 differently regarding:\n\n* DCACHE\n\n* burst accesses\n\n* MPU memory attributes\n\n* speculative accesses\n\n1. Are there any special MPU/DCACHE recommendations for using:\n\n* malloc()/calloc() heap in SDRAM\n\n* .bss/.data sections in SDRAM\n\n* execution from SDRAM\n\nCurrent observations:\n\n* SDRAM works correctly when DCACHE is disabled\n\n* malloc(), memset(), counters, global variables all work properly without DCACHE\n\n* When DCACHE is enabled, SDRAM accesses become unstable/fail\n\n* Tried both cacheable and non-cacheable MPU attributes\n\n* SDRAM configured as Normal Memory\n\n* FMC SDRAM initialization sequence follows standard HAL sequence\n\nI want to understand whether there is any architectural difference between STM32F7/H7 and STM32H5 regarding FMC SDRAM mapping and DCACHE interaction.\n\nAny guidance or reference examples for STM32H563 SDRAM + DCACHE would be very helpful.\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83268f0d-ba5a-b495-57e1-4f6d940ca4a9.png"
+            ],
+            "author": "shashank78Khandve",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>STM32H5 has different approach vs STM32F7 and STM32H7 regarding the cache. No SDRAM swap on STM32H5.</p>\n<p>You can refer to the <a href=\"https://www.st.com/resource/en/application_note/an5872-introduction-to-the-system-architecture-and-performance-in-the-stm32h5-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5872</a> \"Introduction to the system architecture and performance in the STM32H5 MCUs\" especially the section 3.3 Cache features.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1779112166509.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1779112166509.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83268f0d-ba5a-b495-57e1-4f6d940ca4a9.png\" title=\"mALLEm_0-1779112166509.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

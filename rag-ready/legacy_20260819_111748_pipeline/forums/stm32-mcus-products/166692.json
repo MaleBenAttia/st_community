@@ -1,0 +1,50 @@
+{
+    "forum": [
+        {
+            "id": "166667",
+            "publicId": "166692",
+            "title": "Mapping of four DP links and four sets of high-speed data lines between Type-C and DP",
+            "url": "https://community.st.com/stm32-mcus-products-25/mapping-of-four-dp-links-and-four-sets-of-high-speed-data-lines-between-type-c-and-dp-166692",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "USB"
+            ],
+            "published_at": "2026-07-06T07:06:01+00:00",
+            "views": 29,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@Hakuki\\_Riumiya\n\nDP lane routing must be switchable according to plug orientation. You can refer to MB1352 daughter board as reference design.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f8f56a06-c91f-4c0f-837b-d44e4c4e57fd.png)",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm planning to use an STM32G0 to make a Type-C to DP controller based on DP Alt Mode, and the high-speed data lines go straight to the DP links, but I'm not really sure how to connect them.Its shape would be something like this.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a4af7f6-400e-48fb-a7f2-efe2aad9c119.png)\n\nAccording to the pin assignment of TA0356, item E\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5daf4f65-ca31-4e7d-af44-39eaa580cea7.png)\n\nThis is the Type-C socket definition I found from USB-IF\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f27fb943-e3d7-444e-8b75-923ecb5d076e.png)\n\nThe mapping in TA0356 is shown in green font.\n\nThe DPLinks connections are\n\nA2  -  A3 = TX1 → ML1\n\nB11-B10 = RX1 → ML0\n\nB2  -  B3 = TX2 → ML2\n\nA11-A10 = RX2 → ML3\n\nThird, this is VESA's PDF,\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/089ffb60-1aff-414c-a9d7-a94e0dedd4ee.png)\n\nwhere PDPLinks correspond to shown in blue font.\n\nTX1→ ML0\n\nRX1→ ML1\n\nTX2→ ML2\n\nRX2→ ML3\n\nBecause in the VESA PDF it shows a Type-C cable adapter, we need to swap the TX and RX internally. This is mentioned in the USBIF PDF.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/150b7bd2-c731-4bec-9fb9-98c1d6b2c889.png)\n\nSo, when the DPLinks in the VESA PDF switch to my design, the following changes will happen, shown in blue font.\n\nTX1→ ML1\n\nRX1→ ML0\n\nTX2→ ML3\n\nRX2→ ML2\n\nAfter converting like this, I got a sequence of different DPLinks than in TA0356, where ML0 and ML1 are the same, and ML2 and ML3 are opposite.\n\nTA0356                                            Ours\n\nA2  -  A3 = TX1 → ML1                         TX1→ ML1\n\nB11-B10 = RX1 → ML0                         RX1→ ML0\n\nB2  -  B3 = TX2 → ML2                         TX2→ ML3\n\nA11-A10 = RX2 → ML3                         RX2→ ML2\n\nThis might be related to the CtoC cable in the VESA PDF.Because the cables in here have the same sequence as the DPLinks on the TA0356.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f37681ec-99bc-4f1b-9f3d-afeda60aeb87.png)\n\nFinally, we also found an image error in TA0356. In Figure 5, there’s an extra A12 and a missing A11. Of course, it’s not a big deal.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23a59142-3c67-420c-883b-13c3e094d160.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f8f56a06-c91f-4c0f-837b-d44e4c4e57fd.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5daf4f65-ca31-4e7d-af44-39eaa580cea7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f37681ec-99bc-4f1b-9f3d-afeda60aeb87.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f27fb943-e3d7-444e-8b75-923ecb5d076e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a4af7f6-400e-48fb-a7f2-efe2aad9c119.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/089ffb60-1aff-414c-a9d7-a94e0dedd4ee.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/150b7bd2-c731-4bec-9fb9-98c1d6b2c889.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/23a59142-3c67-420c-883b-13c3e094d160.png"
+            ],
+            "author": "Hakuki_Riumiya",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"85184\">@Hakuki_Riumiya</user-mention> </p><p>DP lane routing must be switchable according to plug orientation. You can refer to MB1352 daughter board as reference design.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f8f56a06-c91f-4c0f-837b-d44e4c4e57fd.png\"/></figure><p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,87 @@
+{
+    "forum": [
+        {
+            "id": "166349",
+            "publicId": "166370",
+            "title": "ST25R100 always ends up in error handler",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r100-always-ends-up-in-error-handler-166370",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "ST25 Dynamic NFC Tags – ST25DV series",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-06-23T10:42:31+00:00",
+            "views": 82,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nCould you check the SPI:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8493da23-fca6-4072-b9e9-6a7d90cacfac.png)\n\nBaud rate is exceeding the max (6Mbit/s) and CPHA should be 2 edges.\n\nRgds\n\nBT",
+            "best_answer_author": "Brian TIDAL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI have a STM32F401RCT connected to a ST25R100.\n\nIn the ioc file I enabled the X-CUBE-NFC9 library with all the necesary dependencies.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1bccf77-b7e9-420f-b3b6-c6bec5bdb200.png)\n\nAll the IOs also have pins assigned to them.\n\nPlus Pull ups enabled on the IRQ (open drain) and NFC\\_Reset.\n\nCurrently I have found out that it crashes somewhere after MX\\_X\\_CUBE\\_NFC9\\_Init();\n\n```\n\nret code: 0\n\nNFC BSP COM = 100\n\nWelcome to X-NUCLEO-NFC09A1\n\nentered error handler\n\n```\n\nThis is what I get in my console. I added some printfs in the code already.\n\nWhen I run it in debug mode to check were it calls the error handler it for some reason does not hit the error handler but it gets stuck in stm32F4xx\\_il\\_usb.c; when I click pauze, this seems rather odd.\n\n```\n\nHAL_StatusTypeDef USB_FlushTxFifo(USB_OTG_GlobalTypeDef *USBx, uint32_t num)\n\n{\n\n__IO uint32_t count = 0U;\n\n/* Wait for AHB master IDLE state. */\n\ndo\n\n{\n\ncount++;\n\nif (count > HAL_USB_TIMEOUT)\n\n{\n\nreturn HAL_TIMEOUT;\n\n}\n\n} while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL) == 0U);\n\n/* Flush TX Fifo */\n\ncount = 0U;\n\nUSBx->GRSTCTL = (USB_OTG_GRSTCTL_TXFFLSH | (num << 6));\n\ndo\n\n{\n\ncount++;\n\nif (count > HAL_USB_TIMEOUT)\n\n{\n\nreturn HAL_TIMEOUT;\n\n}\n\n} while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH) == USB_OTG_GRSTCTL_TXFFLSH);\n\nreturn HAL_OK;\n\n}\n\n```\n\nAre there any debugging tips on what I can do next to figure this issue out?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8493da23-fca6-4072-b9e9-6a7d90cacfac.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e4cfb4e-3be9-43f2-a1ab-573cadcb1e10.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/297cfa6f-0838-44cc-845d-8dad69691ebb.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1bccf77-b7e9-420f-b3b6-c6bec5bdb200.png"
+            ],
+            "author": "William_RnD",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>my first steps would be: Put only one breakpoint: At the place where the “<code>entered error handler</code>“ gets printed. This should then not change the code execution and hit. Then you can look at the call stack to see which function jumped to this error handler.</p><p>The calls to USB_FlushTxFifo() might be normal, maybe executed periodically by some handler. Again, you can put a breakpoint and inspect the call stack.</p><p>BR, Ulysses</p></div>",
+                    "author": "Ulysses HERNIOSUS",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><pre><code class=\"language-c\">Thread #1 [main] 1 [core: 0] (Suspended : Breakpoint)\t<br/>\tError_Handler() at main.c:652 0x8003794\t<br/>\tst25r200Initialize() at st25r200.c:135 0x8006008\t<br/>\trfalInitialize() at rfal_rfst25r200.c:364 0x8003e92\t<br/>\trfalNfcInitialize() at rfal_nfc.c:155 0x8014cc8\t<br/>\tdemoIni() at demo_polling.c:266 0x80197da\t<br/>\tMX_NFC9_PollingDemo_Init() at app_x-cube-nfcx.c:105 0x801964a\t<br/>\tMX_X_CUBE_NFC9_Init() at app_x-cube-nfcx.c:63 0x80195e8\t<br/>\tmain() at main.c:167 0x800318a\t<br/></code></pre><p>Allright this is my call stack now.</p><p>So it fails in here<br/> </p><pre><code class=\"language-c\">ReturnCode st25r200Initialize( void )<br/>{<br/>    ReturnCode ret;<br/><br/>    /* Ensure a defined chip select state */<br/>    platformSpiDeselect();<br/><br/>#ifdef ST25R_RESET_PIN<br/>    /* Reset the ST25R200 using the RESET pin */<br/>    platformGpioSet( ST25R_RESET_PORT, ST25R_RESET_PIN );<br/>    platformDelay( ST25R200_RESET_DUR );<br/>    platformGpioClear( ST25R_RESET_PORT, ST25R_RESET_PIN );<br/>    platformDelay( ST25R200_RESET_DUR );<br/>#endif /* ST25R_RESET_PIN */<br/><br/>    /* Set default state on the ST25R200 */<br/>    st25r200ExecuteCommand( ST25R200_CMD_SET_DEFAULT );<br/>    if( !st25r200CheckChipID( NULL ) )<br/>    {<br/>        platformErrorHandle();                             &lt;--<br/>        return RFAL_ERR_HW_MISMATCH;<br/>    }<br/><br/>    st25r200InitInterrupts();<br/>    st25r200ledInit();<br/><br/>    gST25R200NRT_64fcs = 0;<br/><br/>...</code></pre><p><br/>So something with my SPI than probably?</p><p>Kind regards, </p><p>William<br/> </p></div>",
+                    "author": "William_RnD",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Check the SPI:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8493da23-fca6-4072-b9e9-6a7d90cacfac.png\"/></figure><p>Baud rate is exceeding the max (6Mbit/s) and CPHA should be 2 edges.</p><p> </p><p>Rgds</p><p>BT</p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, </p><p>Oh that’s a handy file.</p><p>Normally there should be enough space.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e4cfb4e-3be9-43f2-a1ab-573cadcb1e10.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/297cfa6f-0838-44cc-845d-8dad69691ebb.png\"/></figure><p> </p><p>Kind regards, </p><p>William</p></div>",
+                    "author": "William_RnD",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Could you check the SPI:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8493da23-fca6-4072-b9e9-6a7d90cacfac.png\"/></figure><p>Baud rate is exceeding the max (6Mbit/s) and CPHA should be 2 edges.</p><p> </p><p>Rgds</p><p>BT</p></div>",
+                    "author": "Brian TIDAL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi, </p><p>I found the issue, I forgot to enable NVIC for the interrupt handler.</p><p>*facepalm*.</p><p>Thank you for your help!</p><p>Kind regards, </p><p>William</p></div>",
+                    "author": "William_RnD",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ulysses HERNIOSUS",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Brian TIDAL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

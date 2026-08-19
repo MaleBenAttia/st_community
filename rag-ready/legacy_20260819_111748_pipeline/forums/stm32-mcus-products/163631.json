@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "163631",
+            "publicId": "163631",
+            "title": "STM32H7 RTC accuracy with 32.768 kHz LSE quartz in VDD mode and VBAT mode",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h7-rtc-accuracy-with-32-768-khz-lse-quartz-in-vdd-mode-and-vbat-mode-163631",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series",
+                "RTC"
+            ],
+            "published_at": "2026-03-10T08:29:45+00:00",
+            "views": 790,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I did the test with the calibration signal at PC13.\n\nHere is the signal in VBAT mode. (I turned the persistence of the scope to infinity.) The edged are very stable at the same position.\n\n![20260317_114100.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0cb9dcf4-6eb2-8095-124e-e7b53c069461.jpg \"20260317_114100.jpg\")\n\nAnd here the signal in normal running mode, again with infinity persistence:\n\n![20260317_114755.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0a5784e1-4265-35a7-4436-5a5a0d4a0fca.jpg \"20260317_114755.jpg\")\n\nThere is a significant jitter. If I stop the CPU with the debugger, the frequency is stable again.\n\nI have no explanation, why the frequency is not 512 Hz.\n\nI changed the setting for the drive strength to medium-low and to medium-high (regarding the errata). With both setting I can achieve a stable frequency (of 512 HZ! ?:-/) in battery and powered-up mode. I decided to use the real medium-high mode and I'm performing a long-term measurement now. I hope this solves my issue.",
+            "best_answer_author": "ChrSch",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nin our design with STM32H753ZIT6 I've adjusted the C0G load capacitors on the LSE 32.768 kHz crystal so that the real-time clock is now very accurate (less than 1 second error in 24 hours). I've always performed the calibration in VBAT mode at a voltage between 2.3 and 3.2 V.\n\nHowever, now I've noticed that in normal VDD mode with active controller, the real-time clock is running significantly too slow, with an error of 90 seconds in 24 hours. I've ruled out the VBAT supply voltage as the cause. Any ideas what could be causing this large error in normal VDD mode?\n\nThank you!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0a5784e1-4265-35a7-4436-5a5a0d4a0fca.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6088568c-ba72-2a55-79e8-c4df160131d1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0cb9dcf4-6eb2-8095-124e-e7b53c069461.jpg"
+            ],
+            "author": "ChrSch",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>I did the test with the calibration signal at PC13.</p><p>Here is the signal in VBAT mode. (I turned the persistence of the scope to infinity.) The edged are very stable at the same position.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"20260317_114100.jpg\" style=\"width: 999px;\"><img alt=\"20260317_114100.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0cb9dcf4-6eb2-8095-124e-e7b53c069461.jpg\" title=\"20260317_114100.jpg\"/></span></p><p> </p><p>And here the signal in normal running mode, again with infinity persistence:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"20260317_114755.jpg\" style=\"width: 999px;\"><img alt=\"20260317_114755.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0a5784e1-4265-35a7-4436-5a5a0d4a0fca.jpg\" title=\"20260317_114755.jpg\"/></span></p><p>There is a significant jitter. If I stop the CPU with the debugger, the frequency is stable again.</p><p>I have no explanation, why the frequency is not 512 Hz.</p><p> </p><p>I changed the setting for the drive strength to medium-low and to medium-high (regarding the errata). With both setting I can achieve a stable frequency (of 512 HZ! ?:-/) in battery and powered-up mode. I decided to use the real medium-high mode and I'm performing a long-term measurement now. I hope this solves my issue.</p></div>",
+                    "author": "ChrSch",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I would rule out any cristal or Vxx or chip related problem - it seem you are switching from crystal to LSI oscillator running 32kHz.</p><p>Usually large error like this are due to selecting wrong oscillator.</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"\"><span class=\"\">Thank you for the quick reply.</span></span></p><p><span class=\"\"><span class=\"\">I had a similar thought, but isn't this sufficient:</span></span></p><div class=\"\"><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Unbenannt.png\" style=\"width: 541px;\"><img alt=\"Unbenannt.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6088568c-ba72-2a55-79e8-c4df160131d1.png\" title=\"Unbenannt.png\"/></span></div><pre class=\"lia-code-sample language-c\"><code>PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;</code></pre><p>in the SystemClock_Config() function.</p></div>",
+                    "author": "ChrSch",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Or other possible problem:</p><p>in run  mode with VDD , you have switching signals close to crystal or the RTC pins, most sensitive is next pin to RTC pins (PC13) ; this can \"disturb\" the 32khz .... </p><p>and obviously this is quiet when cpu is not powered.</p><p>+</p><p>How did you do calibration in VBAT mode , cpu not running to do \"smooth calibration\" ?</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It's not necessarily PC13 which disturbs the LSE (although that may do that a lot). <a href=\"http://www.efton.sk/STM32/gotcha/g302.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Any other signal in the oscillator's vicinity</a> may do that. And, maybe even more importantly, also currents flowing through common ground tracks/planes.</p><p>It may be hard to capture a disturbance whih causes 1000ppm deviation, especially if the source is some sudden burst. You can test this hypothesis, though, by running the circuit under VDD with a firmware which is \"quiet\", i.e.does not exercise its outputs, and also with no external input signals.</p><p>You can also increase LSE drive, but I personally would recommend to track down the disturbance's source first.</p><p>Unless you do something directly with the RTC, such as <a href=\"http://www.efton.sk/STM32/gotcha/g116.html\" rel=\"nofollow noopener noreferrer\" target=\"_self\">put it into INIT mode often</a>; that's not LSE-related.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Completely independent of noise and crystal:</p><p>wasn't there a problem in RTC initialisation that might produce some sub-second reset, if that is done each time the CPU \"wakes up\" or is re-started ?</p><p>... which would not apply if the CPU is never sleeping.</p><p>Can't find the thread right now.</p><p>I have something like this in my H7 source:</p><pre class=\"lia-code-sample language-c\"><code>/* RTC - only init if off, otherwise lose subseconds */\n\tif( (RCC-&gt;BDCR &amp; RCC_BDCR_RTCEN) != RCC_BDCR_RTCEN ) RtcInit();</code></pre></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

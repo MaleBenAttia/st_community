@@ -1,0 +1,57 @@
+{
+    "forum": [
+        {
+            "id": "167214",
+            "publicId": "167240",
+            "title": "How exactly are datasets larger than 250 MB reduced during benchmarking? What sampling strategy is used?",
+            "url": "https://community.st.com/edge-ai-134/how-exactly-are-datasets-larger-than-250-mb-reduced-during-benchmarking-what-sampling-strategy-is-used-167240",
+            "category": "Edge AI",
+            "tags": [
+                "STM32 motor control"
+            ],
+            "published_at": "2026-07-27T05:28:26+00:00",
+            "views": 89,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@liu\\_pzh,\n\nHere are some details:\n\n**1. Sampling algorithm**\n\nThe reduction proceeds in two stages:\n\n* Per-file budget allocation across input files, using an iterative water-filling procedure with a hard minimum of 5 lines per file. Small files are kept in full; large files absorb the reduction.\n\n* Per-file line selection, chosen automatically depending on the task:\n\n+ Regression / target-aware tasks: 1D stratified sampling on the target's empirical distribution (quantile spacing). Min/max target values are always kept.\n\n+ Classification / anomaly detection: seeded uniform random sampling without replacement.\n\n**2. The 250 MB cap**\n\nToday it is not configurable. In the longer term, it will also be exposed directly in the NanoEdge AI Studio so end users can adjust it themselves. The default was chosen to bound RAM usage during parallel HyperParameter Optimization (HPO), keep per-trial wall-time reasonable, and stay above the point where accuracy plateaus for the supported model families.\n\n**3. Preservation properties**\n\n* Distribution: exactly preserved for regression (quantile sampling); preserved in expectation for classification (uniform random sampling).\n\n* Diversity: quantile sampling guarantees one sample per bucket; uniform sampling is unbiased across the feature space.\n\n* Edge cases: for regression, target min and max are guaranteed to survive. For classification, since one input file always belongs to a single class, class balance is preserved by construction via the per-file budget allocation — no class disappears. Rare/short input files are protected by the per-file minimum.\n\n* Determinism: everything is seeded, results are reproducible.\n\n**4. Expected difference vs. the full dataset**\n\n* Regression: gap on R² / MAE / RMSE typically < 1–2 %.\n\n* Balanced classification: gap < 1 %.\n\n* Imbalanced classification: the per-file water-filling mechanically rebalances the sample toward rare classes, so performance on the full dataset can even be equal to or better than an HPO run without capping.\n\n* Selected hyperparameters generally transfer to the full dataset without re-tuning.\n\nIn all internal benchmarks we have run so far, the final evaluation on the full (uncapped) dataset has consistently matched the cross-validation results obtained on the subsampled dataset during HPO.\n\nHave a good day,\n\nJulian",
+            "best_answer_author": "Julian E.",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello ST Community,\n\nI noticed that when using the benchmarking tool, datasets larger than 250 MB are\n\nautomatically reduced using a \"representative sampling strategy\" that preserves\n\nthe diversity and distribution of the original data.\n\nI would like to understand more details about this process:\n\n1. What specific sampling algorithm/strategy is used? (e.g., random sampling,\n\nstratified sampling, systematic sampling, etc.)\n\n2. How is the target size of 250 MB determined? Is this configurable?\n\n3. How does the tool ensure that the sampled dataset preserves:\n\n- The original data distribution?\n\n- The diversity of data samples?\n\n- Edge cases and boundary values?\n\n4. After optimization, when we validate the model on the full dataset, what\n\nperformance differences should we typically expect between the sampled\n\ndataset and the full dataset?\n\n5. Is there any documentation that describes this sampling mechanism in detail?\n\nAny information or pointers to relevant documentation would be greatly appreciated.\n\nThank you!",
+            "images": [],
+            "author": "liu_pzh",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108515\">@liu_pzh</user-mention>,</p><p> </p><p>Here are some details:</p><p> </p><p><strong>1. Sampling algorithm</strong></p><p>The reduction proceeds in two stages:</p><ul><li>Per-file budget allocation across input files, using an iterative water-filling procedure with a hard minimum of 5 lines per file. Small files are kept in full; large files absorb the reduction. </li> <li>Per-file line selection, chosen automatically depending on the task: \t<ul><li>Regression / target-aware tasks: 1D stratified sampling on the target's empirical distribution (quantile spacing). Min/max target values are always kept. </li> <li>Classification / anomaly detection: seeded uniform random sampling without replacement.</li> </ul></li></ul><p><br/><strong>2. The 250 MB cap</strong></p><p>Today it is not configurable. In the longer term, it will also be exposed directly in the NanoEdge AI Studio so end users can adjust it themselves. The default was chosen to bound RAM usage during parallel HyperParameter Optimization (HPO), keep per-trial wall-time reasonable, and stay above the point where accuracy plateaus for the supported model families.</p><p><strong>3. Preservation properties</strong></p><ul><li>Distribution: exactly preserved for regression (quantile sampling); preserved in expectation for classification (uniform random sampling). </li> <li>Diversity: quantile sampling guarantees one sample per bucket; uniform sampling is unbiased across the feature space. </li> <li>Edge cases: for regression, target min and max are guaranteed to survive. For classification, since one input file always belongs to a single class, class balance is preserved by construction via the per-file budget allocation — no class disappears. Rare/short input files are protected by the per-file minimum. </li> <li>Determinism: everything is seeded, results are reproducible.</li></ul><p><strong>4. Expected difference vs. the full dataset</strong></p><ul><li>Regression: gap on R² / MAE / RMSE typically &lt; 1–2 %. </li> <li>Balanced classification: gap &lt; 1 %. </li> <li>Imbalanced classification: the per-file water-filling mechanically rebalances the sample toward rare classes, so performance on the full dataset can even be equal to or better than an HPO run without capping. </li> <li>Selected hyperparameters generally transfer to the full dataset without re-tuning.</li></ul><p>In all internal benchmarks we have run so far, the final evaluation on the full (uncapped) dataset has consistently matched the cross-validation results obtained on the subsampled dataset during HPO.</p><p> </p><p> </p><p>Have a good day,</p><p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That's an interesting question. If the tool says it uses a \"representative sampling strategy,\" I'd also like to know whether it's based on random, stratified, or diversity-aware sampling. Understanding how rare cases and class balance are preserved would help users better interpret benchmark results and trust that the reduced dataset reflects real-world performance. Hopefully, the ST team can share some implementation details or documentation.</p></div>",
+                    "author": "ethonbrooks0707",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"108677\">@ethonbrooks0707</user-mention>,</p><p> </p><p>I will look if we can share more details.</p><p> </p><p>For this statement though : “ trust that the reduced dataset reflects real-world performance.”</p><p>We highly advise using the Validation step that is made to import test dataset and check the performance of the libraries on new unseen data.</p><p> </p><p>You can also test your initial train dataset to see the perfs.</p><p> </p><p>Have a good day,</p><p>Julian</p></div>",
+                    "author": "Julian E.",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Julian E.",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

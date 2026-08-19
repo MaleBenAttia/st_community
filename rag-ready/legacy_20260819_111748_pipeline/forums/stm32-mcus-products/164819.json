@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "164819",
+            "publicId": "164819",
+            "title": "Power On-Off sequence for STM32N657X0H3Q",
+            "url": "https://community.st.com/stm32-mcus-products-25/power-on-off-sequence-for-stm32n657x0h3q-164819",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32N6 series"
+            ],
+            "published_at": "2026-04-16T10:26:24+00:00",
+            "views": 322,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi  @kadam\n\nSorry for my late reply.\n\n**Option 2** is a suitable choice for your board architecture. It keeps **VDDIO** and **VDDA1V8\\_AON** powered first, so the MCU always-on domains are available before the other supplies.\n\nThen, depending on your regulator arrangement, assert **PWR\\_ON** to enable the SMPS path and generate **VDDCORE**.\n\nAfter that, you can power the remaining supplies, such as: VDDA1V8 VDDA18USB VDDA18CSI ..\n\nYou can refer to board [schematics](https://www.st.com/resource/en/schematic_pack/mb1939-n6570-c02-schematic.pdf) as reference.\n\n![FBL_0-1778572675805.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/321c0b27-431e-688d-23cc-9ab802cc2f89.png \"FBL_0-1778572675805.png\")",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello Team,\n\nWe are using the internal SMPS configuration for the core power supply. However, the power-up sequence does not specify the timing requirements for the different stages.\n\nCould you please provide the timing details for the following?\n\n* What should be the time duration for the PWR\\_ON signal to transition from low to high while VDD and VDDA18AON are rising (Step 1)?\n\n* After PWR\\_ON goes high, what is the required time duration for VDDA18PMU / VDDSMPS to rise (Step 2)?\n\n* What is the exact meaning and function of the SDEN signal?\n\n* Are there any additional considerations or recommended guidelines to be followed during the power-up and power-down sequence?\n\n![kadam_1-1776334711632.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/220872dd-0426-335e-358d-0589db0ca4a2.png \"kadam_1-1776334711632.png\")\n\nThanks",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/09648227-1873-2e9d-f0f1-079a861f2b42.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ea8bb91-054b-13ee-a5b3-439dc6344a78.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/39783eea-0a3b-f8fe-5c59-93d5c4279256.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/321c0b27-431e-688d-23cc-9ab802cc2f89.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/220872dd-0426-335e-358d-0589db0ca4a2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ed28832d-f9ca-d3c5-e442-8f09f4e7999b.png"
+            ],
+            "author": "kadam",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"70477\">@kadam</user-mention> </p>\n<ol>\n<li><span>Based on <a href=\"https://www.st.com/resource/en/application_note/an5967-getting-started-with-hardware-development-for-stm32n6-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AN5967</a>, onc</span>e VDD and VDDA18AON are above the POR threshold, the external voltage regulator providing VDDA18PMU and VDDSMPS supplies is <strong>enabled</strong> via the <strong>PWR_ON </strong>signal.</li>\n</ol>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FBL_0-1776703368745.png\" style=\"width: 999px;\"><img alt=\"FBL_0-1776703368745.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/39783eea-0a3b-f8fe-5c59-93d5c4279256.png\" title=\"FBL_0-1776703368745.png\"/></span></p>\n<ul>\n<li>VDDA18PMU / VDDSMPS must rise after PWR_ON has enabled the external regulator.</li>\n<li>SDEN is used to<span> </span>enable or disable<strong> the SMPS path</strong>.</li>\n</ul>\n<p>I hope it's clear</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello FBL,</p><p>Thank you for your suggestion.</p><p>In our custom board design, we are using only one regulator to generate 1.8V.</p><p>Could you please suggest us which power tree will be suitable to manage power up sequence?</p><p>Option-1</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"kadam_0-1777029749341.png\" style=\"width: 400px;\"><img alt=\"kadam_0-1777029749341.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ed28832d-f9ca-d3c5-e442-8f09f4e7999b.png\" title=\"kadam_0-1777029749341.png\"/></span></p><p>Option-2</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"kadam_1-1777029781683.png\" style=\"width: 400px;\"><img alt=\"kadam_1-1777029781683.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/09648227-1873-2e9d-f0f1-079a861f2b42.png\" title=\"kadam_1-1777029781683.png\"/></span></p><p>Option-3</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"kadam_3-1777030578941.png\" style=\"width: 400px;\"><img alt=\"kadam_3-1777030578941.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ea8bb91-054b-13ee-a5b3-439dc6344a78.png\" title=\"kadam_3-1777030578941.png\"/></span></p><p> </p><p>Regards,</p><p>Kadam</p></div>",
+                    "author": "kadam",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hello FBL,</span></p><p><span>Could you please help us with requested information?</span></p><p><span>Regards,</span></p><p><span>Kadam</span></p><p> </p></div>",
+                    "author": "kadam",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>Hi  <user-mention data-id=\"70477\">@kadam</user-mention> </p>\n<p>Sorry for my late reply.</p>\n<p><strong>Option 2</strong><span> </span>is a suitable choice for your board architecture. It keeps<span> </span><strong>VDDIO</strong><span> </span>and<span> </span><strong>VDDA1V8_AON</strong><span> </span>powered first, so the MCU always-on domains are available before the other supplies.</p>\n<p>Then, depending on your regulator arrangement, assert<span> </span><strong>PWR_ON</strong><span> </span>to enable the SMPS path and generate<span> </span><strong>VDDCORE</strong>.</p>\n<p>After that, you can power the remaining supplies, such as: VDDA1V8 VDDA18USB VDDA18CSI ..</p>\n<p>You can refer to board <a href=\"https://www.st.com/resource/en/schematic_pack/mb1939-n6570-c02-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">schematics</a> as reference.</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"FBL_0-1778572675805.png\" style=\"width: 999px;\"><img alt=\"FBL_0-1778572675805.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/321c0b27-431e-688d-23cc-9ab802cc2f89.png\" title=\"FBL_0-1778572675805.png\"/></span></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

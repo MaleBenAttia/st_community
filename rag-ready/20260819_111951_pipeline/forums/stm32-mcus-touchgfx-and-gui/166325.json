@@ -1,0 +1,98 @@
+{
+    "forum": [
+        {
+            "id": "166304",
+            "publicId": "166325",
+            "title": "TouchGFX 4.26.0 and Visual Studio XML diff",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/touchgfx-4-26-0-and-visual-studio-xml-diff-166325",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-06-22T10:29:43+00:00",
+            "views": 136,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Note: this is a re-post of my previous post but then with proper markup and a small fix as stated in the previous comment.\n\nBelow solution is more of a work-around, but it should fix the `Application.vcxproj` git struggles until there is a proper fix implemented in TouchGFX Designer.\n\n---\n\nThis work-around needs Python on your Path Environment Variable.\n\n1. Create the file  `touchgfx_post_generate_target_patches.py` in the TouchGFX project folder (same folder as the `somethingsomething.touchgfx` file) and add the following content\n\n```\n\n\"\"\"\n\nAll the patches that are needed for sane version control.\n\n\"\"\"\n\nfrom pathlib import Path\n\ndef patch_application_vcxproj():\n\n\"\"\" Converts '/>' to ' />' in Application.vcxproj.\n\n\"\"\"\n\np = Path('./simulator/msvs/Application.vcxproj')\n\nnew = ''\n\nwith p.open('r') as f:\n\noriginal = f.read()\n\nnew = original.replace('/>', ' />')\n\n# remove last newline\n\nnew = new[:-1]\n\nwith p.open('w') as f:\n\nf.write(new)\n\nif __name__ == '__main__':\n\nprint('PATCH: patching Application.vcxproj')\n\npatch_application_vcxproj()\n\n```\n\n2. In TouchGFX Designer, go to `Config` → `Build` → `Post Generate Target Command` and set the following target command: `touchgfx update_project && python touchgfx_post_generate_target_patches.py`\n\n---\n\nKnown issues:\n\n* on rare occasions the script cannot write to the file and will fail the `Generate Code` action. Just re-generate or optionally add a small delay to the script.",
+            "best_answer_author": "Aron Hoogeveen",
+            "best_answer_author_role": "Associate III",
+            "content_text": "TouchGFX version: 4.26.0\n\nVisual Studio version: 18.6.3\n\nWhen TouchGFX generates or updates the “TouchGFX/simulator/msvs/Application.vcxproj” file it creates lines with\n\n`<ClCompile Include=\"path/to/some/file.cpp\"/>`\n\nbut Visual Studio updates the lines to\n\n`<ClCompile Include=\"path/to/some/file.cpp\" />`\n\n. Notice the extra space. This means that in version control sometimes commits will be added without the space and sometimes with the space. This overcomplicates merges and causes merge requests. Please update the XML library or fix the output to be consistent with Visual Studio.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/18ff9420-da6e-4a8c-80b6-cde2d66bf845.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/911921bf-cb9e-4a5f-ab62-443a9dba0249.png"
+            ],
+            "author": "Aron Hoogeveen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Suggestion to add the following tags to the system:</p><ul><li>version control</li> <li>git</li> <li>Visual Studio</li></ul></div>",
+                    "author": "Aron Hoogeveen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"Aron Hoogeveen\"><div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <p>Suggestion to add the following tags to the system:</p> <p>​​​​​​</p> </div> </div></content-quote><p>By “the system” - do you mean this forum?</p><p>If so, Please raise that as a separate topic in the ‘<a href=\"https://community.st.com/feedback-forum-118\" rel=\"noreferrer nofollow ugc\" target=\"_self\">Feedback</a>’ forum</p><p> </p><p><strong><u>Edit</u>:</strong></p><p>It’s now been done - see:</p><oembed url=\"https://community.st.com/feedback-forum-118/feature-request-version-control-tag-166331\"></oembed><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>ST did not know how to reproduce that error 2y ago. Maybe this time. </p><p>“Application.vcxproj.filters” file is altered by GfxDesigner as well. I learned to remember to ‘Revert’ in Git.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/911921bf-cb9e-4a5f-ab62-443a9dba0249.png\"/></figure><p> </p><p> </p><oembed url=\"https://community.st.com/stm32-mcus-touchgfx-and-gui-33/msvc-project-file-generated-by-gfx-designer-not-the-same-as-generated-by-msvc-123794\"></oembed><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/18ff9420-da6e-4a8c-80b6-cde2d66bf845.png\"/></figure><p> </p></div>",
+                    "author": "ferro",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Steps to reproduce:</p><ol><li>Start a new project</li> <li>Generate sources and open the project with Visual Studio (Application.sln).</li> <li>Right click in Solution Explorer on “Application” and select “Properties”.</li> <li>Change some property that has effect on “Application.vcxproj” (e.g. change C++ language standard) and apply the changes.</li> <li>Build → Build Application</li> <li>Open `Application.vcxproj` to verify the tags have a space before the closing bracket</li></ol></div>",
+                    "author": "Aron Hoogeveen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"55439\">@ferro</user-mention> and ​<user-mention data-id=\"107645\">@Aron Hoogeveen</user-mention> ,<br/><br/>I’ve been able to reproduce the issue, and I’ll forward it to our technical team for review.</p><p>Unfortunately, I don’t have a solid workaround to recommend at the moment. As a temporary mitigation, you could consider ignoring whitespace-only changes in Git, for example with:</p><p>bash</p><pre><code class=\"language-bash\">git diff -w<br/># or<br/>git diff --ignore-all-space</code></pre><p>That said, this approach can be risky if you have intentionally introduced whitespace changes elsewhere in the project, since those would also be hidden.</p></div>",
+                    "author": "Osman SOYKURT",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the git suggestions ​<user-mention data-id=\"1301\">@Osman SOYKURT</user-mention> , will definitely try if they fit into my workflow. Maybe to add into .gitignore for a specific project/metadata files.</p></div>",
+                    "author": "ferro",
+                    "role": "Lead"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I’ve opted for a small patch script that always runs as a “Post Generate Target Command”. It may or may not fully cover the differences between the TouchGFX and the Visual Studio XML version, but we now have no problem with the diff anymore.<br/><br/>Post Generate Target Command: `touchgfx update_project &amp;&amp; python touchgfx_post_generate_target_patches.py`<br/><br/>touchgfx_post_generate_target_patches.py:<br/><br/>```python<br/>\"\"\"<br/>All the patches that are needed for sane version control.<br/>\"\"\"<br/>import os<br/>import os.path<br/>import sys<br/>import re<br/>import shutil<br/>from pathlib import Path<br/> </p><p># other patches…<br/><br/>def patch_application_vcxproj():<br/>    \"\"\" Converts '\"/&gt;' to '\" /&gt;' in Application.vcxproj.<br/>    \"\"\"<br/>    p = Path('./simulator/msvs/Application.vcxproj')</p><p>    new = ''<br/>    with p.open('r') as f:<br/>        original = f.read()<br/>        new = original.replace('\"/&gt;', '\" /&gt;')<br/>        # remove last newline<br/>        new = new[:-1]</p><p>    with p.open('w') as f:<br/>        f.write(new)</p><p><br/>if __name__ == '__main__':<br/>    print('PATCH: patching .cproject')<br/>    patch_cproject()<br/>    print('PATCH: patching Application.vcxproj')<br/>    patch_application_vcxproj()<br/> </p><p>```</p></div>",
+                    "author": "Aron Hoogeveen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This forum <a href=\"https://community.st.com/feedback-forum-118/new-community-platform-markdown-feature-166066\" rel=\"noreferrer nofollow ugc\" target=\"_self\">doesn’t support Markdown</a> - Please see:</p><p><oembed url=\"https://community.st.com/community-guidelines-160/how-to-insert-source-code-135969\"></oembed></p><p>it does also support Python</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That’s a bummer. I’ll use the WYSIWYG next time (not allowed to edit the post).<br/><br/>P.S. the link you provided redirects to the following post for me.</p><oembed url=\"https://community.st.com/stm32-mcus-products-25/stm32g491ceu6-pwm-output-has-a-very-fast-rise-time-2ns-and-400mv-overshoot-when-not-loaded-how-come-there-is-so-much-overshoot-is-this-harmful-for-the-pin-32330?postid=135969#post135969\"></oembed><p> </p></div>",
+                    "author": "Aron Hoogeveen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Note: this is a re-post of my previous post but then with proper markup and a small fix as stated in the previous comment.</p><p>Below solution is more of a work-around, but it should fix the <code>Application.vcxproj</code> git struggles until there is a proper fix implemented in TouchGFX Designer.</p><hr/><p>This work-around needs Python on your Path Environment Variable.</p><ol type=\"1\"><li>Create the file  <code>touchgfx_post_generate_target_patches.py</code> in the TouchGFX project folder (same folder as the <code>somethingsomething.touchgfx</code> file) and add the following content\t<pre><code class=\"language-python\">\"\"\"<br/>All the patches that are needed for sane version control.<br/>\"\"\"<br/>from pathlib import Path<br/><br/><br/>def patch_application_vcxproj():<br/>\t\"\"\" Converts '/&gt;' to ' /&gt;' in Application.vcxproj.<br/>\t\"\"\"<br/>\tp = Path('./simulator/msvs/Application.vcxproj')<br/><br/>\tnew = ''<br/>\twith p.open('r') as f:<br/>\t\toriginal = f.read()<br/>\t\tnew = original.replace('/&gt;', ' /&gt;')<br/>\t\t# remove last newline<br/>\t\tnew = new[:-1]<br/><br/>\twith p.open('w') as f:<br/>\t\tf.write(new)<br/><br/><br/>if __name__ == '__main__':<br/>\tprint('PATCH: patching Application.vcxproj')<br/>\tpatch_application_vcxproj()<br/></code></pre> </li> <li> <p>In TouchGFX Designer, go to <code>Config</code> → <code>Build</code> → <code>Post Generate Target Command</code> and set the following target command: <code>touchgfx update_project &amp;&amp; python touchgfx_post_generate_target_patches.py</code></p> </li></ol><hr/><p>Known issues:</p><ul><li>on rare occasions the script cannot write to the file and will fail the <code>Generate Code</code> action. Just re-generate or optionally add a small delay to the script.</li></ul></div>",
+                    "author": "Aron Hoogeveen",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Osman SOYKURT",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

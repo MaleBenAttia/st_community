@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "166853",
+            "publicId": "166870",
+            "title": "STM32U575 DCMI GPDMA Vertical Blanking",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u575-dcmi-gpdma-vertical-blanking-166870",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "DCMI",
+                "DMA",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-07-11T19:08:54+00:00",
+            "views": 80,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Instead of doing config through CubeMX, I did it manually by code and got the implementation to work. I was having issues linking any node that came after the first two (as I’m assuming the compiler ignores all other nodes when running in double-buffer). By manually setting the linkregisters, I was able to get all-four nodes working and got a full image.\n\nAlthough it was solved, it would be very nice to be able to do this through CubeMX.\n\nAll I needed to do was set the global node size:\n\n`pNodeConfig.DataSize = IMG_SIZE / NUM_NODES; // Ensure below 38400`\n\nand for each node, manually set the destination address before creating each node:\n\n`pNodeConfig.DstAddress = (uint32_t)&pBuffer[0];`\n\n`ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &DCMI_Node1);`\n\n`ret |= HAL_DMAEx_List_InsertNode_Tail(&DCMIQueue, &DCMI_Node1);`\n\nThis should be done in either the linked\\_list.c file in core/src, or in a different one (that doesn’t get overwritten by cubemx).",
+            "best_answer_author": "f3l1xa88077",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hiya.\n\nI’m currently trying to capture an image from the OV7670 camera module over DCMI + GPDMA. I’ve been able to capture images, but I’ve run into an odd issue with vertical blanking. Using the STM32U575RIT3. I have the module configured for RGB565 in QVGA and I can fully confirm that it is outputting what it is meant to, the issue is just with GPDMA and getting it into memory.\n\nIn GPDMA=Standard Request, I only get ¾ of the image, with the first ¼ being blanked.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a4cdb4d0-5f03-447c-b3e5-b88cd22af915.png)\n\nSample image in GPDMA Standard Request\n\nIn Linked List mode, I can only seem to get up to ½ of the image. I get ¼ with a single node, ½ with two nodes, but no more when introducing more nodes.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb72b2d9-2870-4fcf-8f4c-df4b7eebb877.png)\n\nSample image in GPDMA Linked List Mode\n\nI can confirm that the GPDMA\\_CxDAR register shows that it has indexed by an entire image and reached the FrameEvent callback in StandardRequest Mode. In LinkedList mode, it seems to just lost the second half of the image as I do not get the callback and the DAR register records an increment of half the image.\n\nSome notes:\n\n* I’ve seen mention about the 64 kB boundary of LinkedList mode, but I’m not sure how to work around this if it really is the underlying issue.\n\n* When I incorrectly configure the camera I receive an entire frame’s worth of information, no vertical blanking (in standard request mode).\n\n* I have tinkered with the camera config to get a full frame in standard request mode, but the output image is stretched (as if it was stretched vertically to cover up the blanking).\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3069147-4bff-4185-a112-5fbd1e002b98.png)\n\nSample photo of stretched image.\n\n* I have aligned the buffer: `ALIGN_32BYTES(uint32_t pBuffer[MAX_PICTURE_BUFF]);`\n\n* I have configured the GPDMA (and LL) to use words, increment on destination and not source.\n\n* I am using the memory browser to verify that the vertical blanking is a result of 0s and not a post-processing issue.\n\n* The image is QVGA (320x240), which is 76,800 pixels. In RGB565 for this camera, one pixel occupies two bytes, so the total size should be approximately 153.6 kB. It is also less than the max image size in Table 11: <https://www.st.com/content/ccc/resource/technical/document/application_note/group0/c0/ef/15/38/d1/d6/49/88/DM00373474/files/DM00373474.pdf/jcr:content/translations/en.DM00373474.pdf>\n\nSince I’m getting *most* of the image, I’m assuming this isn’t a camera issue, rather an issue with configuring the GPDMA. I’m very new to GPDMA though, so the problem could be quite obvious!\n\nMoving forward I’m hoping to understand the underlying issue behind both approaches (standard request and linked list) so I can better understand GPDMA and choose the better approach :).",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e3069147-4bff-4185-a112-5fbd1e002b98.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a4cdb4d0-5f03-447c-b3e5-b88cd22af915.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb72b2d9-2870-4fcf-8f4c-df4b7eebb877.png"
+            ],
+            "author": "f3l1xa88077",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"98631\">@f3l1xa88077</user-mention> ;</p><p> </p><p>The linked-list is mandated for circular mode.</p><p>I recommend you to look at 17.4.13 GPDMA circular buffering with linked-list programming section in <a href=\"https://www.st.com/resource/en/reference_manual/rm0487-stm32u3-series-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">RM04</a><a href=\"https://www.st.com/resource/en/reference_manual/rm0456-stm32u5-series-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">56</a>.</p><p>For more information about the GPDMA , I recommend you to look at</p><ul><li><a href=\"https://www.st.com/resource/en/application_note/an5593-how-to-use-the-gpdma-for-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">How to use the GPDMA for STM32 MCUs</a> application note.</li> <li><a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-the-gpdma/ta-p/49412\" rel=\"noopener noreferrer\" target=\"_self\">How to configure the GPDMA </a></li> <li><a href=\"https://community.st.com/t5/stm32-mcus/how-to-configure-the-linked-list-mode-in-stm32cubemx/ta-p/693779\" rel=\"noopener noreferrer\" target=\"_self\">How to configure the linked list mode in STM32CubeMX</a></li></ul><p>Note that, the GPDMA can transfer data blocks in bytes, with a maximum block size of 64 kbytes - 1.</p><p>Please look at <a href=\"https://github.com/STMicroelectronics/STM32CubeU5/tree/main/Projects/STM32U575I-EV/Examples/DCMI/DCMI_ContinousCap_EmbeddedSynchMode\" rel=\"noreferrer noopener\" target=\"_blank\">DCMI_ContinousCap_EmbeddedSynchMode</a> may help you.</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for the reply.</p><p>Before the post I had already looked at those resources and tried to align my code with the GitHub repo example (your last link). I’ve taken another look and I’m not seeing anything sticking out yet.</p><p>I’m working with a 4-node linked list at the moment, but only the first two nodes are carrying data, not the third or fourth. </p></div>",
+                    "author": "f3l1xa88077",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"98631\">@f3l1xa88077</user-mention> ,</p><p> </p><p>Do you get the same issue with horizontal blanking?</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No, only vertical blanking. This is consistent with the LL nodes being the issue as it cuts off at the end of the second node (each node occupies ¼ of vertical space).</p><p>I’m not sure why 1 &amp; 2 node configurations work but 2+ does not.</p></div>",
+                    "author": "f3l1xa88077",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Instead of doing config through CubeMX, I did it manually by code and got the implementation to work. I was having issues linking any node that came after the first two (as I’m assuming the compiler ignores all other nodes when running in double-buffer). By manually setting the linkregisters, I was able to get all-four nodes working and got a full image.</p><p>Although it was solved, it would be very nice to be able to do this through CubeMX.</p><p>All I needed to do was set the global node size:</p><p><code>pNodeConfig.DataSize = IMG_SIZE / NUM_NODES; // Ensure below 38400</code></p><p>and for each node, manually set the destination address before creating each node:</p><p><code>pNodeConfig.DstAddress = (uint32_t)&amp;pBuffer[0];</code></p><p><code>ret |= HAL_DMAEx_List_BuildNode(&amp;pNodeConfig, &amp;DCMI_Node1);</code></p><p><code>ret |= HAL_DMAEx_List_InsertNode_Tail(&amp;DCMIQueue, &amp;DCMI_Node1);</code></p><p>This should be done in either the linked_list.c file in core/src, or in a different one (that doesn’t get overwritten by cubemx).</p></div>",
+                    "author": "f3l1xa88077",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

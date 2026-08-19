@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "164104",
+            "publicId": "164104",
+            "title": "Very slow Ethernet connection on ETH1",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/very-slow-ethernet-connection-on-eth1-164104",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "Ethernet",
+                "STM32MP25 lines"
+            ],
+            "published_at": "2026-03-24T10:05:38+00:00",
+            "views": 593,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @rtie ,\n\nThe good point is that pin-out is not impacted by the use of switch or not, it is fully transparent for you.\n\nConcerning the low power question, the consumption will not be impacted so much, but the low power sequence is a bit less straight forward than the standard RMII case.\n\nDepending on your timing constraints, what I would suggest is to wait for the next STM32MP2 cut that solves the RMII HW issue, that will be released soon. It will be easier than modifying all your soft for a temporary modification. By the way, even if you face some ETH1 RMII CRC issue, you can still prototype your product with it (it will generate some TCP retries or UDP packet lost maybe), but that will disappear with the new cut. With this way, you will be able to test without trouble the low power mode you want to reach and more.\n\nKind regards,\n\nErwan.\n\n[Edit: you can already command the new MP2 cut]",
+            "best_answer_author": "Erwan SZYMANSKI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "We have some devices based on STM32MP257 SoCs that connect to a 100 Mbit Ethernet network via ETH1, where ETH1 is going straight to an RMII PHY. Pins for ETH2 are reserved, but are not used/not connected. Some of our devices work rock-solid as excepted, but others exhibit massive performance problems on the Ethernet connection.\n\nAfter lots of research, we think that our devices are affected by a silicon bug described in errata sheet ES ES0598 as \"ETH1 RMII mode could have CRC errors\". Our chip revisions are all rev Y, which are affected by the issue. The errata says that ETH1 should be routed through ETHSW to work around the silicon bug. To test if the workaround works for our case, I've tried to enable ETHSW, but failed so far because STM32CubeMX forces me to free some pins before it allows me to enable ETHSW in RMII mode. It seems like ETH1 and ETH3 must be used together if ETHSW is enabled, the pins for ETH3, however, are already used for other hardware functions.\n\nSo, my goal is to\n\n- enable ETHSW in RMII mode,\n\n- route ETH1 through ETHSW to work around the silicon bug,\n\n- use the same set of pins as used by ETH1 in direct mode,\n\n- don't use ETH3 (ETH2 would be OK, though), and\n\n- keep all other pins unaffected by this change.\n\nIs this possible at all?",
+            "images": [],
+            "author": "rtie",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"76471\">@rtie</user-mention> ,<br/>Yes you can absolutely do it, this is the typical workaround for this issue.</p>\n<p>This <a href=\"https://wiki.st.com/stm32mpu/wiki/X-LINUX-TSNSWCH_expansion_package\" rel=\"noopener noreferrer\" target=\"_self\">X-LINUX-TSNSWCH</a> will give you all the necessary stuff to make the switch working. Then, some words about the switch configuration on <a href=\"https://wiki.st.com/stm32mpu/wiki/How_to_configure_Ethernet_switch\" rel=\"noopener noreferrer\" target=\"_self\">this article</a>.</p>\n<p>The goal is simple, you need to use the newly created switch interface as if you had a single ETH1 one.<br/>You will see that the X-LINUX package brings a lot of services and script including TSN stuff. In your case, you are free to not use them at all and only keep the part dealing with the switch driver build, deploy and start.</p>\n<p>In summary, the switch part is quite simple:</p>\n<ul>\n<li>Compiling switch drivers</li>\n<li><a href=\"https://wiki.st.com/stm32mpu/wiki/Ethernet_switch_device_tree_configuration\" rel=\"noopener noreferrer\" target=\"_self\">Adapting the board device</a> tree to use it</li>\n<li>Launching the right init script to configure it</li>\n</ul>\n<p>Kind regards,<br/>Erwan.</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>thank you for your answer, and sorry for my late reply.</p><p>I've tried to configure the system as suggested, but didn't succeed because STM32CubeMX doesn't allow me to. We have hardware that was designed to use the pins assigned to ETH1 and ETH2 in RMII mode without ETHSW in the way. Now we'd like to try the ETHSW workaround, but without changing the pin assignment. It would be best if ETHSW could be enabled transparently. Is this possible or does enabling ETHSW imply a hardware change?</p><p>Can you tell us something about the impact on power consumption when enabling ETHSW? We need to implement a network standby mode and make sure our device doesn't exceed a certain power budget. If ETHSW is known to cause a significant increase of power consumption, we might not be able to use it and would need a hardware revision anyway.</p></div>",
+                    "author": "rtie",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"76471\">@rtie</user-mention> ,<br/>The good point is that pin-out is not impacted by the use of switch or not, it is fully transparent for you.</p>\n<p>Concerning the low power question, the consumption will not be impacted so much, but the low power sequence is a bit less straight forward than the standard RMII case.</p>\n<p>Depending on your timing constraints, what I would suggest is to wait for the next STM32MP2 cut that solves the RMII HW issue, that will be released soon. It will be easier than modifying all your soft for a temporary modification. By the way, even if you face some ETH1 RMII CRC issue, you can still prototype your product with it (it will generate some TCP retries or UDP packet lost maybe), but that will disappear with the new cut. With this way, you will be able to test without trouble the low power mode you want to reach and more.</p>\n<p>Kind regards,<br/>Erwan.</p>\n<p>[Edit: you can already command the new MP2 cut]</p></div>",
+                    "author": "Erwan SZYMANSKI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Erwan SZYMANSKI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

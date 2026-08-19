@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "164319",
+            "publicId": "164319",
+            "title": "Typo in STM32L412xxx Datasheet?",
+            "url": "https://community.st.com/stm32-mcus-products-25/typo-in-stm32l412xxx-datasheet-164319",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bug-report",
+                "Documentation",
+                "STM32L4 series"
+            ],
+            "published_at": "2026-03-30T21:17:12+00:00",
+            "views": 354,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @ActuonixElec and welcome to the community;\n\nSimilar issue is reported [here.](https://community.st.com/t5/stm32-mcus-products/power-consumption-of-stm32l412xx/td-p/785660)\n\nI confirm that this is a typo and will be corrected in the coming version of the datasheet.\n\nPlease use detailed \"Table 40. Current consumption in Sleep and Low-power sleep modes, flash ON\" and \"Table 42. Current consumption in Low-power sleep modes, flash in power-down\" in DS12469\n\nThank you.\n\nKaouthar",
+            "best_answer_author": "KDJEM.1",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm looking at Rev 9 of the STM32L412xxx Datasheet, as linked on Digikey, and I'm having a hard time understanding the current consumption figures specified for the Low-power Run & Low-power Sleep modes on the MCU.  Per the table on pg.24 (shown below), the current draw is 83uA/MHz in LPRun mode, which is higher even than the normal Run mode up to 26MHz (range2), which doesn't make sense to me.  Further, the current draw in LPSleep mode is also 83uA/MHz, which suggests there's no power savings putting the MCU to sleep in Low-power mode?  Can somebody tell me what I'm missing here, or is this a typo and one or both of those figures are wrong?\n\n![Screenshot 2026-03-30 140737.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8b2a1e8-6014-9002-dad9-88ef40f6b1cd.png \"Screenshot 2026-03-30 140737.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d8b2a1e8-6014-9002-dad9-88ef40f6b1cd.png"
+            ],
+            "author": "ActuonixElec",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>strange. same for  STM32L422xx.</p><p>but STM32L431xx, STM32L432xx, STM32L443xx show LPSleep consumtion much smaller than LPRun.</p><p>Have added bug-report tag.</p><p>hth</p><p>KnarfB</p></div>",
+                    "author": "KnarfB",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105642\">@ActuonixElec</user-mention> and welcome to the community;</p>\n<p> </p>\n<p>Similar issue is reported <a href=\"https://community.st.com/t5/stm32-mcus-products/power-consumption-of-stm32l412xx/td-p/785660\" target=\"_self\">here.</a></p>\n<p><span>I confirm that this is a typo and will be corrected in the coming version of the datasheet.</span></p>\n<p><span>Please use detailed \"Table 40. Current consumption in Sleep and Low-power sleep modes, flash ON\" and \"Table 42. Current consumption in Low-power sleep modes, flash in power-down\" in DS12469</span></p>\n<p> </p>\n<p><span>Thank you.</span></p>\n<p><span>Kaouthar</span></p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you - I will reference that document instead for the time being.</p><p> </p><p>Cheers!</p></div>",
+                    "author": "ActuonixElec",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't think the LPRun values are a typo; I believe these are real numbers.</p><p>It's simply not correct to see a huge CMOS circuit as having purely frequency-dependent consumption (and that being linear, too). There is always a frequency-independent portion, which is leakage, to which then the frequency-dependent portion is added. The frequency-dependend portion also heavily depends on the nature of the code running, memories and peripherals involved etc. Leakage increases with supply voltage, but also with temperature.</p><p>In other words, a single uA/MHz number does not give justice and you cannot extrapolate consumption at other conditions from it. For example, look at <strong><em>Table 29. Current consumption in Run and Low-power run modes, code with data processing </em></strong><strong><em>running from SRAM1 </em></strong>(which appears to be taken at conditions closest to those in Table 4 you've quoted from): while from Table 4 you'd extrapolate consumption in Run mode range 2 at 2MHz as 79uA*2=158uA, the real consumption given for Run mode range 2 at 2Mhz is 265uA..</p><p>The LPSleep current in the 'L412 Table 4 should indeed be lower, though, so that probably is a typo.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

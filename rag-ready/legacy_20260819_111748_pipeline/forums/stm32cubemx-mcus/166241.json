@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "166221",
+            "publicId": "166241",
+            "title": "STM32CubeMX (STM32WBA63, TrustZone): Can EXTI11 IRQ target be set to Non-Secure while PA11 remains USART2_RX?",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32cubemx-stm32wba63-trustzone-can-exti11-irq-target-be-set-to-non-secure-while-pa11-remains-usart2-rx-166241",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "GPIO-EXTI",
+                "STM32WBA series",
+                "TrustZone"
+            ],
+            "published_at": "2026-06-17T17:39:51+00:00",
+            "views": 37,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@lgc\n\nThank you for sharing your feedback in ST Community,\n\nSTM32CubeMX currently does not support this configuration in the GUI, for this use case, PA11 must remain configured as USART2\\_RX, It should not be changed to GPIO\\_EXTI11. I recommend that you manually set EXTI11\\_IRQn to Non-Secure in the Secure code as you described.\n\nKR, Souhaib",
+            "best_answer_author": "Souhaib MAZHOUD",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am using STM32CubeMX with an STM32WBA63 project in TrustZone enabled mode, and I have a question about interrupt security attribution.\n\nMy use case:\n\n* PA11 is configured as USART2\\_RX (non-secure application).\n\n* In low power mode, I need wakeup on UART RX activity.\n\n* This relies on EXTI11, so I need EXTI11\\_IRQn to be targeted to the Non-Secure world (ITNS0 bit 22 = 1).\n\nIssue:\n\n* In CubeMX, I cannot find a way to set EXTI11\\_IRQn as Non-Secure while PA11 is kept as USART2\\_RX.\n\n* EXTI11 appears configurable only if I change the pin function to GPIO EXTI, but then USART2 configuration becomes incomplete.\n\nQuestions:\n\n1. Is it supported in STM32CubeMX to configure EXTI11\\_IRQn as Non-Secure when PA11 is assigned to USART2\\_RX?\n\n2. If yes, where is this setting in the CubeMX UI?\n\n3. If not currently supported, what is the recommended ST approach?\n\n* Manual USER CODE override in partition configuration?\n\n* Post-generation patch/script?\n\n* Any other official best practice?\n\nCurrent workaround:\n\n* I manually set EXTI11 to Non-Secure in USER CODE in the secure partition configuration, and this works.\n\n* I want to confirm whether there is a native CubeMX way to do it and the recommended maintainable approach.\n\nTool versions:\n\n* STM32CubeMX: 6.15.0\n\n* STM32CubeWBA package: STM32Cube FW\\_WBA V1.7.0\n\nThanks in advance.",
+            "images": [],
+            "author": "lgc",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"91042\">@lgc</user-mention> </p><p>Thank you for sharing your feedback in ST Community,<br/>STM32CubeMX currently does not support this configuration in the GUI, for this use case, PA11 must remain configured as USART2_RX, It should not be changed to GPIO_EXTI11. I recommend that you manually set EXTI11_IRQn to Non-Secure in the Secure code as you described.</p><p>KR, Souhaib</p></div>",
+                    "author": "Souhaib MAZHOUD",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Souhaib MAZHOUD",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

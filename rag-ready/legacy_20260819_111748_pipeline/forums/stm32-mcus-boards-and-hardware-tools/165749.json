@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "165749",
+            "publicId": "165749",
+            "title": "TCPP01-M12 + STM32G071 UCPD — C-to-C cable gives no power, A-to-C limited to 5V",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/tcpp01-m12-stm32g071-ucpd-c-to-c-cable-gives-no-power-a-to-c-limited-to-5v-165749",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "STM32G0 series"
+            ],
+            "published_at": "2026-05-16T15:59:12+00:00",
+            "views": 244,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\ni dont know much about ucpd..., but :\n\n>1. Is there any way to get USB PD negotiation (for voltages above 5 V) with a Type-A to Type-C cable\n\nno. (just not for USB PD ; XIAOMI quick charge work on A to C)\n\n>With DBCC1/DBCC2 floating (R8/R9 not soldered), can the floating pins cause a spurious or conflicting\n\nWithout resistors on cc1/cc2 -- nothing happens.  5k1 resistors are the standard.\n\n-> so use USBC to Type-C cable , + have resistors on CC .\n\nread:\n\n<https://www.st.com/content/dam/AME/2019/technology-tour-2019/chicago/presentations/T1S3_Schaumburg_USB-Type-C_G.Gosciniak.pdf>",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI am designing a USB-C power sink using the TCPP01-M12 and STM32G071CBT6 (UCPD peripheral). The connector is a Molex 2171790001 receptacle. I have two separate issues and would appreciate guidance on both.\n\n---\n\nISSUE 1: No power at all with Type-C to Type-C cable\n\nWhen I connect a USB-C to USB-C cable between my board and a USB-C charger, the board does not power on. However, when I use a Type-A to Type-C cable (from a USB-A charger), the board powers up fine.\n\nHardware setup:\n\n- J1: Molex 2171790001 (CC1 on A5, CC2 on B5 — both routed)\n\n- IC1: TCPP01-M12 (CC1C and CC2C connected to J1; CC1 and CC2 connected to STM32 PA8/PB15)\n\n- IC2: STM32G071CBT6 (UCPD1\\_CC1 = PA8, UCPD1\\_CC2 = PB15)\n\n- TCPP01 VCC (pin 12) is driven by STM32 PB12 GPIO (TCPP01\\_PWR net)\n\n- TCPP01 DB/ (pin 10) is connected to STM32 PB11 GPIO\n\n- C1 and C2 (330 pF each) are now soldered on CC1c and CC2c lines to GND\n\n- R8 and R9 (0 Ω, intended to connect UCPD\\_DBCC1/PA9 and UCPD\\_DBCC2/PA10 to GND) are NOT yet soldered — so DBCC1 and DBCC2 pins are currently floating\n\nMy analysis so far:\n\nWith a USB-A charger, VBUS is unconditional — the board boots regardless of CC negotiation. With a USB-C charger, VBUS is only enabled after the charger detects a valid Rd on the CC lines. I believe the TCPP01 dead battery clamp (1.1 V on CC1c/CC2c) should signal the charger, which then enables VBUS, which turns on Q2 (N-channel MOSFET on VBUS, gate driven by TCPP01 GATE pin), which powers the LDO, which boots the STM32.\n\nQuestions:\n\n1. With DBCC1/DBCC2 floating (R8/R9 not soldered), can the floating pins cause a spurious or conflicting termination on CC1/CC2 that a USB-C charger would interpret as a disconnect, causing it to cut VBUS?\n\n2. What is the correct firmware sequence for PB12 (TCPP01 VCC enable) and PB11 (DB/ pin to deactivate dead battery clamps)? Specifically, must PB11 be driven HIGH before or after UCPD peripheral initialisation?\n\n3. Is the TCPP01 GATE pin driven automatically in dead battery mode (VCC=0) when VBUS is detected, or does the firmware need to take action first?\n\n---\n\nISSUE 2: Output limited to 5 V with Type-A to Type-C cable\n\nWhen using a Type-A to Type-C cable and a USB-A charger, the board powers on but VBUS is fixed at 5 V. I need the board to negotiate higher voltages (9 V, 12 V, 20 V) over USB PD.\n\nI understand that a USB-A source cannot do USB PD by definition — it can only offer 5 V. So this is likely expected behaviour for A-to-C. However, I want to confirm:\n\n1. Is there any way to get USB PD negotiation (for voltages above 5 V) with a Type-A to Type-C cable, or is a Type-C to Type-C cable the only option for PD?\n\n2. Once I fix Issue 1 and get C-to-C working, will the STM32 UCPD stack automatically negotiate higher PDOs with a USB-C PD charger, or are there additional firmware steps needed?\n\n---\n\nHardware summary:\n\n- MCU: STM32G071CBT6\n\n- Protection IC: TCPP01-M12\n\n- Connector: Molex 2171790001\n\n- CC EMI caps (C1/C2): 330 pF, now soldered on CC1c/CC2c lines\n\n- DBCC resistors (R8/R9): 100 kΩ to GND\n\n- TCPP01\\_PWR: STM32 PB12\n\n- DB/: STM32 PB11\n\n- FLT/: STM32 PB10\n\nI have attached the .ioc file and the schematic of the connections made for clarity\n\nAny guidance appreciated. Thank you.",
+            "images": [],
+            "author": "uti_prakash",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>i dont know much about ucpd..., but :</p><p>&gt;<span>1. Is there any way to get USB PD negotiation (for voltages above 5 V) with a Type-A to Type-C cable</span></p><p><span>no. (just not for USB PD ; XIAOMI quick charge work on A to C)</span></p><p><span>&gt;With DBCC1/DBCC2 floating (R8/R9 not soldered), can the floating pins cause a spurious or conflicting</span></p><p><span>Without resistors on cc1/cc2 -- nothing happens.  5k1 resistors are the standard.</span></p><p><span>-&gt; so use USBC to Type-C cable , + have resistors on CC .</span></p><p><span>read:</span></p><p><span><a href=\"https://www.st.com/content/dam/AME/2019/technology-tour-2019/chicago/presentations/T1S3_Schaumburg_USB-Type-C_G.Gosciniak.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/content/dam/AME/2019/technology-tour-2019/chicago/presentations/T1S3_Schaumburg_USB-Type-C_G.Gosciniak.pdf</a></span></p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

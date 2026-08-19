@@ -1,0 +1,84 @@
+{
+    "forum": [
+        {
+            "id": "164481",
+            "publicId": "164481",
+            "title": "How to correctly enable USB with DMA and DCache on NUCLEO-H723ZG?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-correctly-enable-usb-with-dma-and-dcache-on-nucleo-h723zg-164481",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series",
+                "DMA",
+                "USB"
+            ],
+            "published_at": "2026-04-06T11:13:29+00:00",
+            "views": 644,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi @featherbits\n\nIt is not enough to move only **UserRxBufferHS UserTxBufferHS** to a non cacheable section.\n\nThe complete USB data path must be reviewed to identify all DMA buffers and descriptors.\n\nUsing MPU to mark the entire SRAM region as non cacheable will work, but as you noted, it is not an ideal solution because it impacts the rest of the application.\n\nTypically, the recommended approach is:\n\n1. Keep the application in cacheable memory\n\n2. Reserve a dedicated non cacheable region for USB DMA buffers and descriptors\n\n3. Place **all USB DMA accessed buffers and descriptors** in that region\n\n4. Ensure **cache maintenance** is applied where needed for any cacheable data exchanged with USB.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have enabled USB with the following settings:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d9cc7312-3db3-bf39-d145-1358bc77248d.png \"image.png\")\n\nFollowing USB middleware is enabled like so:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/214de960-cb30-12a4-26c6-4a5653f83cf2.png \"image.png\")\n\nIn the linker script I have moved everything from DTCMRAM to RAM.\n\nAdditional section is specified like so\n\n```\n\n.dma_buffer :\n\n{\n\n*(.dma_buffer)\n\n} >RAM_D2\n\n```\n\nAnd used like so:\n\n```\n\n/** Received data over USB are stored in this buffer */\n\n__attribute__((section(\".dma_buffer\")))\n\nuint8_t UserRxBufferHS[APP_RX_DATA_SIZE];\n\n/** Data to send over USB CDC are stored in this buffer */\n\n__attribute__((section(\".dma_buffer\")))\n\nuint8_t UserTxBufferHS[APP_TX_DATA_SIZE];\n\n```\n\nAt this point USB device enumerates but looks like no descriptors are transferred to the host.\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b93e29fd-7a3c-ce35-3d3e-7ba628d895ee.png \"image.png\")\n\nI also tried to enable MPU like so:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2722cb56-2154-e06e-35a5-dce83ebc0c5c.png \"image.png\")\n\nBut that did not do the trick.\n\nHowever, when RAM region base address (0x24000000) is used instead of RAM\\_D2 (0x30000000) for MPU, device enumerates correctly:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/74d89882-a9d7-65fd-7dcc-28f1569e6a6b.png \"image.png\")\n\nand there is no need for:\n\n```\n\n__attribute__((section(\".dma_buffer\")))\n\n```\n\non rx and tx buffers anymore.\n\nNow the question. How to correctly place only the USB related stuff to non-cacheable region so that rest of the application can work with cache enabled?\n\nIn summary, Currently I have disabled cache with MPU for entire region (RAM (xrw) : ORIGIN = 0x24000000, LENGTH = 128K). USB with DMA works, but it means that rest of the application also is experiencing disabled cache which is not what I want. I only want to disable cache for USB stuff. It is not enough just to place rx and tx buffers in non-cacheable region. From findings, it seems that also descriptors and potentially other stuff must ble placed in non-cacheable region as well.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/74d89882-a9d7-65fd-7dcc-28f1569e6a6b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2722cb56-2154-e06e-35a5-dce83ebc0c5c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/214de960-cb30-12a4-26c6-4a5653f83cf2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b93e29fd-7a3c-ce35-3d3e-7ba628d895ee.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf4867eb-fa85-6c9f-521b-efe541e09b5f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d9cc7312-3db3-bf39-d145-1358bc77248d.png"
+            ],
+            "author": "featherbits",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"74143\">@featherbits</user-mention> </p>\n<p> </p>\n<p>Did you check this article <a href=\"https://community.st.com/t5/stm32-mcus/how-to-correctly-setup-your-application-to-use-usb-dma/ta-p/49522\" target=\"_blank\">How to correctly setup your application to use USB?</a></p>\n<p><span>Actually, USBHS1 and USBHS2 are located in D2 domain and have no interconnection with DTCM RAM which is the default memory used in approximately all USB projects. Therefore when enabling the internal DMA USB, projects do not work, as DMA will not be able to access the data buffers placed in DTCM and it results in DMA transfer error.</span></p>\n<p><span>With data cache enabled, you should also be careful to handle it properly.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did check that post. That post gave me a hint that I have to move away from <span>DTCM RAM which I did. That post only proves a point that DCache is the main culprit but does not lay down steps necessary to fully configure the entire project. I think the only thing left now is to correctly decorate USB related stuff with correct attributes, so that cacheable and non cacheable data can be separated. Now I have everything sitting in non cacheable are (set by MPU).</span></p></div>",
+                    "author": "featherbits",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>&gt; <span> At this point USB device enumerates but looks like no descriptors are transferred to the host.</span></p><p>Ok, but you show just the st-linkV3 enumeration, on st-link usb connection.</p><p>But the user usb is the other usb , CN13 .</p><p>So connect there a usb cable to PC also, then you see...enumerates or not.</p><p>btw</p><p>What kind of device it should be ? set it in Cube ? VCP -&gt;</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bildschirmfoto_2026-04-06_14-07-20.png\" style=\"width: 556px;\"><img alt=\"Bildschirmfoto_2026-04-06_14-07-20.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf4867eb-fa85-6c9f-521b-efe541e09b5f.png\" title=\"Bildschirmfoto_2026-04-06_14-07-20.png\"/></span></p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"34409\">@AScha.3</user-mention> wrote:<p>Ok, but you show just the st-linkV3 enumeration, on st-link usb connection.</p><p>But the user usb is the other usb , CN13 .</p><hr/></blockquote><p>Not correct. ST-Link and VCP are connected to the same USB hub. It can be seen on the original posts. Device with blue background is the VCP device.</p></div>",
+                    "author": "featherbits",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2057\">@FBL</user-mention> <user-mention data-id=\"34409\">@AScha.3</user-mention> I updated question in my original post. I think previously it was easy to misunderstand what actually I am looking for. Just to recap, I managed to enable USB with DMA and device enumerates correctly, but <strong>at the expense of placing <u>everything</u> to non-cacheable region</strong> (updated linker script to use region starting at 0x24000000 for everything instead of 0x20000000 which was the default). <strong>I <u>only</u> want to do this for <u>USB related stuff</u>.</strong> By just placing tx and rx buffers to non-cacheable area does not work. I think more stuff from USB HAL side must be placed to that area. I have no idea what and how to do the separation. </p></div>",
+                    "author": "featherbits",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"74143\">@featherbits</user-mention> </p>\n<p><span>It is not enough to move onl</span>y <strong>UserRxBufferHS UserTxBufferHS</strong> to a n<span>on cacheable section.</span><br/><span>The complete USB data path must be reviewed to identify all DMA buffers and descriptors.</span></p>\n<p>Using MPU to mark the entire SRAM region as non cacheable will work, but as you noted, it is not an ideal solution because it impacts the rest of the application.</p>\n<p>Typically, the recommended approach is:</p>\n<ol>\n<li>Keep the application in cacheable memory</li>\n<li>Reserve a dedicated non cacheable region for USB DMA buffers and descriptors</li>\n<li>Place<span> </span><strong>all USB DMA accessed buffers and descriptors</strong><span> </span>in that region</li>\n<li>Ensure <strong>cache maintenance</strong> is applied where needed for any cacheable data exchanged with USB.</li>\n</ol></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

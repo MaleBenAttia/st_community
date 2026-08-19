@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "163649",
+            "publicId": "163649",
+            "title": "stm32h743 SPI erratum implemented in HAL?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h743-spi-erratum-implemented-in-hal-163649",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-10T12:26:10+00:00",
+            "views": 391,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @Alex\\_001\n\nThe errata sheet serves as the definitive reference for all silicon limitations and their workarounds. Not every erratum is implemented within the HAL because:\n\n* Many workarounds are application‑dependent (they depend on how the peripheral is used, timing, power modes, etc.), so HAL cannot safely apply them for everyone.\n\n* Some workarounds would change performance or behavior of existing applications if they were always enabled (extra delays, dummy accesses, disabled features…).",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi Team,\n\nCould you please confirm whether the following SPI erratum is considered in HAL version 1.11? I am currently using an MCU with revision V.\n\n![Screenshot 2026-03-10 122448.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/347f4f24-1f00-c0b9-885b-7d0cd86d8ac3.jpg \"Screenshot 2026-03-10 122448.jpg\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/347f4f24-1f00-c0b9-885b-7d0cd86d8ac3.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/82e1b4b2-4ada-e1da-fcdf-e6aa084d7b37.png"
+            ],
+            "author": "Alex_001",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don't think that HAL generally works around errata? - see <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/stm32l496-errata-2-19-4-not-addressed-in-hal/td-p/881688#:~:text=I%20don%27t%20believe%20HAL%20implements%20workarounds%20for%20errata.\" target=\"_blank\">this recent post</a> by <user-mention data-id=\"8205\">@TDK</user-mention> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks <user-mention data-id=\"35659\">@Andrew Neil</user-mention> for your reply.</p><p>This below code snippet is from HAL and you can see that interrupts are disabled after the spi is disabled. Is this correct according to errata 2.22.4 ? The wrokaround says </p><p><em><strong>\"Keep TXP and TXC (the latter if the TSIZE field contains zero value) interrupt disabled whenever the SPI</strong></em></p><p><em><strong>peripheral is disabled\"</strong></em></p><p> </p><pre class=\"lia-code-sample language-c\"><code>static void SPI_AbortTransfer(SPI_HandleTypeDef *hspi)\n{\n /* Disable SPI peripheral */\n __HAL_SPI_DISABLE(hspi);\n\n /* Disable ITs */\n __HAL_SPI_DISABLE_IT(hspi, (SPI_IT_EOT | SPI_IT_TXP | SPI_IT_RXP | SPI_IT_DXP | SPI_IT_UDR | SPI_IT_OVR | \\\n SPI_IT_FRE | SPI_IT_MODF));\n\n /* Clear the Status flags in the SR register */\n __HAL_SPI_CLEAR_EOTFLAG(hspi);\n __HAL_SPI_CLEAR_TXTFFLAG(hspi);</code></pre><p><br/><br/> </p></div>",
+                    "author": "Alex_001",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"100531\">@Alex_001</user-mention> </p>\n<p>The errata sheet serves as the definitive reference for all silicon limitations and their workarounds. Not every erratum is implemented within the HAL because:</p>\n<ul dir=\"auto\">\n<li>\n<p>Many workarounds are application‑dependent (they depend on how the peripheral is used, timing, power modes, etc.), so HAL cannot safely apply them for everyone.</p>\n</li>\n<li>\n<p>Some workarounds would change performance or behavior of existing applications if they were always enabled (extra delays, dummy accesses, disabled features…).</p>\n</li>\n</ul></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"1684\">@Saket_Om</user-mention> wrote:<br/><p>Not every erratum is implemented within the HAL </p><hr/></blockquote><p>This suggests that <em>some</em> errata <em>are </em>implemented within the HAL ?</p><p> </p><p><strong><u>PS</u>:</strong></p><p>I guess another problem with implementing errata workarounds in the HAL is that the HAL would then need to know the specific chip revision - to know whether or not the erratum applies.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"35659\">@Andrew Neil</user-mention> wrote:<br/>\n<blockquote><hr/><hr/></blockquote>\n<p>This suggests that <em>some</em> errata <em>are </em>implemented within the HAL ?</p>\n<hr/></blockquote>\n<p>In some cases yes.</p>\n<p>Example:  the errata: <font color=\"#0000FF\"><em>2.2.10 Reading from AXI SRAM may lead to data read corruption</em></font> (from <a href=\"https://www.st.com/resource/en/errata_sheet/es0392-stm32h742xig-stm32h743xig-stm32h750xb-stm32h753xi-device-errata-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">ES0392 - Rev 15</a>) on STM32H7x3 rev Y:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 908px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/82e1b4b2-4ada-e1da-fcdf-e6aa084d7b37.png\" title=\"screenshot.png\"/></span></p>\n<p>The workaround was implemented in <font color=\"#0000FF\">system_stm32h7xx.c</font>:</p>\n<pre class=\"lia-code-sample language-c\"><code> /* Change the switch matrix read issuing capability to 1 for the AXI SRAM target (Target 7) */\n if((DBGMCU-&gt;IDCODE &amp; 0xFFFF0000U) &lt; 0x20000000U)\n {\n /* if stm32h7 revY*/\n /* Change the switch matrix read issuing capability to 1 for the AXI SRAM target (Target 7) */\n *((__IO uint32_t*)0x51008108) = 0x00000001U;\n }</code></pre>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

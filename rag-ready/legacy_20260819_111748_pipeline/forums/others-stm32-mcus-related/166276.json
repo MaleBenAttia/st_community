@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "166255",
+            "publicId": "166276",
+            "title": "STM32F401RET6U Custom Board Schematic Review Request",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/stm32f401ret6u-custom-board-schematic-review-request-166276",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32F4 series",
+                "Schematic"
+            ],
+            "published_at": "2026-06-19T07:16:48+00:00",
+            "views": 124,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Rohith cyton and welcome to the ST community,\n\n1- You kept VBAT floating while it should be connected to VDD if the backup domain/RTC are not used.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/df099b9b-fa9c-4544-95b8-29b3df224ce8.png)\n\n2- I don’t recommend to connect directly the buzzer on the GPIO, use a transistor to drive the buzzer:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7c2a27a-862e-4b6e-8de4-e14b3c467b57.png)\n\n3- You can refer to the application note [AN4206](https://www.st.com/resource/en/application_note/an4206-getting-started-with-stm32f3-series-hardware-development-stmicroelectronics.pdf) “Getting started with STM32F3 series hardware development”\n\n4- You need also to check the compatibility of the 32K crystal you have used (ABS25-32.768KHZ-6-T): see [How to select a compatible crystal and load capacitors for STM32 with layout guidelines](https://community.st.com/stm32-mcus-60/how-to-select-a-compatible-crystal-and-load-capacitors-for-stm32-with-layout-guidelines-148169)\n\nHope that helps",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello STM32 Community,\n\nI am developing a custom board based on the STM32F302R8T6 MCU. My schematic is largely derived from the MB1136 evaluation board reference design, and I would appreciate a review from experienced STM32 users before PCB fabrication.\n\nI would like feedback on the following areas:\n\n1. **Power Supply Design**\n\n* VDD, VDDA, VBAT, VSS, and VSSA connections\n\n* Decoupling capacitor placement and values\n\n* Analog supply filtering\n\n2. **Clock Circuit**\n\n* Main crystal oscillator connections\n\n* 32.768 kHz RTC crystal circuit\n\n* Load capacitor values and recommendations\n\n3. **Boot and Reset Circuit**\n\n* BOOT0 configuration\n\n* NRST pull-up and reset button circuit\n\n* Any missing protection or filtering components\n\n4. **Programming and Debugging**\n\n* SWD interface (SWDIO, SWCLK, NRST, SWO)\n\n* Compatibility with ST-LINK\n\n* Ability to program and debug reliably\n\n5. **GPIO Connections**\n\n* Review of user button, status LEDs, buzzer, and external interfaces\n\n* Any pins that should not be used for GPIO due to boot/debug functions\n\n6. **General Design Review**\n\n* Any schematic mistakes or missing components\n\n* Recommendations based on STM32 hardware design guidelines\n\n* Potential issues that could affect flashing, debugging, startup, or long-term reliability\n\nFrom my initial review:\n\n* STM32F302R8T6 is powered from 3.3 V.\n\n* SWD connector includes SWDIO, SWCLK, NRST, and SWO.\n\n* BOOT0 is configured through a switch/jumper arrangement.\n\n* External 32.768 kHz crystal is connected for RTC operation.\n\n* Multiple decoupling capacitors are placed on VDD pins.\n\n* SWD signals and reset are routed to the programming header.\n\nCould you please review the schematic and let me know if there are any issues related to:\n\n* Flashing/programming\n\n* Power integrity\n\n* Clock startup\n\n* Reset/boot configuration\n\n* STM32 hardware design best practices\n\nThank you for your time and support.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/df099b9b-fa9c-4544-95b8-29b3df224ce8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7c2a27a-862e-4b6e-8de4-e14b3c467b57.png"
+            ],
+            "author": "Rohith cyton",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107574\">@Rohith cyton</user-mention> and welcome to the ST community,</p><p>1- You kept VBAT floating while it should be connected to VDD if the backup domain/RTC are not used.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/df099b9b-fa9c-4544-95b8-29b3df224ce8.png\"/></figure><p>2- I don’t recommend to connect directly the buzzer on the GPIO, use a transistor to drive the buzzer:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b7c2a27a-862e-4b6e-8de4-e14b3c467b57.png\"/></figure><p>3- You can refer to the application note <a href=\"https://www.st.com/resource/en/application_note/an4206-getting-started-with-stm32f3-series-hardware-development-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">AN4206</a> “Getting started with STM32F3 series hardware development”</p><p>4- You need also to check the compatibility of the 32K crystal you have used (ABS25-32.768KHZ-6-T): see <a href=\"https://community.st.com/stm32-mcus-60/how-to-select-a-compatible-crystal-and-load-capacitors-for-stm32-with-layout-guidelines-148169\" rel=\"noreferrer\" target=\"_self\">How to select a compatible crystal and load capacitors for STM32 with layout guidelines</a></p><p>Hope that helps</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>First, the title says STM32F401RET6U, but the post mentions STM32F302R8T6. Make sure the exact MCU part number is consistent, because power pins, oscillator pins, boot options, and alternate functions may differ.</p><p>Also, if you want a proper schematic review, it would help to share clear screenshots of the power, clock, reset/boot, and SWD sections directly in the post. Many people will not download a full PDF just to inspect a few critical areas.</p><p>Helpful resource: <a href=\"https://www.pcbway.com/blog/PCB_Design_Tutorial/Tutorial__How_to_Design_Your_Own_Custom_STM32_Microcontroller_Board.html\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.pcbway.com/blog/PCB_Design_Tutorial/Tutorial__How_to_Design_Your_Own_Custom_STM32_Microcontroller_Board.html</a></p></div>",
+                    "author": "ahsrabrifat",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

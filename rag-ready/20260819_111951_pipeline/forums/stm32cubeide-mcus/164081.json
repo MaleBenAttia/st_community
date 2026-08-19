@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "164081",
+            "publicId": "164081",
+            "title": "How to properly rename a dual-core project?",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/how-to-properly-rename-a-dual-core-project-164081",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "Feature request"
+            ],
+            "published_at": "2026-03-23T13:01:43+00:00",
+            "views": 438,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Thank you so much!\n\nWell, after reading here and there, I was able to follow these steps in this specific order, and the errors that were previously occurring no longer showed up.\n\n1. In the IDE, rename the subprojects one by one. Keep the format ProjectName\\_CM4 and ProjectName\\_CM7. Press F2 and make sure the ‘Update references’ option is checked.\n\n2. Rename the root project, the one that contains the .ioc file. Press F2 and use the desired name.\n\n3. Delete the project from the IDE.\n\n4. Rename the folder, keeping the same name.\n\n5. Rename the .ioc file.\n\n6. Open the .ioc file in STM32CubeMX and generate the code.\n\n7. Import the project again into the IDE.\n\n8. Delete the Debug Configurations.\n\n9. Run ‘Clean Project’.\n\n10. Press Ctrl + B to build everything.\n\n11. Set up the debug configuration again.",
+            "best_answer_author": "AraceliGuerrero",
+            "best_answer_author_role": "Associate II",
+            "content_text": "*Added dual-core to title - may be significant ...*\n\n---\n\nHello.\n\nI've tried rename my project in the past, and this always generate a lot of errors due to the dependencies.\n\nWhich is the properly way?\n\nI am working with STM32H755. Yes, dual-core.\n\nThanks!",
+            "images": [],
+            "author": "AraceliGuerrero",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Which dependencies?</p><p>ISTR the IOC file doesn't get properly renamed - but a manual rename fixes it.</p><p> </p><p>Maybe also Debug/Run configurations?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, I’ll write down what I did and the order I did it in. I haven’t touched this part again because it started breaking, but from what I remember, in the end it would generate warnings that didn’t appear at the beginning. I also got an error saying the linker was corrupted or something like that. And overall, it didn’t feel like a clean rename because some things weren’t updating properly.</p><ol><li>From the IDE, select ‘Rename’, press Enter, and wait.</li><li>The .ioc file doesn’t change, so I modify it manually.</li><li>Open CubeMX and check in Project Manager, because sometimes the name doesn’t get updated there.</li><li>Open the CM4 folder, modify the .project file to update the &lt;name&gt; tag with the new name. Do the same in CM7.</li><li>In CubeMX, click ‘Generate Code’ to make sure everything has the new name.</li><li>In CubeIDE, select ‘Clean Project’.</li></ol><p>At this point, I start getting redefinition errors.</p></div>",
+                    "author": "AraceliGuerrero",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've never found it necessary to hack the <font face=\"courier new,courier\">.project</font> file.</p><p>But I've only ever done it on single-core projects - so that might make a difference ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"65718\">@AraceliGuerrero</user-mention> </p>\n<p>I believe there is no official, one-step rename feature for dual-core projects in STM32CubeIDE. I have raised this request <strong>#0060931</strong> to the development team for a feasibility assessment.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you so much!</p><p><br/>Well, after reading here and there, I was able to follow these steps in this specific order, and the errors that were previously occurring no longer showed up.</p><ol><li>In the IDE, rename the subprojects one by one. Keep the format ProjectName_CM4 and ProjectName_CM7. Press F2 and make sure the ‘Update references’ option is checked.</li><li>Rename the root project, the one that contains the .ioc file. Press F2 and use the desired name.</li><li>Delete the project from the IDE.</li><li>Rename the folder, keeping the same name.</li><li>Rename the .ioc file.</li><li>Open the .ioc file in STM32CubeMX and generate the code.</li><li>Import the project again into the IDE.</li><li>Delete the Debug Configurations.</li><li>Run ‘Clean Project’.</li><li>Press Ctrl + B to build everything.</li><li>Set up the debug configuration again.</li></ol></div>",
+                    "author": "AraceliGuerrero",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In addition to the above, I still needed to manually update references to the old project name in the .launch and .debug.launch files.</p><p> </p><p>As a new STM32 platform customer I have to say the lack of simple functions to duplicate and/or rename a project and update all the dependencies automatically is very frustrating. ST should have resolved such fundamental usability problems years ago!</p><p> </p><p> </p></div>",
+                    "author": "Johnny5",
+                    "role": "Explorer"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

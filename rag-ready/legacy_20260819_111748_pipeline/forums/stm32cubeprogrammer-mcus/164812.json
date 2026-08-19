@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "164812",
+            "publicId": "164812",
+            "title": "connection via UART with STM32CubeProgrammer",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/connection-via-uart-with-stm32cubeprogrammer-164812",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer"
+            ],
+            "published_at": "2026-04-16T07:26:42+00:00",
+            "views": 282,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "You are using the wrong GPIOs pins for USART2. AN2606 indicates the following:\n\n![mALLEm_2-1776334517326.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6c8643d9-f938-12c2-9447-737402f67267.png \"mALLEm_2-1776334517326.png\")\n\nAnd I've already posted an answer in your previous [*debugger via UART without ST-LINK on NUCLEO-H755ZI-Q*](https://community.st.com/t5/stm32cubeide-mcus/debugger-via-uart-without-st-link-on-nucleo-h755zi-q/m-p/892736):\n\n> @Domy\\_ST wrote:\n\n>\n\n> Yes, using the ST Bootloader via UART, you don't want to connect to the STm32CubeProgrammer, as described in this post:\n\n>\n\n> <https://community.st.com/t5/stm32cubeprogrammer-mcus/connection-via-uart-with-stm32cubeprogrammer/td-p/892681>\n\nDid you use the same resource needed by the UART that are indicated in the [AN2606](https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf) \"Introduction to system memory boot mode on STM32 MCUs\"?\n\nUSART3 needs PB11 and PB10 for the bootloader:\n\n![mALLEm_0-1776334259104.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ec96ece-1b64-f968-72e4-c913a1e03bff.png \"mALLEm_0-1776334259104.png\")\n\nWhile in the NUCLEO board is connected to PD8 and PD9 as indicated by the schematic:\n\n![mALLEm_1-1776334259149.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c450cdb4-fdbc-77a6-3dc3-3e0ba43fb4d3.png \"mALLEm_1-1776334259149.png\")\n\nSo you need to wire connect PB10 to PD8 and PB11 to PD9, so the STLINK-VCP will be connected to the USART3 and use the ST bootloader.\n\nYou don't need that \"USB SERIAL CH340\" and use STLINK VCP.\n\nYou need to follow the Boot loader process using the boot pin:\n\n1- Put the BOOT0 pin High\n\n2- Reset the device\n\n3- Connect with the CubeProgrammer\n\nThat's all.\n\nHope that helps.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello ST Community,\n\nI'm trying to connect via UART instead of ST\\_LINK to the NUCLEO-H755ZI-Q, but it just won't connect.\n\nFirst, I connect the 3.3V pin to BOOT0, and it activates in bootloader mode. Then, I click \"Connect\" in the STM32CubeProgrammer environment, and I get this error:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36746343-f9d1-6617-a974-9ddd0fffe8b2.png \"image.png\")\n\nThe UART's RX and TX (it's a USB SERIAL CH340) are connected to the Arduino pin PD5 and PD6 (USART2) of the NUCLEO-H755ZI-Q. Pin GND are also connected correctly. The settings on the STM32CubeProgrammer are as shown in the photo:\n\n![image.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a573b9d0-4e00-a372-5d87-69cb9e7adce9.png \"image.png\")\n\nWhy isn't it connecting, or is there something wrong?\n\nthanks for supports",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6c8643d9-f938-12c2-9447-737402f67267.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36746343-f9d1-6617-a974-9ddd0fffe8b2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c450cdb4-fdbc-77a6-3dc3-3e0ba43fb4d3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a573b9d0-4e00-a372-5d87-69cb9e7adce9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ec96ece-1b64-f968-72e4-c913a1e03bff.png"
+            ],
+            "author": "Domy_ST",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Same question here: <a href=\"https://community.st.com/t5/stm32cubeide-mcus/debugger-via-uart-without-st-link-on-nucleo-h755zi-q/m-p/892736\" target=\"_blank\"><em>debugger via UART without ST-LINK on NUCLEO-H755ZI-Q</em></a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You are using the wrong GPIOs pins for USART2. AN2606 indicates the following:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_2-1776334517326.png\" style=\"width: 400px;\"><img alt=\"mALLEm_2-1776334517326.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6c8643d9-f938-12c2-9447-737402f67267.png\" title=\"mALLEm_2-1776334517326.png\"/></span></p>\n<p>And I've already posted an answer in your previous <a href=\"https://community.st.com/t5/stm32cubeide-mcus/debugger-via-uart-without-st-link-on-nucleo-h755zi-q/m-p/892736\" target=\"_blank\"><em>debugger via UART without ST-LINK on NUCLEO-H755ZI-Q</em></a>:</p>\n<blockquote><user-mention data-id=\"104470\">@Domy_ST</user-mention> wrote:<br/>\n<p>Yes, using the ST Bootloader via UART, you don't want to connect to the STm32CubeProgrammer, as described in this post:</p>\n<p><a href=\"https://community.st.com/t5/stm32cubeprogrammer-mcus/connection-via-uart-with-stm32cubeprogrammer/td-p/892681\" target=\"_blank\">https://community.st.com/t5/stm32cubeprogrammer-mcus/connection-via-uart-with-stm32cubeprogrammer/td-p/892681</a> </p>\n</blockquote>\n<p>Did you use the same resource needed by the UART that are indicated in the<span> </span><a href=\"https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN2606</a><span> </span>\"Introduction to system memory boot mode on STM32 MCUs\"?</p>\n<p>USART3 needs PB11 and PB10 for the bootloader: </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776334259104.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776334259104.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2ec96ece-1b64-f968-72e4-c913a1e03bff.png\" title=\"mALLEm_0-1776334259104.png\"/></span></p>\n<p>While in the NUCLEO board is connected to PD8 and PD9 as indicated by the schematic:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1776334259149.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1776334259149.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/c450cdb4-fdbc-77a6-3dc3-3e0ba43fb4d3.png\" title=\"mALLEm_1-1776334259149.png\"/></span></p>\n<p> </p>\n<p>So you need to wire connect PB10 to PD8 and PB11 to PD9, so the STLINK-VCP will be connected to the USART3 and use the ST bootloader.</p>\n<p>You don't need that \"<span>USB SERIAL CH340\" and use STLINK VCP.</span></p>\n<p>You need to follow the Boot loader process using the boot pin:</p>\n<p>1- Put the BOOT0 pin High</p>\n<p>2- Reset the device</p>\n<p>3- Connect with the CubeProgrammer</p>\n<p>That's all.</p>\n<p>Hope that helps.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The ST Bootloader worked by making the connections you indicated. Thank you very much! .</p></div>",
+                    "author": "Domy_ST",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

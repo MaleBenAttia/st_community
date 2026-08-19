@@ -1,0 +1,73 @@
+{
+    "forum": [
+        {
+            "id": "164658",
+            "publicId": "164658",
+            "title": "STM32F411E-DISCOVERY - audio filtering",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f411e-discovery-audio-filtering-164658",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "ST boards"
+            ],
+            "published_at": "2026-04-11T13:39:59+00:00",
+            "views": 388,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Michael9 ,\n\nThere are **2 sub-demos** in the BSP example for the **STM32F411E-Discovery** board:\n\n* **AudioPlay\\_Test**\n\n* **AudioRecord\\_Test**\n\nYou can find these examples by downloading the **STM32Cube MCU Package for STM32F4 series** from ST.com using this link: [STM32CubeF4 package ,](https://www.st.com/en/embedded-software/stm32cubef4.html)\n\nAfter downloading, go to the following path: Firmware\\Projects\\STM32F411E-Discovery\\Examples\\BSP\n\nThere you will find the exact projects that can help you test the audio functionality on this specific board, **STM32F411E-Discovery**.\n\nBr",
+            "best_answer_author": "MOBEJ",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I’m starting to work with the STM32F411E‑Discovery board and I’d like to use it for real‑time audio filtering. I’m using the onboard MEMS microphone together with the mini‑jack audio output.\n\nI’m currently struggling with configuring the clock settings correctly — I’m observing a variable timing drift between the microphone input and the audio output.\n\nCould you advise on the proper clock configuration for this setup, or point me to an existing project or example that demonstrates real‑time audio processing on the STM32F411E‑Discovery?",
+            "images": [],
+            "author": "Michael9",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105989\">@Michael9</user-mention> and welcome to the ST community,</p>\n<p>Why don't use the BSP driver of the board especially the audio driver avalable in CubeF4 package / BSP: <a href=\"https://github.com/STMicroelectronics/32f411ediscovery-bsp/blob/c7de631adeb20ecd2097581ab22e88d316a8bdb3/stm32f411e_discovery_audio.c\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/32f411ediscovery-bsp/blob/c7de631adeb20ecd2097581ab22e88d316a8bdb3/stm32f411e_discovery_audio.c</a> ?</p>\n<p>Look at the demo example provided in the <a href=\"https://www.st.com/en/embedded-software/stm32cubef4.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeF4</a> package: <font color=\"#0000FF\">Projects\\STM32F411E-Discovery\\Applications\\Audio\\Audio_playback_and_record</font> especially the audio recording management implementation in <strong>waverecorder.c</strong> file.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105989\">@Michael9</user-mention> , </p><p>There are<span> </span><strong>2 sub-demos</strong><span> </span>in the BSP example for the<span> </span><strong>STM32F411E-Discovery</strong><span> </span>board:</p><ul><li><strong>AudioPlay_Test</strong></li><li><strong>AudioRecord_Test</strong></li></ul><p>You can find these examples by downloading the<span> </span><strong>STM32Cube MCU Package for STM32F4 series</strong><span> </span>from<span> ST.com </span>using this link: <a href=\"https://www.st.com/en/embedded-software/stm32cubef4.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeF4 package ,</a></p><p>After downloading, go to the following path: Firmware\\Projects\\STM32F411E-Discovery\\Examples\\BSP</p><p>There you will find the exact projects that can help you test the audio functionality on this specific board,<span> </span><strong>STM32F411E-Discovery</strong>.<br/><br/>Br</p></div>",
+                    "author": "MOBEJ",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hello,</span></p><p><span>Thank you for the very fast response. I tried using the example you mentioned, but I noticed a problem.</span></p><p><span>I want to run sound recording and playback simultaneously in a continuous loop.</span></p><p><span>I used the BSP example, but it seems that the recording and playback use different timing settings. As a result, I am getting a variable drift between the recorded and the played sound.</span></p></div>",
+                    "author": "Michael9",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Check you have the same clock configuration of the example: the same clock dividers, the same clock source etc ...</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If the sample rates match but you're still seeing a gradual drift, it's often caused by the input and output not sharing the same audio clock domain. Even a tiny mismatch (for example, 48,000 Hz vs. 47,998 Hz) accumulates over time.</p><p>A few things you could check:</p><ul><li>Verify both the MEMS microphone and the audio codec are running from the same PLL/I2S clock configuration.</li> <li>Compare the actual sample rate configured for recording and playback, not just the nominal value.</li> <li>Make sure DMA buffer sizes and interrupt timing are identical for both paths.</li> <li>If you're building a continuous full-duplex pipeline, consider using a circular/ring buffer with occasional sample insertion or removal to compensate for long-term clock drift.</li></ul><p>If your goal is simply to prototype the filtering algorithm rather than debug the STM32 clocking, it can also be useful to test the DSP logic first in a browser-based audio playground. That lets you validate filters and EQ settings before deploying them to the board. I sometimes use <a href=\"https://soniclab.io/tools/bass-booster\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://soniclab.io/tools/bass-booster</a> for quickly experimenting with bass filters and frequency adjustments before implementing similar processing on embedded hardware.</p><p>Out of curiosity, are you using the CS43L22 codec over I2S in full-duplex mode, or are the microphone input and playback running through separate interfaces?</p></div>",
+                    "author": "kaleemullah6698",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "MOBEJ",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

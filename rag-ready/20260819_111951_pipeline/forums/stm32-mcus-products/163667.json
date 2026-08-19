@@ -1,0 +1,99 @@
+{
+    "forum": [
+        {
+            "id": "163667",
+            "publicId": "163667",
+            "title": "STM32F401RE not detected via SWD – ST-Probe shows probe but Flash size = 0x00",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f401re-not-detected-via-swd-st-probe-shows-probe-but-flash-size-0x00-163667",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F4 series"
+            ],
+            "published_at": "2026-03-10T22:32:56+00:00",
+            "views": 587,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "The orientation is incorrect. Pin 1 on the chip is here:\n\n![Screenshot 2026-03-11 144339.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/437f86d6-ac09-b6ed-4bdb-2ade051e1631.png \"Screenshot 2026-03-11 144339.png\")\n\nThis does not match your pin 1 marking on the silkscreen.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nI designed a custom PCB using the STM32F401RE (LQFP64), but I cannot connect to the MCU through SWD. I am using an ST-Link probe and the st-probe command-line tool.\n\nWhen I run the probe command, the ST-Link probe itself is detected, but the target MCU is not properly identified. The tool reports the **flash size as 0x00**.\n\n**MCU:** STM32F401RE\n\n**Debugger:** ST-Link probe\n\n**Tool:** st-probe\n\n**Observed behavior:**\n\n* ST-Link probe is detected correctly.\n\n* The MCU is not detected.\n\n* Flash size reported as **0x00**.\n\n**Power measurements:**\n\n* VDD = 3.3 V\n\n* VDDA = 3.3 V (through ferrite bead BLM18AG601SN1D)\n\n* VCAP ≈ 1.2 V (2.2 µF capacitor connected directly, ~8 mm trace, no vias)\n\n* NRST = 3.3 V\n\n* Total board current ≈ **18 mA** (two LEDs also present)\n\nThe MCU does **not heat up**, and current consumption appears normal.\n\n**Power architecture:**\n\n12 V input → buck converter → 5 V → LDO → 3.3 V (MCU supply)\n\n**Analog supply filtering:**\n\nVDD → ferrite bead → VDDA\n\nDecoupling capacitors are placed near the MCU.\n\n**Debug connections:**\n\nSWDIO → PA13\n\nSWCLK → PA14\n\nNRST connected to the debugger\n\nVREF connected to 3.3 V\n\nBOOT0 pulled down with 10 kΩ\n\n**Minimal hardware configuration:**\n\nFor initial bring-up I have connected only the required components for the MCU to boot:\n\n* Power supply and decoupling capacitors\n\n* Boot configuration resistors\n\n* VCAP capacitor\n\n* SWD debugging header\n\nNo external peripherals are connected to the MCU pins.\n\nThere is **no external clock** connected:\n\n* No HSE crystal\n\n* No LSE crystal\n\nThe MCU should therefore start using the **internal HSI oscillator**.\n\n**Troubleshooting attempted:**\n\n* Verified all voltages with a multimeter\n\n* Checked board current (~18 mA)\n\n* Tried lowering SWD frequency\n\n* Tried connecting under reset\n\n**Attachments:**\n\n* PCB photos\n\n* Schematic photos\n\nCould someone help identify possible hardware issues that might prevent the MCU from being detected over SWD?\n\nThank you.\n\n![Screenshot 2026-03-11 at 3.55.20 AM.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0581936-473b-b205-c915-0b15f85bef10.png \"Screenshot 2026-03-11 at 3.55.20 AM.png\")![Screenshot 2026-03-11 at 3.55.37 AM.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/171c90c6-c948-9ec4-3cd5-a8fcf9e09f54.png \"Screenshot 2026-03-11 at 3.55.37 AM.png\")![Screenshot 2026-03-11 at 3.56.03 AM.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9172c396-e2f0-c449-069e-d3ad3aa8afe2.png \"Screenshot 2026-03-11 at 3.56.03 AM.png\")![Screenshot 2026-03-11 at 3.57.26 AM.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ba330f4a-5d25-8a83-1f8f-8f9e64b43086.png \"Screenshot 2026-03-11 at 3.57.26 AM.png\")![Screenshot 2026-03-11 at 3.57.40 AM.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fcc9ea00-2eeb-478e-869b-399e09beb8f3.png \"Screenshot 2026-03-11 at 3.57.40 AM.png\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b0581936-473b-b205-c915-0b15f85bef10.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fcc9ea00-2eeb-478e-869b-399e09beb8f3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ba330f4a-5d25-8a83-1f8f-8f9e64b43086.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/437f86d6-ac09-b6ed-4bdb-2ade051e1631.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/87f87070-10ab-08d5-78dc-0641068ad472.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35d85356-f962-ac85-b3ac-2d0f2e58e21f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/171c90c6-c948-9ec4-3cd5-a8fcf9e09f54.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9172c396-e2f0-c449-069e-d3ad3aa8afe2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bd791ae2-321b-4d13-820f-8298c7e33489.jpg"
+            ],
+            "author": "nipunsingh",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; <strong>Debugger:</strong> ST-Link probe</em></p><p>What programmer are you using? Counterfeits tend not to work well and not work with STM32CubeIDE.</p><p>Does VCAP1 have 1.2 V? If so, chip is alive and waiting for commands.</p><p><em>&gt; <strong>Tool:</strong> st-probe</em></p><p>How about with STM32CubeProgrammer?</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Thank you for the response.</span></p><p class=\"\"><span>I checked the VCAP1 voltage again, and it is still showing </span><strong><span>0 V</span></strong><span>.</span></p><p class=\"\"><span>I have not tried </span><strong><span>STM32CubeProgrammer</span></strong><span> because I am building my own </span><strong><span>custom HAL </span></strong><span>and my workflow relies on </span><span>st-probe</span><span> for flashing and debugging. I previously tested the same HAL implementation on the </span><strong><span>STM32F401RE Nucleo board</span></strong><span>, and it worked correctly there.</span></p><p class=\"\"><span>Also, this is actually my </span><strong><span>third custom board attempt</span></strong><span> using this MCU.</span></p><p class=\"\"><span>I checked the </span><strong><span>VCAP capacitor</span></strong><span>, and it measures around </span><strong><span>2.17 µF</span></strong><span> with my meter, however it is rated <strong>2.2uF</strong> . The routing from the VCAP pin to the capacitor looks correct, and it is connected directly to ground without vias.</span></p><p class=\"\"><span>Since the </span><strong><span>VCAP1 voltage itself is 0 V</span></strong><span>, it seems the internal core regulator might not be starting properly.</span></p><p class=\"\"><span>Could you suggest what conditions must be satisfied for the </span><strong><span>internal regulator to start and generate the ~1.2 V on VCAP</span></strong><span>? Are there any specific hardware requirements or common pitfalls when designing with the STM32F401RE that could cause this behavior?</span></p><p><span>Thank you for the help.</span></p></div>",
+                    "author": "nipunsingh",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If VCAP has no voltage, the chip isn't getting power.</p><p>Schematic looks okay. Maybe the part isn't soldered correctly. Show a large in focus picture of the actual board. Maybe orientation is wrong.</p><p> </p><p>In your original post you said VCAP was 1.2 V and now in your second post you said it was 0 V. Why?</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the response.</p><p>I checked the board again and verified a few things.</p><p>All <strong>VDD pins measure 3.3 V</strong>, and <strong>VDDA is also at 3.3 V</strong>.<br/><strong>NRST is at 3.3 V</strong> as well.</p><p>I also checked **continuity between the MCU pins and the corresponding capacitors **, and the connections appear correct. The SWD signals and power pins all show proper continuity to the header and supply rails.</p><p>Regarding the earlier VCAP measurement, I likely made an error during the first measurement. After checking again carefully, the <strong>VCAP pin is currently reading 0 V</strong>.</p><p>To rule out soldering or orientation issues, I am <strong>attaching clear photos of the actual PCB</strong>, including the MCU area and the SWD header, so that the solder joints and orientation can be inspected.</p><p>Thank you for the suggestion.</p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-left\" image-alt=\"IMG_3401.jpg\" style=\"width: 562px;\"><img alt=\"IMG_3401.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/87f87070-10ab-08d5-78dc-0641068ad472.jpg\" title=\"IMG_3401.jpg\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-left\" image-alt=\"IMG_3402.jpg\" style=\"width: 562px;\"><img alt=\"IMG_3402.jpg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bd791ae2-321b-4d13-820f-8298c7e33489.jpg\" title=\"IMG_3402.jpg\"/></span></p></div>",
+                    "author": "nipunsingh",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Maybe not issue related but why VBAT is not connected to VDD (if you are not using a battery)?</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"screenshot.png\" style=\"width: 239px;\"><img alt=\"screenshot.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35d85356-f962-ac85-b3ac-2d0f2e58e21f.png\" title=\"screenshot.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for the response.</p><p><span>you are correct that it should be connected to </span><strong><span>VDD</span></strong><span> if no battery is used. That was an oversight in the original design. I have already corrected it on the board by </span><strong><span>shorting VBAT and VDD</span></strong><span>.</span></p><p> </p></div>",
+                    "author": "nipunsingh",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The orientation is incorrect. Pin 1 on the chip is here:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Screenshot 2026-03-11 144339.png\" style=\"width: 202px;\"><img alt=\"Screenshot 2026-03-11 144339.png\" height=\"191\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/437f86d6-ac09-b6ed-4bdb-2ade051e1631.png\" title=\"Screenshot 2026-03-11 144339.png\" width=\"202\"/></span></p><p>This does not match your pin 1 marking on the silkscreen.</p><p> </p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>It worked!!! :party_popper:</span></p><p class=\"\"><span>Thank you so much for pointing that out. The issue was indeed the </span><strong><span>orientation of the MCU</span></strong><span>. After correcting the orientation according to the proper </span><strong><span>Pin 1 location</span></strong><span>, the chip is now detected correctly.</span></p><p class=\"\"><span>You probably just saved me from having to spin </span><strong><span>another PCB revision</span></strong><span>, so I really appreciate the help.</span></p><p><span>Thanks again!</span></p></div>",
+                    "author": "nipunsingh",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You should mark the solution that helped you as the solution, not your own reply. It helps others find the correct solution.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

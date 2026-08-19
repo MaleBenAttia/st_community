@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "163745",
+            "publicId": "163745",
+            "title": "LSM6DSV16BX: Does MEMS Studio route MLC to INT1 by default in the generated .h file?",
+            "url": "https://community.st.com/mems-sensors-48/lsm6dsv16bx-does-mems-studio-route-mlc-to-int1-by-default-in-the-generated-h-file-163745",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "MEMS Studio"
+            ],
+            "published_at": "2026-03-12T18:51:39+00:00",
+            "views": 238,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi @RotemShechterN ,\n\nHere our answers:\n\n1. Can someone confirm if routing the MLC to INT1 is indeed the default behavior of MEMS Studio?\n\nYes this is the default behavior of MEMS Studio\n\n2. If it is, is there an option or setting within the MEMS Studio GUI to change or disable this routing before exporting the .h file?\n\nThere is no way to generate header file without routing the MLC to INT1 in current version of MLC tool, we will provide this functionality in next versions of the tool.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI am developing a custom board using an STM32U5 and the LSM6DSV16BX. I am using MEMS Studio to train and configure the Machine Learning Core (MLC), but I noticed that the generated .h configuration file seems to set INT1\\_MLC1 bit at MLC\\_INT1 register by default.\n\nEven though I haven't explicitly set up physical pin routing in my project, the exported C array includes bank-switching logic that forces this configuration. I see the following sequence in my generated header:\n\n```\n\n{ .type = MEMS_CONF_OP_TYPE_WRITE, .address = 0x01, .data = 0x80 }, // Switch to Embedded Bank\n\n// ... [other configs] ...\n\n{ .type = MEMS_CONF_OP_TYPE_WRITE, .address = 0x0D, .data = 0x01 }, // MLC_INT1: Route MLC1 to INT1\n\n// ... [other configs] ...\n\n{ .type = MEMS_CONF_OP_TYPE_WRITE, .address = 0x01, .data = 0x00 }, // Return to Main Bank\n\n```\n\nBecause of this, INT1 pin is firing on MLC state changes. Since this is a custom design, I need strict control over my interrupt routing.\n\nMy questions are:\n\n1. Can someone confirm if routing the MLC to INT1 is indeed the default behavior of MEMS Studio?\n\n2. If it is, is there an option or setting within the MEMS Studio GUI to change or disable this routing before exporting the .h file?\n\nThanks in advance for the help!\n\nBest regards,\n\nRotem",
+            "images": [],
+            "author": "RotemShechterN",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105054\">@RotemShechterN</user-mention> ,</p>\n<p>Here our answers:</p>\n<ol>\n<li>Can someone confirm if routing the MLC to INT1 is indeed the default behavior of MEMS Studio?<br/>Yes this is the default behavior of MEMS Studio</li>\n<li>If it is, is there an option or setting within the MEMS Studio GUI to change or disable this routing before exporting the .h file?<br/>There is no way to generate header file without routing the MLC to INT1 in current version of MLC tool, we will provide this functionality in next versions of the tool.</li>\n</ol>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"105054\">@RotemShechterN</user-mention> ,</p><p>In the 2.4.0 release, the following options have been added in mlctool:</p><p>  --int1-disable</p><p>        Disable interrupt routing to INT1 in the generated configuration</p><p>        (enabled by default).</p><p>    --int2</p><p>        Enable interrupt routing to INT2 in the generated configuration</p><p>        (disabled by default).</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

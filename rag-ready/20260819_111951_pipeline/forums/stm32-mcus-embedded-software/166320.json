@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "166299",
+            "publicId": "166320",
+            "title": "RTC hours keep counting after 24 hours",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/rtc-hours-keep-counting-after-24-hours-166320",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeMX",
+                "STM32G4 series",
+                "RTC"
+            ],
+            "published_at": "2026-06-22T09:00:04+00:00",
+            "views": 83,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Most probably the usual case of [inadvertently set AM/PM mode](http://www.efton.sk/STM32/gotcha/g198.html), and that usually happens through using uninitialized structs when setting time.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI am using a STM32G474 and the RTC is counting >24.\n\nI have setup the RTC with the STM32CubeMX.\n\nregards Mark,",
+            "images": [],
+            "author": "MdeJong",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107643\">@MdeJong</user-mention> and welcome to the ST community,</p><p>You need to provide more details: your code and your ioc file so others could help you efficiently.</p><p>Good luck.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum</p><p>As ​<user-mention data-id=\"499\">@mƎALLEm</user-mention> said, you need to give more details - Please see <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></em>.</p><p> </p><p>But first, check your initialisations - see:</p><oembed url=\"https://community.st.com/stm32-mcus-products-25/stm32u5g9j-rtc-24-hours-format-doesn-t-work-161728\"></oembed><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Most probably the usual case of <a href=\"http://www.efton.sk/STM32/gotcha/g198.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">inadvertently set AM/PM mode</a>, and that usually happens through using uninitialized structs when setting time.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>many thanks, that gave me the right direction to look for.</p><p>regards Mark,</p></div>",
+                    "author": "MdeJong",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107643\">@MdeJong</user-mention> </p><p>Please refer to the example below:</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeG4/tree/master/Projects/NUCLEO-G431RB/Examples/RTC/RTC_Calendar\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeG4/Projects/NUCLEO-G431RB/Examples/RTC/RTC_Calendar at master · STMicroelectronics/STM32CubeG4</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I have found the cause.</p><p> </p><p>in the function HAL_StatusTypeDef HAL_RTC_Init(RTC_HandleTypeDef *hrtc):</p><p>When the INITS bit in the ICSR register is set, then the CR register is not initialized.</p><p> </p><p>This means that when the year is != 0 the register CR will not be set, also not the FMT bit, </p><p>So you can not switch between 12 and 24 hours mode when the year is != 0.</p><p> </p><p>Regards Mark,</p></div>",
+                    "author": "MdeJong",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

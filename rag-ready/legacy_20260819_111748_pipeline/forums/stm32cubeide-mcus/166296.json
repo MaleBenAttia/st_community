@@ -1,0 +1,79 @@
+{
+    "forum": [
+        {
+            "id": "166275",
+            "publicId": "166296",
+            "title": "CubeIDE 2.1.1: AHBENR missing IOPDEN for STM32F030R8T",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/cubeide-2-1-1-ahbenr-missing-iopden-for-stm32f030r8t-166296",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "RCC",
+                "STM32F0 series",
+                "GPIO-EXTI",
+                "Error"
+            ],
+            "published_at": "2026-06-19T15:43:03+00:00",
+            "views": 47,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Andrew Neil\n\nLet me thank you for bringing this issue to our attention.\n\nAn internal ticket has been created and submitted to the dedicated team (Ticket Number: CDM0063714)\n\nThanks.\n\nMahmoud\n\n#",
+            "best_answer_author": "Mahmoud Ben Romdhane",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "STM32F030R8T - as on the Nucleo-F030R8\n\nPD2 should be present:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ccc5b6a7-0880-4b15-8303-1d4201843255.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a184aaa3-caf4-47b7-b6fc-1504f87aee04.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/302c3396-9c8c-4752-8e7e-3ac095540d27.png)\n\nTherefore GPIODEN should be present at RCC\\_AHBENR[20]:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ed26541-dfa1-4944-96d2-782dbf2b915a.png)\n\nBut it’s not present in the CubeIDE SFRs view:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ebb4f612-56a4-4e3a-b978-f9155458e353.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf47f270-fd99-40b0-bdb6-277bf480ac21.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a184aaa3-caf4-47b7-b6fc-1504f87aee04.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5ed26541-dfa1-4944-96d2-782dbf2b915a.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ebb4f612-56a4-4e3a-b978-f9155458e353.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/302c3396-9c8c-4752-8e7e-3ac095540d27.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ccc5b6a7-0880-4b15-8303-1d4201843255.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bcd06662-cd01-4667-aa3a-d5982b33848f.png"
+            ],
+            "author": "Andrew Neil",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"35659\">@Andrew Neil</user-mention> </p><p> </p><p>Let me thank you for bringing this issue to our attention.</p><p>An internal ticket has been created and submitted to the dedicated team (Ticket Number: CDM0063714)</p><p> </p><p>Thanks.</p><p>Mahmoud</p><h1> </h1></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"35659\">@Andrew Neil</user-mention> </p><p>Let me thank you for posting.</p><p>I am currently checking this behavior, and I will get back to you ASAP.</p><p>Thanks.</p><p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"35659\">@Andrew Neil</user-mention> </p><p>After checking, the PD2 Pin is supported in <strong>STM32F030R8T.</strong></p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf47f270-fd99-40b0-bdb6-277bf480ac21.png\"/></figure><p>Thanks.</p><p>Mahmoud</p></div>",
+                    "author": "Mahmoud Ben Romdhane",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I know the <em>pin </em>is supported - it’s the <strong>bit </strong>in CubeIDE’s display of AHBENR that’s missing!</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bcd06662-cd01-4667-aa3a-d5982b33848f.png\"/></figure><p> </p><p>IOP<u><strong>D</strong></u>EN should appear between IOP<u><strong>C</strong></u>EN and IOP<u><strong>F</strong></u>EN </p><p> </p><p>The full value of the AHBENR register is correct - it’s just that the decode of the IOP<u><strong>D</strong></u>EN bit is missing.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Mahmoud Ben Romdhane",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

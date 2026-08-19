@@ -1,0 +1,116 @@
+{
+    "forum": [
+        {
+            "id": "165638",
+            "publicId": "165638",
+            "title": "How to prevent unaligned access on backup ram?",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/how-to-prevent-unaligned-access-on-backup-ram-165638",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "RAM",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-13T08:29:09+00:00",
+            "views": 391,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\n> ---\n\n>\n\n> @OliM wrote:\n\n>\n\n> * M33 (and older devices as well?) always has an active MMU (!)\n\n>\n\n> ---\n\nIf you are referring MMU to the Memory Management Unit: there is no MMU on Cortex-M.\n\n> ---\n\n>\n\n> @OliM wrote:\n\n>\n\n> * The default memory region in STM32U5 defines the complete 0x40000000 - 0x60000000 region as peripherals and therefore device memory\n\n> * BKPSRAM is inside the Peripheral Address range, so the default map puts it as device memory\n\n> * To use BKPSRAM as \"normal\" memory, the MPU needs to be **en**abled and its region defined specifically\n\n>\n\n> ---\n\nIndeed.\n\nAccording to the reference manual, BKPSRAM is in the range of:\n\n![mALLEm_0-1779100183762.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4c955f66-cdbc-7e6e-ee5e-7dc0ece7bbe8.png \"mALLEm_0-1779100183762.png\")\n\nand according to the programming manual [PM0264](https://www.st.com/resource/en/programming_manual/pm0264-stm32-cortexm33-mcus-and-mpus-programming-manual-stmicroelectronics.pdf), Backup SRAM is in the Peripheral memory range address which has a memory attribute: **Device**:\n\n![mALLEm_1-1779100549364.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ffcae5a-7496-d7aa-f065-de9488e24d42.png \"mALLEm_1-1779100549364.png\")\n\nAs said by @waclawek.jan , and according to the CM33 TRM:\n\n[https://developer.arm.com/documentation/100230/0100/Programmers-Model/Memory-model/Unaligned-accesses:](https://developer.arm.com/documentation/100230/0100/Programmers-Model/Memory-model/Unaligned-accesses)\n\n![mALLEm_2-1779100835860.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6a3820e6-5968-d9b5-f806-8fb84e9126ab.png \"mALLEm_2-1779100835860.png\")\n\nSo you need to use MPU and configure BKPSRAM memory region of 2K as **Normal** memory attribute.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "(and why is this a problem?)\n\nIt looks like the backup ram can not be called through unaligned access on my STM32U585. The mighty internet says that this should not be completely unexpected since it is basically a peripheral and no standard Ram.\n\n![OliM_0-1778660195150.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69dcac6d-080b-0af9-5cf4-0d114b29056c.png \"OliM_0-1778660195150.png\")\n\nI have set up the BKPSRAM in the linker file like this:\n\n```\n\n#include \"partition.h\"\n\n/* Entry Point */\n\nENTRY(Reset_Handler)\n\n/* Highest address of the user mode stack */\n\n_estack = ORIGIN(RAM) + LENGTH(RAM);\t/* end of \"RAM\" Ram type memory */\n\n_Min_Heap_Size = 0x000 ;\t/* required amount of heap */\n\n_Min_Stack_Size = 0x800 ;\t/* required amount of stack */\n\n/* Memories definition */\n\nMEMORY\n\n{\n\nBKPSRAM (xrw)\t: ORIGIN = 0x40036400,\tLENGTH = 2K\n\nSRAM4\t(xrw)\t: ORIGIN = 0x28000000,\tLENGTH = 16K\n\nRAM\t(xrw)\t: ORIGIN = 0x20000000,\tLENGTH = NON_SEC_RAM_SIZE /* Secure is using end RAM3 (64k). Actual start is 0x20000000 and actual length is 768K */\n\nFLASH\t(rx)\t: ORIGIN = 0x8000000 + APP_SLOT0_NON_SEC_APP_OFFSET,\tLENGTH = NON_SEC_APP_SIZE /* Memory is divided. Actual start is 0x08000000 and actual length is 2048K */\n\n}\n\n/* Sections */\n\nSECTIONS\n\n{\n\n...\n\n/* backup ram area */\n\nBKUP_RAM(NOLOAD):\n\n{\n\n. = ALIGN(8);\n\n*(BKUP_RAM)\n\n*(BKUP_RAM*)\n\n. = ALIGN(8);\n\n}>BKPSRAM\n\n...\n\n```\n\nThe respective variables are moved in the section BKUP\\_RAM accordingly.\n\nCompiler is the arm GCC toolchain 14.2.\n\nI have found out that I can solve this with *-mno-unaligned-access* for the complete project, but of course this means missed optimization through the whole project. Is there a way to only mark the specific section/variables instead?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e5dae53-532d-be0e-96a4-572d2e839e13.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4c955f66-cdbc-7e6e-ee5e-7dc0ece7bbe8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ffcae5a-7496-d7aa-f065-de9488e24d42.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6a3820e6-5968-d9b5-f806-8fb84e9126ab.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/69dcac6d-080b-0af9-5cf4-0d114b29056c.png"
+            ],
+            "author": "OliM",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; It looks like the backup ram can not be called through unaligned access on my STM32U585.</p><p>What is \"called through unaligned access\" exactly, and how do you know that it's a problem?</p><p>I don't use the 'U5, but Cortex-M33 does support unaligned accesses at both its ports by splitting them to aligned accesses, and BKPSRAM is at an AHB bus which should support all alignments.</p><p>Note, that in 'U5, BKPSRAM *does* have ECC.</p><p>JW</p><p> </p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>+ From <a href=\"https://www.st.com/resource/en/programming_manual/pm0264-stm32-cortexm33-mcus-and-mpus-programming-manual-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">PM0264</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1778664719632.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1778664719632.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9e5dae53-532d-be0e-96a4-572d2e839e13.png\" title=\"mALLEm_0-1778664719632.png\"/></span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As you can see in the screenshot there is a str to 0x40036452 which leads to an unaligned access hard fault. Which is not present if I compile with <em>-mno-unaligned-access </em>or place the variables in standard SRAM.<em><br/></em>Considering the bus used, the reference manual states</p><p><em>CPU can access the SRAM4 and BKPSRAM through the system bus only. </em>And as the programmers manual says<em> some memories might not support unaligned access.\"</em></p><p>At least unaligned access is what the hard fault analyzer states. But ECC might be an issue when initializing the \"no load\" ram cells with values which are no multiples of its granularity :thinking_face:, that's right.</p><p> </p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As shown by <a href=\"https://www.st.com/resource/en/programming_manual/pm0264-stm32-cortexm33-mcus-and-mpus-programming-manual-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">PM0264</a><span>, </span>the \"STR\" instruction is supported by the unaligned access.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well using that specific memory the hardware doesn't seem to agree. But I'll look into the ECC topic.<br/>EDIT: ECC is turned off (flag = 1) in the option bytes and UNALIGN_TRP ist not set.</p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've looked into the Cortex-M33 TRM, and it has this to say:</p><p><em>Any unaligned access that is not faulted by the alignment restrictions and accesses <strong>Device</strong></em><br/><em>memory has UNPREDICTABLE behavior. In the Cortex®-M33 processor, accesses of this type</em><br/><em>generate an UNALIGNED UsageFault exception.</em></p><p>The default MPU map indeed sets the 0x4000'xxxx area as Device.</p><p>Do you set MPU or leave it at default?</p><p>Now how does this match your finding, is not clear to me.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>First of all thank you very much for digging through this with me <user-mention data-id=\"17162\">@waclawek.jan</user-mention> <br/>MPU is disabled, but your finding does somehow reflect what I am seeing: The controller/core is not happy about unaligned access to that \"device\" memory region. <br/>Which I would be kind of fine with, if I found a way to tell that to gcc.</p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As I've said I don't use the 'U5 and for that matter, any Cortex-M33-based STM32 either.</p><p>However, I looked into ARMv7M ARM(*) for Cortex-M4, and it says, in <em>A3.5.5 Device memory</em>:</p><p>Any unaligned access that is not faulted by the alignment restrictions and accesses Device memory has<br/>UNPREDICTABLE behavior.</p><p>i.e. unlike ARMv8M it does *not* fault in this case, it's unpredictible i.e. may fail silently as well as work as expected in most of the cases, except that we don't know which are those cases when it won't...</p><p>Interesting. I am using BKPSRAM in 'F4 extensively and never came across any alignment issue, but I need to review the mapfiles whether there is any chance for unaligned access in my programs. This is new to me.</p><p>(*) Architectural Reference Manual - yes that resulted in confusing abbreviation, but it is what it is</p><p>---</p><p>You can enforce alignment of any variable in the same way as you assign it into a particular section: using attribute, namely <a href=\"https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html#index-aligned\" rel=\"nofollow noopener noreferrer\" target=\"_self\">aligned()</a>.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>IIRC the Backup RAM has \"device\" type by default (in the MPU background region) also in F4 and maybe other families. Try to define it as normal, non-cached by the MPU, and see what happens. </p><p>(I used the backup RAM in the F446 and H743, but out of laziness just copied it to normal RAM and manipulated there).</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok, so to reiterate:</p><ul><li>M33 (and older devices as well?) always has an active MMU (!)<ul><li>MPU disabled means MMU is running with default memory map</li></ul></li><li>The default memory region in STM32U5 defines the complete 0x40000000 - 0x60000000 region as peripherals and therefore device memory </li><li>BKPSRAM is inside the Peripheral Address range, so the default map puts it as device memory</li><li>To use BKPSRAM as \"normal\" memory, the MPU needs to be <strong>en</strong>abled and its region defined specifically</li></ul><p>Is this the gist of it?</p><p>In code I now use the following and that seems to solve my issue:</p><pre class=\"lia-code-sample language-c\"><code>static void initMpu(void)\n{\n // 1. Select MPU Region Number\n MPU_NS-&gt;RNR = 0;\n //2. define an attribute type which matches normal memory\n MPU_NS-&gt;MAIR0 = 0x00000033;\n // 3. Set Base Address, Access Permissions (Read/Write)\n MPU_NS-&gt;RBAR = (0x40036400 &amp; MPU_RBAR_BASE_Msk) |\n (0x01UL &lt;&lt; MPU_RBAR_AP_Pos);// Read/Write for Privileged and Unprivileged\n\n // 4. Set Limit Address, Link to Attribute 0 (ATTR0), and Enable Region\n MPU_NS-&gt;RLAR = ((0x40036400 + 0x800 -1) &amp; MPU_RLAR_LIMIT_Msk) |\n (0x0UL &lt;&lt; MPU_RLAR_AttrIndx_Pos) | // Link to ATTR0 (Normal memory)\n (0x1UL &lt;&lt; MPU_RLAR_EN_Pos); // Enable this MPU region\n //5. enable the MPU, keeping the default map in the background\n MPU_NS-&gt;CTRL |= (0x1UL &lt;&lt; MPU_CTRL_ENABLE_Pos) | (1UL &lt;&lt; MPU_CTRL_PRIVDEFENA_Pos);\n}</code></pre></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"20760\">@OliM</user-mention> wrote:<br/>\n<ul>\n<li>M33 (and older devices as well?) always has an active MMU (!)</li>\n</ul>\n<hr/></blockquote>\n<p>If you are referring MMU to the Memory Management Unit: there is no MMU on Cortex-M. </p>\n<blockquote><hr/><user-mention data-id=\"20760\">@OliM</user-mention> wrote:\n<ul>\n<li>The default memory region in STM32U5 defines the complete 0x40000000 - 0x60000000 region as peripherals and therefore device memory </li>\n<li>BKPSRAM is inside the Peripheral Address range, so the default map puts it as device memory</li>\n<li>To use BKPSRAM as \"normal\" memory, the MPU needs to be <strong>en</strong>abled and its region defined specifically</li>\n</ul>\n<hr/></blockquote>\n<p>Indeed.</p>\n<p>According to the reference manual, BKPSRAM is in the range of:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1779100183762.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1779100183762.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4c955f66-cdbc-7e6e-ee5e-7dc0ece7bbe8.png\" title=\"mALLEm_0-1779100183762.png\"/></span></p>\n<p>and according to the programming manual <a href=\"https://www.st.com/resource/en/programming_manual/pm0264-stm32-cortexm33-mcus-and-mpus-programming-manual-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">PM0264</a>, Backup SRAM is in the Peripheral memory range address which has a memory attribute: <strong>Device</strong>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1779100549364.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1779100549364.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9ffcae5a-7496-d7aa-f065-de9488e24d42.png\" title=\"mALLEm_1-1779100549364.png\"/></span></p>\n<p>As said by <user-mention data-id=\"17162\">@waclawek.jan</user-mention> , and according to the CM33 TRM:</p>\n<p><a href=\"https://developer.arm.com/documentation/100230/0100/Programmers-Model/Memory-model/Unaligned-accesses\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://developer.arm.com/documentation/100230/0100/Programmers-Model/Memory-model/Unaligned-accesses:</a></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_2-1779100835860.png\" style=\"width: 400px;\"><img alt=\"mALLEm_2-1779100835860.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6a3820e6-5968-d9b5-f806-8fb84e9126ab.png\" title=\"mALLEm_2-1779100835860.png\"/></span></p>\n<p>So you need to use MPU and configure BKPSRAM memory region of 2K as <strong>Normal</strong> memory attribute.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

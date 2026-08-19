@@ -1,0 +1,94 @@
+{
+    "forum": [
+        {
+            "id": "164873",
+            "publicId": "164873",
+            "title": "LwIP not completing the DORA-DHCP schedule",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/lwip-not-completing-the-dora-dhcp-schedule-164873",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Ethernet",
+                "STM32H7 series",
+                "FreeRTOS",
+                "LwIP"
+            ],
+            "published_at": "2026-04-17T15:00:06+00:00",
+            "views": 418,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Some extra experimenting: changed the MCU voltage to 1.8V and the network behaves exactly as with the -DK board: DHCP-Timeout\n\nBack to 3V3 an the DHCP process is successful.\n\nWent back to the original board and found no option to alter the MCU Vdd.\n\nBut I found a header jp6, which I was not really getting any wiser on what it does.\n\nsearch through the schematics relates it to the RMII, what if?\n\nTried to alter this setting and the DHCP server is responding.\n\n-> JP6 needs to be in position PC1",
+            "best_answer_author": "GStou",
+            "best_answer_author_role": "Associate II",
+            "content_text": "*Added \"DHCP\" in the title to give the context.*\n\nUsing an STM32H7S78-DK I try to set up the network to join an IPv4 network through DHCP.\n\nI did set up the board using CubeMX, standard configuration, MPU activated.\n\nFreeRTOS + LwIP\n\nRemoved all other interfaces I don't need.\n\nMade sure the Ethernet clock shows 50MHz\n\nThe LED's on the RJ45 start to blink (Orange LED blinks with packets exchanged)\n\nbut I get no IP address.\n\ndigging in the possibilities I added a simple routine to monitor the DHCP advancements.\n\n```\n\nstruct dhcp *dhcp_data = netif_dhcp_data(&gnetif);\n\nif (dhcp_data != NULL) {\n\nprintf(\"[DHCP] State: %d, Retries: %d\\r\\n\", dhcp_data->state, dhcp_data->tries);\n\n}\n\n```\n\nthis shows I get stuck in state 6: waiting for an ACK\n\n-> what could be behind this?\n\ncan someone share an .ioc file that sets everything correctly in MX?",
+            "images": [],
+            "author": "GStou",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>What do you mean by \"DORA\" in the title?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Discover</p><p>Offer</p><p>Request</p><p>Acknowledge</p><p>The packet exchange procedure of the DHCP proces</p></div>",
+                    "author": "GStou",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"43651\">@GStou</user-mention>,</p>\n<p>First things first, could you please answer the following questions to help me better understand the issue?</p>\n<ul>\n<li>Have you tried capturing the network traffic using Wireshark?</li>\n<li>Was an ARP announcement packet sent?</li>\n<li>Are you certain that your DHCP server is functioning correctly?</li>\n<li>Could you also attach your STM32CubeMX configuration (.ioc file) so I can review it?</li>\n</ul>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I tried to reproduce the situation, as I was not trusting the waiting for ACK situation.</p><p>If true, the IP address should have been listed on the router DHCP server.</p><p>Now the board doesn't even identify the presence of the Ethernet cable anymore. LED's are on.</p><p>LED's could simply be the driver chip identifying the electric status of a connected Ethernet cable.</p><p>Can it be that I changed bit's on the board/µC that make things go bad?</p><p>Settings that remain over reprogramming?</p></div>",
+                    "author": "GStou",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"43651\">@GStou</user-mention>,</p>\n<p>Have you tried inspecting the following project available in our GitHub repository? Please focus on the LwIP configuration and the DHCP implementation in the application, as the issue may be related to a misconfiguration in DHCP or the descriptors:</p>\n<ul>\n<li><a href=\"https://github.com/STMicroelectronics/STM32CubeH7RS/tree/main/Projects/STM32H7S78-DK/Applications/LwIP/LwIP_TFTP_Server\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">STM32H7S78-DK/Applications/LwIP/LwIP_TFTP_Server</a></li>\n</ul>\n<p>Best regards,</p></div>",
+                    "author": "STackPointer64",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Some LwIP debug/diagnostic tips/resources:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-products/lwip-ethernet-in-stm32h7-working-in-stm32cubeide-but-not-in-iar/m-p/748501/highlight/true#M267524\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-products/lwip-ethernet-in-stm32h7-working-in-stm32cubeide-but-not-in-iar/m-p/748501/highlight/true#M267524</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Took the liberty to acquire a second board: NUCLEO-H7S3L8</p><p>Loaded the demo \"LwIP_TCP_Echo_Server\" application: the board got a reply from the DHCP almost immediately.</p><p>Remains my question: is there something wrong with the STM32H7S78-DK board I have?</p><p>How can I be sure?</p></div>",
+                    "author": "GStou",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Some extra experimenting: changed the MCU voltage to 1.8V and the network behaves exactly as with the -DK board: DHCP-Timeout</p><p>Back to 3V3 an the DHCP process is successful.</p><p>Went back to the original board and found no option to alter the MCU Vdd.</p><p>But I found a header jp6, which I was not really getting any wiser on what it does.</p><p>search through the schematics relates it to the RMII, what if?</p><p>Tried to alter this setting and the DHCP server is responding.</p><p>-&gt; JP6 needs to be in position PC1</p></div>",
+                    "author": "GStou",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "STackPointer64",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

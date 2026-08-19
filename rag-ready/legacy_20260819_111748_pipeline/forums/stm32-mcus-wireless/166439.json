@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "166416",
+            "publicId": "166439",
+            "title": "How to develop software for a custom board without a 32kHz Xtal.",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/how-to-develop-software-for-a-custom-board-without-a-32khz-xtal-166439",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32WBA series",
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-06-25T06:36:32+00:00",
+            "views": 98,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I discovered that it works even without directly editing the code in CubeIDE; you just need to configure it correctly in CubeMX and generate the code.\n\nI think all you need to do is avoid selecting LSE in the Clock Configuration in MX.",
+            "best_answer_author": "gocchan",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello,\n\nI'm prototyping a custom board equipped with a WBA23KE and developing its software.\n\nSince this custom board doesn't have a 32kHz crystal, I modified the code based on BLE\\_p2pServer, referencing the description on the following website.\n\n[LSEクリスタルなしでSTM32WBA上でRFアプリケーションを動かす方法 - stm32mcu](https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32WBA_without_LSE_crystal)\n\nHowever, the HAL\\_RTC\\_Init() function on line 615 of the attached main.c fails and goes into ErrorHandler().\n\nHow should I modify the code?",
+            "images": [],
+            "author": "gocchan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>In line 323 HAL_PWR_EnableBkUpAccess() is commented out. Uncomment  it.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I commented it out, but the situation didn't change.</p></div>",
+                    "author": "gocchan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I discovered that it works even without directly editing the code in CubeIDE; you just need to configure it correctly in CubeMX and generate the code.</p><p>I think all you need to do is avoid selecting LSE in the Clock Configuration in MX.</p><p> </p></div>",
+                    "author": "gocchan",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"46797\">@gocchan</user-mention>,</p><p>I believe you already figured it out, but please find below a helpful Wiki article in case you still need it.</p><p><a href=\"https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32WBA_without_LSE_crystal\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://wiki.st.com/stm32mcu/wiki/Connectivity:STM32WBA_without_LSE_crystal</a></p><p>Kind regards,<br/>Claudio</p></div>",
+                    "author": "ClaudioVertemara",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The hyperlink in his post is the Japanese version of the Wiki page.<br/>Maybe some configuration wrong with the clock tree.</p></div>",
+                    "author": "Ejack1979",
+                    "role": "Explorer"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ClaudioVertemara",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

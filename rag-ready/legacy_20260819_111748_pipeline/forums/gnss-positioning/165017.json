@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "165017",
+            "publicId": "165017",
+            "title": "No Fix and no PPS with TESEO-LIV4F",
+            "url": "https://community.st.com/gnss-positioning-120/no-fix-and-no-pps-with-teseo-liv4f-165017",
+            "category": "GNSS positioning",
+            "tags": [
+                "Positioning"
+            ],
+            "published_at": "2026-04-22T18:57:09+00:00",
+            "views": 179,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "PPS won't start until the LIV4F has a fix.\n\nThe RF\\_IN has a DC bias to drive the antenna. Same as the VCC\\_RF pin. As a first step, I recommend checking the voltage at the antenna connector to make sure it is 3.3V.\n\nThe if there is voltage, try the following:\n\n* Remove the ESD (CR1).\n\n+ Try this first and see if you can get a signal. Make sure the antenna is outside for the first test.\n\n* Remove C36 & L12 and short C34 & L11.\n\n+ This will simplify the RF input path\n\n+ The RF\\_IN pin provides DC for the antenna (same as VCC\\_RF) up to 35mA current draw. The antenna only draws 4mA, so this should be fine.\n\n+ The LIV4F has a coupling cap and inductor internal to the module.\n\nIf this works, then the antenna power LDO circuit needs to be examined.",
+            "best_answer_author": "GNSS-LeaT",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI recently made a custom PCB with the teseo-liv4ftr for an avionic and i have trouble making it work. The module responds to the nmea commands via I2C, but I couldn't get a fix whatsoever and not even a signal on the PPS pin.\n\nThe Teseo is soldered correctly and with a proper LDO power supply. Also, I am using a Taoglas active antenna (AP.25M.07.0080A).\n\nCan anybody please help me?\n\nSchematic of the design attached below.",
+            "images": [],
+            "author": "Alterra",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>PPS won't start until the LIV4F has a fix.</p><p>The RF_IN has a DC bias to drive the antenna. Same as the VCC_RF pin. As a first step, I recommend checking the voltage at the antenna connector to make sure it is 3.3V.</p><p>The if there is voltage, try the following:</p><ul><li>Remove the ESD (CR1).<ul><li>Try this first and see if you can get a signal. Make sure the antenna is outside for the first test.</li></ul></li><li>Remove C36 &amp; L12 and short C34 &amp; L11.<ul><li>This will simplify the RF input path</li><li>The RF_IN pin provides DC for the antenna (same as VCC_RF) up to 35mA current draw. The antenna only draws 4mA, so this should be fine.</li><li>The LIV4F has a coupling cap and inductor internal to the module.</li></ul></li></ul><p>If this works, then the antenna power LDO circuit needs to be examined. </p><p> </p></div>",
+                    "author": "GNSS-LeaT",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GNSS-LeaT",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

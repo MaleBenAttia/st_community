@@ -1,0 +1,84 @@
+{
+    "forum": [
+        {
+            "id": "163683",
+            "publicId": "163683",
+            "title": "EVSPIN32G06Q2S1 board damaged during power-up",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/evspin32g06q2s1-board-damaged-during-power-up-163683",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "STM32 motor control",
+                "MCSDK6",
+                "6-Steps"
+            ],
+            "published_at": "2026-03-11T08:29:51+00:00",
+            "views": 548,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello Sujay,\n\nNo it's not acceptable to remove only a resistor.\n\nTo keep isolation I suggest to  use optocouplers to bring signal from one side to another, you can look online there are plenty of schematics for optoisolating the uart communication, you can choose one that suits for your needs according speed and number of wires, consider also that case you need two power supply one for the electronic and one for the power stage, you can't supply everything with the same source if you want galvanic insulation. unless you put an insulated DC DC converter.\n\nFrancesco",
+            "best_answer_author": "francescociappa",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi,\n\nWe were attempting to control a high-voltage BLDC motor using the **EVSPIN32G06Q2S1** evaluation board. While following the *Getting Started* procedure described in **UM3394**, the board got  damaged during the power-up stage.\n\nBelow are the steps we followed and the observations we made.\n\n**Steps performed**\n\n* Generated firmware using Motor Control Workbench.\n\n* Flashed the firmware to the evaluation kit using the Nucleo board’s ST-Link.\n\n* The digital section was powered using the **3.3 V supply from the ST-Link**.\n\n**Power-up observations**\n\n* When **only AC power was applied**, the **power stage turned ON**, but the **logic section was not powered**.\n\n* When **VDD was supplied via ST-Link (3.3 V) and AC power was applied**, the board was damaged:\n\n+ The **5 A fuse (F1)** blew.\n\n+ The **0 Ω resistor (R29)** burned.\n\n+ **VDD and GND are now shorted**.\n\n**Questions**\n\n1. Could someone clarify the correct **power-up sequence** for this board when using ST-Link for programming?\n\n2. What is the purpose of **R29 shorting the logic ground and power ground**\n\n![d155ee50-4e84-4ad1-921e-96e2a7d6f9e0.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76cb9901-a588-7a1f-1024-640685ff8aa4.png \"d155ee50-4e84-4ad1-921e-96e2a7d6f9e0.png\")\n\n**References**\n\n* User Manual: [UM3394](https://www.st.com/resource/en/user_manual/um3394-evspin32g06q2s1-3phase-inverter-based-on-stspin32g0602--stmicroelectronics.pdf)\n\n* Evaluation board schematic: [EVSPIN32G06Q2S1 schematic pack](https://www.st.com/resource/en/schematic_pack/evspin32g06q2s1-schematic.pdf)\n\nWe have already ordered a new evaluation kit. Any guidance on the **recommended setup and safe bring-up procedure** would help us avoid damaging the next board.\n\nThanks in advance.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7b203754-bc4b-635a-29d4-52a7b8497e23.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76cb9901-a588-7a1f-1024-640685ff8aa4.png"
+            ],
+            "author": "sujay-s",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>Thank you for your message.</p><p>Could you please provide a few more details about the test conditions? For example:</p><ul><li>What was the input supply (AC input, voltage level, etc.)?</li><li>Was any load connected to the motor outputs?</li><li>Which external equipment was connected during the test (ST‑Link, oscilloscope, other instruments)?</li></ul><p>In addition, did you connect the board directly to the AC mains, or was an isolation transformer used? Please note that operating the board directly from the mains without galvanic isolation is extremely dangerous and may lead to severe damage to the board, as well as safety hazards for the user. We strongly recommend using an isolation transformer during development and testing to reduce the risk of catastrophic failures.</p><p>Regarding the logic supply, we recommend using the 3.3 V rail generated on the board (E3V3). To do this, please short pins 1 and 2 of connector J8 (E3V3 and VDD) so that the on‑board 3.3 V supply is used as VDD, rather than powering VDD from the ST‑Link. <span>The possibility of providing VDD externally is intended only </span><span>for programming the IC when no high voltage is present on the board; its use as a normal operating supply is highly discouraged.</span></p><p> </p><p><span>Best Regards, </span></p><p><span>Francesco </span></p></div>",
+                    "author": "francescociappa",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Francesco,</p><p>Thank you for your response.</p><p>Regarding the test conditions:</p><ol><li>The board was connected directly to 240 VAC mains, and we did not use an isolation transformer during the test.</li><li>No motor or load was connected to the output.</li><li>The ST-Link from a Nucleo board was connected to the EVSPIN32G06Q2S1 board for programming/debugging via J1.<ol><li>We also noticed that the SCLK and SWIO pins appear to be swapped on J1. Similarly, the VCP TX and RX pins seem to be swapped on J7.</li></ol></li></ol><p>We also have a question regarding the grounding scheme. In our intended setup, the motor driver will be controlled by a separate external MCU that has its own isolated power supply. Because of this, we are trying to maintain galvanic isolation between the control electronics and the power stage.</p><p>Would it be acceptable to remove the 0-ohm resistor R29 (which connects logic ground and power ground) in order to preserve this isolation? Alternatively, could you suggest a recommended method to interface an external MCU with the driver stage while maintaining isolation?</p><p>In our application, we prefer not to use the E3V3 supply generated on the evaluation board, since our controller will be powered from its own isolated supply.</p><p>Thanks in advance.</p><p>Sujay</p></div>",
+                    "author": "sujay-s",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <span>Sujay</span>, </p><p>No it's not acceptable to remove only a resistor. </p><p>To keep isolation I suggest to  use optocouplers to bring signal from one side to another, you can look online there are plenty of schematics for optoisolating the uart communication, you can choose one that suits for your needs according speed and number of wires, consider also that case you need two power supply one for the electronic and one for the power stage, you can't supply everything with the same source if you want galvanic insulation. unless you put an insulated DC DC converter. </p><p> </p><p>Francesco</p><p> </p><p> </p></div>",
+                    "author": "francescociappa",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Francesco,</p><p>We received the new eval kit and followed your recommendations: we connected it via ST-Link using a USB isolator and powered the board logic with the onboard 3.3V supply by shorting pins 1 and 2 of J8, but the AC is powered from wall socket 240V.</p><p>However, we’re facing an issue—when the motor starts spinning after \"Start\" button is pressed in Motor Pilot, the VCP disconnects from Motor Pilot. The motor continues to run(tuning required), which suggests the MCU is still operating, so it appears to be only a communication/port disconnection problem. <br/>Similar issue I found in this forum (<a href=\"https://community.st.com/t5/stm32-mcus-motor-control/evspin32f0601s3-disconnects-from-motor-pilot-6-3-0-when-pressing/td-p/825507\" target=\"_self\">Motor pilot disconnection</a>) , but the recommended fix doesn't seem to work</p><p>Do you have a suggestion for fixing this ?</p><p> </p><p> </p><div class=\"\"><div class=\"\"><p><span>Thanks in advance.</span></p><p><span>Sujay</span></p></div></div></div>",
+                    "author": "sujay-s",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <span>Sujay,</span></p><p><span>The first step is to try to decrease the speed of the UART communication. </span></p><p><span>In the motor control workbench you can find a section \"User interface\", where you can modify the speed </span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"francescociappa_1-1777015551739.png\" style=\"width: 400px;\"><img alt=\"francescociappa_1-1777015551739.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7b203754-bc4b-635a-29d4-52a7b8497e23.png\" title=\"francescociappa_1-1777015551739.png\"/></span></p><p>Cables length matters, you should keep the cable as short as possible both USB and STlink connector. Also that the motor cable should be kept short and far from communication.</p><p>Consider also that the board has no EMI filter, because it strongly depends on the motor attached, Adding an EMI filter could help to reduce noise and improve robustness of the communication.</p><p>Francesco  </p><p> </p></div>",
+                    "author": "francescociappa",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <span>Francesco,</span></p><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><div class=\"\"><p> </p><p>Thank you for your suggestions. We’ve resolved the Motor Pilot disconnection issue by using a 2-channel digital isolator between the EVAL kit and the USB-to-TTL converter. I’m now working on tuning the control parameters for the rev-up phase.</p></div></div></div></div><div class=\"\"> </div></div></div></div><div class=\"\">Sujay</div></div>",
+                    "author": "sujay-s",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "francescociappa",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "francescociappa",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "francescociappa",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

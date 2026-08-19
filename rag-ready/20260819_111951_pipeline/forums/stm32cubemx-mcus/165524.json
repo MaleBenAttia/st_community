@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "165524",
+            "publicId": "165524",
+            "title": "STM32U575ZIT6 and xcube-Freertos",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/stm32u575zit6-and-xcube-freertos-165524",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "FreeRTOS",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-05-09T01:39:14+00:00",
+            "views": 179,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Well, I have A solution.\n\nTo reproduce the error:  generate code under cubemx, go to cubeIDE and build.  Get 237 errors most of which are the result of FreeRTOS not finding stuff.  For example, task.h fails because FreeRTOS.h is not defined yet.\n\nrebuilding and cleaning the project does not help.\n\nThe first error is the clue.  Going through IDE 1.19 and comparing to 2.1.1 I get the following.\n\nBoth projects use CMSIS-V2, so I'd expect a somewhat similar structure.  Obviously, someone has been improving a few things.  (hence the problem).\n\nunder middlewares/third party there's only a  single directory /freertos/source/CMSIS\\_RTOS\\_V2 under\n\n1.19.\n\nunder 2.1.1, under third party, there are two directories one is CMSIS, the other is FreeRTOS.\n\nthe main program includes cmsis\\_os2.h.  cmsis\\_os2.c includes FreeRTOS.h and task.h in the proper order.  Apparently, though, this is not good enough.\n\nTo fix the problem, add a line of code to #include \"FreeRTOS.h\" in cmsis\\_os.h.  It can be either before or after the include for cmsis\\_os2.h.\n\nFor some reason, I get\n\n```\n\n* Definitions for defaultTask */\n\nosThreadId_t defaultTaskHandle;\n\nconst osThreadAttr_t defaultTask_attributes = {\n\n.name = \"defaultTask\",\n\n.priority = (osPriority_t) osPriorityNormal,\n\n.stack_size = 128 * 4\n\n};\n\ndefaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);\n\nvoid StartDefaultTask(void *argument)\n\n{\n\n/* USER CODE BEGIN defaultTask */\n\n/* Infinite loop */\n\nfor(;;)\n\n{\n\nosDelay(1);\n\n}\n\n/* USER CODE END defaultTask */\n\n}\n\n```\n\nduplicated in app\\_freertos.c.\n\nStill puzzled.\n\nbut it compiles properly",
+            "best_answer_author": "Harvey White",
+            "best_answer_author_role": "Senior III",
+            "content_text": "IN short, it's not working.\n\nI normally use the standard (not x-cube) and L5 processors.  I'm going to the U5 processors for a larger project.  I've gone to Cube MX 6.17.0 and CubeMXIDE 2.1.1.\n\nStarting with a blank project, I configure the pins as usual and enable xcube-FreeRTOS.  Go to CubeIDE, and without FreeRTOS, everything compiles properly.  With FreeRTOS, I get 237 errors, some understandable, and some of the following:\n\n```\n\n./Middlewares/Third_Party/FreeRTOS/Source/include/task.h:34:6: error: #error \"include FreeRTOS.h must appear in source files before include task.h\"\n\n34 | #error \"include FreeRTOS.h must appear in source files before include task.h\"\n\n| ^~~~~\n\nIn file included from ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:37:\n\n../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:62:6: error: #error \"FreeRTOS.h must be included before list.h\"\n\n62 | #error \"FreeRTOS.h must be included before list.h\"\n\n| ^~~~~\n\n../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:147:25: error: unknown type name 'TickType_t'; did you mean 'osTimerType_t'?\n\n147 | configLIST_VOLATILE TickType_t xItemValue; /**< The value being listed. In most cases this is used to sort the list in ascending order. */\n\n| ^~~~~~~~~~\n\n| osTimerType_t\n\n../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:175:25: error: unknown type name 'UBaseType_t'\n\n175 | configLIST_VOLATILE UBaseType_t uxNumberOfItems;\n\n```\n\nWhich indicates to me that something fundamental is wrong somewhere.\n\nAny ideas?\n\nHarvey",
+            "images": [],
+            "author": "Harvey White",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well, I have A solution.</p><p>To reproduce the error:  generate code under cubemx, go to cubeIDE and build.  Get 237 errors most of which are the result of FreeRTOS not finding stuff.  For example, task.h fails because FreeRTOS.h is not defined yet.</p><p>rebuilding and cleaning the project does not help.</p><p> </p><p>The first error is the clue.  Going through IDE 1.19 and comparing to 2.1.1 I get the following.</p><p>Both projects use CMSIS-V2, so I'd expect a somewhat similar structure.  Obviously, someone has been improving a few things.  (hence the problem).  </p><p>under middlewares/third party there's only a  single directory /freertos/source/CMSIS_RTOS_V2 under </p><p>1.19.</p><p>under 2.1.1, under third party, there are two directories one is CMSIS, the other is FreeRTOS.</p><p>the main program includes cmsis_os2.h.  cmsis_os2.c includes FreeRTOS.h and task.h in the proper order.  Apparently, though, this is not good enough.</p><p> </p><p>To fix the problem, add a line of code to #include \"FreeRTOS.h\" in cmsis_os.h.  It can be either before or after the include for cmsis_os2.h.</p><p>For some reason, I get</p><pre class=\"lia-code-sample language-c\"><code>* Definitions for defaultTask */\nosThreadId_t defaultTaskHandle;\nconst osThreadAttr_t defaultTask_attributes = {\n .name = \"defaultTask\",\n .priority = (osPriority_t) osPriorityNormal,\n .stack_size = 128 * 4\n};\n defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &amp;defaultTask_attributes);\nvoid StartDefaultTask(void *argument)\n{\n /* USER CODE BEGIN defaultTask */\n /* Infinite loop */\n for(;;)\n {\n osDelay(1);\n }\n /* USER CODE END defaultTask */\n}</code></pre><p>duplicated in app_freertos.c.</p><p> </p><p>Still puzzled.  </p><p>but it compiles properly</p><p> </p><p> </p><p> </p><p> </p><p> </p><p> </p></div>",
+                    "author": "Harvey White",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

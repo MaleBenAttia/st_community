@@ -1,0 +1,87 @@
+{
+    "forum": [
+        {
+            "id": "166340",
+            "publicId": "166361",
+            "title": "STM32U585 hangs after Power-On Reset, works normally after pressing NRST",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32u585-hangs-after-power-on-reset-works-normally-after-pressing-nrst-166361",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32U5 series"
+            ],
+            "published_at": "2026-06-23T08:34:45+00:00",
+            "views": 127,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nThank you for your support and suggestions.\n\nWe found the root cause of the issue. The BOOT pin was not properly pulled down during startup. After adding a 10 kΩ pull-down resistor on the BOOT pin, the STM32U585 now starts correctly after every power cycle and the issue has been resolved.\n\nIt appears that the BOOT pin was floating during power-up, causing unpredictable startup behavior. Adding the external pull-down ensured the correct boot mode was selected during POR.\n\nThank you again",
+            "best_answer_author": "HA2375-",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hi,\n\nI am using an STM32U585 MCU in a Iot Application . I am facing an issue during power-up.\n\n**Problem description:**\n\n* When the main supply is turned ON, the MCU appears to hang or gets stuck somewhere during startup.\n\n* If I press the reset pushbutton connected to NRST, the MCU starts working normally.\n\n* After that, the system runs without any issues.\n\n* Every time I turn the main supply OFF and ON again, the same problem occurs. A manual reset is required for proper operation.\n\n* This behavior is observed with different power supplies as well.\n\n**Hardware details:**\n\n* MCU: STM32U585\n\n* NRST pin: 10k  pull-up or 100nf capacitor connected\n\n* Pushbutton reset available on NRST\n\nAny suggestions or recommended checks would be greatly appreciated.\n\nThank you.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/030a4752-7c18-40b6-a5d7-6abb0ee2d692.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0769d9e6-9a17-4719-bc2c-28bfb38c3db8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/224635de-7fd8-46c8-90b6-0b738dc6ad5f.png"
+            ],
+            "author": "HA2375-",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"100038\">@HA2375-</user-mention> ;</p><p> </p><p>Could you please refer to <a href=\"https://www.st.com/resource/en/application_note/an5373-getting-started-with-stm32u5-mcu-hardware-development-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">Getting started with STM32U5 MCU hardware development - Application note</a> and check your hardware.</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum</p><p>Please see <em><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">How to write your question to maximize your chances to find a solution</a></em> for best results.</p><p>In particular, please give details of your hardware.</p><p> </p><p>The symptoms you describe sound sound like your reset circuit is not working properly - as ​<user-mention data-id=\"2019\">@KDJEM.1</user-mention> said, check your design against AN5373; see also the power rise specs in the datasheet.</p><p>Could also be a problem with oscillator startup.</p><p>Maybe there is (also) something else in your system which your code is waiting for?</p><p> </p><blockquote><p>the MCU appears to hang or gets stuck somewhere during startup</p></blockquote><p>So you need to find out where, exactly, it is getting stuck.</p><p>You can <a href=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622#:~:text=How%20to%20connect%20CubeIDE%20debugger%20to%20a%20running%20system%20(or%20crashed/stuck)%20without%20reset%20or%20flash%20programming\" rel=\"noreferrer nofollow ugc\" target=\"_self\">connect the debugger to a “running” (including “stuck”) system without doing a reset or download</a>.</p><p> </p><blockquote><ul><li> <p>NRST pin: 10k  pull-up or (sic?) 100nf capacitor connected</p> </li></ul></blockquote><p>So which one is it ?</p><p>This is a great example of why a schematic is so much better that trying to describe an electronic circuit in words!</p><p>Again, see AN5373 and the datasheet.</p><p> </p><p><strong><u>PS</u>:</strong></p><oembed url=\"https://community.st.com/stm32-mcus-products-25/stm32l0-doesn-t-start-on-power-cycle-164336?postid=732122#post732122\"></oembed><oembed url=\"https://community.st.com/stm32-mcus-products-25/mcu-doesn-t-start-after-power-cycle-reset-works-ok-164192?postid=731635#post731635\"></oembed><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em><span style=\"color:#2980b9;\">&gt; - NRST pin: 10k  pull-up or (sic?) 100nf capacitor connected</span></em></p><p><em><span style=\"color:#2980b9;\">&gt; So which one is it ?</span></em></p><p>You are probably aware of it, but the OP not, as it seems.<br/>An RC element on NRST is a simple way to keep the the MCU in reset while Vcc is rising, usually with a time constant in the low millisecond range.</p><p>The schematic would be very helpful, at least the power supply section.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"48557\">@Ozone</user-mention> ​<user-mention data-id=\"35659\">@Andrew Neil</user-mention> ​<user-mention data-id=\"2019\">@KDJEM.1</user-mention> <br/><br/>Thanks for the Replay </p><p>I have attached the schematic related to the power supply and reset section for reference. However, I am still unable to identify the root cause.</p><p>What I do not understand is why the MCU does not start properly after a power OFF/ON cycle, but starts and operates normally when I press the NRST pushbutton. Once the pushbutton reset is applied, the application runs without any issues until the next power cycle.</p><p>Could anyone please suggest what could cause this behavior? Is there anything specific I should check </p><p>Any suggestions would be greatly appreciated.<br/><br/><br/> </p><p><br/><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/030a4752-7c18-40b6-a5d7-6abb0ee2d692.png\"/></figure><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0769d9e6-9a17-4719-bc2c-28bfb38c3db8.png\"/></figure><p> </p></div>",
+                    "author": "HA2375-",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span style=\"color:#2980b9;\"><em>&gt; Could anyone please suggest what could cause this behavior? Is there anything specific I should check <br/>&gt; Any suggestions would be greatly appreciated.</em></span></p><p>I would highly recommend to check the links Andrew Neil provided. Others had a similiar (or same) problem, thus the cause might be the same.</p><p>Check the datasheet for power-up requirements (rise times, sequence of different supplies like VDD / VDDA).<br/>I would recommend to measure this on your board with a scope.<br/>And include the NRST pin if you have a scope with asufficent number of channels.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>While investigating this issue, I discovered a schematic mistake related to the PSRAM power switch (AP2280-1WG-7).</p><p>The PSRAM power rail is controlled by an AP2280 load switch. However, I mistakenly connected the STM32 3.3-V rail (VCC_3V3_STM32) to the DIS pin of the PSRAM switch instead of connecting the PSRAM output rail (VCC_3V3_PSRAM).</p><p>Interestingly, when this incorrect connection is left as-is, the board powers up and operates normally. If I disconnect the PSRAM switch or remove this connection, the STM32 does not start properly after a power cycle and only starts after pressing the NRST pushbutton.</p><p>Could this incorrect connection be causing back-powering or affecting the startup sequence? Has anyone encountered a similar issue with AP2280-1WG-7 or STM32U585?</p><p>I have attached the schematics of both the STM32 and PSRAM power switches for reference. Any suggestions would be greatly appreciated.<br/><br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/224635de-7fd8-46c8-90b6-0b738dc6ad5f.png\"/></figure><p> </p></div>",
+                    "author": "HA2375-",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>​<user-mention data-id=\"100038\">@HA2375-</user-mention> </p><p>Could this incorrect connection be causing back-powering or affecting the startup sequence?</p></blockquote><p>It certainly could!</p><p>Again, have you used the debugger to find where, exactly, your code is hanging?</p><p>If it’s hanging at the first point where the external memory is required - this may well be your answer!</p><p>Maybe try code that doesn’t rely on external memory ...</p><p> </p><p>In <a href=\"https://community.st.com/stm32-mcus-products-25/stm32u585-hangs-after-power-on-reset-works-normally-after-pressing-nrst-166361?tid=166361&amp;postid=741650#post741650:~:text=Maybe%20there%20is%20(also)%20something%20else%20in%20your%20system%20which%20your%20code%20is%20waiting%20for%3F\" rel=\"noreferrer nofollow ugc\" target=\"_self\">my 1st reply</a>:</p><blockquote><p>Maybe there is (also) something else in your system which your code is waiting for?</p></blockquote></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thank you for your support and suggestions.</p><p>We found the root cause of the issue. The BOOT pin was not properly pulled down during startup. After adding a 10 kΩ pull-down resistor on the BOOT pin, the STM32U585 now starts correctly after every power cycle and the issue has been resolved.</p><p>It appears that the BOOT pin was floating during power-up, causing unpredictable startup behavior. Adding the external pull-down ensured the correct boot mode was selected during POR.</p><p>Thank you again </p></div>",
+                    "author": "HA2375-",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

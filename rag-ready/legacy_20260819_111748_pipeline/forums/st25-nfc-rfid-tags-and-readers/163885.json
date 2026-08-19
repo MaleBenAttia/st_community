@@ -1,0 +1,85 @@
+{
+    "forum": [
+        {
+            "id": "163885",
+            "publicId": "163885",
+            "title": "ST25R3918: Infinite loop in CE mode (FeliCa) during communication when RF field is lost",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/st25r3918-infinite-loop-in-ce-mode-felica-during-communication-when-rf-field-is-lost-163885",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 NFC - RFID Readers – ST25R391x series"
+            ],
+            "published_at": "2026-03-17T10:58:11+00:00",
+            "views": 711,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nThank you, indeed your observation and analysis seems consistent.\n\nBelow a few aspects to consider:\n\n* Active P2P\n\nOn the driver, the TXE information is prioritized versus the Field information as in AP2P (ACM mode) each device field is alternating constantly, producing EON/EOF.\n\nIn case AP2P is not required on your system, such adaptation may be ok.\n\n* Timeout mechanism\n\nThe RFAL has a fail safe / timeout mechanism which will avoid such occurrences, see sanity timer\n\ngRFAL.tmr.txRx.\n\nThis mechanism is disabled in CE/Listen mode (as previously described) one shall wait endlessly for a Reader command.\n\nOnce again, if on your application/system a maximum time is known / can be defined, then you may adapt the logic within rfalPrepareTransceive(), in order to start the sanity timer regardless of no FWT/timeout defined.\n\n* SPI speed\n\n800KHz is quite slow, particularly for CE/Listen mode operation which is impaired by this factor.\n\nT3T is not as stringent as T2T or T4T, but if feasible it is strongly recommended to significantly increase the SPI speed.\n\nSuch will improve CE responses/transition times and narrow the chances for such race conditions in event processing.\n\nHope it helps\n\nKind regards\n\nGP",
+            "best_answer_author": "Grégoire Poulain",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI am using the ST25R3918 in NFC-F (FeliCa) Card Emulation (CE) mode, controlled by an MCU via RFAL (based on STEVAL-25R3916B\\_V2.1.0).\n\n**[Issue Description]**\n\nThe system works correctly under normal conditions: the ST25R3918 receives commands like \"Write Without Encryption\" or \"Read Without Encryption\" from a reader and sends back the appropriate responses.\n\nHowever, if the reader is moved away from the ST25R3918 (resulting in RF field loss) during the communication process, the MCU firmware falls into an infinite loop.\n\n**[Analysis Details]**\n\nThe loop occurs within the do-while block of demoTransceiveBlocking() in card\\_emulation.c. The call stack is as follows: rfalNfcWorker() -> rfalWorker() -> rfalRunTransceiveWorker() -> rfalTransceiveRx()\n\nInside rfalTransceiveRx(), the state gRFAL.TxRx.state remains stuck at RFAL\\_TXRX\\_STATE\\_RX\\_WAIT\\_RXS. The function st25r3916GetInterrupt() is called with the following mask: (ST25R3916\\_IRQ\\_MASK\\_RXS | ST25R3916\\_IRQ\\_MASK\\_NRE | ST25R3916\\_IRQ\\_MASK\\_EOF)\n\nSince no interrupts are triggered, it returns ST25R3916\\_IRQ\\_MASK\\_NONE, causing the rfalTransceiveRx() to break and re-enter the same state in the next cycle, preventing any progress.\n\nI expected the ST25R3916\\_IRQ\\_MASK\\_NRE (No Response Error) to trigger a timeout, but it never occurs when the field is lost.\n\n**[Questions]**\n\n1. Is it expected behavior that the NRE interrupt is not triggered when the RF field is lost in CE mode?\n\n2. What is the recommended way to handle this \"field loss during transceive\" scenario in RFAL to avoid an infinite loop? Should I explicitly monitor the External Field Event (e.g., ST25R3916\\_IRQ\\_MASK\\_EXT\\_COL or similar) to break the loop?\n\nAny advice or insights would be greatly appreciated.\n\nThank you.",
+            "images": [],
+            "author": "Tyama.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/><br/>Thank you for your detailed analysis.<br/><br/>In general could you better detail your test setup and procedure.</p><ul><li>It is mentioned ST25R3918 STEVAL, GUI controlled and some APIs used in embedded demos.<br/>Could you please clarify which demo SW you use and whether adaptations on the drivers/demos code have been performed?<br/><br/></li><li>Removal procedure<br/>The behavior is seen every time you remove the RF carrier from Reader during card emulation. or requires procedure/sequence?<br/><br/></li></ul><p>To you questions:</p><ol><li>NRE (No Response Timer Expired) IRQ occurs when there is a timeout.<br/>In CE/Listen mode there is no timeouts, a card/listener shall wait endlessly for an upcoming Reader/Poller command (as long as RF carrier is present).<br/>So yes, this is expected behavior.<br/><br/></li><li>Normally the EOF interrupt should occur and a LINK_LOSS error reported.<br/>Unclear why on your system this is not triggering. Is it possible to share an SPI trace of the occurrence for analysis?<br/><br/>Also, it is possible to externally monitor the presence of external field via the <font face=\"tahoma,arial,helvetica,sans-serif\"><em>rfalIsExtFieldOn()</em></font> and force the deactivation. Ideally this should not be required and the LINK_LOSS error reported<br/><br/></li></ol><p>Kind regards<br/><span>GP</span></p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thank you for your prompt and clear explanation regarding the NRE behavior in CE mode.</p><p>To answer your questions about my setup and the issue:</p><p>1. Environment &amp; Software</p><p>Hardware: Custom MCU board connected to ST25R3918 via SPI.</p><p>Source Code: Based on STEVAL-25R3916B_V2.1.0. Specifically, I am using the RFAL stack and card_emulation.c from the ST25R3916Demo project.</p><p>Modifications:</p><p>rfal_platform.h: Adapted to my MCU (STM32L4 series equivalent HAL).</p><p>st25r3916.c: Commented out st25r3916CheckChipID( NULL ) in the initialize function.</p><p>card_emulation.c: Only modified the IDm value.</p><p>Other parts of the RFAL stack remain unchanged.</p><p>2. Procedure to Reproduce<br/>The communication sequence is as follows (repeated every 100ms):</p><p>Reader sends \"Write Without Encryption\".</p><p>ST25R3918 sends response.</p><p>Reader sends \"Read Without Encryption\".</p><p>ST25R3918 sends response.</p><p>The infinite loop occurs randomly (approx. 1 out of 100 trials) when the reader is removed during this cycle. It is not 100% reproducible but happens frequently during stress tests.</p><p>3. SPI Trace Analysis<br/>I managed to capture a brief SPI trace right when the issue occurs.<br/>(S: MOSI from MCU to ST25R3918 / R: MISO from ST25R3918 to MCU)</p><p>The last recorded transactions were:</p><p>S: 0x5A (Read Interrupt Status)</p><p>R: 0x00, 0x08, 0x00, 0x00 (Result: EOF interrupt detected?)</p><p>S: 0xC4 (Close RX?)</p><p>S: 0x5A (Read Interrupt Status again)</p><p>R: 0x08, 0x00, 0x00, 0x00</p><p>After step 5, no further SPI activity occurs and no IRQ is triggered, even though the MCU remains in the do-while loop in demoTransceiveBlocking().</p><p>It seems the EOF interrupt (0x08) was actually reported by the chip, but for some reason, the RFAL state machine (RFAL_TXRX_STATE_RX_WAIT_RXS) does not seem to consume it or transition to an error state.</p><p>Could you please advise why the RFAL might get stuck even when the EOF bit is present in the interrupt status?</p></div>",
+                    "author": "Tyama.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Apologies, I forgot to include the link to the software package I am using. It is <strong>STSW-ST25R018</strong>: <a class=\"\" href=\"https://www.st.com/en/embedded-software/stsw-st25r018.html\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/embedded-software/stsw-st25r018.html</a></p></div>",
+                    "author": "Tyama.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thank you for the clarification of the setup and sequence.</p><p>From the SPI data you collected it seems that the EOF IRQ is occurring immediately before the transmission (C4) of the card response.<br/>In order to avoid triggering the transmission of the card response in absence of the Reader RF field, the operation before is exactly the check for RF Carrier - <font face=\"courier new,courier\">rfalIsExtFieldOn()</font>.<br/><br/>In case the transmit command is issued and the RF Carrier is lost within the SPI timing operation it may happen that the response is actually not transmitted. Nevertheless the EOF shall be processed in the next state (<font face=\"courier new,courier\">RFAL_TXRX_STATE_TX_WAIT_TXE</font>) and error LINK_LOSS reported.<br/><br/>Questions:</p><ul><li>How often is the RFAL Worker executed?</li><li>What is the SPI speed used?</li><li>For further analysis of the occurrence a complete SPI trace (with all signals, including IRQ and timings) would be required<br/><br/></li></ul><p>Kind regards<br/>GP </p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your insightful feedback. I have conducted further investigations based on your comments.</p><p>1. Answers to your questions:</p><p>SPI Speed: 800 kHz.</p><p>RFAL Worker frequency: It is called within a main loop as frequently as possible (polling).</p><p>SPI Trace: Unfortunately, capturing a complete trace with all signals (timings/IRQ) is difficult in my current environment, so I have focused on code-level debugging.</p><p><br/>2. New Findings on the Potential Root Cause:<br/>Based on my analysis, I suspect the following scenario might be causing the infinite loop. When the issue occurs, I observed a specific interrupt state in rfal_rfst25r3916.c within rfalTransceiveTx() under the RFAL_TXRX_STATE_TX_WAIT_TXE case:</p><p>When calling:<br/>irqs = st25r3916GetInterrupt( (ST25R3916_IRQ_MASK_FWL | ST25R3916_IRQ_MASK_TXE | ST25R3916_IRQ_MASK_EOF) );</p><p>The value of irqs returns 0x0808. This indicates that both ST25R3916_IRQ_MASK_TXE and ST25R3916_IRQ_MASK_EOF are set simultaneously.</p><p><br/>In the current RFAL implementation:</p><p>if( (irqs &amp; ST25R3916_IRQ_MASK_TXE) != 0U )<br/>{<br/>gRFAL.TxRx.state = RFAL_TXRX_STATE_TX_DONE;<br/>}</p><p>Since the TXE condition is evaluated first and transitions the state to TX_DONE, the EOF (field loss) flag is effectively ignored. Consequently, the state machine proceeds to RFAL_TXRX_STATE_RX_WAIT_RXS in rfalTransceiveRx(). However, since the reader has already been removed, no further interrupts occur, leading to the infinite loop in demoTransceiveBlocking().</p><p>3. Proposed Solution:<br/>To prevent this, I am considering the following modifications in RFAL_TXRX_STATE_TX_WAIT_TXE:</p><p>Check for ST25R3916_IRQ_MASK_EOF before TXE to catch the field loss immediately and return an error.</p><p>Alternatively, implementing a timeout mechanism within the do-while loop in the application layer.</p></div>",
+                    "author": "Tyama.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,<br/><br/>Thank you, indeed your observation and analysis seems consistent.<br/>Below a few aspects to consider:</p><ul><li><u>Active P2P</u><br/>On the driver, the TXE information is prioritized versus the Field information as in AP2P (ACM mode) each device field is alternating constantly, producing EON/EOF.<br/>In case AP2P is not required on your system, such adaptation may be ok.<br/><br/></li><li><span><u>Timeout mechanism</u><br/></span>The RFAL has a fail safe / timeout mechanism which will avoid such occurrences, see sanity timer <br/><font face=\"courier new,courier\">gRFAL.tmr.txRx</font>.<br/>This mechanism is disabled in CE/Listen mode (as previously described) one shall wait endlessly for a Reader command.<br/>Once again, if on your application/system a maximum time is known / can be defined, then you may adapt the logic within<font face=\"courier new,courier\"> rfalPrepareTransceive()</font>, in order to start the sanity timer regardless of no FWT/timeout defined.<br/><br/></li><li><u>SPI speed</u><br/>800KHz is quite slow, particularly for CE/Listen mode operation which is impaired by this factor.<br/><br/>T3T is not as stringent as T2T or T4T, but if feasible it is strongly recommended to significantly increase the SPI speed.<br/>Such will improve CE responses/transition times and narrow the chances for such race conditions in event processing.</li></ul><p>Hope it helps<br/><br/>Kind regards<br/>GP</p></div>",
+                    "author": "Grégoire Poulain",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>Thank you very much for the clear and detailed explanation.</p><p>Your points regarding the prioritization of TXE due to AP2P (ACM mode) and the possibility of enabling the sanity timer (gRFAL.tmr.txRx) even in CE mode are extremely helpful.</p><p>I will proceed with the following actions based on your recommendations:</p><p>Increase the SPI speed to improve response times and reduce the likelihood of race conditions.</p><p>Implement a timeout/sanity timer within the RFAL or application layer, as our system does not require indefinite waiting in CE mode.</p><p>Adjust the IRQ handling logic in rfalTransceiveTx to better suit our specific requirements, since AP2P is not used in our application.</p><p>I truly appreciate your support and the deep dive into the RFAL behavior.</p><p>Best regards,</p></div>",
+                    "author": "Tyama.1",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Grégoire Poulain",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

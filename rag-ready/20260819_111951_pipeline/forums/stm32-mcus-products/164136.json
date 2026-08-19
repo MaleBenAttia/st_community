@@ -1,0 +1,69 @@
+{
+    "forum": [
+        {
+            "id": "164136",
+            "publicId": "164136",
+            "title": "STM32G0B1KCT6 how to use dual bank as single bank to use full 256KB.",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g0b1kct6-how-to-use-dual-bank-as-single-bank-to-use-full-256kb-164136",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G0 series",
+                "Flash"
+            ],
+            "published_at": "2026-03-25T07:38:28+00:00",
+            "views": 591,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The IAR IDE flasher used by the for flashing the MCU via debugger used the below attached files and spec that defines the banks separately and does not allow write over bank2.\n\n![Sneha_0-1776331759860.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/835a33bd-4dc0-d3ab-e332-3a51215227d0.png \"Sneha_0-1776331759860.png\")\n\nThese files are now modified with full memory usage for the given MCU., which now allows writing into BANK2.\n\n![Sneha_1-1776332030780.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8f36d181-b84e-df11-334d-7b3f2917504d.png \"Sneha_1-1776332030780.png\")![Sneha_2-1776332070912.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/adea1e99-160c-16c8-eccf-9eca47150c5d.png \"Sneha_2-1776332070912.png\")![Sneha_3-1776332109911.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1ca3b18-c858-938d-1520-6be97f277d65.png \"Sneha_3-1776332109911.png\")\n\nRegards,\n\nSneha",
+            "best_answer_author": "Sneha",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I am using STM32G0B1KCT6 MCU, i would like to use the full flash of 256KB starting from 0x8000000 to 0x803FFFF. but am unable to flash in bank 2 (ranging from 0x8020000 to 0x803FFFF).\n\nif i reduce the flash size to Bank1 only, then am able to flash and run the code.\n\nI am aware its default dual bank MCU. PFA code snippet for changing it to single bank.\n\nAlso tried changing it single bank using the stcubeprogrammer but still fails to flash the MCU.\n\n```\n\nvoid ConfigureFlashToSingleBank(void)\n\n{\n\nFLASH_OBProgramInitTypeDef OBInit;\n\nHAL_FLASHEx_OBGetConfig(&OBInit);\n\n/* Check if Dual Bank mode is enabled */\n\nif (OBInit.USERConfig & FLASH_OPTR_DUAL_BANK)\n\n{\n\nHAL_FLASH_Unlock();\n\nHAL_FLASH_OB_Unlock();\n\nOBInit.OptionType = OPTIONBYTE_USER;\n\n/* Disable Dual Bank (enable linear 256KB flash) */\n\nOBInit.USERConfig &= ~FLASH_OPTR_DUAL_BANK;\n\nif (HAL_FLASHEx_OBProgram(&OBInit) == HAL_OK)\n\n{\n\nHAL_FLASH_OB_Launch(); // triggers reset\n\n}\n\nHAL_FLASH_OB_Lock();\n\nHAL_FLASH_Lock();\n\n}\n\n}\n\n```\n\nthe .icf file for the same is\n\n```\n\n/*###ICF### Section handled by ICF editor, don't touch! ****/\n\n/*-Editor annotation file-*/\n\n/* IcfEditorFile=\"$TOOLKIT_DIR$\\config\\ide\\IcfEditor\\cortex_v1_0.xml\" */\n\n/*-Specials-*/\n\ndefine symbol __ICFEDIT_intvec_start__ = 0x08000000;\n\n/*-Memory Regions-*/\n\ndefine symbol __ICFEDIT_region_ROM_start__ = 0x08000000;\n\ndefine symbol __ICFEDIT_region_ROM_end__ = 0x0803FFFF;\n\ndefine symbol __ICFEDIT_region_RAM_start__ = 0x20000000;\n\ndefine symbol __ICFEDIT_region_RAM_end__ = 0x20023FFB;\n\n/*-Sizes-*/\n\ndefine symbol __ICFEDIT_size_cstack__ = 0x400;\n\ndefine symbol __ICFEDIT_size_heap__ = 0x200;\n\n/**** End of ICF editor section. ###ICF###*/\n\ndefine memory mem with size = 4G;\n\ndefine region ROM_region = mem:[from __ICFEDIT_region_ROM_start__ to __ICFEDIT_region_ROM_end__];\n\ndefine region RAM_region = mem:[from __ICFEDIT_region_RAM_start__ to __ICFEDIT_region_RAM_end__];\n\ndefine block CSTACK with alignment = 8, size = __ICFEDIT_size_cstack__ { };\n\ndefine block HEAP with alignment = 8, size = __ICFEDIT_size_heap__ { };\n\ninitialize by copy { readwrite };\n\ndo not initialize { section .noinit };\n\nplace at address mem:__ICFEDIT_intvec_start__ { readonly section .intvec };\n\nplace in ROM_region { readonly };\n\nplace in RAM_region { readwrite,\n\nblock CSTACK, block HEAP };\n\nexport symbol __ICFEDIT_region_RAM_start__;\n\nexport symbol __ICFEDIT_region_RAM_end__;\n\n```\n\nAlso the flash region defined for dfu use is used as **@Internal Flash /0x08000000/128\\*002Kg** where it fails ...\n\nbut works when reduced to single bank with flash region defined as **@Internal Flash /0x08000000/64\\*002Kg**\n\nAttached image error appears when tried flashing through the IAR IDE.\n\nHow do i resolve this to use full flash as single bank without bank separation.\n\nPlease guide through to work as per the requirement",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/835a33bd-4dc0-d3ab-e332-3a51215227d0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8f36d181-b84e-df11-334d-7b3f2917504d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1ca3b18-c858-938d-1520-6be97f277d65.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/adea1e99-160c-16c8-eccf-9eca47150c5d.png"
+            ],
+            "author": "Sneha",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Check if you have enabled any security feature starting from BANK2 address: for example the FLASH write protection (WRP).</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\"> </div><div class=\"\"> </div><p> Hi.,<br/>Write protection on the MCU is disabled.</p><p>Thanks and regards,</p><p>Sneha</p></div>",
+                    "author": "Sneha",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Are you able to erase all the Flash and to write to the second bank using CubeProgrammer?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The IAR IDE flasher used by the for flashing the MCU via debugger used the below attached files and spec that defines the banks separately and does not allow write over bank2. </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Sneha_0-1776331759860.png\" style=\"width: 400px;\"><img alt=\"Sneha_0-1776331759860.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/835a33bd-4dc0-d3ab-e332-3a51215227d0.png\" title=\"Sneha_0-1776331759860.png\"/></span></p><p>These files are now modified with full memory usage for the given MCU., which now allows writing into BANK2.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Sneha_1-1776332030780.png\" style=\"width: 400px;\"><img alt=\"Sneha_1-1776332030780.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8f36d181-b84e-df11-334d-7b3f2917504d.png\" title=\"Sneha_1-1776332030780.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Sneha_2-1776332070912.png\" style=\"width: 400px;\"><img alt=\"Sneha_2-1776332070912.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/adea1e99-160c-16c8-eccf-9eca47150c5d.png\" title=\"Sneha_2-1776332070912.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Sneha_3-1776332109911.png\" style=\"width: 400px;\"><img alt=\"Sneha_3-1776332109911.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a1ca3b18-c858-938d-1520-6be97f277d65.png\" title=\"Sneha_3-1776332109911.png\"/></span></p><p>Regards,</p><p>Sneha</p></div>",
+                    "author": "Sneha",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

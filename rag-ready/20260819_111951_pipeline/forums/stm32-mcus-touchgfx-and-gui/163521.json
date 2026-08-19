@@ -1,0 +1,107 @@
+{
+    "forum": [
+        {
+            "id": "163521",
+            "publicId": "163521",
+            "title": "GPU2D and RGB565: Can the GPU2D use dithering in gradients?",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/gpu2d-and-rgb565-can-the-gpu2d-use-dithering-in-gradients-163521",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "GPU2D (NeoChrom)"
+            ],
+            "published_at": "2026-03-06T08:59:35+00:00",
+            "views": 833,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hi @Jack3\n\nYou’re right, there is a dither option in nema\\_graphics.h. I haven’t actively used it in a project yet, but from what I can see it’s a feature you enable on the destination (framebuffer), so it performs dithering at runtime when blitting. You need to specify both the color format and the dither option, like this:\n\n```\n\nimg_obj_t fb;\n\nfb.w = RESX;\n\nfb.h = RESY;\n\nfb.format = NEMA_RGBA8888 | NEMA_DITHER;\n\nfb.stride = RESX*4;\n\nnema_bind_dst_tex(fb_base_phys, fb.w, fb.h, fb.format, fb.stride);\n\n```\n\nRegards,\n\nJakob",
+            "best_answer_author": "JBJOE.1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello, I'm using an STM32U5G7VJTx MCU with a 480x320 display, connected to the FMC in 16-bit mode, and everything works fine using the GPU2D. I'm not using an existing GUI framework.\n\nThe pixel format used by the display is RGB565 (16bpp), so for gradients, I want to use dithering to soften the banding. I found this definition in the 'nema\\_graphics.h' file:\n\n```\n\n#define NEMA_DITHER 0x80U /**< Nema Dithering */\n\n```\n\nHowever, it seems undocumented. How do I make use of it?\n\nKind regerds, Jack.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9a7c60e4-a60a-461b-989e-156622399aad.jpg"
+            ],
+            "author": "Jack3",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"38474\">@Jack3</user-mention> wrote:<br/>\n<p><span>I'm not using an existing GUI framework.</span></p>\n<hr/></blockquote>\n<p>If you are not using <span>a specific GUI framework why posting in </span><a class=\"lia-link-navigation crumb-board lia-breadcrumb-board lia-breadcrumb-forum\" href=\"https://community.st.com/t5/stm32-mcus-touchgfx-and-gui/bd-p/mcu-touch-gfx-gui-forum\" id=\"link_4\" style=\"background-color: #ffffff;\" target=\"_blank\">STM32 MCUs TouchGFX and GUI</a><span> forum board?</span></p>\n<p><span>Where you find that 'nema_graphics.h' file? a ST package? </span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That is abundantly clear: it says \"and <strong>GUI</strong>\", and this concerns exactly a <strong>GUI</strong>, albeit my own.<br/>BTW, <strong>GUI</strong> stands for \"<span><strong>G</strong>raphical <strong>U</strong>ser <strong>I</strong>nterface\".</span><br/>Thank you for your concern. I hope this helps.</p></div>",
+                    "author": "Jack3",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I know what GUI means and this forum board is only focusing on TouchGFX solution. Therefore this post will be moved to the correct forum board.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"38474\">@Jack3</user-mention> </p><p><span>You’re right, there is a dither option in </span>nema_graphics.h<span>. I haven’t actively used it in a project yet, but from what I can see it’s a feature you enable on the destination (framebuffer), so it performs dithering at runtime when blitting. You need to specify both the color format and the dither option, like this:</span></p><pre class=\"lia-code-sample language-c\"><code>img_obj_t fb;\nfb.w = RESX;\nfb.h = RESY;\nfb.format = NEMA_RGBA8888 | NEMA_DITHER;\nfb.stride = RESX*4;\nnema_bind_dst_tex(fb_base_phys, fb.w, fb.h, fb.format, fb.stride);</code></pre><p> Regards, <br/>Jakob</p></div>",
+                    "author": "JBJOE.1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Jakob, thank you very much!<br/>That works like a charm!<br/>It is much desired on 16-bit famebuffers like below:</p><pre class=\"lia-code-sample language-c\"><code>img_obj_t fb;\nfbo.w = ILI9488_SIZE_X;\nfbo.h = ILI9488_SIZE_Y;\nfbo.stride = fbo.w * ILI9488_BYTES_PER_PIXEL; /* ILI9488_BYTES_PER_PIXEL = 2 */\nfbo.format = NEMA_BGR565 | NEMA_DITHER;\nnema_bind_dst_tex(fb_base_phys, fb.w, fb.h, fb.format, fb.stride);</code></pre><p>You are a super-hero!<br/>Regards,<br/><span>Jack.</span></p></div>",
+                    "author": "Jack3",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>After checking with <user-mention data-id=\"1301\">@Osman SOYKURT</user-mention> , it seems that Nema knowledge (<span data-teams=\"true\"><em>Think Silicon</em> was the owner of that solution</span>) was transferred to ST (something that I was not aware of as moderator).</p>\n<p>Therefore, any other <strong>Nema</strong> related questions <u>need to be posted in TouchGFX forum board</u> to be treated by TouchGFX team as they can handle it.</p>\n<p><strong>PS</strong>: meanwhile we (as admins) keep the same position: questions about solutions not provided by ST while using STM32 MCUs need to be posted in \"<span>Others: STM32 MCUs related\" forum board such as LVGL, QT GUI etc..</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Note that the GPU2D and NemaGFX libraries aren't covered by the reference manuals at all, as you figured.</span></p><p><span>So I had the assumption that the TouchGFX team has the most knowledge about GPU2D and the NemaGFX libraries, much more than \"Others: STM32 MCUs related\", or am I wrong about that?<br/></span></p></div>",
+                    "author": "Jack3",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"38474\">@Jack3</user-mention> <br/><br/>You are right, the TouchGFX team has a lot of knowledge on the GPU2D. I will most likely see all posts on related to NeoChorm, especially if they are posted in \"STM32 MCUs TouchGFX and GUI\". <br/>So, keep the Topics flowing, I will try to help as best as I can. <br/><br/>Regards,</p></div>",
+                    "author": "JBJOE.1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>To play with Riverdi displays connected to the FMC and with the GPU2D on a Nucleo-board I use this one:</p><p>NUCLEO-U5A9ZJ-Q:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9a7c60e4-a60a-461b-989e-156622399aad.jpg\"/></figure><p> </p></div>",
+                    "author": "Jack3",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JBJOE.1",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JBJOE.1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

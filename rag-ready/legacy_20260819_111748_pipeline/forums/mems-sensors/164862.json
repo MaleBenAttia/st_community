@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "164862",
+            "publicId": "164862",
+            "title": "Lis3dh : X Y & Z value and Threshold configuration",
+            "url": "https://community.st.com/mems-sensors-48/lis3dh-x-y-z-value-and-threshold-configuration-164862",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Accelerometers"
+            ],
+            "published_at": "2026-04-17T10:08:22+00:00",
+            "views": 148,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @ASREB ,\n\n1) The LIS3DH outputs acceleration data in units of \"g\" (gravitational acceleration), not directly in m/s². To convert the raw output to m/s², you must:\n\n* Read the raw data from the sensor registers.\n\n* Apply the sensitivity value (which depends on the selected full-scale range, e.g., ±2g, ±4g, ±8g, ±16g).\n\n* Multiply the result by the standard gravity (9.80665 m/s²) to obtain the value in m/s².\n\nThe conversion formula is:\n\n```\n\nAcceleration (m/s²) = Raw_Value * Sensitivity * 9.80665\n\n```\n\nWhere Sensitivity is in g/LSB, as specified in the LIS3DH datasheet for the selected range.\n\n2) The LIS3DH interrupt logic for the XLIE, YLIE, ZLIE bits in the INT1\\_CFG register is as follows:\n\n* The \"Low event\" (LIE) is triggered when the acceleration value on the selected axis goes below the threshold set in the INT1\\_THS register.\n\n* The comparison is performed on the signed value of the acceleration, not the absolute value.\n\nThis means:\n\n* The interrupt is triggered if the acceleration on the selected axis is less than the threshold (X < threshold, Y < threshold, Z < threshold), considering the sign.\n\n* It does NOT trigger on the absolute value (|X| < threshold).\n\nFor your example: if the measured value is (-18.442175, -19.566559, -19.461311) and the threshold is set to 5 m/s², the interrupt will NOT be triggered by the LIE bits, because the values are much less than the threshold (in the negative direction), but the logic is for the value being less than the threshold, not the absolute value.\n\nGiven your configuration (AOI = 1, XLIE/YLIE/ZLIE = 1, threshold = 5 m/s²), and the measured values (-18.442175, -19.566559, -19.461311):\n\n* The interrupt will be triggered if all three axes are below the threshold (since AOI = 1 means AND logic).\n\n* Since all values are negative and less than 5 m/s², the interrupt will be triggered.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI have two technical questions regarding the lis3dh accelerometer behavior and interrupt configuration.\n\n1) Are the values I read from the LIS3dh  in **m/s²????**\n\nExemple :::\n\nAccel [LIS3dh] 28807220458ns (-7.300384, -1.942303, -5.712095)\n\n2) Interrupt logic (INT1\\_CFG :: XLIE / YLIE / ZLIE)\n\nWhen I configure an interrupt threshold, for example 5 m/s², and enable the axis event bits in INT1\\_CFG\n\nXLIE / YLIE / ZLIE\n\nDo the **Low events** correspond to the following type of comparison?\n\nX < threshold, Y < threshold, Z < threshold\n\nOr do they correspond to:\n\n|X| < threshold, |Y| < threshold, |Z| < threshold\n\nFor instance, if I have the following measured values and the interrupt threshold is set to **5 m/s²**:\n\n* Would this condition trigger an interrupt or not, according to the configured AOI ,XLIE / YLIE / ZLIE  (i put 1 for this register)???\n\nAccel [LIS3DH] 29380340576ns (-18.442175, -19.566559, -19.461311)\n\nThanks for your response",
+            "images": [],
+            "author": "ASREB",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"106197\">@ASREB</user-mention> ,</p>\n<p>1) The LIS3DH outputs acceleration data in units of \"g\" (gravitational acceleration), not directly in m/s². To convert the raw output to m/s², you must:</p>\n<ul>\n<li>Read the raw data from the sensor registers.</li>\n<li>Apply the sensitivity value (which depends on the selected full-scale range, e.g., ±2g, ±4g, ±8g, ±16g).</li>\n<li>Multiply the result by the standard gravity (9.80665 m/s²) to obtain the value in m/s².</li>\n</ul>\n<p>The conversion formula is:</p>\n<div class=\"markdown-block\">\n<div class=\"markdown-code-container\">\n<pre><code class=\"hljs\"><span class=\"hljs-attribute\">Acceleration</span> (m/s²) = Raw_Value * Sensitivity * <span class=\"hljs-number\">9</span>.<span class=\"hljs-number\">80665</span>\n</code></pre>\n</div>\n</div>\n<p>Where Sensitivity is in g/LSB, as specified in the LIS3DH datasheet for the selected range.</p>\n<p><span title=\"AN3308.pdf, page 7\">2) </span>The LIS3DH interrupt logic for the XLIE, YLIE, ZLIE bits in the INT1_CFG register is as follows:</p>\n<ul>\n<li>The \"Low event\" (LIE) is triggered when the acceleration value on the selected axis goes below the threshold set in the INT1_THS register.</li>\n<li>The comparison is performed on the signed value of the acceleration, not the absolute value.</li>\n</ul>\n<p>This means:</p>\n<ul>\n<li>The interrupt is triggered if the acceleration on the selected axis is less than the threshold (X &lt; threshold, Y &lt; threshold, Z &lt; threshold), considering the sign.</li>\n<li>It does NOT trigger on the absolute value (|X| &lt; threshold).</li>\n</ul>\n<p>For your example: if the measured value is (-18.442175, -19.566559, -19.461311) and the threshold is set to 5 m/s², the interrupt will NOT be triggered by the LIE bits, because the values are much less than the threshold (in the negative direction), but the logic is for the value being less than the threshold, not the absolute value.</p>\n<p>Given your configuration (AOI = 1, XLIE/YLIE/ZLIE = 1, threshold = 5 m/s²), and the measured values (-18.442175, -19.566559, -19.461311):</p>\n<ul>\n<li>The interrupt will be triggered if all three axes are below the threshold (since AOI = 1 means AND logic).</li>\n<li>Since all values are negative and less than 5 m/s², the interrupt will be triggered.</li>\n</ul></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "166190",
+            "publicId": "166206",
+            "title": "How to Verify ST33KTPM2I Hardware Operation via SPI?",
+            "url": "https://community.st.com/stm32-mcus-security-36/how-to-verify-st33ktpm2i-hardware-operation-via-spi-166206",
+            "category": "STM32 MCUs Security",
+            "tags": [
+                "SPI"
+            ],
+            "published_at": "2026-06-16T11:18:55+00:00",
+            "views": 62,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@hahuy,\n\nThe layout looks good.\n\nRegarding the TPM register access, you can refer to the [TPM PTP specification](https://trustedcomputinggroup.org/resource/pc-client-platform-tpm-profile-ptp-specification/) for the ST33KTPM2I3WBZA9, it’s version 1.06.\n\nSecond point, the PTP protocol to access the TPM register requires the SPI CS to be manageable in software as a TPM transaction is made as follow :\n\n* Lower the CS\n\n* Write the 4 bytes of registers\n\n* Read the acknowledge from the TPM until you get 1\n\n* Read or Write the data of the registers\n\n* Raise the CS\n\nI know that on some MPU, the CS is managed by the SPI driver and does not support fine grain management of the CS.\n\nBest Regards,\n\nBenjamin",
+            "best_answer_author": "Benjamin BARATTE",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello ST Community,\n\nBefore releasing the next revision of our prototype board, we would like to verify that the hardware implementation of the **ST33KTPM2I** is correct and that there are no hardware design issues.\n\nCurrently, the ST33KTPM2I is implemented as an optional component on our board. Before modifying the board design, we would like to perform some basic functional checks to confirm that the device is operating properly.\n\nOur interface is **SPI**.\n\nIs there any recommended way to verify communication with the ST33KTPM2I? For example, is it possible to read a device ID register or any other status information to confirm that the device is responding correctly?\n\nWe reviewed the datasheet, but it does not appear to provide details about accessible registers or a register map. Therefore, we are not sure what commands or procedures can be used to perform a basic hardware validation.\n\nThank you very much for your support.\n\nBelow is our hardware schematic:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8235386c-933f-4076-a23a-b93222956425.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8235386c-933f-4076-a23a-b93222956425.png"
+            ],
+            "author": "hahuy",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107491\">@hahuy</user-mention>,</p><p>The layout looks good.</p><p>Regarding the TPM register access, you can refer to the <a href=\"https://trustedcomputinggroup.org/resource/pc-client-platform-tpm-profile-ptp-specification/\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">TPM PTP specification</a> for the ST33KTPM2I3WBZA9, it’s version 1.06.</p><p>Second point, the PTP protocol to access the TPM register requires the SPI CS to be manageable in software as a TPM transaction is made as follow :</p><ul><li>Lower the CS</li> <li>Write the 4 bytes of registers</li> <li>Read the acknowledge from the TPM until you get 1</li> <li>Read or Write the data of the registers</li> <li>Raise the CS</li></ul><p>I know that on some MPU, the CS is managed by the SPI driver and does not support fine grain management of the CS.</p><p>Best Regards,</p><p> </p><p>Benjamin</p><p> </p></div>",
+                    "author": "Benjamin BARATTE",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Benjamin,<br/><br/>Thank you very much for your detailed explanation and for pointing me to the TPM PTP Specification v1.06.</p><p>I will review the specification and verify our SPI implementation, especially the CS handling requirements you mentioned.</p><p>If I have any further questions or encounter any issues during testing, I will come back and update this thread.</p><p>Thank you again for your support.<br/><br/>Best Regards,<br/>Hahuy</p></div>",
+                    "author": "hahuy",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Benjamin BARATTE",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

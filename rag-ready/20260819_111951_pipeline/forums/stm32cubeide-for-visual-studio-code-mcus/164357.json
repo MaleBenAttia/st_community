@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164357",
+            "publicId": "164357",
+            "title": "Recommendations for reusing Drivers and Middlewares In Repo",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/recommendations-for-reusing-drivers-and-middlewares-in-repo-164357",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32"
+            ],
+            "published_at": "2026-03-31T18:39:40+00:00",
+            "views": 284,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "If you want to reproducibly get the versions you tested as stable into your environment, I would advise you to use copies(as hosted in your own git server/service) as submodules (or part of a monorepo, if you like that), as you already seem to be doing(?).\n\nThat way you will not have multiple duplications, but you will also not be dependent on the referenced ST system to be still available as expected in the (far) future.\n\nYes, this also advises explicitly against relying on platform.io, public NuGet etc. pp. for a commercial project with more than a few month lifetime. Don't rely on external parties to keep your project buildable!\n\n@Pavel A. just so you know: git DOES support sparse checkout since 2020.",
+            "best_answer_author": "OliM",
+            "best_answer_author_role": "Senior II",
+            "content_text": "Hi all,\n\nWhat is the recommended way to not crush our repository and dynamically pull/generate the project's Drivers and Middleware folders?  For instance, our repository has both Bootloader + Application code projects in a repo (*and other MCU projects/layouts for the same board*).\n\nIs there something similar to Platform.IO (*or C#'s NuGet packages*) where the platform maintains those 3rd-party files in a volatile location and pulls them if they don't exist on your machine? Especially for the sake of not checking into the repo duplication of +15 MB worth of files for each project.\n\nPlease excuse me if this was already asked. I didn't quite find a solid answer.\n\nI'm ok with making a command line script that auto-pulls them too, if that's a possibility.",
+            "images": [],
+            "author": "Suess",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Git isn't the only version control system known to the humankind. There is another sort of source/version control which constructs \"virtual\" source tree views from sparse sources located elsewhere. For example: Perforce, Synergy, Clearcase.</p><p>Even git has ways to check out a subtree to minimize the size of working directory (git subtree, submodules) or share a repo with another working directory (git worktrees)  There are tools like Google's \"repo\", Bazel and others.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"37189\">@Pavel A.</user-mention>, you bring up a good point for other future viewers regarding other version control systems.</p><p>Like many organizations, our official repository is Git. Yes, we are using the Submodules feature to circumvent this. My inquiry was primarily for, is there an STMicro method for doing such actions?  For instance, MPLab reuses cached common libraries across projects as well to an extent</p></div>",
+                    "author": "Suess",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you've noticed, CubeMX (and CubeIDE 1.x) gives the user option to <strong>link</strong> the project to shared drivers &amp; middlewares files in the \"repository\" instead of <strong>copying</strong> them into the project tree. So these components can be shared across projects.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Here's how I share common code between Projects:</p><p><a href=\"https://community.st.com/t5/stm32-mcus-touchgfx-and-gui/same-touchgfx-project-for-multiple-cubemx-files-in-the-same/m-p/672534/highlight/true#M37503\" target=\"_blank\">https://community.st.com/t5/stm32-mcus-touchgfx-and-gui/same-touchgfx-project-for-multiple-cubemx-files-in-the-same/m-p/672534/highlight/true#M37503</a></p><p> </p><p>To be honest, I prefer to have Projects self-contained.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you want to reproducibly get the versions you tested as stable into your environment, I would advise you to use copies(as hosted in your own git server/service) as submodules (or part of a monorepo, if you like that), as you already seem to be doing(?).</p><p>That way you will not have multiple duplications, but you will also not be dependent on the referenced ST system to be still available as expected in the (far) future.<br/>Yes, this also advises explicitly against relying on platform.io, public NuGet etc. pp. for a commercial project with more than a few month lifetime. Don't rely on external parties to keep your project buildable!</p><p> </p><p><user-mention data-id=\"37189\">@Pavel A.</user-mention> just so you know: git DOES support sparse checkout since 2020.</p><p>  </p></div>",
+                    "author": "OliM",
+                    "role": "Senior II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

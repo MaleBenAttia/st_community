@@ -1,0 +1,51 @@
+{
+    "forum": [
+        {
+            "id": "164683",
+            "publicId": "164683",
+            "title": "STM32G474 pin PB4 stays high for 27ms approx, After reset and before making it low as GPIO",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g474-pin-pb4-stays-high-for-27ms-approx-after-reset-and-before-making-it-low-as-gpio-164683",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Documentation",
+                "STM32G4 series"
+            ],
+            "published_at": "2026-04-13T06:17:41+00:00",
+            "views": 296,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nThere is an internal pull-up activated during reset and the device you have (STM32G474) and according to the reference manual [RM0440](https://www.st.com/content/ccc/resource/technical/document/reference_manual/group0/7c/b0/25/29/1b/a2/42/b2/DM00355726/files/DM00355726.pdf/jcr:content/translations/en.DM00355726.pdf) belongs to the category 3:\n\n![mALLEm_1-1776248759526.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6118ab1d-7ee0-37a2-4a33-74880a2eda4f.png \"mALLEm_1-1776248759526.png\")\n\nwhich doesn't feature the option byte to disable that internal pull up.\n\n![mALLEm_2-1776248884705.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a0af9a1c-8cde-5f88-a720-87a2a9984d77.png \"mALLEm_2-1776248884705.png\")\n\nSo the internal pullup is internally hardwired in your device (category 3). Not possible to deactivate it.\n\nThe 27ms duration you are seeing depends on the reset assert duration on NRST pin.\n\nThe internal pull-up resistor value is around 40K. The only thing I can suggest is to add an external pull down resistor to make a resistor divider on the GPIO output to compensate that voltage.\n\nMeanwhile you need to make sure you calculate that resistor in a such a way the output voltage during the reset phase is lower than the VIHmin of your relay circuit activation.\n\nSuppose the VIHmin of your circuit = 2V.\n\nVmax = Repd/(Ripu+Repd) \\* VDD < 2V\n\nWhere:\n\n* Repd is the external pull down resistor to calculate\n\n* Ripu is the internal pull-up = 40K\n\n* Vmax the voltage you shouldn't exceed on PB4 to drive the relay.\n\nIf you fix Vmax at 0.5V, after calculation you find Repd = 7K.\n\n**Conclusion**: with these conditions, if you put a pull down resistor of 7K on PB4, you should have maximum level of 0.5V on the output which I think acceptable.\n\nHope that answers your question.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "This is in relation to post \"Strange behavior with STM32G474QE pin PB4([Solved: Re: Strange behaviour with STM32G474QE pin PB4 - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus-products/strange-behaviour-with-stm32g474qe-pin-pb4/m-p/179137#M37461))\"\n\nI'm facing the issue of PB4 going high for 27ms approx after MCU reset. My design is freezed, And this pin is connected to a relay which turns ON when this pin goes high. The relay turn on time is 7.5ms. Is there a solution in code initialization so that this pulse stays below 7.5ms. I'm attaching the waveform.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6118ab1d-7ee0-37a2-4a33-74880a2eda4f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a0af9a1c-8cde-5f88-a720-87a2a9984d77.png"
+            ],
+            "author": "anand_mohan",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>As discussed on the linked thread, use an external pulldown or a different pin. You cannot change the pin behavior at reset.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p data-unlink=\"true\">There is an internal pull-up activated during reset and the device you have (<span>STM32G474) and according to the reference manual <a href=\"https://www.st.com/content/ccc/resource/technical/document/reference_manual/group0/7c/b0/25/29/1b/a2/42/b2/DM00355726/files/DM00355726.pdf/jcr:content/translations/en.DM00355726.pdf\" rel=\"noopener noreferrer\" target=\"_self\">RM0440</a> </span>belongs to the category 3:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_1-1776248759526.png\" style=\"width: 400px;\"><img alt=\"mALLEm_1-1776248759526.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6118ab1d-7ee0-37a2-4a33-74880a2eda4f.png\" title=\"mALLEm_1-1776248759526.png\"/></span></p>\n<p>which doesn't feature the option byte to disable that internal pull up. </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_2-1776248884705.png\" style=\"width: 400px;\"><img alt=\"mALLEm_2-1776248884705.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a0af9a1c-8cde-5f88-a720-87a2a9984d77.png\" title=\"mALLEm_2-1776248884705.png\"/></span></p>\n<p>So the internal pullup is internally hardwired in your device (category 3). Not possible to deactivate it.</p>\n<p>The <span>27ms duration you are seeing depends on the reset assert duration on NRST pin. </span></p>\n<p><span>The internal pull-up resistor value is around 40K. The only thing I can suggest is to add an external pull down resistor to make a resistor divider on the GPIO output to compensate that voltage.</span></p>\n<p><span>Meanwhile you need to make sure you calculate that resistor in a such a way the output voltage during the reset phase is lower than the VIHmin of your relay circuit activation.</span></p>\n<p><span>Suppose the VIHmin of your circuit = 2V.</span></p>\n<p><span>Vmax = Repd/(Ripu+Repd) * VDD &lt; 2V</span></p>\n<p><span>Where:</span></p>\n<ul>\n<li><span>Repd is the external pull down resistor to calculate</span></li>\n<li><span>Ripu is the internal pull-up = 40K</span></li>\n<li><span>Vmax the voltage you shouldn't exceed on PB4 to drive the relay.</span></li>\n</ul>\n<p><span>If you fix Vmax at 0.5V, after calculation you find Repd = 7K.</span></p>\n<p><span><strong>Conclusion</strong>: w</span><span>ith these conditions, if you put a pull down resistor of 7K on PB4, you should have maximum level of 0.5V on the output which I think acceptable.</span></p>\n<p><span>Hope that answers your question.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

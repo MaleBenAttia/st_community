@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "164784",
+            "publicId": "164784",
+            "title": "HAL_Delay - out by 1ms ?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/hal-delay-out-by-1ms-164784",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "HAL2"
+            ],
+            "published_at": "2026-04-15T16:31:35+00:00",
+            "views": 277,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "*> It's as if the delay is actually the HAL\\_Delay parameter plus 1ms.*\n\nThat's exactly what it does here. Since the tick resolution is 1ms. it needs to have a buffer of 1ms to guarantee the minimum wait time. The argument is the *minimum* delay.\n\nHAL\\_Delay(1) will delay between 1-2 ms. If you call it repeatedly in a tight loop, it will delay exactly 2ms on average.\n\n[stm32f4xx-hal-driver/Src/stm32f4xx\\_hal.c at eaa636c7be367100405b2109023c6dbb12429b98 · STMicroelectronics/stm32f4xx-hal-driver](https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/eaa636c7be367100405b2109023c6dbb12429b98/Src/stm32f4xx_hal.c#L395)\n\nIf you need more precision, consider overloading HAL\\_Delay with your own more precise code. Using a TIM or the DWT->CYCCNT is popular.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "Hello,\n\nI am using HAL2 and wrote the basic code below:\n\n```\n\nwhile (1) {\n\nHAL_GPIO_TogglePin(LD1_PORT, LD1_PIN);\n\nHAL_Delay(1);\n\n}\n\n```\n\nI looked at the pin with an oscilloscope and I see that the signal stays 2ms low and 2ms high. If I change the code to HAL\\_Delay(0) I get a signal that stays low 1ms and high 1ms. It's as if the delay is actually the HAL\\_Delay parameter plus 1ms.\n\nAny explanation?\n\n-Gil",
+            "images": [],
+            "author": "gil_dobjanschi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Have you checked that your system clock is actually what you expect ?</p><p>eg, by routing to MCO.</p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em><a href=\"http://Bug%20HAL_delay() off by 1ms\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">Bug HAL_delay() off by 1ms</a></em></p><p> </p><p>So try some delays significantly longer than 1ms ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><em>&gt; It's as if the delay is actually the HAL_Delay parameter plus 1ms.</em></p><p>That's exactly what it does here. Since the tick resolution is 1ms. it needs to have a buffer of 1ms to guarantee the minimum wait time. The argument is the <em>minimum</em> delay.</p><p>HAL_Delay(1) will delay between 1-2 ms. If you call it repeatedly in a tight loop, it will delay exactly 2ms on average.</p><p><a href=\"https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/eaa636c7be367100405b2109023c6dbb12429b98/Src/stm32f4xx_hal.c#L395\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">stm32f4xx-hal-driver/Src/stm32f4xx_hal.c at eaa636c7be367100405b2109023c6dbb12429b98 · STMicroelectronics/stm32f4xx-hal-driver</a></p><p> </p><p>If you need more precision, consider overloading HAL_Delay with your own more precise code. Using a TIM or the DWT-&gt;CYCCNT is popular.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

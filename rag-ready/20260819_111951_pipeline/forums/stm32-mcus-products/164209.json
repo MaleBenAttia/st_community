@@ -1,0 +1,68 @@
+{
+    "forum": [
+        {
+            "id": "164209",
+            "publicId": "164209",
+            "title": "[STM32G0C1] Intermittent Failure of System Bootloader on FDCAN1 (Multi-node network)",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g0c1-intermittent-failure-of-system-bootloader-on-fdcan1-multi-node-network-164209",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Bootloader",
+                "STM32G0 series"
+            ],
+            "published_at": "2026-03-26T11:23:07+00:00",
+            "views": 285,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello @francescopanini ,\n\nDo you have any news or solved your issue?\n\nIf not I recommend to contact your local FAE or raise this issue to the online support over this link: <https://ols.st.com/>.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I am developing a multi-node system (16 nodes) based on the STM32G0C1MET6. During normal operation, all nodes communicate at 500k (Standard CAN). To perform a firmware update, the Master initiates the following transition sequence:\n\n1. Reconfiguration: The Master sends a global command. All nodes switch their FDCAN configuration to 250k (CAN FD) and enter Listen-Only Mode.\n\n2. Trigger: The Master then sends a specific SDO command to a single target node to trigger a jump to the System Bootloader (System Memory).\n\n3. Reflash: Once in Bootloader mode, the target node is expected to respond via FDCAN1 (as per AN2606/AN5405) to begin the reflash process. The Master repeats this node-by-node.\n\n**The Issue:** While most nodes perform the jump and reflash successfully, some specific units enter the bootloader (confirmed by status LEDs) but never respond to CAN messages. These units appear \"deaf\" to the Master's CAN FD frames at 250k.\n\nEnvironment:\n\n* MCU: STM32G0C1MET6\n\n* Interface: FDCAN1 (Pins: PD0/PD1)\n\n* Transition: 500k Standard CAN -> 250k CAN FD (System Bootloader)\n\n* Hardware: Custom board with CAN transceiver.\n\n```\n\nvoid JumpToBootloader (void)\n\n{\n\nuint32_t addr = 0x1FFF0000;\n\n__disable_irq();\n\n// 1. Reset hardware periferiche usate (FDCAN in particolare)\n\n__HAL_RCC_FDCAN_FORCE_RESET();\n\n__DSB();\n\n__HAL_RCC_FDCAN_RELEASE_RESET();\n\n// 2. De-init RCC e SysTick\n\nHAL_RCC_DeInit();\n\nSysTick->CTRL = 0;\n\nSysTick->LOAD = 0;\n\nSysTick->VAL = 0;\n\n// 3. Remap e VTOR\n\n__HAL_RCC_SYSCFG_CLK_ENABLE();\n\n__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();\n\nSCB->VTOR = 0;\n\n// FLASH->ACR |= FLASH_ACR_PROGEMPTY;\n\n// 4. Jump\n\n__set_MSP(*(volatile uint32_t*)addr);\n\nvoid (*SysMemBootJump)(void) = (void (*)(void))(*(volatile uint32_t*)(addr + 4));\n\nSysMemBootJump();\n\n}\n\n```\n\nTests Conducted & Observations\n\n1. MCU Swapping:\n\n- Scenario A: Replacing a \"failing\" MCU with a new one on the same PCB often resolves the issue.\n\n- Scenario B: A \"failing\" MCU moved to a known-good test board sometimes works correctly.\n\n2. Signal Integrity: We compared RX/TX signals (pre and post-transceiver) between working and non-working nodes using an oscilloscope. The waveforms are clean and virtually identical.\n\n3. Peripheral Isolation: To avoid the bootloader auto-detecting the wrong interface, we isolated/pulled-up other boot-capable pins (UART, I2C, SPI) where possible.\n\n4. Hardware Entry (BOOT0): To rule out software jump issues (stack pointer, caches, or clock debris), we tested entering the bootloader via the BOOT0 pin. Even with a hardware-triggered entry, the problematic units still fail to respond on the CAN bus.\n\nAny suggestions on how to debug the internal state of the Bootloader or test/fix I can try? Any suggestion is appreciated. Thank you",
+            "images": [],
+            "author": "francescopanini",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105519\">@francescopanini</user-mention> and welcome to the ST community</p>\n<p>I have two questions:</p>\n<p>1- Did you check your soldering joints?</p>\n<p>2- At which temperature range you are performing the test?</p>\n<p>3- What is the number of the tested devices? what is the number of the failing devices?</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello, </p><p> </p><div>We assembled 100-ish boards, all of which were by our assembly line, so not manual. I have tested this functionality on only 32, of which 3 have been found faulty. The swap tests I was referring to, though, have been performed manually by a trained operator. You suggested a good test, we haven't thought to inspect the soldering, both visually and via X-ray... we will do that for sure. </div><div> </div><div>All the tests have been performed at room temperature</div></div>",
+                    "author": "francescopanini",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Ok thank you for the feedback.</p>\n<blockquote><hr/><user-mention data-id=\"105519\">@francescopanini</user-mention> wrote:<br/>\n<div>All the tests have been performed at room temperature</div>\n<hr/></blockquote>\n<p>Could you please estimate what room temperature you have? </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105519\">@francescopanini</user-mention> ,</p>\n<p>Do you have any news or solved your issue?</p>\n<p>If not I recommend to contact your local FAE or raise this issue to the online support over this link: <a href=\"https://ols.st.com/\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://ols.st.com/</a>.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "167680",
+            "publicId": "167712",
+            "title": "STM32H562: Immediate standby mode makes µP inaccessible",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h562-immediate-standby-mode-makes-p-inaccessible-167712",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Power",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-08-14T12:57:14+00:00",
+            "views": 68,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nboard ?\n\nst-link V..?\n\n* look in CubeProgrammer, connect : under reset , hardware reset; + low power.\n\n* try power down , under reset...etc.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36856027-5286-4000-a89b-7f68a6b6b5f4.png)\n\nok then ?",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI want to measure the power consumption of the rest of my circuit. For that, I’m putting the STM32H562 immediately to sleep. I generate a cube project and put the following in main():\n\n```\n\nint main(void)\n\n{\n\nHAL_PWR_EnterSTANDBYMode();\n\n}\n\n```\n\nAfter flashing, the current consumption suggests that it is not running, but I’m not sure. I switch the power off and on again, the current drops by 2.2mA down to 0.5mA (including the rest of the circuit).\n\nBut now, it is not possible to connect to the processor with the cube programmer. I have to do a discover first, before being able to connect to it again. MY expectation would have been that I’m directly able to flash again.\n\nMy questions are now: Why does entering the standby (or stop) mode locks the access to the device. Is this a bug or a feature? Is is documented somewhere?\n\nBest regards,\n\nPeter",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36856027-5286-4000-a89b-7f68a6b6b5f4.png"
+            ],
+            "author": "peter7",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>board ?  </p><p>st-link V..?</p><ul><li>look in CubeProgrammer, connect : under reset , hardware reset; + low power.</li> <li>try power down , under reset...etc.</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/36856027-5286-4000-a89b-7f68a6b6b5f4.png\"/></figure><p> </p><p> </p><p>ok then ?</p><p> </p><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You’ll need to connect under reset.</p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p> </p><p>thanks for the replies. I already tried NORMAL/HOTPLUG/UNDER RESET before without success.</p><p>But POWER DOWN is working!</p><p> </p><p>ST-Link V2, custom board.</p><p> </p><p> </p></div>",
+                    "author": "peter7",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If that’s resolved the issue, please <a href=\"https://community.st.com/t5/community-guidelines/help-others-to-solve-their-issues/ta-p/575256\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\">mark the solution</a> <em>on the post which provided the answer</em> - not this one! </p><p>Otherwise:</p><p> </p><content-quote data-username=\"peter7\"><div class=\"content-quote-content\"> <p>ST-Link V2</p> </div></content-quote><p>A real one?</p><oembed url=\"https://community.st.com/stm32-mcus-60/how-to-recognize-a-genuine-st-link-v2-versus-a-cloned-one-87\"></oembed><p> </p><blockquote><p>custom board</p></blockquote><p>please show schematics</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><section><p>This sounds more like expected low-power/debug behavior than a hardware bug. When the STM32 enters Standby or certain Stop modes, the debug interface may become unavailable unless debug support is explicitly kept enabled. Check the STM32H562 reference manual and low-power/debug configuration in CubeMX. A reset or “connect under reset” option may also help with reflashing.</p></section></div>",
+                    "author": "Henryjohn",
+                    "role": "Visitor II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

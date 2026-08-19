@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "165707",
+            "publicId": "165707",
+            "title": "STM32h755 problem/ need ethernet example",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32h755-problem-need-ethernet-example-165707",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Ethernet",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-05-15T01:36:49+00:00",
+            "views": 250,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @duane-sd And welcome to the ST coommunity,\n\n> ---\n\n>\n\n> @duane-sd wrote:\n\n>\n\n> So along time ago I created a very helpful program using an STm32H743ZI nucelo board.\n\n>\n\n> ---\n\nIt was replaced by [NUCLEO-H753ZI](https://www.st.com/en/evaluation-tools/nucleo-h753zi.html). H75x has crypto acceleration compared to H74x. You need just to check the system clock when STLINK MCO is used for HSE.\n\nFor Ethernet on STM32H7, you can also refer to [How to create a project for STM32H7 with Ethernet and LwIP stack working](https://community.st.com/t5/stm32-mcus/how-to-create-a-project-for-stm32h7-with-ethernet-and-lwip-stack/ta-p/49308)",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "So along time ago I created a very helpful program using an STm32H743ZI nucelo board.\n\nThen - STM discontinued that board -- GRRRR\n\nThe recommended solution was:NUCELO-H755ZI-Q - so I purchased 4 of these.\n\nPROBLEM there are no usable examples in the STM32 cube suite that works with this board.\n\nI need to port my old STM32H743 code to this new chip GRRR Ok that should be easy.\n\nTurns out there is a huge problem with using this board because of the power supply, the key feature I need is exactly the ETHERNET interface.\n\nBUT - cubesuite does not have a ETHERNET example I can start from.. ie: that properly initializes the board to run at \"some fast speed (i do not really care, speed is not important, I just need the 100mbit ethernet to work).\n\nThe specific problem I had was I programed my board and evidently it locks the board up hard, jtag no longer works. The solution is to use a jumper force the chip into \"BOOTLOADER MODE\" then JTAG works again and I can flash-erase the chip via JTAG.\n\nI do not have the time to debug that SMP problem, I just want an example that works.\n\nI ended up giving up on the STM32H755 nucelo board and shelving the work.  Well that project has come back to life and I need to make it work.\n\nMy question today is this:\n\nDoes ST have a working STM32H755ZI working network example I can use as a starting point?\n\nOr do I need to switch to different board. I'm ok with buying another (different board) - the key thing I need is the LARGE MEMORY, and ETHERNET on an Nucleo-144 board\n\nIf there is a workign example i would love to get a new example I can start with.\n\nI did find this:  <https://github.com/stm32-hotspot/STM32H7-LwIP-Examples>\n\nBUT it is not for the 755 with the SMP goofyness.\n\nThanks.",
+            "images": [],
+            "author": "duane-sd",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>You can check out this quick example from <a href=\"https://mongoose.ws/wizard/#/output?board=h755&amp;ide=CubeIDE&amp;rtos=baremetal&amp;file=README.md\" rel=\"nofollow noopener noreferrer\" target=\"_self\">here</a>. It is a CubeIDE project for the H755ZI board using the <a href=\"https://github.com/cesanta/mongoose\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Mongoose</a> networking library, showing a simple example of a web server featuring a device dashboard.</p><p>To download it to your local workspace, <span class=\"\">select the<span> 'Settings'</span></span><span class=\"\"><span> </span>panel and choose a destination directory, then download the project to your computer by clicking the blue<span> 'Generate C/C++'</span></span><span class=\"\"><span> </span>button. You can then open it with Cube, build it and flash it. Note that there are 2 subprojects inside this project, one for each core (CM4 and CM7) - you need to flash them both, first the CM4 then the CM7 project which runs the web server.</span></p><p><span class=\"\">The IOC file already contains the proper hardware initialization including the clocks and ethernet configuration. I tested it on my H755ZI board and had no issues with the power supply during the boot.</span></p><p><span class=\"\">This project should give you a baseline from which you can start. <a href=\"https://mongoose.ws/documentation/\" rel=\"nofollow noopener noreferrer\" target=\"_self\">Mongoose API</a> is well documented and you can use it to implement your own web server featuring most of the modern protocols.</span></p><p><span class=\"\">Heads up: I'm part of Mongoose development team, I hope this gives you a good starting point.</span></p></div>",
+                    "author": "MStackDev_376",
+                    "role": "Graduate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106978\">@duane-sd</user-mention> And welcome to the ST coommunity,</p>\n<blockquote><hr/><user-mention data-id=\"106978\">@duane-sd</user-mention> wrote:<br/>\n<p>So along time ago I created a very helpful program using an STm32H743ZI nucelo board.</p>\n<hr/></blockquote>\n<p>It was replaced by <a href=\"https://www.st.com/en/evaluation-tools/nucleo-h753zi.html\" rel=\"noopener noreferrer\" target=\"_blank\">NUCLEO-H753ZI</a>. H75x has crypto acceleration compared to H74x. You need just to check the system clock when STLINK MCO is used for HSE.</p>\n<p>For Ethernet on STM32H7, you can also refer to <a href=\"https://community.st.com/t5/stm32-mcus/how-to-create-a-project-for-stm32h7-with-ethernet-and-lwip-stack/ta-p/49308\" target=\"_blank\"><span>How to create a project for STM32H7 with Ethernet and LwIP stack working</span></a></p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"106978\">@duane-sd</user-mention> If you want to continue your project from STM32H743 - by all means <a href=\"https://www.st.com/en/evaluation-tools/nucleo-h753zi.html\" rel=\"noopener noreferrer\" target=\"_self\">get the recommended replacement</a> (H753). <span>H755 is very different (dual core/CPU)  - much harder to grok. Maybe you still can return/sell/exchange.</span></p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

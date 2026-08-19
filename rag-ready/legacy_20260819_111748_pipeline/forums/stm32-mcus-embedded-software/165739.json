@@ -1,0 +1,56 @@
+{
+    "forum": [
+        {
+            "id": "165739",
+            "publicId": "165739",
+            "title": "Wrong code in stm32f4xx_ll_usb.c line 2004",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/wrong-code-in-stm32f4xx-ll-usb-c-line-2004-165739",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bug-report",
+                "USB",
+                "STM32F4 series",
+                "HAL"
+            ],
+            "published_at": "2026-05-16T08:07:10+00:00",
+            "views": 163,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi @cs\\_it\n\nI assume middle payload must be encoded as 00 as described in register description fields\n\nAn internal ticket CDM0062710   is submitted to dedicated team to report this potential bug.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nIn this file, the line:\n\n```\n\nUSBx_HC((uint32_t)ch_num)->HCSPLT |= USB_OTG_HCSPLT_XACTPOS_Pos;\n\n```\n\nwrongly alters bits 1 to 3 of register HCSPLT\n\nThat can be fixed simply by removing this line, since middle payload is encoded by bits 00 in the XACTPOS field.",
+            "images": [],
+            "author": "cs_it",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Link to the source:</p><p><a href=\"https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/61d71646b8e8d7ff76404fbbc95f03d38bcaa938/Src/stm32f4xx_ll_usb.c#L2004\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/61d71646b8e8d7ff76404fbbc95f03d38bcaa938/Src/stm32f4xx_ll_usb.c#L2004</a></p><p>Do you mean that these bits should not be touched after assignment to HCSPLT in <a href=\"https://github.com/STMicroelectronics/stm32f4xx-hal-driver/blob/61d71646b8e8d7ff76404fbbc95f03d38bcaa938/Src/stm32f4xx_ll_usb.c#L1972\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">line 1972</a> ?</p><p> </p><p>Exactly same code for STM32H7 , <a href=\"https://github.com/STMicroelectronics/stm32h7rsxx-hal-driver/blob/538787e37c07ff41c340ec142a01f4f4463bb5a8/Src/stm32h7rsxx_ll_usb.c#L2060\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">here,</a>   <a href=\"https://github.com/STMicroelectronics/stm32h7xx-hal-driver/blob/367a0a097b03a3d417dd6f6b02fd17e32b2a5742/Src/stm32h7xx_ll_usb.c#L1997\" rel=\"nofollow noopener noreferrer\" target=\"_self\">here</a></p><p>Exactly same code for STM32H5,  <a href=\"https://github.com/STMicroelectronics/stm32h5xx-hal-driver/blob/38ca4af5b1004d3f9e02003ca489df7d065b75ba/Src/stm32h5xx_ll_usb.c#L2073\" rel=\"nofollow noopener noreferrer\" target=\"_self\">here</a>.</p><p>Possibly in other MCUs too.</p><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> </p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, it's what I think. The coding style here is to set appropriate bits to one in the XACTPOS field, and all XACTPOS bits are zero for middle payload.</p></div>",
+                    "author": "cs_it",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"5966\">@cs_it</user-mention> </p>\n<p>I assume middle payload must be encoded as 00 as described in register description fields</p>\n<p>An internal ticket CDM0062710<span>   </span>is submitted to dedicated team to report this potential bug.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

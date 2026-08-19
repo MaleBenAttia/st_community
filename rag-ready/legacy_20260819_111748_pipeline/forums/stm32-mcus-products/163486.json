@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163486",
+            "publicId": "163486",
+            "title": "RTC is running extremely slowly (3 times too slow)",
+            "url": "https://community.st.com/stm32-mcus-products-25/rtc-is-running-extremely-slowly-3-times-too-slow-163486",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "RTC",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-05T10:53:43+00:00",
+            "views": 215,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "If you increase the prescaler cca 3x, the counter is going to run cca 3x slower\n\n```\n\nhrtc.Init.SynchPrediv = 999; // 255;\n\n```\n\nOkay, it's more like 4x, but the point is the same. LSI is **very** imprecise, that explains the 3x/4x difference.\n\nJW",
+            "best_answer_author": "waclawek.jan",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello.\n\nI'm having a problem with an STM32H503.\n\nI need to use the RTC, which is running on the internal 32kHz LSI clock.\n\nThe clock configuration was created with CubeMX.\n\nWhen I check the RTC, I see that it has only advanced by 21 seconds in 60 seconds. That's a deviation of 285%.\n\nThe processor is running on the HSI clock, which is divided by 2, so 32MHz.\n\nDoes anyone know why the RTC is running 3 times too slow?\n\nInit of the RCC:\n\n```\n\nRCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_LSI;\n\nRCC_OscInitStruct.HSIState = RCC_HSI_ON;\n\nRCC_OscInitStruct.HSIDiv = RCC_HSI_DIV2;\n\nRCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;\n\nRCC_OscInitStruct.LSIState = RCC_LSI_ON;\n\nRCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE; // RCC_PLL_OFF;\n\nif (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Initializes the CPU, AHB and APB buses clocks\n\n*/\n\nRCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK\n\n| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2\n\n| RCC_CLOCKTYPE_PCLK3;\n\nRCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;\n\nRCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;\n\nRCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;\n\nRCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;\n\nRCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV1;\n\nif (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\nInit of the RTC:\n\n```\n\nhrtc.Instance = RTC;\n\nhrtc.Init.HourFormat = RTC_HOURFORMAT_24;\n\nhrtc.Init.AsynchPrediv = 127;\n\nhrtc.Init.SynchPrediv = 999; // 255;\n\nhrtc.Init.OutPut = RTC_OUTPUT_DISABLE;\n\nhrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;\n\nhrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;\n\nhrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;\n\nhrtc.Init.OutPutPullUp = RTC_OUTPUT_PULLUP_NONE;\n\nhrtc.Init.BinMode = RTC_BINARY_NONE;\n\nif (HAL_RTC_Init(&hrtc) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\nprivilegeState.rtcPrivilegeFull = RTC_PRIVILEGE_FULL_NO;\n\nprivilegeState.backupRegisterPrivZone = RTC_PRIVILEGE_BKUP_ZONE_NONE;\n\nprivilegeState.backupRegisterStartZone2 = RTC_BKP_DR0;\n\nprivilegeState.backupRegisterStartZone3 = RTC_BKP_DR0;\n\nif (HAL_RTCEx_PrivilegeModeSet(&hrtc, &privilegeState) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n/** Enable the WakeUp\n\n* should be 100ms\n\n*/\n\nif (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, (100) , RTC_WAKEUPCLOCK_RTCCLK_DIV16, 0) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```",
+            "images": [],
+            "author": "Heinz_Baumer",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you increase the prescaler cca 3x, the counter is going to run cca 3x slower</p><pre> hrtc.Init.SynchPrediv = 999; // 255;</pre><p>Okay, it's more like 4x, but the point is the same. LSI is <strong>very</strong> imprecise, that explains the 3x/4x difference.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you.<br/>I've tryed to get milliseconds resolution with the RTC</p></div>",
+                    "author": "Heinz_Baumer",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Well, you can, but if you still want the RTC itself to measure real time (at least roughly), you have to change the asynchronous prescaler's value simultaneously with the synchronous one, so that multiplying them (after adding 1) results in the oscillator's frequency. Say the LSI runs at 40kHz, so you have to set the asynchronouos prescaler to 40-1 while synchronous to 1000-1.</p><p>With a precise 32.768kHz LSE you can't achieve exact 1ms, though. With LSI, the result is as imprecise as LSI itself is.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

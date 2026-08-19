@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "166198",
+            "publicId": "166216",
+            "title": "STM32C071: ADC overrun when erasing flash",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32c071-adc-overrun-when-erasing-flash-166216",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "DMA",
+                "ADC",
+                "STM32C0 series"
+            ],
+            "published_at": "2026-06-16T20:55:06+00:00",
+            "views": 57,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Issue is resolved by wait on SR\\_CFGBSY.\n\nWith a more detailed tracing it revealed that the SR\\_BSY1 wait after CR\\_STRT didn’t hit, the code actually halted on FLASH->CR &= ~FLASH\\_CR\\_PG.\n\nThe code was based on a older reference manual where BSY1 flag is used for waiting, while it changed to CFGBSY now:\n\n> To erase a page (2 Kbytes), proceed as follows:\n\n> 1. Check that no flash memory operation is ongoing on the targeted bank, by checking the\n\n> BSY1 or BSY2 bit of the FLASH status register (FLASH\\_SR).\n\n> 2.  Check and clear all error programming flags due to a previous programming. If not,\n\n> PGSERR is set.\n\n> 3.  Check that CFGBSY is cleared.\n\n> 4.  Set the PER bit and select the page to erase (BKER, PNB) in the FLASH control\n\n> register (FLASH\\_CR).\n\n> 5.  Set the STRT bit of the FLASH control register (FLASH\\_CR).\n\n> 6.  Wait until the CFGBSY bit of the FLASH status register (FLASH\\_SR) is cleared.\n\nAlso it is noted that:\n\n> The FLASH\\_CR register cannot be written when the BSY1 bit of the FLASH status register\n\n> (FLASH\\_SR) is set. Any attempt to write to this register with the BSY1 bit set causes the\n\n> AHB bus to stall until the BSY1 bit is cleared.\n\nSo what’s the issue waiting on BSY1 ?",
+            "best_answer_author": "MasterPhi",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi,\n\nI met a strange issue of ADC overrun during flash erase.\n\nThe ADC is configured with circular DMA+TIM3 triggered at 1khz:\n\n```\n\nstatic void ADC_Config(void) {\n\n/* Enable clock */\n\nRCC->AHBENR |= RCC_AHBENR_DMA1EN;\n\nRCC->APBENR2 |= RCC_APBENR2_ADCEN;\n\nRCC->APBENR1 |= RCC_APBENR1_TIM3EN;\n\n/* ADC Init */\n\nADC1->CR |= ADC_CR_ADVREGEN;\n\nuint32_t tick = SysTick->VAL;\n\n/* Startup delay */\n\nwhile ((tick - SysTick->VAL) < 960);\n\n/* Calibration */\n\nADC1->CR |= ADC_CR_ADCAL;\n\nwhile (ADC1->CR & ADC_CR_ADCAL);\n\n/* TIM3 trigger, DMA enable */\n\nADC1->CFGR1 = ADC_CFGR1_EXTEN_0 | 3 << ADC_CFGR1_EXTSEL_Pos | ADC_CFGR1_DMACFG | ADC_CFGR1_DMAEN;\n\n/* Use 14MHz ADC clock */\n\nADC1->CFGR2 = ADC_CFGR2_CKMODE_0;\n\n/* Enable overrun interrupt */\n\nADC1->IER = ADC_IER_OVRIE;\n\n/* Long sampling time */\n\nADC1->SMPR = ADC_SMPR_SMP1_0 | ADC_SMPR_SMP1_1 | ADC_SMPR_SMP1_2;\n\n/* Vref and Tint enable */\n\nADC1->CHSELR = ADC_CHSELR_CHSEL9 | ADC_CHSELR_CHSEL10;\n\nADC->CCR = ADC_CCR_TSEN | ADC_CCR_VREFEN;\n\n/* Enable ADC */\n\nADC1->ISR |= ADC_ISR_ADRDY;\n\nADC1->CR |= ADC_CR_ADEN;\n\nwhile (!(ADC1->ISR & ADC_ISR_ADRDY));\n\n/* DMA Init */\n\n/* ADC1 request */\n\nDMAMUX1_Channel0->CCR = 5;\n\nDMA1_Channel1->CPAR = (uint32_t) &ADC1->DR;\n\nDMA1_Channel1->CMAR = (uint32_t) AnBuf;\n\nDMA1_Channel1->CNDTR = 2;\n\n/* Size 16bits, memory increment, circular mode */\n\nDMA1_Channel1->CCR = DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_MINC | DMA_CCR_CIRC;\n\nDMA1_Channel1->CCR |= DMA_CCR_EN;\n\n/* TIM Init */\n\n/* UEV as TRGO */\n\nTIM3->CR2 = 2 << TIM_CR2_MMS_Pos;\n\nTIM3->PSC = 12 - 1;\n\nTIM3->ARR = 1000 - 1;\n\nTIM3->CR1 |= TIM_CR1_CEN;\n\n/* Enable ADC */\n\nNVIC_SetPriority(ADC1_IRQn, 0);\n\nNVIC_SetPriority(DMA1_Channel1_IRQn, 0);\n\nNVIC_EnableIRQ(ADC1_IRQn);\n\nNVIC_EnableIRQ(DMA1_Channel1_IRQn);\n\n/* Start ADC conversion */\n\nADC1->CR |= ADC_CR_ADSTART;\n\n}\n\n```\n\nI’m aware that accessing flash during operation will block the CPU in a waiting state, so the flash erasing function is executed in RAM (even if it’t the case DMA should be unaffected as it’s a difference bus master ?):\n\n```\n\n__ramfunc int NVM_fErase(uint_fast8_t Page) {\n\nif (Page >= NVM_PAGE_CNT) {\n\nreturn -1;\n\n}\n\n__disable_irq();\n\nFLASH->KEYR = 0x45670123;\n\nFLASH->KEYR = 0xCDEF89AB;\n\n__enable_irq();\n\nwhile (FLASH->CR & FLASH_CR_LOCK);\n\n/* Clear all error flags */\n\nFLASH->SR = 0x0000FFFF;\n\nwhile (FLASH->SR & FLASH_SR_BSY1) {\n\nif (FLASH->SR & (FLASH_SR_PGSERR | FLASH_SR_SIZERR | FLASH_SR_PGAERR | FLASH_SR_WRPERR | FLASH_SR_PROGERR)) {\n\nFLASH->CR |= FLASH_CR_LOCK;\n\nreturn -1;\n\n}\n\n}\n\nFLASH->CR |= FLASH_CR_PER;\n\nMODIFY_REG(FLASH->CR, FLASH_CR_PNB, ((NVM_BASE_ADDR - 0x08000000) / NVM_PAGE_SIZE + Page) << FLASH_CR_PNB_Pos);\n\nFLASH->CR |= FLASH_CR_STRT;\n\nwhile (FLASH->SR & FLASH_SR_BSY1) {\n\nif (FLASH->SR & (FLASH_SR_PGSERR | FLASH_SR_SIZERR | FLASH_SR_PGAERR | FLASH_SR_WRPERR | FLASH_SR_PROGERR)) {\n\nFLASH->CR |= FLASH_CR_LOCK;\n\nreturn -1;\n\n}\n\n}\n\nFLASH->SR = FLASH_SR_EOP;\n\nFLASH->CR &= ~FLASH_CR_PER;\n\nFLASH->CR |= FLASH_CR_LOCK;\n\nreturn 0;\n\n}\n\n```\n\nAlso to prevent instruction fetching of other interrupts:\n\n* Vector table is copied to RAM\n\n* IRQ handlers are in RAM\n\nI also tried to catch unexpected flash access with MPU by disabling flash and ROM region access:\n\n```\n\n{ARM_MPU_RBAR(0, 0x08000000),\n\nARM_MPU_RASR(1UL, ARM_MPU_AP_NONE, 0UL, 1UL, 0UL, 0UL, 0x00UL, ARM_MPU_REGION_SIZE_128KB)},\n\n{ARM_MPU_RBAR(1, 0x1FFF0000),\n\nARM_MPU_RASR(1UL, ARM_MPU_AP_NONE, 0UL, 1UL, 0UL, 1UL, 0x00UL, ARM_MPU_REGION_SIZE_32KB)},\n\n```\n\nI stripped down a minimal demo running on Nucleo-C071RB build with IAR 9.70.4, once you press the button you should enter ADC1\\_IRQHandler with OVR flag set.",
+            "images": [],
+            "author": "MasterPhi",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Issue is resolved by wait on SR_CFGBSY.</p><p>With a more detailed tracing it revealed that the SR_BSY1 wait after CR_STRT didn’t hit, the code actually halted on <u>FLASH-&gt;CR &amp;= ~FLASH_CR_PG</u>. </p><p>The code was based on a older reference manual where BSY1 flag is used for waiting, while it changed to CFGBSY now:</p><blockquote><p>To erase a page (2 Kbytes), proceed as follows:<br/>1. Check that no flash memory operation is ongoing on the targeted bank, by checking the <br/>BSY1 or BSY2 bit of the FLASH status register (FLASH_SR).<br/>2.  Check and clear all error programming flags due to a previous programming. If not, <br/>PGSERR is set.<br/>3.  Check that CFGBSY is cleared.<br/>4.  Set the PER bit and select the page to erase (BKER, PNB) in the FLASH control <br/>register (FLASH_CR).<br/>5.  Set the STRT bit of the FLASH control register (FLASH_CR).<br/>6.  Wait until the CFGBSY bit of the FLASH status register (FLASH_SR) is cleared.</p></blockquote><p> </p><p>Also it is noted that:</p><blockquote><p>The FLASH_CR register cannot be written when the BSY1 bit of the FLASH status register <br/>(FLASH_SR) is set. Any attempt to write to this register with the BSY1 bit set causes the <br/>AHB bus to stall until the BSY1 bit is cleared.</p></blockquote><p> </p><p>So what’s the issue waiting on BSY1 ?</p></div>",
+                    "author": "MasterPhi",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"35567\">@MasterPhi</user-mention> </p><p>Yes. To ensure a safe write operation on flash memory, check both the BSY1 bit and the CFGBSY bit.</p><p>Mentioning only the BSY1 bit in RM0490 Rev 5 was incorrect information. The new version, RM0490 Rev 6, corrects this point and clearly states that both bits must be checked in the <em>Embedded flash memory (FLASH)</em> section.<br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

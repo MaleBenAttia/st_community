@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "164095",
+            "publicId": "164095",
+            "title": "FTM using writeMsg command",
+            "url": "https://community.st.com/st25-nfc-rfid-tags-and-readers-54/ftm-using-writemsg-command-164095",
+            "category": "ST25 NFC/RFID tags and readers",
+            "tags": [
+                "ST25 Dynamic NFC Tags – ST25DV series"
+            ],
+            "published_at": "2026-03-24T03:09:53+00:00",
+            "views": 689,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello Shahbaz,\n\nregarding your first question, my reading is that the MsgLength value of 0xFF (255 +1) size matches the 256 bytes of data that follow. If we take your frame:\n\n> ---\n\n>\n\n> **2026-03-24 10:04:20.785 writeMsg >> 22AA02329411AE665102E0FF08180C180C180C7FF87FF00000000000000000000000000000000003EC0FFC1C1C180C300C30003000300030003000180C1C1C0FF803F0000000000000000000000000000000007FC07FF018381818180C180C180C180C180C180C181818387FF07FE0000000000000000000000000000000007FF87FF818181818199819801F801F8019801998181818187FF87FF8000000000000000000000000000000003FFC3FFC0C0C0C0C0CCC0CC00FC00FC00CC00CC00C000C003FC03FC00000000000000000000000000000000003EC0FFC1C1C180C300C3000300030FE30FE300C380C1C1C0FFC03F0000000000000000000000000000000007E7E7E7E1818181818**\n\n> **2026-03-24 10:04:20.893 writeMsg << 0000**\n\nData block [08180C...181818] is indeed 256-byte long.\n\nFor the second example, the MsgLength also matches the length of data that follows: a value of 0x2F means data to follow contains 47+1 = 48 bytes of data. Which is also the case in your example:\n\n> ---\n\n>\n\n> **2026-03-24 10:12:53.258 writeMsg >> 22AA02329411AE665102E02F08206D617920626520627573792E0A506C65617365206D6F766520746865207265616465722E2E2E0A4F72207265636F**\n\n>\n\n> ---\n\nData block [08206D...65636F] contains 48 bytes.\n\nThe confusion may come from counting the MsgLength byte in the data length. It shouldn't be included as MsgLength strictly quantifies the bytes that follow.\n\nWe have set a maximum transfer size of 64 bytes for the FEIG MR102 reader in the ST25PC-NFC software, which explains why packets are transmitted differently for this specific reader. STEVAL reader boards (ST25R3916B for example) do not have the same limit.\n\nBest regards,\n\nDamien",
+            "best_answer_author": "Damien G.",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "I am performing FTM Demo (Firmware Update) on ST25PC-NFC using ST's STEVAL Reader Board. I have disabled the Fast commands from settings, so FTM is using writeMsg command. Below, I have added a snippet of one of the packets being sent.\n\n**2026-03-24 10:04:20.785 writeMsg >> 22AA02329411AE665102E0FF08180C180C180C7FF87FF00000000000000000000000000000000003EC0FFC1C1C180C300C30003000300030003000180C1C1C0FF803F0000000000000000000000000000000007FC07FF018381818180C180C180C180C180C180C181818387FF07FE0000000000000000000000000000000007FF87FF818181818199819801F801F8019801998181818187FF87FF8000000000000000000000000000000003FFC3FFC0C0C0C0C0CCC0CC00FC00FC00CC00CC00C000C003FC03FC00000000000000000000000000000000003EC0FFC1C1C180C300C3000300030FE30FE300C380C1C1C0FFC03F0000000000000000000000000000000007E7E7E7E1818181818**\n\n**2026-03-24 10:04:20.893 writeMsg << 0000**\n\nThe packet aligns well with the Write Message request format from the datasheet except for the MsgLength and Message Data part.\n\n![Screenshot 2026-03-24 134642.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9849d6d9-b972-d8f3-3770-260e47c56a24.png \"Screenshot 2026-03-24 134642.png\")\n\n* Request Flag: **22**\n\n* Write Message Command Code: **AA**\n\n* IC Mfg Code: **02**\n\n* UID: **329411AE665102E0**\n\n* Msg Length: **FF**\n\n* Message Data:**08180C.......E1818181818**\n\n* CRC:\n\nMy understanding is that **MsgLength** refers to the length of the Message Data and not the entire packet. Based on that understanding, **MsgLength** value should be **238 bytes** and Message Data length should be **239 bytes (MsgLength + 1 byte)**. However, in the packet above, the **MsgLength** is defined as **FF** **(255 bytes)**\n\nSecondly, I also used FEIG MR102 readers to perform the FTM Demo (Firmware Update). Below I have added a snippet of one of the packets.\n\n**2026-03-24 10:12:53.258 writeMsg >> 22AA02329411AE665102E02F08206D617920626520627573792E0A506C65617365206D6F766520746865207265616465722E2E2E0A4F72207265636F**\n\n**2026-03-24 10:12:53.28 writeMsg << 0078F0**\n\n**writeMsg transceive returns: 00 - Reader status = OK**\n\n* Request Flag: **22**\n\n* Write Message Command Code: **AA**\n\n* IC Mfg Code: **02**\n\n* UID: **329411AE665102E0**\n\n* MsgLength: **2F**\n\n* Message Data:**08206D.......207265636F**\n\n* CRC:\n\nFrom the packet breakdown, the **MsgLength** is **2F** (47 bytes), but if we manually calculate the **Message Data** length, its 49 bytes, which is not as per the format formula **MsgLength + 1byte** (48 bytes).\n\nWhy is different packets size sent for different readers and how exactly is Message Data size calculated?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9849d6d9-b972-d8f3-3770-260e47c56a24.png"
+            ],
+            "author": "shahbaz",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Shahbaz,</p><p>regarding your first question, my reading is that the MsgLength value of 0xFF (255 +1) size matches the 256 bytes of data that follow. If we take your frame:</p><blockquote><hr/><p><font color=\"#000000\"><strong><font face=\"courier new,courier\" size=\"2\">2026-03-24 10:04:20.785 writeMsg &gt;&gt; 22AA02329411AE665102E0FF08180C180C180C7FF87FF00000000000000000000000000000000003EC0FFC1C1C180C300C30003000300030003000180C1C1C0FF803F0000000000000000000000000000000007FC07FF018381818180C180C180C180C180C180C181818387FF07FE0000000000000000000000000000000007FF87FF818181818199819801F801F8019801998181818187FF87FF8000000000000000000000000000000003FFC3FFC0C0C0C0C0CCC0CC00FC00FC00CC00CC00C000C003FC03FC00000000000000000000000000000000003EC0FFC1C1C180C300C3000300030FE30FE300C380C1C1C0FFC03F0000000000000000000000000000000007E7E7E7E1818181818</font></strong></font><br/><font color=\"#000000\"><strong><font face=\"courier new,courier\" size=\"2\">2026-03-24 10:04:20.893 writeMsg &lt;&lt; 0000</font></strong></font></p></blockquote><p>Data block [08180C...181818] is indeed 256-byte long.</p><p> </p><p>For the second example, the MsgLength also matches the length of data that follows: a value of 0x2F means data to follow contains 47+1 = 48 bytes of data. Which is also the case in your example:</p><blockquote><hr/><strong><font color=\"#000000\" face=\"courier new,courier\" size=\"2\">2026-03-24 10:12:53.258 writeMsg &gt;&gt; 22AA02329411AE665102E02F08206D617920626520627573792E0A506C65617365206D6F766520746865207265616465722E2E2E0A4F72207265636F</font></strong><hr/></blockquote><p>Data block [08206D...65636F] contains 48 bytes.<br/>The confusion may come from counting the MsgLength byte in the data length. It shouldn't be included as MsgLength strictly quantifies the bytes that follow.</p><p> </p><p>We have set a maximum transfer size of 64 bytes for the FEIG MR102 reader in the ST25PC-NFC software, which explains why packets are transmitted differently for this specific reader. STEVAL reader boards (ST25R3916B for example) do not have the same limit.<br/><br/>Best regards,</p><p>Damien</p></div>",
+                    "author": "Damien G.",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Damien,</p><p>Thank you for your response.</p><p>Sorry for the wrong calculation. Upon rechecking, the data block size is indeed 256byte.</p><p>Everything is clear now. </p><p>As for FEIG reader, can we change the transfer size in the SDK to utilize maximum mailbox capacity? </p></div>",
+                    "author": "shahbaz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You're welcome :)</p><p>The transfer size is here for a reason, to follow the hardware recommendations and observed limitations. But if you want to try with different values, you can modify this file in the ST25PC-NFC software:<br/><em>ST25PC-NFC\\src\\com\\st\\st25pc\\model\\readers\\feig\\FEIG_MR102.java</em><br/>and edit the following constants :</p><pre class=\"lia-code-sample language-c\"><code>public class FEIG_MR102 extends FEIG_OBID_ISC_Reader {\n\nprivate static final int FEIG_MR102_MAX_SIZE_TRANSMIT_BYTES = 64;\nprivate static final int FEIG_MR102_MAX_SIZE_RECEIVE_BYTES = 27;\n...\n\n}</code></pre><p>Beware that changing these values might cause the software to behave in unpredictable ways.<br/><br/></p><p>BR,</p><p>Damien</p></div>",
+                    "author": "Damien G.",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Damien G.",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Damien G.",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

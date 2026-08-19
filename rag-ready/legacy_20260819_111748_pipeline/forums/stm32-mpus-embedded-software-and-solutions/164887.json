@@ -1,0 +1,40 @@
+{
+    "forum": [
+        {
+            "id": "164887",
+            "publicId": "164887",
+            "title": "[STM32CubeMP2] CMSIS Header File Syntax Error",
+            "url": "https://community.st.com/stm32-mpus-embedded-software-and-solutions-46/stm32cubemp2-cmsis-header-file-syntax-error-164887",
+            "category": "STM32 MPUs Embedded software and solutions",
+            "tags": [
+                "OpenSTLinux",
+                "USB Type-C and power delivery",
+                "STM32CubeMPUPackages (Cube FW)",
+                "STM32MP25 lines",
+                "STM32MP23 lines"
+            ],
+            "published_at": "2026-04-19T05:46:16+00:00",
+            "views": 148,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Solved in <https://github.com/STMicroelectronics/STM32CubeMP2/commit/2f7258aa45e916777ffb4f6e1b5590f65304378d>.",
+            "best_answer_author": "7086cmd",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi there, I found several issues in the STM32CubeMP2 CMSIS headers as follows:\n\n**1. Missing opening parenthesis in bitmask macros**\n\nIn stm32mp21\\*xx.h, \\_Msk macro definitions were missing the opening parenthesis, leaving a dangling closing parenthesis with no matching open:\n\n```\n\n// Before\n\n#define USB_OTG_GCCFG_FSVMINUS_Msk 0x1UL << USB_OTG_GCCFG_FSVMINUS_Pos)\n\n// After\n\n#define USB_OTG_GCCFG_FSVMINUS_Msk (0x1UL << USB_OTG_GCCFG_FSVMINUS_Pos)\n\n```\n\nWhile the C preprocessor performs simple text substitution and the shift operation may still evaluate correctly at the call site depending on context, the unbalanced parentheses break static analyzers, automated code-generation tools, and linters that parse these headers. Adding the opening parenthesis also makes operator precedence explicit and unambiguous.\n\n**2. Malformed comment delimiters**\n\nAll of header files involves inline comments used \\*!< instead of the correct /\\*!< Doxygen-style comment opener, missing the leading forward slash:\n\n```\n\n// Before\n\n#define CA35SSC_LPI_TSGEN_NTS_CR_WC1_TS_CSYSREQ_Msk (0x1UL << ..._Pos) *!< 0x00000100 */\n\n// After\n\n#define CA35SSC_LPI_TSGEN_NTS_CR_WC1_TS_CSYSREQ_Msk (0x1UL << ..._Pos) /*!< 0x00000100 */\n\n```\n\nWithout the leading /, these are not valid comments and will be interpreted as a multiplication/dereference expression by the compiler, which is both syntactically incorrect and likely to produce unexpected behavior or compilation errors.\n\nI've submitted PRs on Feb 17 for STM32MP2 and STM32N6. The N6 issue was solved internally, but the MP2 issue still didn't respond as of today. Are there any plans to solve it?\n\n(PR: <https://github.com/STMicroelectronics/STM32CubeMP2/pull/6>.)",
+            "images": [],
+            "author": "7086cmd",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Solved in <a href=\"https://github.com/STMicroelectronics/STM32CubeMP2/commit/2f7258aa45e916777ffb4f6e1b5590f65304378d\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeMP2/commit/2f7258aa45e916777ffb4f6e1b5590f65304378d</a>.</p></div>",
+                    "author": "7086cmd",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

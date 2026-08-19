@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "166395",
+            "publicId": "166416",
+            "title": "STM32G474 + FL2400159 a 24 MHz HSE crystals — HAL_RCC_OscConfig always falls into the Error_Handler; I haven’t been able to figure out why",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32g474-fl2400159-a-24-mhz-hse-crystals-hal-rcc-oscconfig-always-falls-into-the-error-handler-i-haven-t-been-able-to-figure-out-why-166416",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32G4 series",
+                "STM32F4 series",
+                "STM32Cube MCUs packages"
+            ],
+            "published_at": "2026-06-24T10:50:07+00:00",
+            "views": 125,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nSorry I missed that reply.\n\nYour RCC code seems to be correct. It could be a hardware issue i.e. solder joint issue for example.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI designed a board around the STM32G474 and I'm trying to use an external 24 MHz HSE crystal, but the crystal won't run under any configuration — the generated `SystemClock_Config()` call to `HAL_RCC_OscConfig()` returns `HAL_ERROR` and I land straight in `Error_Handler()` (infinite `while(1)` loop).\n\n**Crystal I'm using:**\n\n* Manufacturer: Diodes Incorporated\n\n* Part Number: FL2400159\n\n* Frequency: 24.0000 MHz\n\n* Package: 3.2 x 2.5 mm, 4-pad ceramic SMD (Saronix-eCera FL series)\n\n* Load Capacitance (CL): 18 pF\n\n* ESR (Equivalent Series Resistance): 30 Ω\n\n* Frequency Tolerance: ±10 ppm\n\n* Frequency Stability: ±15 ppm\n\n* Operating temperature: -40°C ~ +85°C\n\n**Load capacitor values I've tried (0603 package, X7R):**\n\n* 22 pF\n\n* 12 pF\n\n* 28 pF\n\nSame result with all three: error. Based on the load capacitance formula (Cext = 2×(CL − Cstray), assuming Cstray ≈ 3-5pF), 28pF should be the closest to ideal, but even that didn't work.\n\n**What I've checked/done so far:**\n\n* CubeIDE → RCC → High Speed Clock (HSE) is set to \"Crystal/Ceramic Resonator\" (not Bypass)\n\n* Increased HSE Startup Timeout from the default 100ms to 1000ms — still the same error\n\n* Data Cache enabled, Prefetch buffer disabled, Flash latency 4WS — probably unrelated to HSE but listing for completeness\n\nI believe I've set everything correctly on the software/config side, but the crystal either isn't oscillating at all, or HSERDY never sets within the timeout HAL waits for. Could this be a PCB layout issue (grounding, guard ring, trace length), a pin mapping issue, or a problem with the crystal/soldering itself?\n\nI've also attached photos of the schematic and PCB design for you guys to take a look at.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/246c6dac-da5d-4d27-a698-91764e4217de.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d0e1f68-13b6-42f2-80ee-92f5efd16b67.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f7ec0a4-f322-4561-800b-a1fd86728040.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34a81c3e-2ec3-4dc5-b4bf-675e8f8f78b6.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8eb8282b-3858-4a4c-98d4-b8014c322d51.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34a81c3e-2ec3-4dc5-b4bf-675e8f8f78b6.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/246c6dac-da5d-4d27-a698-91764e4217de.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e6909833-e258-4862-8c75-d0e47716fe1d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3f7ec0a4-f322-4561-800b-a1fd86728040.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d0e1f68-13b6-42f2-80ee-92f5efd16b67.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8eb8282b-3858-4a4c-98d4-b8014c322d51.png"
+            ],
+            "author": "ylmazuysal",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello,</p><p>Sorry I missed that reply.</p><p>Your RCC code seems to be correct. It could be a hardware issue i.e. solder joint issue for example.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107721\">@ylmazuysal</user-mention>,</p><p>I’m sure I’ve already answered to that post, but on a thread with a different title not contaning Turkish words: <em>“<strong>STM32G474 + Diodes fl2400159 24mhz hse crystal hal rcc oscconfig always falls into error handler\"</strong>.</em></p><p>That’s strange as I didn’t find another post from you!</p><p>Anyway, I provide again my answer:</p><p>I did the exercise with the crystal STM32 compatibility calculator attached to this knowledge base article: <a href=\"https://community.st.com/stm32-mcus-60/how-to-select-a-compatible-crystal-and-load-capacitors-for-stm32-with-layout-guidelines-148169\" rel=\"noreferrer\" target=\"_self\">How to select a compatible crystal and load capacitors for STM32 with layout guidelines</a></p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e6909833-e258-4862-8c75-d0e47716fe1d.png\"/></figure><p> </p><p>The crystal seems to be compatible with STM32G4 and the load capacitors are OK 28pF vs 30pF.</p><p>I suspect a PCB issue: solder joint issue or a bad crystal soldering orientation..</p><p>You can also share your <strong>SystemClock_Config() </strong>content.</p><p><strong>Edit</strong>: after verification with a community moderator, there was indeed another post (a duplicated post) that has been deleted where I posted my comment.</p><p>​<user-mention data-id=\"107721\">@ylmazuysal</user-mention> in next time please avoid duplicating posts for the same question. Thank you.</p><p><strong>Edit2</strong>: Just removed the wording “Diodes” from the title to prevent any misunderstanding of the context. Diodes is the manufacturer but putting that word in the title gives the impression you’ve added diodes to the HSE schematic.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"mƎALLEm\"><div class=\"content-quote-content\"> <p>I’m sure I’ve already answered to that post,</p> </div></content-quote><p>Yes, there was a duplicate - another moderator must have deleted it.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Indeed. Just edited my post and mentioned that ..</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

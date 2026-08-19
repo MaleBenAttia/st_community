@@ -1,0 +1,81 @@
+{
+    "forum": [
+        {
+            "id": "165370",
+            "publicId": "165370",
+            "title": "L99BM114: Wiring clarification for Unmounted Cells (5S configuration) - Section 6.8",
+            "url": "https://community.st.com/autodevkit-ecosystem-121/l99bm114-wiring-clarification-for-unmounted-cells-5s-configuration-section-6-8-165370",
+            "category": "AutoDevKit Ecosystem",
+            "tags": [
+                "BMS"
+            ],
+            "published_at": "2026-05-05T03:57:56+00:00",
+            "views": 423,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nThis could be for 5 cells:\n\n![MaxVIZZINI_0-1777988001394.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a8c0534e-c5e6-d471-bb28-f628b14031ef.png \"MaxVIZZINI_0-1777988001394.png\")![MaxVIZZINI_1-1777988014677.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b8defc7-22bd-b535-83ce-a811a0bb9ea3.png \"MaxVIZZINI_1-1777988014677.png\")\n\nWhen building your new board, please follow the yellow box highlighted in the datasheet, all sensing and balancing have to be short-circuited at pcb level.\n\nBest Regards,\n\nAutoDevKit Team",
+            "best_answer_author": "Max VIZZINI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello everyone,\n\nWe are currently designing a decentralized Battery Management System (BMS) node for our Formula SAE electric car. We selected the L99BM114 due to its robustness in automotive environments and high measurement accuracy.\n\nOur architecture requires this specific node to monitor a 5-series (5S) cell module. Since the L99BM114 supports up to 14 series cells, we will have 9 unused channels.\n\nWhile reviewing Section 6.8 of the datasheet (Unmounted cells), the exact hardware implementation for our case felt a bit ambiguous. We want to ensure our schematic doesn't trigger false internal diagnostics, such as *Cell Open Wire* or *Balancing Short/Open*.\n\nCould anyone clarify the recommended wiring for the unused pins in a 5S configuration? Specifically:\n\n1. **Voltage Sense Pins (C6 to C14):** Should all these unused inputs be shorted together and tied to the highest active potential (C5)?\n\n2. **Balancing Pins (S and B) & Filtering:** How exactly should we handle the external filtering resistors (RLPF) and the S/B balancing pins for these 9 unused channels? Should they be left floating, or is there a specific pull-up/pull-down tie-off required?\n\nIf there is any reference schematic or application note that covers a reduced cell count configuration for this IC, that would be incredibly helpful.\n\nThanks in advance for the support!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dbfc8a42-6004-2a3f-2806-809d32a82f43.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a8c0534e-c5e6-d471-bb28-f628b14031ef.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3db4c4b6-1a34-346e-c8d1-e10236a5daaf.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41619cdd-5685-ec6e-481b-35bcfea92482.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6443124e-c8ef-60e8-cd43-dbba2a52d2e1.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee8c08a8-df3d-de46-f3ac-b3dcc5d053f2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b8defc7-22bd-b535-83ce-a811a0bb9ea3.png"
+            ],
+            "author": "_gabrielfbdiniz_",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>You need to connect all sensing and balancing pins need to be shorted in series or the IC will not properly work.</p>\n<p>The first 2 and the last 2 cells HAVE to be connected, and minimum number is 4 cells. </p>\n<p>I attach below a project we did for 6 cells battery.</p>\n<p> </p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MaxVIZZINI_0-1777985053454.png\" style=\"width: 400px;\"><img alt=\"MaxVIZZINI_0-1777985053454.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41619cdd-5685-ec6e-481b-35bcfea92482.png\" title=\"MaxVIZZINI_0-1777985053454.png\"/></span></p>\n<p>Best Regards,</p>\n<p>AutoDevKit Team</p></div>",
+                    "author": "Max VIZZINI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p>\n<p>This could be for 5 cells:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MaxVIZZINI_0-1777988001394.png\" style=\"width: 400px;\"><img alt=\"MaxVIZZINI_0-1777988001394.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a8c0534e-c5e6-d471-bb28-f628b14031ef.png\" title=\"MaxVIZZINI_0-1777988001394.png\"/></span><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"MaxVIZZINI_1-1777988014677.png\" style=\"width: 400px;\"><img alt=\"MaxVIZZINI_1-1777988014677.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3b8defc7-22bd-b535-83ce-a811a0bb9ea3.png\" title=\"MaxVIZZINI_1-1777988014677.png\"/></span></p>\n<p><span data-teams=\"true\">When building your new board, please follow the yellow box highlighted in the datasheet, all sensing and balancing have to be short-circuited at pcb level.</span></p>\n<p>Best Regards,</p>\n<p>AutoDevKit Team</p></div>",
+                    "author": "Max VIZZINI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Captura de tela 2026-05-05 222108.png\" style=\"width: 397px;\"><img alt=\"Captura de tela 2026-05-05 222108.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dbfc8a42-6004-2a3f-2806-809d32a82f43.png\" title=\"Captura de tela 2026-05-05 222108.png\"/></span></p><p>Hi Max,</p><p>Thank you so much for the detailed explanation and the diagrams! This is a lifesaver.</p><p>Since we are designing our own custom PCB for the Formula SAE team rather than using a general-purpose 14S evaluation board, I want to make absolutely sure we implement the \"yellow box\" guidance correctly at the schematic level.</p><p>I've updated our KiCad schematic based on your feedback:</p><ol><li><p>We split the active cells into a top block (C14 down to C11) and a bottom block (C2 down to C0).</p></li><li><p>The physical connection between the top and bottom blocks is made by routing the C11 input to the C2 input.</p></li><li><p>All the unused sensing and balancing pins (C10 down to S3) are shorted together and tied to the C2 node through a 1kΩ resistor.</p></li></ol><p>Could you please take a quick look at the attached image and confirm if this is the correct way to handle the hardware for a custom 5S board?</p><p>Thanks again for the excellent support!</p></div>",
+                    "author": "_gabrielfbdiniz_",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello Gabriel,<br/>The scheme you shared <strong>differs</strong> from the suggested reference.<br/>You may take a look to the application example of <a href=\"https://www.st.com/resource/en/datasheet/l9963e.pdf\" rel=\"noopener noreferrer\" target=\"_self\">L9963E datasheet</a> (page 133)<br/>Another reference may be the <a href=\"https://www.st.com/resource/en/data_brief/aek-pow-bmscctx.pdf\" rel=\"noopener noreferrer\" target=\"_self\">AEK-POW-BMSCCTX</a> (page 4)<br/>I add the pic for comparison:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"SRomeo_0-1778142910407.png\" style=\"width: 623px;\"><img alt=\"SRomeo_0-1778142910407.png\" height=\"228\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/3db4c4b6-1a34-346e-c8d1-e10236a5daaf.png\" title=\"SRomeo_0-1778142910407.png\" width=\"623\"/></span></p><ul><li>FBx positioning differs from reference</li></ul><p>Placing Ferrites (FBx) immediately after the filtering Capacity protect from EMI the battery and the corresponding Cx IC route.<br/>With your configuration, in case this protection disrupts, the corresponding Cx line won't be fully decoupled. (Moreover, if manual balancing is enabled, this may also land to unexpected current paths)<br/><br/>There is also some <strong>ambiguity on the labels</strong>. You are using the same name for Cx pins and battery pins. Make sure to fix that. Moreover:</p><ul><li>Your Cx connection is <strong>wrong.<br/></strong>To mantain electical continuity you actually need to <strong>short every Unused Cx pin. <br/></strong>(To mantain 100% compatibility with our reference design 100ohm coupling resistor should be added) <div class=\"\"> </div></li><li>Connect every unused Sx and Bx pin to C2 (the higher connected Cx of your second block) via a 1K resistor.<br/>This is done to minimize noise that floating pins may perceive. <span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"SRomeo_1-1778246669955.png\" style=\"width: 741px;\"><img alt=\"SRomeo_1-1778246669955.png\" height=\"624\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6443124e-c8ef-60e8-cd43-dbba2a52d2e1.png\" title=\"SRomeo_1-1778246669955.png\" width=\"741\"/></span></li></ul><p>Make sure to report clearly on your schematic these infos.<br/><br/>Best regards,<br/>Simone<br/>AEK_Team</p></div>",
+                    "author": "SRomeo",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You are absolutely right! Good catch on those details.</p><p>I have updated the schematic based on your suggestions: I changed the net labels to 'Battery X' to avoid any confusion, added the 100Ω resistors to the unused Cx pins, and corrected the positioning of the ferrite beads.</p><p>I've attached the final version of the corrections below. Thank you so much for the tips and for taking the time to review this so carefully!</p><p>Best regards,<br/>Gabriel<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Captura de tela 2026-05-08 145246.png\" style=\"width: 999px;\"><img alt=\"Captura de tela 2026-05-08 145246.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee8c08a8-df3d-de46-f3ac-b3dcc5d053f2.png\" title=\"Captura de tela 2026-05-08 145246.png\"/></span></p></div>",
+                    "author": "_gabrielfbdiniz_",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Max VIZZINI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Max VIZZINI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "SRomeo",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

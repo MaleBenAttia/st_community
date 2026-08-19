@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "165060",
+            "publicId": "165060",
+            "title": "Pull up resistor in STM32WBA5MMG RESET circuit",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/pull-up-resistor-in-stm32wba5mmg-reset-circuit-165060",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "STM32WBA series"
+            ],
+            "published_at": "2026-04-23T16:14:45+00:00",
+            "views": 201,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "No STM32 requires a pull-up resistor at the reset pin (in your case R36 = DNP), because there is already an internal pull-up present (see [RM0493](https://www.st.com/resource/en/reference_manual/rm0493-multiprotocol-wireless-bluetooth-le-and-ieee802154-stm32wba5xxx-armbased-32bit-mcus-stmicroelectronics.pdf), 12.3.2).\n\nThe reset pin also acts as an output if an internal reset is triggered in the STM32, so any devices externally connected to NRST also receive this reset signal. According to the [data sheet](https://www.analog.com/media/en/technical-documentation/data-sheets/ad5940-5941.pdf), the AD5941 needs at least 1µs to detect a reset; the internal pulse generator in the STM32 typically produces a pulse that is at least 20µs long (unfortunately, the specification for *tO(NRST)* is mentioned in RM0493 but still missing from the [data sheet](https://www.st.com/resource/en/datasheet/stm32wba55ug.pdf) of the STM32WBA55UG, however, the pulse generator should be identical to that of other STM32 devices).\n\nSummary: In my humble opinion, there should be no problem connecting /RESET and NRST.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear Team,\n\nI have a board contain STM32WBA5MMG and  AD5941. We have provided a single RESET for both the chips.\n\nThe circuit is given below.\n\n![Hariom_0-1776960825992.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1ca31deb-45ae-e758-0760-952cc9309583.png \"Hariom_0-1776960825992.png\")\n\nMay Iknow will this cause any issues.\n\nRegards\n\nHiyo",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1ca31deb-45ae-e758-0760-952cc9309583.png"
+            ],
+            "author": "Hariom",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No STM32 requires a pull-up resistor at the reset pin (in your case R36 = DNP), because there is already an internal pull-up present (see <a href=\"https://www.st.com/resource/en/reference_manual/rm0493-multiprotocol-wireless-bluetooth-le-and-ieee802154-stm32wba5xxx-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_self\">RM0493</a>, 12.3.2).</p>\n<p>The reset pin also acts as an output if an internal reset is triggered in the STM32, so any devices externally connected to NRST also receive this reset signal. According to the <a href=\"https://www.analog.com/media/en/technical-documentation/data-sheets/ad5940-5941.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_self\">data sheet</a>, the AD5941 needs at least 1µs to detect a reset; the internal pulse generator in the STM32 typically produces a pulse that is at least 20µs long (unfortunately, the specification for <em>tO(NRST)</em> is mentioned in RM0493 but still missing from the <a href=\"https://www.st.com/resource/en/datasheet/stm32wba55ug.pdf\" rel=\"noopener noreferrer\" target=\"_self\">data sheet</a> of the STM32WBA55UG, however, the pulse generator should be identical to that of other STM32 devices).</p>\n<p>Summary: In my humble opinion, there should be no problem connecting /RESET and NRST.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>Thank you very much.</p><p> </p></div>",
+                    "author": "Hariom",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

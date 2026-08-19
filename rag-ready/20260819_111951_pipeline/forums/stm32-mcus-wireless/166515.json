@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "166494",
+            "publicId": "166515",
+            "title": "Using QSPI with FreeRTOS",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/using-qspi-with-freertos-166515",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "QSPI",
+                "Flash",
+                "FreeRTOS",
+                "STM32WB series"
+            ],
+            "published_at": "2026-06-29T17:05:17+00:00",
+            "views": 100,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "I don’t know if this solves all of my problems, but I can now compile without errors. The order of the include files is important. It must be:\n\n**#include** \"stm32wbxx\\_hal.h\"\n\n**#include** \"stm32wbxx\\_hal\\_def.h”\n\nStill open to suggestions!",
+            "best_answer_author": "DavePfz",
+            "best_answer_author_role": "Associate III",
+            "content_text": "I am trying to adapt the QSPI Flash (QSPI\\_MemoryMapped) example found in the STM32WB5MM-DK to run with FreeRTOS. My hardware uses different ports for the QSPI connection but all has been set up through the ST32CubeMX program.\n\nWhat I did then was to copy the code from the example into my project as a FreeRTOS task. However, the code pulls in some header files that don’t make sense to me. For example: stm32wbxx\\_hal\\_tim\\_ex.h results in the error “unknown type name 'HAL\\_StatusTypeDef”\n\nI’m not sure why this is happening, or even why this header file is being pulled int, I so would appreciate any pointers. My guess is that is has to do the the HAL timer versus the FreeRTOS timer, but even then don’t know were to look!\n\nSince I am using the flash without a fie system, maybe the QSPI\\_ReadWrite\\_DMA or QSPI\\_ReadWrite\\_IT would be better. If so, please suggest...\n\nThanks",
+            "images": [],
+            "author": "DavePfz",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don’t know if this solves all of my problems, but I can now compile without errors. The order of the include files is important. It must be:</p><div><div><p><strong>#include</strong><span style=\"color:#000000;\"> </span><span style=\"color:#2a00ff;\">\"stm32wbxx_hal.h\"</span></p><p><strong>#include</strong><span style=\"color:#000000;\"> </span><span style=\"color:#2a00ff;\">\"stm32wbxx_hal_def.h”</span></p><p>Still open to suggestions!</p></div></div></div>",
+                    "author": "DavePfz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; Still open to suggestions!</p><p>In memory-mapped mode, the QSPI controller automatically reads the flash, there are no interrupts that need attention of the program. </p><p>But note that QSPI flash in memory-mapped mode is not writable. If you need to write, you switch to “indirect” mode, do the write and return to the memory-mapped mode. Obviously, the code doing this cannot run off the memory-mapped flash. Any RTOS task that can touch the memory-mapped area needs to be blocked during this time.</p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Can you provide more detail? When I look at the example, which runs OK on the STM32WB5MM-DK, I don’t see sch a change.</p><p>Thanks</p></div>",
+                    "author": "DavePfz",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Answer of the sidekick AI:</p><p>“In QUADSPI/QSPI memory-mapped mode, the external memory is intended for read access only; write operations are not supported in memory-mapped mode and must be done using indirect mode instead.</p><p>Detailed Explanation:</p><p><br/>In memory-mapped mode, the QUADSPI interface makes the external Quad-SPI memory appear like internal memory on the bus, so it can be accessed directly by AHB masters and used for continuous reads and execution in place (XIP).</p><p>However, this mode is strictly limited to reading the external memory contents.<br/>If you need to program, erase, or otherwise write to the external flash, you must switch to indirect mode, where transfers are managed through the QUADSPI registers by software or DMA.”</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No need to repeat what you said earlier. A close examination of the code provided in the example shows that for write operations it does call <span style=\"background-color:#ffffff;\"><span style=\"background-color:#ffffff;color:#000000;\">HAL_QSPI_Transmit_DMA() which implements indirect write mode.</span></span></p></div>",
+                    "author": "DavePfz",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

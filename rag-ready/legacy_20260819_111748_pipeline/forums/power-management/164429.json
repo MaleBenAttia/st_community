@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "164429",
+            "publicId": "164429",
+            "title": "Review Request: 24V / 200A Pre-Charge & Master Kill Circuit for a Closed System",
+            "url": "https://community.st.com/power-management-53/review-request-24v-200a-pre-charge-master-kill-circuit-for-a-closed-system-164429",
+            "category": "Power management",
+            "tags": [
+                "Power supply management",
+                "Intelligent power switches",
+                "Discretes"
+            ],
+            "published_at": "2026-04-02T22:57:56+00:00",
+            "views": 268,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Welcome @Spontune, to the community!\n\nAs no community member has responded so far, it seems that no one was particularly interested in reviewing your detailed description. Here is my initial assessment:\n\nThe overall pre-charge and shutdown concept is sensible, but I would be cautious about driving Q2 directly from a slow RC ramp. With such a long time constant, the MOSFET may spend too long in its linear region, which can lead to unpredictable switching behaviour and unnecessary heating. For a more reliable solution, I would recommend using the RC network only as a timing element, followed by a proper threshold stage such as a Schmitt trigger, comparator, or transistor driver to switch Q2 cleanly.\n\nThe emergency shutdown approach also looks reasonable in principle, but I would strongly suggest validating the actual drop-out behaviour of K1 and K2 on the bench, including worst-case conditions.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI am designing a custom Power Distribution Board (PDB) handling up to 200A at 24V. This PDB will eventually interface with an STM32 and a Jetson Orin Nano for telemetry and control, but my current focus is solely on verifying the robustness of the analog/power switching layer.\n\nI would love to get your thoughts on the pre-charge (soft-start) and emergency shutdown logic I’ve implemented, as well as the layout approach. Here is the operational breakdown of the circuit:\n\n* **Turn-On & Soft-Start Sequence:** When the main switch is closed, Q1 directly pulls K1's coil to GND, turning it on. The pre-charge resistor (R3) starts charging the bulk capacitors (C1, C2). Simultaneously, the RC timer network (C3 + R5 / 220k) starts charging. After about 1-2 seconds, it triggers Q2, which then pulls the main contactor K2's coil to GND. K2 closes, taking over the 200A main load and dropping the current through the R3 pre-charge resistor to near zero. *Note: I can always swap R5 to 330k or 470k to extend the soft-start delay if needed.*\n\n* **Emergency Shutdown (Water Leak Detection):** In the event of a leak, the water sense signal triggers Q3, which shorts Q1's gate to GND. This instantly turns off K1. Because K2's coil supply (pin 86) is fed directly from K1's output (pin 2), K2 drops out immediately alongside K1. The system doesn't have to wait for C3 to discharge or Q2 to turn off. It acts as a true master kill switch.\n\n* **Discharge & Backfeeding Prevention:** During a normal shutdown, C3 discharges through the 10k resistor (R4) and slightly backfeeds pin 86. However, since the D3 Zener diode clamps C3's maximum voltage to ~5.6V - 5.7V, this voltage is way below K2's drop-out threshold. Thus, K2 opens instantaneously without any latching delay from the 68uF cap. The remaining tiny energy simply bleeds off through R4.\n\n* **Blocking Diode:** Diode D4 is placed to prevent the bulk capacitors from backfeeding into the relay coils, which could otherwise keep them latched and cause system instability.\n\n* **Bleeder Resistor (R6):** R6 acts as a bleeder resistor for C1 and C2 to drain residual static charge after power-off. I'm not entirely sure if it's strictly necessary since this is a closed system (it would take more than 5 minutes just to open the enclosure and physically touch the C1/C2 terminals). It's there purely for safety as a dummy load, so I might consider it optional.\n\n* **High Current Paths & Busbars (No Thermal Relief):** To handle the extreme 200A loads, the main contactor (K2) and the bulk capacitors (C1, C2) feature heavy-duty terminal connections. The high current in these sections will be carried physically by thick copper busbars *(Note: The planned busbar placements are indicated by the white rectangular outlines visible in the PCB screenshots)*. To accommodate this and ensure maximum thermal/electrical conductivity, I deliberately removed all thermal reliefs on these pads, opting for solid copper connections.\n\nAny feedback, potential pitfalls, or suggestions regarding this logic or the PCB layout would be highly appreciated!",
+            "images": [],
+            "author": "Spontune",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"105744\">@Spontune</user-mention>, to the community!</p>\n<p>As no community member has responded so far, it seems that no one was particularly interested in reviewing your detailed description. Here is my initial assessment:</p>\n<p>The overall pre-charge and shutdown concept is sensible, but I would be cautious about driving Q2 directly from a slow RC ramp. With such a long time constant, the MOSFET may spend too long in its linear region, which can lead to unpredictable switching behaviour and unnecessary heating. For a more reliable solution, I would recommend using the RC network only as a timing element, followed by a proper threshold stage such as a Schmitt trigger, comparator, or transistor driver to switch Q2 cleanly.</p>\n<p>The emergency shutdown approach also looks reasonable in principle, but I would strongly suggest validating the actual drop-out behaviour of K1 and K2 on the bench, including worst-case conditions.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"2379\">@Peter BENSCH</user-mention>,</p><p>I’ve been continuously reviewing the schematic since I initially shared the post. I had actually already added the comparator stage you suggested to address the MOSFET timing, but I hadn’t updated the thread with the latest version yet.</p><p>I really appreciate you taking the time to review this design, especially since I built it entirely from scratch without relying on any reference schematics. It is very encouraging that you didn't find any other major issues. Your validation of the overall pre-charge and emergency shutdown logic provides a great sense of assurance.</p><p>I will proceed with bench testing the relay drop-out behaviors under worst-case conditions as you advised. I will definitely share my findings and updates in this thread.</p><p>Best regards,</p><p>Umut Kuruderviş</p></div>",
+                    "author": "Spontune",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

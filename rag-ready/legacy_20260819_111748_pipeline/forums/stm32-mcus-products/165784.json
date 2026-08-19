@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "165784",
+            "publicId": "165784",
+            "title": "USART Half-Duplex Open-Drain: Waiting for TC flag causes garbled data",
+            "url": "https://community.st.com/stm32-mcus-products-25/usart-half-duplex-open-drain-waiting-for-tc-flag-causes-garbled-data-165784",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F1 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-05-18T17:59:37+00:00",
+            "views": 275,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Welcome to the forum.\n\nPlease give more details of your setup - see:\n\n[*How to write your question to maximize your chances to find a solution*](https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228 \"How to write your question to maximize your chances to find a solution\")\n\nWhat is at the other end of your link? Are you sure that is behaving correctly ?\n\n> ---\n\n>\n\n> @Rafo wrote:\n\n>\n\n> my logic analyzer shows completely garbled bytes (corrupted data).\n\n>\n\n> ---\n\nHave you also looked at the line with an oscilloscope, to verify that all is well in the analogue domain - clean, good edges, no noise, etc ... ?\n\nIf it's not clean in the analogue domain, then an LA can give misleading results...",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello everyone,\n\nI have encountered a strange issue with my UART transmission function on an STM32 microcontroller operating in Half-Duplex Open-Drain mode.\n\nCurrently, the function works perfectly fine without checking the TC flag. However, when I add a check to wait for the transmission completion at the end of the function, my logic analyzer shows completely garbled bytes (corrupted data).\n\nHere is the code that **works perfectly** (without the TC check):\n\n```\n\nvoid send_array(uint8_t *arr, uint8_t size)\n\n{\n\n/* Receiver disable */\n\nUSART3->CR1 &= ~(CR1_RE);\n\nfor (int i = 0; i < size; i++)\n\n{\n\n/* Wait until Transmit data register is empty */\n\nwhile(!(USART3->SR & SR_TXE)){}\n\n/* Send byte */\n\nUSART3->DR = arr[i];\n\n}\n\n/* Receiver enable */\n\nUSART3->CR1 |= CR1_RE;\n\n}\n\n```\n\nAnd here is the modification that **breaks the transmission** and leads to garbled bytes on the analyzer:\n\n```\n\nvoid send_array(uint8_t *arr, uint8_t size)\n\n{\n\n/* Receiver disable */\n\nUSART3->CR1 &= ~(CR1_RE);\n\nfor (int i = 0; i < size; i++)\n\n{\n\n/* Wait until Transmit data register is empty */\n\nwhile(!(USART3->SR & SR_TXE)){}\n\n/* Send byte */\n\nUSART3->DR = arr[i];\n\n}\n\n/* Waiting for TC here causes garbled data */\n\nwhile(!(USART3->SR & SR_TC)){}\n\n/* Receiver enable */\n\nUSART3->CR1 |= CR1_RE;\n\n}\n\n```\n\nCan anyone explain the underlying hardware reason for this behavior? Why does waiting for the TC flag disrupt framing or synchronization in Half-Duplex mode?\n\nThank you in advance!\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [],
+            "author": "Rafo",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; my logic analyzer shows completely garbled bytes (corrupted data).</p><p>Show. Both the good and the bad. And explain why is the bad bad.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome to the forum.</p><p><span>Please give more details of your setup - see: </span></p><p><a href=\"https://community.st.com/t5/community-guidelines/how-to-write-your-question-to-maximize-your-chances-to-find-a/ta-p/575228\" target=\"_blank\" title=\"How to write your question to maximize your chances to find a solution\"><em>How to write your question to maximize your chances to find a solution</em></a><span> </span></p><p> </p><p>What is at the other end of your link? Are you sure that is behaving correctly ?</p><p> </p><blockquote><hr/><user-mention data-id=\"107084\">@Rafo</user-mention> wrote:<br/><p>my logic analyzer shows completely garbled bytes (corrupted data).</p><hr/></blockquote><p>Have you also looked at the line with an oscilloscope, to verify that all is well in the analogue domain - clean, good edges, no noise, etc ... ?</p><p>If it's not clean in the analogue domain, then an LA can give misleading results...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><strong>Hi everyone, thanks for the help!</strong></p><p>The problem is solved. The pull-up resistor value was indeed too large, which caused a slow rise time. On top of that, my logic analyzer was also glitching, which added to the initial confusion.</p><p>For testing, I sent a 0x55 byte to get an alternating bit pattern, and you can see the result in the attached oscilloscope screenshot. The long flat pause at the high level is the idle time while waiting for the TC flag between transmissions.</p><p>Everything is working perfectly now. Thanks again!</p></div>",
+                    "author": "Rafo",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

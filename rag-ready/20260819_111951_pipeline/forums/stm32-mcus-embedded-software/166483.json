@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "166460",
+            "publicId": "166483",
+            "title": "Can't compile code due to strange error messages : \"expected declaration specifiers...\"",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/can-t-compile-code-due-to-strange-error-messages-expected-declaration-specifiers-166483",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-06-26T23:56:29+00:00",
+            "views": 59,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Dummy me!\n\nI didn’t have the two Start calls inside a function. That also caused the #define error message.\n\nSometimes you can’t see the forest for the trees.",
+            "best_answer_author": "Raymond Buck",
+            "best_answer_author_role": "Senior",
+            "content_text": "When I compile my code, I get strange errors that make no sense.\n\n#define ADC\\_BUFFER 1000 gives error \"expected declaration specifiers or '...' before numeric constant\"\n\neven though the line above it #define ADC\\_HIGH\\_THRESHOLD 3500 doesn't generate an error.\n\nHAL\\_TIM\\_Base\\_Start(&htim3); and HAL\\_ADC\\_Start\\_DMA(&hadc1, (uint32\\_t\\*)adc\\_buffer, ADC\\_BUFFER); both generate \"Syntax error\".\n\nThe TIM and ADC Start errors expanded error message is:  error: expected declaration specifiers or '...' before '&' token\n\n```\n\n/* USER CODE END Header */\n\n/* Includes ------------------------------------------------------------------*/\n\n#include \"main.h\"\n\n/* Private includes ----------------------------------------------------------*/\n\n/* USER CODE BEGIN Includes */\n\n#include <stdlib.h>\n\n#include <stdio.h>\n\n#include <stdbool.h>\n\n#include <stdint.h>\n\n#include <inttypes.h>\n\n#include \"globals.h\"\n\n/* USER CODE END Includes */\n\n/* Private typedef -----------------------------------------------------------*/\n\n/* USER CODE BEGIN PTD */\n\n/* USER CODE END PTD */\n\n/* Private define ------------------------------------------------------------*/\n\n/* USER CODE BEGIN PD */\n\n#define ADC_HIGH_THRESHOLD 3500\n\n#define ADC_BUFFER 1000\n\n/* USER CODE END PD */\n\n/* Private macro -------------------------------------------------------------*/\n\n/* USER CODE BEGIN PM */\n\n/* USER CODE END PM */\n\n/* Private variables ---------------------------------------------------------*/\n\nDMA_HandleTypeDef hdma_adc1;\n\nADC_HandleTypeDef hadc1;\n\nTIM_HandleTypeDef htim3;\n\nUART_HandleTypeDef huart1;\n\n/* USER CODE BEGIN PV */\n\nvolatile uint8_t  bit_ready_flag = 0;\n\nvolatile uint8_t counter = 0, bitcount = 0;\n\nvolatile uint8_t analysis_ready = 0;\n\nuint16_t adc_buffer[ADC_BUFFER]; // DMA will automatically fill this array\n\nint zoneoffset = -7; // *********************TEMP TESTING*****************************\n\nuint8_t IsValid(void);\n\nuint8_t seccount = 0, newbit = 0, oldbit = 0, tempbit = -1;\n\nbool is_synced = false;\n\ntypedef struct {\n\nuint8_t hour;     // 0-23\n\nuint8_t minute;   // 0-59\n\nuint16_t doy;     // Day of Year (1 - 366)\n\nuint8_t year;     // 2-digit year (e.g., 26 for 2026)\n\n} local_t;\n\n/* USER CODE END PV */\n\n/* Private function prototypes -----------------------------------------------*/\n\nvoid SystemClock_Config(void);\n\nstatic void MX_GPIO_Init(void);\n\nstatic void MX_DMA_Init(void);\n\nstatic void MX_ADC1_Init(void);\n\nstatic void MX_USART1_UART_Init(void);\n\nstatic void MX_TIM3_Init(void);\n\n/* USER CODE BEGIN PFP */\n\n/* USER CODE END PFP */\n\n/* Private user code ---------------------------------------------------------*/\n\n/* USER CODE BEGIN 0 */\n\nHAL_TIM_Base_Start(&htim3);\n\nHAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, ADC_BUFFER);\n\n/* USER CODE END 0 */\n\n/**\n\n* @brief  The application entry point.\n\n* @retval int\n\n*/\n\nint main(void)\n\n{\n\n/* USER CODE BEGIN 1 */\n\nint wwvb_bit;\n\nuint8_t chkvalid = 0, onetime = 0, bootcount = 0;\n\nuint16_t synccount = 0;\n\nuint32_t final_high_duration_ms = 0;\n\nuint8_t is_pulse_valid = 0;\n\n/* USER CODE END 1 */\n\n/* MCU Configuration--------------------------------------------------------*/\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n\nHAL_Init();\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* Configure the system clock */\n\nSystemClock_Config();\n\n/* USER CODE BEGIN SysInit */\n\n/* USER CODE END SysInit */\n\n/* Initialize all configured peripherals */\n\nMX_GPIO_Init();\n\nMX_DMA_Init();\n\nMX_ADC1_Init();\n\nMX_USART1_UART_Init();\n\nMX_TIM3_Init();\n\n/* USER CODE BEGIN 2 */\n\n/* USER CODE END 2 */\n\n/* Infinite loop */\n\n/* USER CODE BEGIN WHILE */\n\nwhile(HAL_GPIO_ReadPin(WWVB_IN_GPIO_Port, WWVB_IN_Pin) == GPIO_PIN_SET); // wait for pin to go low if it is high\n\nwhile(HAL_GPIO_ReadPin(WWVB_IN_GPIO_Port, WWVB_IN_Pin) == GPIO_PIN_RESET); // wait for pin to go high\n\nHAL_GPIO_WritePin(OB_LED_GPIO_Port, OB_LED_Pin, 0);\n\n// this starts timer2 so it aligns with the start of a new WWVB second\n\n__HAL_TIM_SET_COUNTER(&htim3, 0); // clear timer counter\n\n// __HAL_TIM_CLEAR(&htim2, TIM_UPDATE); // clear interrupt flag - safety measure - it should already be cleared\n\nHAL_TIM_Base_Start(&htim3); // timer is now aligned to edge of WWVB low going signal\n\nSyncStart();\n\nHAL_GPIO_WritePin(OB_LED_GPIO_Port, OB_LED_Pin, 0);\n\nwhile (1)\n\n{\n\n```\n\nI have done a Project → Clean but no change. I must be missing something.",
+            "images": [],
+            "author": "Raymond Buck",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>First guess is your “ADC_BUFFER” conflicts with something else named “ADC_BUFFER”.  Try renaming yours and see if you get different (!) error messages.  Good luck.</p></div>",
+                    "author": "David Littell",
+                    "role": "Senior II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dummy me! </p><p>I didn’t have the two Start calls inside a function. That also caused the #define error message.</p><p>Sometimes you can’t see the forest for the trees.</p></div>",
+                    "author": "Raymond Buck",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

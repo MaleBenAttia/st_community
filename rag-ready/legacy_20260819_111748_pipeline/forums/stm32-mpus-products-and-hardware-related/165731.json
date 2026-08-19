@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "165731",
+            "publicId": "165731",
+            "title": "[STM32MP135F-DK] STPMIC1 IRQ in OP-TEE Can I use a non-WKUP GPIO?",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp135f-dk-stpmic1-irq-in-op-tee-can-i-use-a-non-wkup-gpio-165731",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "Power",
+                "STM32MP13 lines"
+            ],
+            "published_at": "2026-05-15T14:55:20+00:00",
+            "views": 112,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@AVazquez,\n\n* **No**, it is **not mandatory** to use WKUP1–WKUP6 (EXTI 55–60) for all external device IRQs in OP-TEE.\n\n* **WKUP pins** are special:\n\n+ Used for **wake-up from Standby** when PWR is assigned to OP-TEE.\n\n+ Must be configured in `&pwr_irq` with `wakeup-gpios`.\n\n* **Other GPIOs (EXTI 0–54)**:\n\n+ Can be used as normal interrupt sources.\n\n+ Set up via `stm32-irq-notifier` and forwarded to Linux via OP-TEE notifications.\n\n* For STPMIC1 on STM32MP135F-DK, using WKUP1 is chosen because the PMIC manages **power and wake-up**, not because it's mandatory for all devices.\n\nBest Regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nI'm working with the STM32MP135F-DK kit and I'm trying to understand the correct way to configure interrupt lines (IRQs) for external devices,  specifically for the STPMIC1 in OP-TEE.\n\nI have been reading the official documentation and I'm a bit confused about whether it is mandatory to use the dedicated PWR Wake-up pins (WKUP1–WKUP6) for interrupt lines, or if any GPIO can be used.\n\n---\n\nWhat I observed in the reference DTS files:\n\nLooking at the OP-TEE device tree (core/arch/arm/dts/stm32mp135f-dk.dts, tag 4.0.0-stm32mp),\n\nI can see that all IRQ consumers use EXTI lines above 55:\n\n- STPMIC1 interrupts-extended = <&exti 55 IRQ\\_TYPE\\_EDGE\\_FALLING> (WKUP1 / PF8)\n\n---\n\nMy questions\n\nIs it mandatory to use one of the 6 dedicated WKUP pins (EXTI 55–60) for any device IRQ managed by OP-TEE?",
+            "images": [],
+            "author": "AVazquez",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"53892\">@AVazquez</user-mention>,<br/> </p><ul><li> <p><strong>No</strong>, it is <strong>not mandatory</strong> to use WKUP1–WKUP6 (EXTI 55–60) for all external device IRQs in OP-TEE.</p> </li> <li> <p><strong>WKUP pins</strong> are special:</p> <ul><li> <p>Used for <strong>wake-up from Standby</strong> when PWR is assigned to OP-TEE.</p> </li> <li> <p>Must be configured in <code>&amp;pwr_irq</code> with <code>wakeup-gpios</code>.</p> </li> </ul></li> <li> <p><strong>Other GPIOs (EXTI 0–54)</strong>:</p> <ul><li> <p>Can be used as normal interrupt sources.</p> </li> <li> <p>Set up via <code>stm32-irq-notifier</code> and forwarded to Linux via OP-TEE notifications.</p> </li> </ul></li> <li> <p>For STPMIC1 on STM32MP135F-DK, using WKUP1 is chosen because the PMIC manages <strong>power and wake-up</strong>, not because it's mandatory for all devices.</p> </li></ul><p><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

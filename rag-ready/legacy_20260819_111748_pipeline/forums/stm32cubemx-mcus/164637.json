@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "164637",
+            "publicId": "164637",
+            "title": "CubeMX Route Opamp output to ADC on STM32U3C5CIUxQ",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/cubemx-route-opamp-output-to-adc-on-stm32u3c5ciuxq-164637",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "ADC",
+                "STM32U3 series"
+            ],
+            "published_at": "2026-04-10T12:33:36+00:00",
+            "views": 357,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @AQB\n\nYou are absolutely correct. This behavior appears to be a STM32CubeMX limitation.\n\nCubeMX should allow the ADC to select the OPAMP output channel, exactly as it does on STM32F3 where the OPAMP output is available in the ADC channel list as a selectable input source. The expected behavior on STM32U3 should be the same: once the OPAMP is enabled, the ADC channel corresponding to the OPAMP output should remain selectable so that the amplified signal can be converted by the ADC.\n\n![GhofraneGSOURI_0-1776077585720.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eeb3b42b-60d8-034e-0f9b-0c346369c3e0.png \"GhofraneGSOURI_0-1776077585720.png\")\n\nA ticket **# 0061629** has been escalated to dev team to correct this behavior.\n\nBR,\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nAccording to Table 246 in section 27.3.3 Signal Routing of the STM32U3 Reference Manual, I should be able to configure **ADC1\\_IN6** as an ADC input when using **OPAMP1**, or **ADC1\\_IN13**/**ADC2\\_IN9** when using **OPAMP2** such that the output of the opamps are routed internally to the input of the ADC.\n\n![AQB_0-1775823813286.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34126767-2775-3e55-cf52-78954eade15c.png \"AQB_0-1775823813286.png\")\n\nHowever, in CubeMX configuration for this device, enabling the Opamp in any capacity \"red's out\" the option to use the corresponding ADC input for any of these combinations. In this example, **OPAMP1** is set to **PGA Not Connected**, and I am unable to  configure the ADC input on **IN6**.\n\n![AQB_1-1775823963323.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/81a6c947-2df0-a3cf-f614-d983d072e871.png \"AQB_1-1775823963323.png\")\n\nAm I doing something wrong here, or is this simply a bug related to the recent release of this product?\n\nThanks!\n\nCubeMX version: 6.17.0\n\nOS: Ubuntu 24.04.4\n\nDevice: STM32U3C5CIUxQ",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1e466c7d-f561-9c54-011f-b7f5835d3c3e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1b4073dd-ead6-a901-83a1-20ee2b00f815.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/34126767-2775-3e55-cf52-78954eade15c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eeb3b42b-60d8-034e-0f9b-0c346369c3e0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/81a6c947-2df0-a3cf-f614-d983d072e871.png"
+            ],
+            "author": "AQB",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105962\">@AQB</user-mention> </p>\n<p>In STM32U3 OPAMP PGA mode, “PGA not connected” means only that the inverting  input not used. For OPAMP1, the external signal still enters through VINP on PA0(ADC1_IN3)  and the amplified result appears on PA3 (ADC1_IN6)</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GhofraneGSOURI_0-1775832835181.png\" style=\"width: 400px;\"><img alt=\"GhofraneGSOURI_0-1775832835181.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1e466c7d-f561-9c54-011f-b7f5835d3c3e.png\" title=\"GhofraneGSOURI_0-1775832835181.png\"/></span></p>\n<p>So CubeMX behavior is  correct.</p>\n<p>THX</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for looking into this <user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention>.<br/><br/>My confusion is that I am unable to enable the ADC to read from input channel 6 in CubeMX. I am less concerned about the particular operating mode of the Opamp, that was just an example to illustrate my issue.<br/><br/>Per this screenshot, I am unable to activate <strong>IN6</strong> on <strong>ADC1</strong> when <strong>OPAMP1</strong> is enabled in <em>any</em> operating mode. At the very least, this means I cannot configure the other ADC parameters without enabling a second, unused channel.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AQB_1-1775840368371.png\" style=\"width: 400px;\"><img alt=\"AQB_1-1775840368371.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1b4073dd-ead6-a901-83a1-20ee2b00f815.png\" title=\"AQB_1-1775840368371.png\"/></span></p><p>If this is intended behaviour, how do I then enable the ADC peripheral to use the opamp output?<br/><br/>Thanks!</p></div>",
+                    "author": "AQB",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"105962\">@AQB</user-mention> </p>\n<p><span>You are absolutely correct. This behavior appears to be a STM32CubeMX limitation.</span></p>\n<p><span>CubeMX should allow the ADC to select the OPAMP output channel, exactly as it does on STM32F3 where the OPAMP output is available in the ADC channel list as a selectable input source. The expected behavior on STM32U3 should be the same: once the OPAMP is enabled, the ADC channel corresponding to the OPAMP output should remain selectable so that the amplified signal can be converted by the ADC.</span></p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"GhofraneGSOURI_0-1776077585720.png\" style=\"width: 400px;\"><img alt=\"GhofraneGSOURI_0-1776077585720.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eeb3b42b-60d8-034e-0f9b-0c346369c3e0.png\" title=\"GhofraneGSOURI_0-1776077585720.png\"/></span></p>\n<p>A ticket <strong># 0061629</strong> has been escalated to dev team to correct this behavior.</p>\n<p>BR,</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

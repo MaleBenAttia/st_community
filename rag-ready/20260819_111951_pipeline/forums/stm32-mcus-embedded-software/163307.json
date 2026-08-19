@@ -1,0 +1,44 @@
+{
+    "forum": [
+        {
+            "id": "163307",
+            "publicId": "163307",
+            "title": "Flashing by UART in STM32F411RE",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/flashing-by-uart-in-stm32f411re-163307",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Bootloader",
+                "STM32F4 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-03-01T02:14:19+00:00",
+            "views": 337,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "If PC is at 0x080208xx, user code is being executed. If it's not doing what you want, there's likely a bug in the code, either the bootloader or the user code.\n\nGeneral jump to X code is here:\n\n[How to jump to system bootloader from application ... - STMicroelectronics Community](https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424)\n\nYours looks considerably different. You will need to reenable interrupts, among other things.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "After more debugging, the jump function works correctly (PC reaches 0x080208xx, SP and RST are valid), but the app never sends any UART message after jump — even with SystemClock\\_Config() completely commented out and only HAL\\_Init() + MX\\_UART\\_Init() remaining. The bootloader resets the clock to HSI before jumping. SCB->VTOR is set in SystemInit(). Linker is at 0x08020000. The app works perfectly when flashed directly at 0x08000000 via ST-Link. Something is killing the app immediately after the bootloader jumps but we can't figure out what — any ideas?\n\nthis is the project :\n\n<https://github.com/said-sketch/Flashing-by-UART---STM32-Bootloader/tree/main>",
+            "images": [],
+            "author": "SAID_embadded",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If PC is at <span>0x080208xx, user code is being executed. If it's not doing what you want, there's likely a bug in the code, either the bootloader or the user code.</span></p><p><span>General jump to X code is here:</span></p><p><span><a href=\"https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424\" target=\"_blank\">How to jump to system bootloader from application ... - STMicroelectronics Community</a></span></p><p><span>Yours looks considerably different. You will need to reenable interrupts, among other things.</span></p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>thanks bro i really i fix it</p></div>",
+                    "author": "SAID_embadded",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

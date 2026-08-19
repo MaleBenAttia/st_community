@@ -1,0 +1,94 @@
+{
+    "forum": [
+        {
+            "id": "164106",
+            "publicId": "164106",
+            "title": "STM32H563/573 Iddusb",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h563-573-iddusb-164106",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Power",
+                "USB",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-24T12:24:49+00:00",
+            "views": 437,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "> So if Vddusb were to draw only 1 to 10 uA max\n\nOn idle - maybe. If sending nothing on usb, but when driving +/- 3v3 on usb data lines at 12mbit in 110 ohm impedance ...25mA (burst) will be needed.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello ST,\n\nWhat is the maximum current draw into the STM32H563/573's VDDUSB pin, please? Is this the same as IDD(USBBCD), i.e. 300 uA (ds14258 rev.6 Table 120)?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/399e6fcd-e523-eafd-0e38-e5ad6f868a22.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f710bde4-59c4-0df1-2b96-acdd86907be5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/49d1270f-331c-1c2c-b8b1-3769d770fb07.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4639328c-3491-cd48-ada0-84533e280e6f.png"
+            ],
+            "author": "bernhardb",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"88136\">@bernhardb</user-mention> </p>\n<p><span>The maximum current draw for the STM32H563/573's VDDUSB pin and its equivalence to IDD(USBBCD) (300 µA) cannot be confirmed compared to IO pin AMRs. The datasheet and application notes do not provide the specific values required.</span></p>\n<p>VDDUSB is a<span> </span><strong>supply pin</strong><span> </span>for the USB transceiver. It is intended to be<span> </span><strong>powered by your 3.3 V rail</strong><span> </span>(or whatever the device spec allows), with proper decoupling capacitors. It is<span> </span><strong>not designed as a current sink/source pin</strong><span> </span>in the sense of GPIOs or dedicated current inputs.</p>\n<p>As long as:</p>\n<ul>\n<li>VDD and VDDUSB are supplied at the specified voltage.</li>\n<li>The regulator is capable of delivering the summed current.</li>\n<li>Proper decoupling is used near VDDUSB.</li>\n</ul>\n<p>then you do<span> </span><strong style=\"color: #525a63; font-family: inherit;\">not</strong><span> </span><span>need a special <strong>max current into VDDUSB</strong>, and you are within spec.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello FBL,</p><p>Thank you for your reply. When used for USB purposes, the datasheet says that VDDUSB is independent from VDD. It would therefore be good practice to know what the expected current draw is for this pin in this case.</p><p>Would it perhaps be possible to find out from the design team what the expected current draw range is for this supply pin, please?</p></div>",
+                    "author": "bernhardb",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>from ds , USB current /MHz :</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"h563-vddusb.png\" style=\"width: 680px;\"><img alt=\"h563-vddusb.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/49d1270f-331c-1c2c-b8b1-3769d770fb07.png\" title=\"h563-vddusb.png\"/></span></p><p>-&gt; so at 200M could be around 0.6 mA .</p><p>and VDDusb has to be: (same as VDD , if used )</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"h563-vdd-usb.png\" style=\"width: 815px;\"><img alt=\"h563-vdd-usb.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4639328c-3491-cd48-ada0-84533e280e6f.png\" title=\"h563-vdd-usb.png\"/></span></p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello AScha.3, thank you for your reply.</p><p>ds p.29: \"VDDUSB is the external independent power supply for USB transceivers. It is independent from VDD...\"</p><p>In our case, we wanted to use Vdd = 1.8V. In this case, VDDUSB should be 3.3V. Is this correct?</p><p>In this case, is the current in Table 38 drawn from Vdd (1.8V) or from Vddusb?</p></div>",
+                    "author": "bernhardb",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt;<span>VDDUSB should be 3.3V. Is this correct?</span></p><p>Right, as usb is working on 3v3 signal level, the transceiver obviously has to work at 3v3 ,</p><p>otherwise it could not send anything at usb standard signal level. (full or high speed)</p><p>+</p><p>Why you want to know at uA precision, how much current is needed ?</p><p>Anyway this is a burst/pulse packet communication, so - as <user-mention data-id=\"2057\">@FBL</user-mention> said - it depends a lot on actual use case;</p><p>from \"sleep\" = active, but doing nothing, to transmitting at max speed , is a big range.</p><p>So just lets look at H743 ds, where (average ! , not peak) current is given:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bildschirmfoto_2026-03-24_18-47-52.png\" style=\"width: 990px;\"><img alt=\"Bildschirmfoto_2026-03-24_18-47-52.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/399e6fcd-e523-eafd-0e38-e5ad6f868a22.png\" title=\"Bildschirmfoto_2026-03-24_18-47-52.png\"/></span></p><p>in uA/MHz run mode; so at 200MHz about (30*200) 6000uA, 6mA . (all at 3v3 VDD , at 25°)</p><p>BUT biggest part here, registers and kernel, are probably in the H563 at MCU voltage, so the main consumption is on the 1v8 core supply, only a part at the 3v3 .</p><p>At high temp the current is higher...so if you want to know exactly : use a H563 nucleo board, set core VDD_MCU to 1v8 and measure with the mode you want to use the usb the current on the SB26 , which is there to do this. :)</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Bildschirmfoto_2026-03-24_18-54-22.png\" style=\"width: 461px;\"><img alt=\"Bildschirmfoto_2026-03-24_18-54-22.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f710bde4-59c4-0df1-2b96-acdd86907be5.png\" title=\"Bildschirmfoto_2026-03-24_18-54-22.png\"/></span></p><p>Then you know it for real.</p><p>Just to decide, how to supply it : take any small LDO 3v3 , they all can deliver &gt; 100mA , so no problem here.</p><p>It doesn't matter whether the USB requires 0.5 or 50mA peak current, you are on the safe side.</p><p>-- Or lets look to the values from other similar chips, imxRT1050, NXP :  USB_OTG1_VBUS -&gt; </p><p>5uA at power down, up to max. 25 mA for each active USB interface ; so about same range.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"88136\">@bernhardb</user-mention> </p>\n<p><span>&gt; In our case, we wanted to use Vdd = 1.8V. In this case, VDDUSB should be 3.3V. Is this correct?</span></p>\n<p><span>Yess, </span>datasheet clearly states that, to guarantee correct voltage levels for USB communication, VDDUSB must be above 3.0 V. The USB full-speed transceiver functionality is ensured down to 2.7 V, but electrical characteristics are degraded when VDD ranges between 2.7 V and 3.0 V.</p>\n<p><span>&gt; is the current in Table 38 drawn from Vdd (1.8V) or from Vddusb?</span></p>\n<p><span>As stated in title and context, current consumption in sleep mode.</span></p>\n<p><span>About </span> I_DD(USBBCD) ≈ 300 µA for<span> the USB Battery Charging Detection. So, i</span>t is just one component of the total USB domain current.</p>\n<p><span>Th</span>e exact current drawn from VDDUSB depend<span>s on:</span></p>\n<ul>\n<li>USB mode (device/host),</li>\n<li>PHY state (active / suspended),</li>\n<li>Clock configuration,</li>\n<li>Whether BCD is enabled,</li>\n<li>System frequency/voltage</li>\n</ul>\n<p><span>Total USB related curren</span>t is typically in the mA range when the USB PHY is active, but the exact number is not guaranteed.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; Why you want to know at uA precision, how much current is needed ?</p><p>Since my Vdd = 1.8V, the 3.3V required for the Vddusb is an exception. Sometimes the USB supply is only a bias supply for USB detection (as you implied, all the currents in the tables cited in the replies above are probably drawn from Vdd, not from Vddusb). So if Vddusb were to draw only 1 to 10 uA max, I can consider other options than having to put down a formal supply.</p><p> </p><p>(...besides the fact that the current draw on this 'supply' input should actually be specified for a manufacturer in the class of ST).</p></div>",
+                    "author": "bernhardb",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; So if Vddusb were to draw only 1 to 10 uA max</p><p>On idle - maybe. If sending nothing on usb, but when driving +/- 3v3 on usb data lines at 12mbit in 110 ohm impedance ...25mA (burst) will be needed.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

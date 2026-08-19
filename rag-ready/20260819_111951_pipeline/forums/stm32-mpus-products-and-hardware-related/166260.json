@@ -1,0 +1,67 @@
+{
+    "forum": [
+        {
+            "id": "166239",
+            "publicId": "166260",
+            "title": "Why 10 kOhm pull-up onto the sdmmc1_ck line?",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/why-10-kohm-pull-up-onto-the-sdmmc1-ck-line-166260",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "SDIO-SDMMC",
+                "STM32MP25 lines",
+                "STM32MP25 lines ST boards"
+            ],
+            "published_at": "2026-06-18T09:09:26+00:00",
+            "views": 94,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Windows,\n\n**No, the internal pull-ups are NOT initialized automatically** they are in a high-impedance (floating) state by default at power-up, before the BootROM or early bootloader configures the GPIOs.\n\nFor the STM32MP2 series. The pull-up configuration must be done explicitly, either via:\n\n* **External resistors on the PCB** (recommended for reliable boot)\n\n* **Device tree configuration** using `bias-pull-up` in the pin control node for signals initialized later in the boot chain (e.g., D1–D3 when switching from 1-bit to 4-bit mode)\n\nI think AN5489 is actually correct the reason no internal pull-up is shown in the figure is simply because an external pull-up is already depicted in the schematic diagram.\n\nThank you.\n\nBest regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hi!\n\nI wonder why ST have chosen to implement a 10 kOhm pull-up (R34) on the clock line of the SD-card?\n\nI have seen this on the STM32MP257F-DK board from ST.\n\nNormally, you chould not have a 10 kOhm pull-up on the clock signal, only the other data/command signals.\n\nThat’s the reason why the EMI filters for the SD-card e.g ST products EMIF06-HMC02F2 and EMIF06-MSD02N16 does not any pull-up onto the clock signal.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35425796-44e2-46c9-aa4a-e5e55a8d0fa5.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/35425796-44e2-46c9-aa4a-e5e55a8d0fa5.png"
+            ],
+            "author": "Windows",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107546\">@Windows</user-mention>,<br/><br/>During system power-up or low-power states, the GPIOs of the STM32MP25 default to a high-impedance (floating) state before the BootROM or early bootloader firmware initializes them.<br/><br/>If the clock line is left floating during this critical boot phase, electromagnetic interference (EMI) or board noise could induce spurious voltage transitions.<br/><br/>The SD card controller might misinterpret these random fluctuations as valid clock edges, potentially causing the card to enter an undefined or faulty state before the system is even ready to communicate with it.<br/><br/>By adding a weak pull-up (or sometimes a pull-down) resistor, the reference design ensures the clock line remains at a stable, defined logic level when the processor is not actively driving the bus.<br/><br/>For production designs, adding the clock pull-up is generally optional. If your system firmware initializes the SDMMC peripheral GPIOs rapidly and you do not frequently hot-swap the SD card, the transient floating state may never cause a practical issue. However, keeping the resistor pad on the PCB as a \"Do Not Fit\" (DNF) component is a good practice, as it provides a fallback if you encounter initialization issues during your EMI validation testing.<br/><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for your answer ​<user-mention data-id=\"102796\">@ZAKARIA_C1</user-mention> </p><p>One more question:  Are the internal pull-ups for CLK, CMD, D0, D1, D2 and D3 initialized automatically or does it need to be done internally?</p><p> </p><p>By the way, if CLK have an internal pull-up. Then the getting started manual AN5489 for the STM32MP2, figure 27, need to be corrected.</p></div>",
+                    "author": "Windows",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107546\">@Windows</user-mention>,<br/><br/><strong>No, the internal pull-ups are NOT initialized automatically</strong> they are in a high-impedance (floating) state by default at power-up, before the BootROM or early bootloader configures the GPIOs.<br/>For the STM32MP2 series. The pull-up configuration must be done explicitly, either via:</p><ul><li> <p><strong>External resistors on the PCB</strong> (recommended for reliable boot)</p> </li> <li> <p><strong>Device tree configuration</strong> using <code>bias-pull-up</code> in the pin control node for signals initialized later in the boot chain (e.g., D1–D3 when switching from 1-bit to 4-bit mode)</p> </li></ul><p>I think AN5489 is actually correct the reason no internal pull-up is shown in the figure is simply because an external pull-up is already depicted in the schematic diagram.<br/><br/>Thank you.<br/>Best regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you ​<user-mention data-id=\"102796\">@ZAKARIA_C1</user-mention> </p><p>I will go with the Device Tree Configuration method. No external pull-ups applied (except for the CLK line).</p><p>Yes, the EMI-filter for SDR50 have internal pull-ups. But SDR50 is quite slow technology compared for the modern SDR104.</p></div>",
+                    "author": "Windows",
+                    "role": "Senior"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

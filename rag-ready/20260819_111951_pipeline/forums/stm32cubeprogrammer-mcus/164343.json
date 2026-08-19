@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "164343",
+            "publicId": "164343",
+            "title": "CubeProgrammer erase wrong sector on STM32H563VGT6 (1MB Flash) device",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/cubeprogrammer-erase-wrong-sector-on-stm32h563vgt6-1mb-flash-device-164343",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-03-31T10:45:49+00:00",
+            "views": 873,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @Snaku,\n\nThe fix in STM32CubeProgrammer is planned, when that's done, you'll be able to resolve this by connecting in under reset mode (That way OEMiROT\\_boot won't be executed and won't interfere with STM32CubeProgrammer detecting the correct flash size => The correct sector indexes).\n\nIf I reproduce with OEMiROT\\_boot on my side and find a change to make that will resolve the issue, I'll let you know. With that being said, on the tool side, the correct behavior is what's happening in hotplug mode (We're connecting to the target that's running an application and that's by definition the hotplug mode, I don't think the tool will open additional memory regions if the running application hides them).\n\nIn any case, don't hesitate to comment if you find anything to improve on CubeH5 front as well, I'll be happy to transfer the request.\n\nKind regards,\n\nAziz",
+            "best_answer_author": "Aziz BRIGUI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nWhen I downloaded a .hex file to my STM32H563VGT6 (1MB Flash) using STM32CubeProgrammer v2.20.0, I encountered an issue where it would erase the wrong sector. For example, as shown in the image below, it was supposed to erase sectors (76..91) and sector 115, but I found that the contents of sector 27 is erased.\n\nI also try to \"Erase selected sectors\" (76..116) manually, but sector 27 still be erased.\n\nHowever, I did not have this problem when downloading the same .hex file using an STM32H563ZIT6 (2MB Flash).\n\n![cube_download.jpg](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4a6becf2-0392-3fed-23d5-7bc340524669.jpg \"cube_download.jpg\")",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/4a6becf2-0392-3fed-23d5-7bc340524669.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41c99c1c-a283-75bc-1980-2dbba71d4f5e.PNG",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/55b25219-3022-4300-5dc6-0981a942bbba.PNG"
+            ],
+            "author": "Snaku",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"70100\">@Snaku</user-mention>,</p>\n<p>The fix in STM32CubeProgrammer is planned, when that's done, you'll be able to resolve this by connecting in under reset mode (That way OEMiROT_boot won't be executed and won't interfere with STM32CubeProgrammer detecting the correct flash size =&gt; The correct sector indexes).</p>\n<p>If I reproduce with OEMiROT_boot on my side and find a change to make that will resolve the issue, I'll let you know. With that being said, on the tool side, the correct behavior is what's happening in hotplug mode (We're connecting to the target that's running an application and that's by definition the hotplug mode, I don't think the tool will open additional memory regions if the running application hides them).</p>\n<p>In any case, don't hesitate to comment if you find anything to improve on CubeH5 front as well, I'll be happy to transfer the request.</p>\n<p>Kind regards,</p>\n<p>Aziz</p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"70100\">@Snaku</user-mention>,</p>\n<p>Thanks for highlighting this.</p>\n<p>The issue exists in STM32CubeProgrammer for H5 1M devices when TZEN is enabled and in modes other than Hotplug (We're aware of this and actively investigating. Internal tracking number: 0036604).</p>\n<p>Could you try using hotplug mode?</p>\n<p>Aziz</p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Aziz,<br/>Thank you for your response.  </p><p>As you mentioned, my TZEN setting is enabled.<br/>However, even when I switch to Hot Plug mode to download .hex files, the problem persists.</p><p>Does this problem only exist in the STM32CubeProgramer GUI program? Does the STM32CubeProgramer CLI also have this issue? Are there any suggested workarounds?</p><p>Thank you.<br/><br/></p><p>Also, below are my option byte settings for your reference.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"ob1.PNG\" style=\"width: 1210px;\"><img alt=\"ob1.PNG\" height=\"639\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/55b25219-3022-4300-5dc6-0981a942bbba.PNG\" title=\"ob1.PNG\" width=\"1210\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"ob2.PNG\" style=\"width: 725px;\"><img alt=\"ob2.PNG\" height=\"567\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/41c99c1c-a283-75bc-1980-2dbba71d4f5e.PNG\" title=\"ob2.PNG\" width=\"725\"/></span></p><p> </p></div>",
+                    "author": "Snaku",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"70100\">@Snaku</user-mention>,</p>\n<p>I tried erasing sectors <span>76 through 91 and sector 115 to try to reproduce what you're seing, but as expected, sector 27 ended up being erased <strong>only</strong> in modes other than hotplug. I suppose since you're seing a different behavior it means that either some action you're doing when navigating inside STM32CubeProgrammer is halting the CPU, or the running firmware (Since in hotplug mode the CPU is running) is interfering with this operation. </span></p>\n<p><span>Could you first try the CLI and check if other sectors are being erased? If you encounter the same behavior, could you please </span>share your hex file, or an example with dummy data containing the same segments as your hex file?</p>\n<p>Aziz</p></div>",
+                    "author": "Aziz BRIGUI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Aziz BRIGUI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

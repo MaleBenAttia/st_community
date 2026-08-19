@@ -1,0 +1,42 @@
+{
+    "forum": [
+        {
+            "id": "165786",
+            "publicId": "165786",
+            "title": "RTC in STM32WBA65 after reboot",
+            "url": "https://community.st.com/stm32-mcus-wireless-35/rtc-in-stm32wba65-after-reboot-165786",
+            "category": "STM32 MCUs Wireless",
+            "tags": [
+                "RTC",
+                "STM32WBA series"
+            ],
+            "published_at": "2026-05-18T18:58:14+00:00",
+            "views": 125,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Work around used by Levi:\n\n*stash of the current timestamp into a separate register just before soft reset fixed*",
+            "best_answer_author": "Joe_",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I have an STM32WBA data logging project loosely based on the BLE heart rate project. I sync the RTC via either a BLE message, or NTP from a serial modem. All good; works well and the RTC timestamp ticks along whilst the code is in stop2 sleep. The device is battery-powered, so power is always present. I initialise the RTC in RTC\\_BINARY\\_ONLY mode.\n\nI track whether the device has received a time sync by stashing a value in one the the backup registers.\n\nWhen the device is reset by a button on the reset line, the RTC gets set to zero. This is not a problem.\n\nHowever, when the device resets by calling NVIC\\_SystemReset(), the RTC appears to be 4194304 seconds ahead of where it should be. This is 4096 x 1024 seconds. I set the RTC frequency to 1024, so I'm guessing this is something to do with it? My code can handle this after a reset by setting the RTC back by 4096x1024 seconds.\n\nWhat is a more tricky problem is that if the device has been in stop2 mode, and is then woken and reset by NVIC\\_SystemReset(), the RTC is now **less** than 4096x1024 ahead of where it should be. I think the difference is equivalent to the total time spent in stop2 mode. Does anybody know why this is?\n\nMy current solution is to stash the current RTC timestamp in a backup register just before I call NVIC\\_SystemReset(), and then restore this to the RTC after the reset. Is there a better solution to this?",
+            "images": [],
+            "author": "SLevi.1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Work around used by Levi:<br/><em>stash of the current timestamp into a separate register just before soft reset fixed </em></p></div>",
+                    "author": "Joe_",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Joe_",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

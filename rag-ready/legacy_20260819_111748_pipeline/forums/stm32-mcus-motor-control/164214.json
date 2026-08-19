@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "164214",
+            "publicId": "164214",
+            "title": "STM32G0 MCSDK: Using RCM for extra ADC channel – correct approach?",
+            "url": "https://community.st.com/stm32-mcus-motor-control-34/stm32g0-mcsdk-using-rcm-for-extra-adc-channel-correct-approach-164214",
+            "category": "STM32 MCUs Motor control",
+            "tags": [
+                "STM32 motor control"
+            ],
+            "published_at": "2026-03-26T13:38:50+00:00",
+            "views": 402,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @Mathan Raja,\n\nThis is the correct method according to the comment feature description available in the regular\\_conversion\\_manager.c file.",
+            "best_answer_author": "GMA",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am using STM32G0 with STM32 Motor Control SDK. ADC1 is used for motor current sensing (triggered by TIM1 for FOC control).\n\nSince STM32G0 has only one ADC and does not support injected channels, I needed to read an additional NTC sensor (ADC channel 8) for motor stator temperature.\n\nI implemented this using Regular Conversion Manager (RCM):\n\n* Registered ADC channel using RCM\\_RegisterRegConv()\n\n* Requested conversion periodically (~300 ms)\n\n* Read the value after conversion completion\n\nThe motor is running stable, and I am able to get temperature readings without visible disturbance.\n\nMy question:\n\nIs this a correct and recommended approach for reading an additional analog signal in STM32G0 + MCSDK?\n\nAre there any potential risks (timing issues, FOC accuracy impact) when using RCM alongside motor control?\n\nOr is there a better recommended method for this use case (e.g., external ADC, different MCU, or MCSDK-specific approach)?\n\nThank you.",
+            "images": [],
+            "author": "Mathan Raja",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"25032\">@Mathan Raja</user-mention>,</p>\n<p><span>This is the correct method according to the comment feature description available in the regular_conversion_manager.c file.</span></p></div>",
+                    "author": "GMA",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "GMA",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "forum": [
+        {
+            "id": "163475",
+            "publicId": "163475",
+            "title": "PM8805 - Potential Damage to Active Bridge FETs",
+            "url": "https://community.st.com/power-management-53/pm8805-potential-damage-to-active-bridge-fets-163475",
+            "category": "Power management",
+            "tags": [
+                "Power supply management"
+            ],
+            "published_at": "2026-03-05T09:04:51+00:00",
+            "views": 256,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Welcome @doshimy, to the community!\n\nBased on the information you provided, your hypothesis is technically plausible. The PM8805 is designed to operate with an IEEE802.3 compliant PSE, where detection and classification currents are limited and voltage ramps are controlled. When a passive 55V DC injector is hot‑plugged directly into the RJ45, there is no such current limiting, and very high inrush and transient currents can occur.\n\nIn this situation, before the PM8805 has reached its UVLO threshold and is able to control the MOSFETs, the current initially flows through the body diodes of the active bridge. Under passive 55V hot‑plug conditions, these body diodes can be subjected to stress well beyond their ratings, which is consistent with the 'dead‑short' diode failures you observed. Such operation is outside the intended IEEE‑compliant use case of the PM8805.\n\nWe recommend using an IEEE 802.3‑compliant PSE for testing whenever possible. If a passive DC injector must be used, additional inrush‑current limiting and a controlled power‑up (avoiding hard hot‑plug at 55V) are strongly recommended.\n\nDoes it answer your question?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "We are currently using the PM8805 in our PD (Powered Device) design.\n\nWe have recently encountered field failures and suspect that the root cause lies in the customer's testing process.\n\nOur customer was using a Passive DC Injector (55V DC Supply) instead of a standard IEEE 802.3at/bt compliant PSE. During their inspection, they perform \"Hot-plugging\" of the 55V DC source directly into the RJ45 port.\n\nI’m assuming the PM8805 has to 'work through' the Active Bridge’s body diodes during the initial handshake (Detection/Class). Since the MOSFETs aren't active yet, all that signaling current must be passing through the parasitic diodes, correct?\n\nMy concern is that when using a 55V direct injector, a massive amount of inrush current is forced through these body diodes before the voltage even reaches the UVLO threshold. Doesn't this put a lethal amount of stress on the bridge before the PM8805 can even start its control sequence?\n\nWe performed a failure analysis on the damaged products and found the body diodes in a dead-short state. This explains why we couldn't detect any Classification current—the 55V direct injection simply killed the bridge diodes before the PM8805 had a chance to perform its standard PoE sequence.\n\nI would like to get your official confirmation on whether my hypothesis is correct. Also, if there are any other potential causes or failure mechanisms we should consider regarding this 'diode short' issue under these specific conditions, please let us know your professional insight.\n\nI look forward to hearing from you. Thank you in advance.",
+            "images": [],
+            "author": "doshimy",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"104398\">@doshimy</user-mention>, to the community!</p>\n<p>Based on the information you provided, your hypothesis is technically plausible. The PM8805 is designed to operate with an IEEE802.3 compliant PSE, where detection and classification currents are limited and voltage ramps are controlled. When a passive 55V DC injector is hot‑plugged directly into the RJ45, there is no such current limiting, and very high inrush and transient currents can occur.</p>\n<p>In this situation, before the PM8805 has reached its UVLO threshold and is able to control the MOSFETs, the current initially flows through the body diodes of the active bridge. Under passive 55V hot‑plug conditions, these body diodes can be subjected to stress well beyond their ratings, which is consistent with the 'dead‑short' diode failures you observed. Such operation is outside the intended IEEE‑compliant use case of the PM8805.</p>\n<p>We recommend using an IEEE 802.3‑compliant PSE for testing whenever possible. If a passive DC injector must be used, additional inrush‑current limiting and a controlled power‑up (avoiding hard hot‑plug at 55V) are strongly recommended.</p>\n<p>Does it answer your question?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\">Thank you so much for the clear and professional explanation.<br/>Your confirmation is extremely helpful.<br/>​To ensure our customer follows the correct testing procedure and<br/>understands the risks, I would like to provide them with a formal document<br/>or an official technical guideline from ST.<br/>Is there any specific Application Note, White Paper, or official<br/>documentation that addresses the hazards of 'Direct DC Hot-plugging' or<br/>'Non-standard PSE' usage for the PM8805?<br/>​Having a documented reference from ST would be invaluable for us to<br/>officially present this technical case to our client's quality assurance<br/>team.<br/>​Thank you again for your outstanding support!<br/></div>",
+                    "author": "doshimy",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The PM8805 is not a buck converter, but an 'IEEE 802.3bt PoE-PD interface with embedded dual active bridge', which is why one must follow the specifications of the IEEE.</p>\n<p>However, there is no dedicated ST application note or white paper that focuses solely on the hazards of direct DC hot‑plugging or non‑standard PSE operation specifically for the PM8805.</p>\n<p>The safety/robustness limits are defined by:</p>\n<ul>\n<li>the <a href=\"https://www.st.com/resource/en/datasheet/pm8805.pdf\" rel=\"noopener noreferrer\" target=\"_self\">data sheet of the PM8805</a> (abs max ratings)</li>\n<li>the IEEE 802.3af/at standards</li>\n</ul>\n<p>Any use with non‑standard PSEs or direct DC hot‑plugging is essentially an out‑of‑spec use case.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Your response has been extremely helpful. Thank you so much for your clear and professional guidance.</span></p></div>",
+                    "author": "doshimy",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

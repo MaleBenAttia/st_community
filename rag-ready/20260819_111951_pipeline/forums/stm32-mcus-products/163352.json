@@ -1,0 +1,36 @@
+{
+    "forum": [
+        {
+            "id": "163352",
+            "publicId": "163352",
+            "title": "STM32H747 Works after reset but not after power cycle",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h747-works-after-reset-but-not-after-power-cycle-163352",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-02T19:43:28+00:00",
+            "views": 214,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Fixed it. I think it was a power-on race condition. On a cold boot, the CPU was starting so fast that it outran the 3.3V rail's rise time, causing the internal SMPS and voltage scaling (VOS) to fail to initialize properly. Just reseting the mcu after the board was already turned on I think worked because the power was already stable.\n\nI fixed it by moving the VOSRDY and SMPSEXTRDY flag checks in main.c to immediately follow the SystemClock\\_Config() call.",
+            "best_answer_author": "peter627",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hello all,\n\nI have a custom board using an stm32h747bit6. I am able to flash it and it works exactly as intended, but if I power cycle it then it stops working?  If I flash it and then reset the chip it still works fine.\n\nI tried some debugging, I configured the error handler to toggle a gpio pin on / off but it doesn't do that, the voltage just sits at ~0.8v after I power cycle it?\n\nAny ideas?",
+            "images": [],
+            "author": "peter627",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Fixed it. I think it was a power-on race condition. On a cold boot, the CPU was starting so fast that it outran the 3.3V rail's rise time, causing the internal SMPS and voltage scaling (VOS) to fail to initialize properly. Just reseting the mcu after the board was already turned on I think worked because the power was already stable.</p><p>I fixed it by moving the VOSRDY and SMPSEXTRDY flag checks in main.c to immediately follow the SystemClock_Config() call. </p></div>",
+                    "author": "peter627",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

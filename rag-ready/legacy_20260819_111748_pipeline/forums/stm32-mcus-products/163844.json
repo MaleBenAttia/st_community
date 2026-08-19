@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "163844",
+            "publicId": "163844",
+            "title": "H723..H735: functions in ITCM, strange behaviour",
+            "url": "https://community.st.com/stm32-mcus-products-25/h723-h735-functions-in-itcm-strange-behaviour-163844",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-16T14:28:40+00:00",
+            "views": 278,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Hi  @LCE\n\nFew checks that might help narrow it down:\n\n* Is it invoked in the SAI/DMA transfer complete callback for each SAI? Are you perhaps using the same callback for multiple SAI/DMA handles, so the counter is effectively updated once per active SAI rather than once per packet?\n\n* With the function executing faster in ITCM, another SAI/DMA interrupt might enter it again before it returns. You could add a simple volatile flag and a breakpoint (or maybe GPIO toggle) inside the function to detect whether it is being re-entered.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Heyho,\n\nI recently found that I'm not using ITCM RAM at all, then started to put heap and stack there.\n\nNo problems so far.\n\nThen I copied some functions there, and all went well - until I found some strange behaviour:\n\n* 1..4 SAI RX DMA transfers running, circular mode\n\n* when all these transfers are complete *for each SAI*, a function is called to copy the complete DMA buffer from internal AXI SRAM into the big buffer in HyperRAM\n\n* also in this function a *packet counter* (a global u32 in **DTCM**) is incremented *once*\n\n* but when this function is in ITCM, this *packet counter* increments for each SAI active, but there are no extra packets\n\nFurther info:\n\n- instruction cache: in use\n\n- data cache: not used\n\nIs there any guideline what to put in ITCM, what are the limits, etcpp. ?",
+            "images": [],
+            "author": "LCE",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>... and yes, I checked AN4891, but that's more about benchmarks.</p><p>Not really clear about any requirements, but it looks like a function in ITCM doesn't have any restrictions about variable locations.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>There are no restrictions with putting code into ITCM. It will run faster which can expose some bugs in the code, much the same as switching between Debug and Release can do.</p><p>Variables can't live in ITCM since it is dedicated for instructions. They are never put there in a normal workflow, you would have to be explicitly mixing code and data in the same section.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span>It will run faster which can expose some bugs in the code,<br/>&gt; much the same as switching between Debug and Release can do.</span></p><p> </p><p>This is something I actually like very much about Release / Debug / Optimization On/Off.</p><p>But in this case it's so crazy simple - but maybe there's something I just don't see. I'll go check once more...</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi  <user-mention data-id=\"39813\">@LCE</user-mention> </p>\n<p>Few checks that might help narrow it down:</p>\n<ul>\n<li>Is it invoked in the SAI/DMA transfer complete callback for each SAI? Are you perhaps using the same callback for multiple SAI/DMA handles, so the counter is effectively updated once per active SAI rather than once per packet?</li>\n<li>With the function executing faster in ITCM, another SAI/DMA interrupt might enter it again before it returns. You could add a simple volatile flag and a breakpoint (or maybe GPIO toggle) inside the function to detect whether it is being re-entered.</li>\n</ul></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2057\">@FBL</user-mention> thanks, yes, there was a multiple DMA interrupt race condition.</p><p>I already used __disable_irq(); to prevent this, but in the callback it was \"too late\", as there's done too much in the HAL interrupt handler (which for DMA is one of the better / faster HAL interrupt handlers, which I usually avoid using).</p><p>Still need to have another look at it...</p><p>This way it works:</p><pre class=\"lia-code-sample language-c\"><code>/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */\n/* SAI DMA interrupt handlers\n * \tthe global HAL_DMA_IRQHandler()\n *\t\t- resets all flags\n *\t\t- calls the half- / complete callback functions\n */\n\n/* SAI 1 A as ADC */\nvoid DMA1_Stream0_IRQHandler(void)\n{\n\t__disable_irq();\n\tHAL_DMA_IRQHandler(&amp;hDMA_Sai_1_A);\n\t__enable_irq();\n}\n\n/* SAI 1 B as ADC */\nvoid DMA1_Stream1_IRQHandler(void)\n{\n\t__disable_irq();\n\tHAL_DMA_IRQHandler(&amp;hDMA_Sai_1_B);\n\t__enable_irq();\n}\n\n/* SAI 4 A as ADC */\nvoid BDMA_Channel0_IRQHandler(void)\n{\n\t__disable_irq();\n\tHAL_DMA_IRQHandler(&amp;hDMA_Sai_4_A);\n\t__enable_irq();\n}\n\n/* SAI 4 B as ADC */\nvoid BDMA_Channel1_IRQHandler(void)\n{\n\t__disable_irq();\n\tHAL_DMA_IRQHandler(&amp;hDMA_Sai_4_B);\n\t__enable_irq();\n}\n\n</code></pre><blockquote><hr/></blockquote><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

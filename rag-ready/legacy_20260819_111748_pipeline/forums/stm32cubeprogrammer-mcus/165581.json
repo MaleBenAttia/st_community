@@ -1,0 +1,58 @@
+{
+    "forum": [
+        {
+            "id": "165581",
+            "publicId": "165581",
+            "title": "Can't program the option bytes using CLI?",
+            "url": "https://community.st.com/stm32cubeprogrammer-mcus-30/can-t-program-the-option-bytes-using-cli-165581",
+            "category": "STM32CubeProgrammer (MCUs)",
+            "tags": [
+                "STM32CubeProgrammer",
+                "STM32H5 series"
+            ],
+            "published_at": "2026-05-11T14:35:19+00:00",
+            "views": 180,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello again @thansen ,\n\nYou forgot the **-ob**before SECWM1\\_STRT=0x0 SECWM1\\_END=0x0 SECWM2\\_STRT=0x1f SECWM2\\_END=0x0.",
+            "best_answer_author": "Kouthair",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Trying to program the option bytes I get the error message shown below. Can someone tell me what is wrong? I have tried with and without the displ and I have also tried with only one option byte at the time.\n\nC:\\Temp\\BMSM-18>\"C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32\\_Programmer\\_CLI.exe\" -c port=SWD -ob TZEN=B4 SECWM1\\_STRT=0x0 SECWM1\\_END=0x0 SECWM2\\_STRT=0x1f SECWM2\\_END=0x0 displ\n\n-------------------------------------------------------------------\n\nSTM32CubeProgrammer v2.22.0\n\n-------------------------------------------------------------------\n\nST-LINK SN : 003F00383234511537333934\n\nST-LINK FW : V3J15M7\n\nBoard : STLINK-V3MINIE\n\nVoltage : 3.29V\n\nSWD freq : 8000 KHz\n\nConnect mode: Normal\n\nReset mode : Software reset\n\nDevice ID : 0x478\n\nRevision ID : --\n\nDevice name : STM32H533/523\n\nNVM size : 512 KBytes\n\nDevice type : MCU\n\nDevice CPU : Cortex-M33\n\nBL Version : 0xE2\n\nSFSP Version: v1.2.0\n\nDebug in Low Power mode enabled\n\nError: Wrong command -ob tzen=b4 secwm1\\_strt=0x0 secwm1\\_end=0x0 secwm2\\_strt=0x1f secwm2\\_end=0x0 displ: Unknown command or command missed some parameters, please refer to the help to see the supported commands.",
+            "images": [],
+            "author": "thansen",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"83448\">@thansen</user-mention> ,<br/>Can you try this command instead ?<br/><span>&gt; STM32_Programmer_CLI.exe -c port=SWD -ob TZEN=<strong>0x</strong>B4 <strong>-ob</strong> SECWM1_STRT=0x0 SECWM1_END=0x0 SECWM2_STRT=0x1f SECWM2_END=0x0 <strong>-ob</strong> displ<br/>I have put the changes made to your command in <strong>bold.</strong></span></p></div>",
+                    "author": "Kouthair",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Kouthair,</p><p>now the programming seems to run but then the verification afterwards fails.</p><p>C:\\Users\\tkofo&gt;\"C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe\" -c port=SWD -ob TZEN=0xB4 SECWM1_STRT=0x0 SECWM1_END=0x0 SECWM2_STRT=0x1f SECWM2_END=0x0 -ob displ<br/>-------------------------------------------------------------------<br/>STM32CubeProgrammer v2.22.0<br/>-------------------------------------------------------------------</p><p>ST-LINK SN : 003F00383234511537333934<br/>ST-LINK FW : V3J15M7<br/>Board : STLINK-V3MINIE<br/>Voltage : 3.29V<br/>SWD freq : 8000 KHz<br/>Connect mode: Normal<br/>Reset mode : Software reset<br/>Device ID : 0x478<br/>Revision ID : --<br/>Device name : STM32H533/523<br/>NVM size : 512 KBytes<br/>Device type : MCU<br/>Device CPU : Cortex-M33<br/>BL Version : 0xE2<br/>SFSP Version: v1.2.0<br/>Debug in Low Power mode enabled</p><p><br/>UPLOADING OPTION BYTES DATA ...</p><p>Bank : 0x00<br/>Address : 0x40022050<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x01<br/>Address : 0x40022070<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x02<br/>Address : 0x40022080<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x03<br/>Address : 0x400220e0<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x04<br/>Address : 0x400221e0<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x05<br/>Address : 0x40022090<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x06<br/>Address : 0x400220f0<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x07<br/>Address : 0x400221f0<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x08<br/>Address : 0x400220f8<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x09<br/>Address : 0x400221f8<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p><br/>PROGRAMMING OPTION BYTES AREA ...<br/>Warning: Option Byte: secwm1_strt, value: 0x0, was not modified.</p><p>Bank : 0x04<br/>Address : 0x400221e0<br/>Size : 16 Bytes</p><p>▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒<br/>Bank : 0x03<br/>Address : 0x400220e0<br/>Size : 16 Bytes</p><p>▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒<br/>Bank : 0x01<br/>Address : 0x40022070<br/>Size : 16 Bytes</p><p>▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p><p> </p><p>Reconnecting...<br/>Reconnected !</p><p> </p><p><br/>Reconnecting...<br/>Reconnected !</p><p><br/>UPLOADING OPTION BYTES DATA ...</p><p>Bank : 0x00<br/>Address : 0x50022050<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x01<br/>Address : 0x50022070<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x02<br/>Address : 0x50022080<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x03<br/>Address : 0x500220e0<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x04<br/>Address : 0x500221e0<br/>Size : 16 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x05<br/>Address : 0x50022090<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x06<br/>Address : 0x500220f0<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x07<br/>Address : 0x500221f0<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x08<br/>Address : 0x500220f8<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>Bank : 0x09<br/>Address : 0x500221f8<br/>Size : 8 Bytes</p><p>██████████████████████████████████████████████████ 100%</p><p>OPTION BYTE PROGRAMMING VERIFICATION:</p><p>Error: Expected value for Option Byte \"secwm1_end\": 0x0, found: 0x1F<br/>Error: Expected value for Option Byte \"secwm2_end\": 0x0, found: 0x1F<br/>Error: Expected value for Option Byte \"secwm2_strt\": 0x1F, found: 0x0<br/>Error: Option Byte Programming failed Or modified by application after OB_LAUNCH</p><p>Time elapsed during option Bytes configuration: 00:00:02.609</p></div>",
+                    "author": "thansen",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello again <user-mention data-id=\"83448\">@thansen</user-mention> ,<br/>You forgot the <strong>-ob </strong>before <span>SECWM1_STRT=0x0 SECWM1_END=0x0 SECWM2_STRT=0x1f SECWM2_END=0x0.<br/></span></p></div>",
+                    "author": "Kouthair",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Kouthair",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "Kouthair",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

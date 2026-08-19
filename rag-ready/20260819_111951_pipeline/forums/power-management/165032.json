@@ -1,0 +1,93 @@
+{
+    "forum": [
+        {
+            "id": "165032",
+            "publicId": "165032",
+            "title": "Viper265K Buck Converter Design - 0.5% duty cycle ?",
+            "url": "https://community.st.com/power-management-53/viper265k-buck-converter-design-0-5-duty-cycle-165032",
+            "category": "Power management",
+            "tags": [
+                "DC-DC conversion"
+            ],
+            "published_at": "2026-04-23T05:47:25+00:00",
+            "views": 538,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "The question now is: what are your actual required parameters for continuous operation?\n\n* Does it need to be able to handle 900V, or would 870V also be sufficient?\n\n* Does it need to deliver 2W, or would 1.5W be enough?\n\nThe slightly weaker version is offered by the eval board [STEVAL-VP26K01B](https://www.st.com/en/evaluation-tools/steval-vp26k01b.html).\n\nOtherwise, the only real option is a flyback with an external MOSFET, for example as implemented with the [STEVAL-ISA034V1](https://www.st.com/en/evaluation-tools/steval-isa034v1.html) (already obsolete, based on [L6565](https://www.st.com/en/power-management/l6565.html), the documentation attached for future reference), which with appropriate design (HV capacitors, a matched transformer, 1.7kV MOSFET = e.g. [STW3N170](https://www.st.com/en/power-transistors/stw3n170.html)) can also handle higher input voltages.\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am presently planning to use Viper265K part for High Voltage Buck converter design with below requirements:\n\n|  |  |  |  |  |\n\n| --- | --- | --- | --- | --- |\n\n|  | Min | Max |  |  |\n\n| Vin | 200 | 900 | V |  |\n\n| Vout | 4.5 |  | V | +/-5% |\n\n| Iout | 0.44 |  | A |  |\n\n| Pout | 2 |  | W |  |\n\nWith above requirements the duty cycle for the device is observed to be 0.5%. Please can you\n\nhelp me to know if the device can be used for such low duty cycle and what would be recommendation from your side\n\nfor achieving above design requirement.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/32839437-29a7-0446-f08a-571d9a2870d0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dbacacd8-ef85-ff70-5b84-0dbd757fb874.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f1d5a983-2a76-2e4b-6003-c902ec55f1c4.png"
+            ],
+            "author": "shrikantB",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"106344\">@shrikantB</user-mention>, to the community!</p>\n<p>As you write, you want to implement a high-voltage buck, but you have not specified whether the input voltage is DC or AC.</p>\n<p>I will initially assume you mean DC. For your requirements, the buck topology is not suitable, because you would need a duty cycle in the range of 0.005 to 0.0225. A flyback could mitigate the duty-cycle problem through the transformer turns ratio, however you would have to implement it with a PWM device plus an HV MOSFET, because the VIPER265K would not be able to withstand it.</p>\n<p>With AC, it would look even worse, because the peak voltage would be about 41% higher.</p>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>Thank you for your reply. For the above requirement share we have decided to go for the 2 Buck.</p><p>Wherein first stage would implement 900VDC to 20VDC with Viper267K which seems to be feasible.</p><p>Other stage would be 20VDC to 4.5VDC.</p><p>Now after doing some simulations with Viper267K switching device there is one query that during start up with 680uH of Buck inductor the initial peak is observed till 2Amps. Later the current is as per the load.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"shrikantB_0-1777013251688.png\" style=\"width: 400px;\"><img alt=\"shrikantB_0-1777013251688.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dbacacd8-ef85-ff70-5b84-0dbd757fb874.png\" title=\"shrikantB_0-1777013251688.png\"/></span> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"shrikantB_1-1777013341777.png\" style=\"width: 400px;\"><img alt=\"shrikantB_1-1777013341777.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/f1d5a983-2a76-2e4b-6003-c902ec55f1c4.png\" title=\"shrikantB_1-1777013341777.png\"/></span></p><p>Please can you suggest if this peak can be sustained by the Viper267K as the max current limit seems to be 0.75Amps. Please help for this query.</p><p>Thanks and Regards,</p><p>Shrikant Bhairavkar</p><p> </p><p> </p></div>",
+                    "author": "shrikantB",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>One request I was checking the Viper267 simulation on SIMPLIS tool but the simulation file is showing below error:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"shrikantB_0-1777020908888.png\" style=\"width: 400px;\"><img alt=\"shrikantB_0-1777020908888.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/32839437-29a7-0446-f08a-571d9a2870d0.png\" title=\"shrikantB_0-1777020908888.png\"/></span></p><p>Please can you tell me how I should do it in correct way.</p><p> </p><p>Regards,</p><p>Shrikant</p></div>",
+                    "author": "shrikantB",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is a question that is only indirectly related to the original question and would be better placed in the Power management &gt; eDesignSuite forum.</p>\n<p>If you want to continue pursuing this, I can gladly move the question there for you and create it as a new thread.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p>\n<p>You spoke of a simulation with the VIPER267K, but the VIPER265K is in the schematics. However, I also simulated it again with the VIPER267K and, for the most part, get the same results.</p>\n<p>By the way, your simulation refers to an input voltage of around 300Vac, i.e. 424Vdc. As the input voltage increases, the peak current also increases (theoretically), but is limited by the internal current limiting, which makes the peak last longer in order to charge the output capacitance of the system. If the inductor reaches its limit at high start-up currents, the effective inductance drops, so it is inversely proportional to di/dt, which significantly increases the peak currents.</p>\n<p>I would advise you that there is really no point in pursuing the idea of a buck for a conversion from an input voltage of up to 900V further, regardless of the output voltage. At that point, you are already too close to the maximum drain voltage of the internal MOSFET. But for a reliable design the limiting factor is not only the MOSFET voltage rating itself, but the combination of:</p>\n<ul>\n<li>very steep inductor current ramp at high input voltage</li>\n<li>start-up dynamics with discharged output capacitor</li>\n<li>current limit behaviour</li>\n<li>inductor saturation or component stress</li>\n</ul>\n<p>If you already have two regulators planned, you can also put this material and financial effort into a flyback, which will likely work out cheaper overall. In addition, you won’t be tempted to accidentally connect or mix up the separate input and output GNDs used in the buck converter.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>Thank you for your reply and suggestions. The plan is to reduce the power supply size and provide the compact solution. However, the risks you mentioned we will check during the testing and can take the decision on same.</p><p>But if we go for the non-isolated Flyback option whether the above issues will be reduced with Viper267K or you are suggesting some other part with external MOSFET.</p><p>Please suggest if you have any high voltage solution device with external MOSFET also we can check on the same.</p><p>Regards,</p><p>Shrikant Bhairavkar</p></div>",
+                    "author": "shrikantB",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The question now is: what are your actual required parameters for continuous operation?</p>\n<ul>\n<li>Does it need to be able to handle 900V, or would 870V also be sufficient?</li>\n<li>Does it need to deliver 2W, or would 1.5W be enough?</li>\n</ul>\n<p>The slightly weaker version is offered by the eval board <a href=\"https://www.st.com/en/evaluation-tools/steval-vp26k01b.html\" rel=\"noopener noreferrer\" target=\"_self\">STEVAL-VP26K01B</a>.</p>\n<p>Otherwise, the only real option is a flyback with an external MOSFET, for example as implemented with the <a href=\"https://www.st.com/en/evaluation-tools/steval-isa034v1.html\" rel=\"noopener noreferrer\" target=\"_self\">STEVAL-ISA034V1</a> (already obsolete, based on <a href=\"https://www.st.com/en/power-management/l6565.html\" rel=\"noopener noreferrer\" target=\"_self\">L6565</a>, the documentation attached for future reference), which with appropriate design (HV capacitors, a matched transformer, 1.7kV MOSFET = e.g. <a href=\"https://www.st.com/en/power-transistors/stw3n170.html\" rel=\"noopener noreferrer\" target=\"_self\">STW3N170</a>) can also handle higher input voltages.</p>\n<p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

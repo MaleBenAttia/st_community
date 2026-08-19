@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "166445",
+            "publicId": "166468",
+            "title": "STM32MP2 BootROM and 1V8 OSPI NAND",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/stm32mp2-bootrom-and-1v8-ospi-nand-166468",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "Bootloader",
+                "OctoSPI"
+            ],
+            "published_at": "2026-06-26T09:53:04+00:00",
+            "views": 84,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi ​@Martin Devera\n\nThere is no way to change the BootROM behavior, I confirm BootROM use ‘degraded mode’ at 1.8V which limit the IO strength.\n\nClock signal 32MHz should not be sinusoidal (although not very steep in that config).\n\nCould you please confirm you have the 22 ohms serie resistor on the CLK, close to the STM32MP25 ? It is the only way to have it working.\n\nYou should also try limit the load (i.e. PCB traces should be as short as possible).\n\nDid you check about the HOLD signal of the memory (sometimes requires a board pull-up on IO2 or IO3 in order to allow the boot).\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nwhile testing 6 types of SPI NAND with MP257, I found no 1V8 part boots (tested 2, MT29F4G01ABB and AS5F18G04SND). While looking at scope traces, 32MHz clock from BootROM is almost sinusoidal.\n\nI tested booting from Engineering mode and custom BL, it boots Linux as 21MHz but not at 32MHz. IOSPEED is set to “2” (tested 3 too).\n\nThen I set bit 14 in OTP 124 (allow for <2.5V for VDDIO3) and then set PWR->CR1 VDDIO3VRSEL too. Now, it boots with 32MHz from my BL (with IOSPEED 2) and clock now seems much nicer.\n\nBut BootROM seems to ignore OTP 124 and tries to use 32MHz with 1V8 and GPIO in degraded mode.\n\nIs there way to make 1V8 OSPI boot work ? Force ROM to either use slower clock or to set VDDIO3VRSEL.\n\nThanks, Martin",
+            "images": [],
+            "author": "Martin Devera",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"20543\">@Martin Devera</user-mention> </p><p> </p><p>There is no way to change the BootROM behavior, I confirm BootROM use ‘degraded mode’ at 1.8V which limit the IO strength.</p><p>Clock signal 32MHz should not be sinusoidal (although not very steep in that config).</p><p>Could you please confirm you have the 22 ohms serie resistor on the CLK, close to the STM32MP25 ? It is the only way to have it working.</p><p>You should also try limit the load (i.e. PCB traces should be as short as possible).<br/><br/>Did you check about the HOLD signal of the memory (sometimes requires a board pull-up on IO2 or IO3 in order to allow the boot).</p><p> </p><p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Patrick, thanks for the reply.</p><p>I have no 22R but the trace is about 10mm (HDI board). You are right, SI is enough,<br/>incidentally both 1V8 NANDs was also the ones with 4k page. Thus NAND OTP settings<br/>is needed.</p><p>Now it boots well.</p><p>regards, Martin</p></div>",
+                    "author": "Martin Devera",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

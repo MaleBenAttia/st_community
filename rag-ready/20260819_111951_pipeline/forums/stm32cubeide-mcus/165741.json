@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "165741",
+            "publicId": "165741",
+            "title": "STM32CubeIDE 2.1.1",
+            "url": "https://community.st.com/stm32cubeide-mcus-28/stm32cubeide-2-1-1-165741",
+            "category": "STM32CubeIDE (MCUs)",
+            "tags": [
+                "STM32CubeIDE"
+            ],
+            "published_at": "2026-05-16T08:40:39+00:00",
+            "views": 194,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Indeed, newer versions of C compilers find more errors and are more strict.\n\n(I tried to search for \"Cube-Wave-723\" in ST software but got no results.)",
+            "best_answer_author": "Pavel A.",
+            "best_answer_author_role": "",
+            "content_text": "I normally use 1.19.0 because of the MX sillyness...\n\nWhen compiling you get warnings - let's take stm32h723xx.h as an example.\n\nLine 2516 is -\n\n#define GPIOB ((GPIO\\_TypeDef \\*) GPIOB\\_BASE)\n\nIn 1.19.0 you get a warning -\n\nDescription Resource Path Location Type\n\n(near initialization for 'output\\_port[9]') stm32h723xx.h /Cube-Wave-723/Drivers/CMSIS/Device/ST/STM32H7xx/Include line 2516 C/C++ Problem\n\nIn 2.1.1 you get an error -\n\nDescription Resource Path Location Type\n\ninitialization of 'long unsigned int' from 'GPIO\\_TypeDef \\*' makes integer from pointer without a cast [-Wint-conversion] stm32h723xx.h /Cube-Wave-723/Drivers/CMSIS/Device/ST/STM32H7xx/Include line 2516 C/C++ Problem\n\nAs it is actually your generated code I do wonder how this has slipped through your 'testing' process.\n\nI was awaiting a news item reporting on ST employees being treated for burns as their ears caught fire after I found this ;)\n\nAndy.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb533dd9-3ff9-d6d5-9efc-5ecdb16a6dc2.png"
+            ],
+            "author": "Wood.Andy",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Please include more log lines and some source (C) lines. Where is that <span>'long unsigned int'  ? initialization for 'output_port[9]' ?</span></p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"IDE.png\" style=\"width: 400px;\"><img alt=\"IDE.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eb533dd9-3ff9-d6d5-9efc-5ecdb16a6dc2.png\" title=\"IDE.png\"/></span></p><p> Is this sufficient?</p></div>",
+                    "author": "Wood.Andy",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is a bit better. This shows that the error is in Core/code/src/numstr.c, lines 63 and 187 - but we still do not see these lines.  In any case the problem is not in stm32h723xx.h but in the .c file. Feel free to fix the errors.</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>These is also the same problem in num2str.c</p><p> </p><p>I thought it would be easier to see in an ST originated file.</p><p> </p><p>The same project when compied with 1.19.0 shows warnings.</p><p> </p><p>When compiled with 2.1.1 it shows errors.</p><p> </p></div>",
+                    "author": "Wood.Andy",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Indeed, newer versions of C compilers find more errors and are more strict.</p><p>(I tried to search for \"Cube-Wave-723\" in ST software but got no results.)</p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

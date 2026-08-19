@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "163416",
+            "publicId": "163416",
+            "title": "Using qrcode with display BW 1bpp",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/using-qrcode-with-display-bw-1bpp-163416",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-03-04T09:21:34+00:00",
+            "views": 287,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @EmanueleC.\n\n1bpp support is not implemented in the QR code widget currently bundled with TouchGFX. However, the widgets are open source, so you can add it yourself. You can find QRCode.cpp here: Middlewares\\ST\\touchgfx\\framework\\source\\touchgfx\\widgets\n\nI recommend copying this file to gui\\src\\common and modifying the copy. The project will automatically use your version instead of the default one.\n\nYou’ll need to implement a draw function for 1bpp and then extend the switch statement in the draw function to call this 1bpp-specific function when the bit depth is 1:\n\n```\n\nvoid QRCode::draw(const Rect& invalidatedArea) const\n\n{\n\n...\n\n// Select correct drawing function for framebuffer format and alpha\n\nswitch (bpp)\n\n{\n\ncase 1:\n\n// Your 1bpp implementation goes here\n\nbreak;\n\ncase 16:\n\n// RGB565\n\ndrawfunc = (alpha < 255) ? &QRCode::drawBitRGB565Blend : &QRCode::drawBitRGB565;\n\nbreak;\n\ncase 24:\n\n// RGB888\n\ndrawfunc = (alpha < 255) ? &QRCode::drawBitRGB888Blend : &QRCode::drawBitRGB888;\n\nbreak;\n\ncase 32:\n\n// ARGB8888\n\ndrawfunc = (alpha < 255) ? &QRCode::drawBitARGB8888Blend : &QRCode::drawBitARGB8888;\n\nbreak;\n\ndefault:\n\nreturn;\n\n}\n\n...\n\n}\n\n```\n\nBest regards,\n\nJohan",
+            "best_answer_author": "JohanAstrup",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I'm using an STM32G0 with a 240 x 160 monochrome 1bpp SPI display. Is it possible to use the QR code component from the TouchGFX library?\n\nI'm using TouchGFX version 4.26.0.\n\nMany thanks!",
+            "images": [],
+            "author": "EmanueleC",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104727\">@EmanueleC</user-mention>.</p><p>1bpp support is not implemented in the QR code widget currently bundled with TouchGFX. However, the widgets are open source, so you can add it yourself. You can find QRCode.cpp here: Middlewares\\ST\\touchgfx\\framework\\source\\touchgfx\\widgets</p><p>I recommend copying this file to gui\\src\\common and modifying the copy. The project will automatically use your version instead of the default one.</p><p>You’ll need to implement a draw function for 1bpp and then extend the switch statement in the draw function to call this 1bpp-specific function when the bit depth is 1:</p><pre class=\"lia-code-sample language-cpp\"><code>void QRCode::draw(const Rect&amp; invalidatedArea) const\n{\n ...\n\n // Select correct drawing function for framebuffer format and alpha\n switch (bpp)\n {\n case 1:\n // Your 1bpp implementation goes here\n break;\n case 16:\n // RGB565\n drawfunc = (alpha &lt; 255) ? &amp;QRCode::drawBitRGB565Blend : &amp;QRCode::drawBitRGB565;\n break;\n case 24:\n // RGB888\n drawfunc = (alpha &lt; 255) ? &amp;QRCode::drawBitRGB888Blend : &amp;QRCode::drawBitRGB888;\n break;\n case 32:\n // ARGB8888\n drawfunc = (alpha &lt; 255) ? &amp;QRCode::drawBitARGB8888Blend : &amp;QRCode::drawBitARGB8888;\n break;\n default:\n return;\n }\n\n ...\n}</code></pre><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

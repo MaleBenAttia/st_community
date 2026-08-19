@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "165132",
+            "publicId": "165132",
+            "title": "stlinkserver.exe failing/exiting silently on Windows 11 (CubeProgrammer works fine)",
+            "url": "https://community.st.com/stm32-mcus-boards-and-hardware-tools-26/stlinkserver-exe-failing-exiting-silently-on-windows-11-cubeprogrammer-works-fine-165132",
+            "category": "STM32 MCUs Boards and hardware tools",
+            "tags": [
+                "ST-Link",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-04-26T17:32:44+00:00",
+            "views": 248,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "It's FIXED !!!!!!!!\n\nIt was indeed a winsock problem and I fixed it by installing a simple app called \"complete internet repair\" from Rizonesoft.\n\n![adelmgadmi_0-1777318377086.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/160a6d17-d0d0-dbd4-4d6a-b4f10f36902d.png \"adelmgadmi_0-1777318377086.png\")\n\nI selected these options and when it's done I rebootedmy pc and IT WORKED !\n\nThank you for trying to fix it with me, the winsock hint was very helpful.",
+            "best_answer_author": "adelmgadmi",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi everyone,\n\nI'm facing a really frustrating issue where my STM32CubeIDE can no longer detect my ST-LINK, and I've narrowed the problem down specifically to stlinkserver.exe failing to launch. This problem appeared completely randomly on my PC.\n\nHere are the symptoms and what I have already ruled out:\n\n**The Problem:** When I try to manually execute stlinkserver.exe via PowerShell to see what's wrong, it exits instantly without printing any output, errors, or logs. Even forcing the help menu or debug mode does absolutely nothing:\n\nPowerShell\n\n```\n\nPS C:\\Program Files (x86)\\STMicroelectronics\\stlink_server> .\\stlinkserver.exe\n\nPS C:\\Program Files (x86)\\STMicroelectronics\\stlink_server> .\\stlinkserver.exe -d 5\n\nPS C:\\Program Files (x86)\\STMicroelectronics\\stlink_server> .\\stlinkserver.exe -h\n\n```\n\nRunning Get-Process stlinkserver confirms the process is not running in the background at all. It just dies immediately upon execution.\n\n**What DOES work (Hardware & Drivers are fine):**\n\n* **STM32CubeProgrammer works perfectly.** It detects the ST-LINK and flashes the board without any issues.\n\n* The board and ST-LINK work perfectly fine on another PC, so the hardware is not broken.\n\n* My USB drivers are definitely fine and up to date (STSW-LINK009), confirmed by Device Manager and CubeProgrammer working.\n\n**What I have already tried:**\n\n* Reinstalling ST-LINK Server and STM32CubeIDE completely.\n\n* Running PowerShell/IDE as Administrator.\n\n* Replacing the libusb-1.0.dll file in the stlinkserver.exe folder with latest version and other older version but still same issue.\n\n**My System:**\n\n* Windows 11 (64-bit)\n\nHas anyone experienced this specific silent crashing behavior with stlinkserver.exe? Are there any hidden dependencies (like specific C++ redistributables) or registry keys I should check? Any help would be greatly appreciated, as I am currently stuck!\n\nThanks in advance.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/160a6d17-d0d0-dbd4-4d6a-b4f10f36902d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89fa7f6a-9cf0-6fcf-196a-9541421805d7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/764779ba-f90a-09ed-b2a6-7310ed13b9c6.png"
+            ],
+            "author": "adelmgadmi",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>The stlinkserver dependencies expected on Windows are libusb-1.0.dll, libgcc_s_sjlj-1.dll, libwinpthread-1.dll. If one is missing, a system error message is expected (I checked for each of them). 32bits versions are expected, I have not checked what happens if one of them is patched by a 64bits version (could be an issue if you replaced libusb-1.0.dll by a 64bits version, but my understanding is that you had the issue before the replacement). I may suggest to reinstall from another source to compare, in case of corruption somewhere: <a href=\"https://www.st.com/en/development-tools/st-link-server.html\" rel=\"noopener noreferrer\" target=\"_blank\">ST-LINK-SERVER | Software - STMicroelectronics.</a></p><p>The file is digitally signed, I suggest to check if all certificates are installed on the machine (right click-properties-digital signature-details-view certificate-certificate path, status should be OK). In case of issue there, I also expected a status message from the system, but ...</p><p>The fact that it fails before the \"-h\" command execution is an interesting clue excluding issue with ST-Link hardware and driver, not involved in this stage of execution (if we exclude the loading of libusb.dll). There is however at this stage the initialization of the Winsock API which is perhaps somehow locked ? I have never heard about such kind of issue but it could also be a track to follow, perhaps linked to an anti-virus system not trusting the executable despite its signature ?</p><p> </p></div>",
+                    "author": "S C",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; <span> When I try to manually execute stlinkserver.exe via PowerShell to see what's wrong, it exits instantly without printing any output, errors, or logs.</span></p><p>What is the exit status in these cases? use powershell command <strong>echo $LASTEXITCODE</strong>  or cmd command <strong>echo %ERORLEVEL%</strong></p><p>Also, check whether another instance of <span>stlinkserver.exe is <strong>not</strong> running in background, stuck for whatever reason.</span></p><p> </p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"adelmgadmi_0-1777316986582.png\" style=\"width: 400px;\"><img alt=\"adelmgadmi_0-1777316986582.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/764779ba-f90a-09ed-b2a6-7310ed13b9c6.png\" title=\"adelmgadmi_0-1777316986582.png\"/></span></p><p>I think it is a Winsock API error, </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"adelmgadmi_1-1777317065343.png\" style=\"width: 400px;\"><img alt=\"adelmgadmi_1-1777317065343.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/89fa7f6a-9cf0-6fcf-196a-9541421805d7.png\" title=\"adelmgadmi_1-1777317065343.png\"/></span></p><p>I have this in winsock show catalog which is from another app I did uninstall it before. (LabView from National Instruments)</p><p>I tried deleting it from regedit and the moment I reboot, windows crashes and wont boot, I had to recover from a restore point.</p><p>Also, I found a dll file with the name nimdnsNSP.dll which I did delete it (only been able to inside safe mode)</p><p>&gt;<span>Also, check whether another instance of </span><span>stlinkserver.exe is <strong>not</strong> running in background, stuck for whatever reason.</span></p><p><span>There isnt any.</span></p><p> </p><p> </p></div>",
+                    "author": "adelmgadmi",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It's FIXED !!!!!!!!</p><p>It was indeed a winsock problem and I fixed it by installing a simple app called \"complete internet repair\" from Rizonesoft.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"adelmgadmi_0-1777318377086.png\" style=\"width: 400px;\"><img alt=\"adelmgadmi_0-1777318377086.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/160a6d17-d0d0-dbd4-4d6a-b4f10f36902d.png\" title=\"adelmgadmi_0-1777318377086.png\"/></span></p><p>I selected these options and when it's done I rebootedmy pc and IT WORKED ! </p><p>Thank you for trying to fix it with me, the winsock hint was very helpful.</p></div>",
+                    "author": "adelmgadmi",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "S C",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

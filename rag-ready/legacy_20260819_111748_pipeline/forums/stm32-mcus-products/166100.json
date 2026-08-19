@@ -1,0 +1,117 @@
+{
+    "forum": [
+        {
+            "id": "166086",
+            "publicId": "166100",
+            "title": "RTC Time Drift Issue in STM32H743ZIT6",
+            "url": "https://community.st.com/stm32-mcus-products-25/rtc-time-drift-issue-in-stm32h743zit6-166100",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series",
+                "RTC"
+            ],
+            "published_at": "2026-06-12T06:56:01+00:00",
+            "views": 317,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Dear ​@RahulBaraiya ,\n\nThe comment here from ​@MM..1 is key ! You need to know if the drift is positive or negative each time And then go step by step . To start first by physics on the Crystal oscillation  if running slower or faster than nominal (+/- 50ppm) .\n\nif running faster that means your CL1=CL2 should be increased from 6pF to 8 or 10pF and try again .\n\nthe pullability of a crystal of CL=6pF is high versus 9pF or 12.5pF ( best in class for accuracy but higher consumption) .\n\nDrive level on LSE is indeed to allow different options based on your crystal Usage  and is important for start-up condition ton have right margin to start-up .\n\nRegards,\n\nSTOne-32",
+            "best_answer_author": "STOne-32",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "We are developing a project using the STM32H743ZIT6 where RTC timekeeping is a critical requirement. During field testing we noticed significant RTC drift on our board. We tested the same hardware three times — each time flashing a different `RCC_LSEDRIVE_*` setting  to identify which drive level gives the best RTC accuracy. Sharing the full details below test results, firmware, and hardware in case others are facing the same issue.\n\n## Quick Results\n\nWe ran a 16-hour test measuring RTC drift on the same STM32H743ZIT6 board, flashed three times with a different `RCC_LSEDRIVE_*` setting each time.\"\n\n| Drive setting | Drift over ~16 hours | PPM |\n\n| --- | --- | --- |\n\n| `RCC_LSEDRIVE_LOW` | **69 seconds** | ~1161 |\n\n| `RCC_LSEDRIVE_HIGH` | **30 seconds** | ~519 |\n\n| `RCC_LSEDRIVE_MEDIUMHIGH` | **6 seconds** | ~101 |\n\n`RCC_LSEDRIVE_MEDIUMHIGH` gave the best result by a large margin. `RCC_LSEDRIVE_LOW` — which is often recommended as the default — gave the worst result on our hardware.\n\n## Hardware Details\n\n### Crystal\n\n| Parameter | Value |\n\n| --- | --- |\n\n| MPN | ECS-.327-6-12-TR |\n\n| Frequency | 32.768 kHz |\n\n| Tolerance | ±20 ppm |\n\n| Load cap | 6 pF |\n\n| ESR | 90 kΩ max |\n\n| Package | 2-SMD, No Lead |\n\n### Load Capacitors\n\n| Parameter | Value |\n\n| --- | --- |\n\n| MPN | 0603C0G6R0C500NT |\n\n| Value | 6 pF |\n\n| Voltage | 50V |\n\n| Dielectric | C0G (NP0) — zero temperature coefficient, ideal for crystal circuits |\n\n| Package | 0603 MLCC SMD |\n\nC0G dielectric is the correct choice here — stable across temperature and voltage. This part of the design is sound.\n\n### Schematic\n\nThe LSE circuit follows the standard two-cap topology:\n\n* `PC14 (OSC32_IN)` → 0Ω series resistor `R5` → crystal `Y1` (ECS-.327-6-12-TR) → 0Ω series resistor `R9` → `PC15 (OSC32_OUT)`\n\n* Load capacitor `C7` (6pF) from OSC32\\_IN pin to GND\n\n* Load capacitor `C10` (6pF) from OSC32\\_OUT pin to GND\n\n* Both capacitors are 6PF 50V COG 0603\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eca4b7cd-dfbc-45d2-9022-a56bf2f0c481.png)\n\nSchematic\n\n```\n\nPC14-OSC32_IN  --[R5 0Ω]--+--[C7 6pF]-- GND\n\n|\n\n[Y1]  ECS-.327-6-12-TR\n\n|\n\nPC15-OSC32_OUT --[R9 0Ω]--+--[C10 6pF]-- GND\n\n```\n\n### PCB Layout\n\nIn the PCB view, the crystal Y1 is placed between the two load capacitors C7 and C10. Series resistors R5 and R9 are placed inline on the OSC32\\_IN and OSC32\\_OUT traces respectively.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/31278011-1cba-423c-9e92-aba5832f4596.png)\n\nPCB Layout\n\n### RTC Clock Mux (STM32CubeMX)\n\nAs shown in the clock configuration:\n\n* Input: **LSE at 32.768 kHz**\n\n* RTC Clock Mux: **LSE selected** (not LSI, not HSE/2)\n\n* Output: **32.768 kHz → To RTC**\n\n* LSI RC (31–32 kHz) is present as fallback but not selected for RTC\n\nThis is the  configuration. LSI would give much worse drift (~1–2%) since it is an internal RC oscillator with no external reference.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/62fd022c-61c4-47c7-b1ff-fd36a6e3b56f.png)\n\nRtc clock configuration\n\n## Firmware Details\n\n### Clock Configuration — `SystemClock_Config()`\n\nc\n\n```\n\nvoid SystemClock_Config(void) {\n\nRCC_OscInitTypeDef RCC_OscInitStruct = {0};\n\nRCC_ClkInitTypeDef RCC_ClkInitStruct = {0};\n\nHAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);\n\n__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);\n\nwhile (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}\n\n/* Configure LSE Drive Capability */\n\nHAL_PWR_EnableBkUpAccess();\n\n__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_MEDIUMHIGH); // <-- tested at LOW / HIGH / MEDIUMHIGH\n\nRCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48\n\n| RCC_OSCILLATORTYPE_HSI\n\n| RCC_OSCILLATORTYPE_HSE\n\n| RCC_OSCILLATORTYPE_LSE;\n\nRCC_OscInitStruct.HSEState              = RCC_HSE_ON;\n\nRCC_OscInitStruct.LSEState              = RCC_LSE_ON;\n\nRCC_OscInitStruct.HSIState              = RCC_HSI_DIV1;\n\nRCC_OscInitStruct.HSICalibrationValue   = RCC_HSICALIBRATION_DEFAULT;\n\nRCC_OscInitStruct.HSI48State            = RCC_HSI48_ON;\n\nRCC_OscInitStruct.PLL.PLLState          = RCC_PLL_ON;\n\nRCC_OscInitStruct.PLL.PLLSource         = RCC_PLLSOURCE_HSE;\n\nRCC_OscInitStruct.PLL.PLLM              = 2;\n\nRCC_OscInitStruct.PLL.PLLN              = 64;\n\nRCC_OscInitStruct.PLL.PLLP              = 2;\n\nRCC_OscInitStruct.PLL.PLLQ              = 4;\n\nRCC_OscInitStruct.PLL.PLLR              = 2;\n\nRCC_OscInitStruct.PLL.PLLRGE            = RCC_PLL1VCIRANGE_3;\n\nRCC_OscInitStruct.PLL.PLLVCOSEL         = RCC_PLL1VCOWIDE;\n\nRCC_OscInitStruct.PLL.PLLFRACN          = 0;\n\nHAL_RCC_OscConfig(&RCC_OscInitStruct);\n\nRCC_ClkInitStruct.ClockType      = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK\n\n| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2\n\n| RCC_CLOCKTYPE_D3PCLK1 | RCC_CLOCKTYPE_D1PCLK1;\n\nRCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;\n\nRCC_ClkInitStruct.SYSCLKDivider  = RCC_SYSCLK_DIV1;\n\nRCC_ClkInitStruct.AHBCLKDivider  = RCC_HCLK_DIV2;\n\nRCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;\n\nRCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;\n\nRCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;\n\nRCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;\n\nHAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);\n\nHAL_RCC_EnableCSS();\n\n}\n\n```\n\n### **Predivider note:** `AsynchPrediv = 127`, `SynchPrediv = 255` gives: `f_RTC = 32768 / (127+1) / (255+1) = 1 Hz` — correct for a 32.768 kHz LSE.\n\n## Questions :\n\n1. Our hardware uses a 6 pF crystal with 6 pF load caps — but effective CL seen by the crystal includes PCB stray capacitance (typically 1–3 pF per node). Could the mismatch between crystal CL spec and effective board CL be contributing to the higher drift at lower drive levels?\n\n## Environment\n\n| Parameter | Value |\n\n| --- | --- |\n\n| MCU | STM32H7 series |\n\n| HAL | STM32CubeH7 |\n\n| Crystal | ECS-.327-6-12-TR (32.768 kHz, 6pF) |\n\n| Load capacitors | 0603C0G6R0C500NT (6pF, C0G, 0603) |\n\n| Series resistors | 0Ω (R5, R9) |\n\n| RTC clock source | LSE (selected in clock mux) |\n\n| AsynchPrediv | 127 |\n\n| SynchPrediv | 255 |\n\n| Power supply | LDO (`PWR_LDO_SUPPLY`) |\n\n| Voltage scaling | Scale 1 |\n\n| Test duration | ~16 hours per measurement |\n\n*Happy to share more log data or PCB details if useful. Any input from teams who have done long-term RTC accuracy work on STM32H7 is appreciated.*",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eca4b7cd-dfbc-45d2-9022-a56bf2f0c481.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83ae2657-23f0-4411-af81-c8c66bdaf696.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/31278011-1cba-423c-9e92-aba5832f4596.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/62fd022c-61c4-47c7-b1ff-fd36a6e3b56f.png"
+            ],
+            "author": "RahulBaraiya",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Start with reading AN2867. There are guidelines there, toghether with layout examples.</p><p>The key issue often is the return/ground from the “burden” capacitors - it must be a dedicated track to the VSS pin, i.e. not shared/going through a common ground track or plane; and as short as possible.</p><p>Also note, that the load capacitance given as parameter to the crystal is NOT equal to the value of individual capacitors. Again, AN2867 contains the info you need.</p><p>Also, consider using an external crystal oscillator.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>consider using an external crystal oscillator</p></blockquote><p> </p><p>Or MEMS oscillator ?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I wish there be a single unambiguous and widely accepted term for “electronic part which actively outputs a fairly  precise 32.768kHz clock signal, as its sole functionality”.</p><p>As even “external oscillator” in light of what “LSE” is abbreviation of, may be confusing.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>and </p><oembed url=\"https://community.st.com/stm32-mcus-60/how-to-calibrate-the-stm32-s-real-time-clock-rtc-143098\"></oembed><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/83ae2657-23f0-4411-af81-c8c66bdaf696.png\"/></figure><p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt;.. where RTC timekeeping is a critical requirement</p><p>So i would choose a temp. compensated clock module, as any crystal will drift with temperature many ppm .</p><p>The “standard” for a good RTC is DS3231SN :</p><ul><li>about 0.8 uA on 3V batt.</li> <li>3V3 supply + I2C </li> <li>+/- 2ppm typ. , crystal ...etc all inside package</li></ul><p>But if you wanna play with the H743 RTC :</p><ul><li>drive medium or high (i use only high , to get it reliable running)</li> <li>have correct load cap; for 6pF crystal: try 8..10pF (depends on stray cap. of your layout)</li> <li>try : high drive +  2x 10pF caps</li> <li>have no possible “disturbing” signal on adjacent pins; any switching here might disturb the RTC</li></ul><p> </p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><p>Thank you for your fast response.<br/>Thank you for the suggestions.</p><p>I will check the RTC crystal operation using different load capacitor values in the 8–10 pF range and test the oscillator stability.<br/>I will share the results once the testing is completed.</p><p>With greetings,<br/>AScha.3</p></div>",
+                    "author": "RahulBaraiya",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Next time show sign in your table, because </p><table><thead><tr><th>Drive setting</th> <th>Drift over ~16 hours</th> <th>PPM</th> </tr></thead><tbody><tr><td><code>RCC_LSEDRIVE_LOW</code></td> <td><strong>69 seconds</strong></td> <td>~1161</td> </tr><tr><td><code>RCC_LSEDRIVE_HIGH</code></td> <td><strong>30 seconds</strong></td> <td>~519</td> </tr><tr><td><code>RCC_LSEDRIVE_MEDIUMHIGH</code></td> <td><strong>6 seconds</strong></td> <td>~101</td> </tr></tbody></table><p>seems absurd.</p></div>",
+                    "author": "MM..1",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear ​<user-mention data-id=\"78377\">@RahulBaraiya</user-mention> ,</p><p>The comment here from ​<user-mention data-id=\"22142\">@MM..1</user-mention> is key ! You need to know if the drift is positive or negative each time And then go step by step . To start first by physics on the Crystal oscillation  if running slower or faster than nominal (+/- 50ppm) .</p><p>if running faster that means your CL1=CL2 should be increased from 6pF to 8 or 10pF and try again .</p><p><br/>the pullability of a crystal of CL=6pF is high versus 9pF or 12.5pF ( best in class for accuracy but higher consumption) .</p><p>Drive level on LSE is indeed to allow different options based on your crystal Usage  and is important for start-up condition ton have right margin to start-up .</p><p> </p><p>Regards,</p><p>STOne-32</p><p> </p></div>",
+                    "author": "STOne-32",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You are trying to get something the device is not fit.</p><p>Internal capacitances add to crystal precision and change according to temperature.</p><p>Take one eval board - any STM32xxxx product - move from ambient to hotter or cooler and you drift seconds or even minutes per day.</p><p>Obvioulsy, if you use external TCXO you can get several orders of magnitude better stability, but not on long time periods.</p><p>As you are using H7xx, you have network connection, and you can use RTC calibration register to match network reference in a closed loop - same if you have some gps with pps or any freq.</p><p>I usually get precision &lt; 5/256 s adjusting internal trim once every hour or less according to offset - for my iot is enough; you can get even better reasult if required.</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p> </p><ul><li>Did you try 9..10 pF caps ?</li></ul><p>&gt; Is it realistic to achieve 0 seconds drift using the STM32H743 RTC with an external 32.768 kHz crystal?</p><p>No, never.</p><p> </p><p>&gt; suggestions</p><ul><li>use a TCO , as i showed you one.</li></ul><p>&gt; experiences</p><p>I made a clock with a 32.768 kHz crystal and cheap DS1302   clock chip, now after about one year, its 2 min ahead, so about 3.8 ppm too fast; i have programmed a compensation, in +/- 1 ppm steps, so i have to adjust a bit.</p><p>But now summer, ambient some degree higher, so it will run anyway slower...maybe i adjust - 3ppm, and see end of year, what comes out. (Because if +5° in summer, it will be about - 1 ppm slower , by temperature.)</p><p>But -- you have to check and correct individually for every crystal !  So you get busy for some time… :)</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Network time sync has already been mentioned.</p><p>But let’s not forget the old-school trick of using the AC mains frequency - that has extremely good long-term stability ...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>You made me happy - I had a flashback to 60 years ago when I made a digital clock using nixies driven by sn74141 using mains as clock -- and sold one to my mother !</p><p>mike</p></div>",
+                    "author": "mbarg.1",
+                    "role": "Senior III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "STOne-32",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

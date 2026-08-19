@@ -1,0 +1,102 @@
+{
+    "forum": [
+        {
+            "id": "165171",
+            "publicId": "165171",
+            "title": "STM32N6 USBX Standalone Guide",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32n6-usbx-standalone-guide-165171",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "USB",
+                "STM32N6 series",
+                "USBX"
+            ],
+            "published_at": "2026-04-27T16:21:51+00:00",
+            "views": 2711,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Yess @csaji .You must configure PHY reference clock and insert delay as explained [here](https://community.st.com/t5/stm32-mcus/faq-troubleshooting-a-usb-core-soft-reset-stuck-on-an-stm32/ta-p/803224) section 2.3 STM32N6 use case.\n\nThis delay is necessary to avoid the situation where the CSRT bit in OTG\\_GRSTCTL gets stuck, which can result in a timeout error. The need for this delay is related to the dependency on compiler optimization, PHY frequency, and CPU frequency.",
+            "best_answer_author": "FBL",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Is there a guide that shows how to set up a CDC USB device on the STM32N6 without using ThreadX in baremetal mode?\n\nI've tried following both, but it seems to hardfault on both examples crash at \\_\\_lib\\_init\\_array(). I've tried increasing the stack and heap sizes to no success:\n\n[https://community.st.com/t5/stm32-mcus/how-to-use-stmicroelectronics-classic-usb-device-middleware-with/ta-p/599274](https://community.st.com/t5/stm32-mcus/how-to-use-stmicroelectronics-classic-usb-device-middleware-with/ta-p/599274 \"How to use STMicroelectronics classic USB device middleware with new STM32 families\")\n\n<https://community.st.com/t5/stm32-mcus/how-to-implement-usbx-in-standalone-mode/ta-p/614435>\n\nIt's frustrating that the old USB\\_Device middleware got removed. We shouldn't be forced to use an RTOS where it is not needed...",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a30105be-8844-d78a-95ad-5fd2c985fc5d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8837e734-4c84-6703-7616-abb8a128760b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8f942389-4369-32af-3fa4-ee514911ef64.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bc6da630-1284-197b-02fc-734f8e4ba1dd.png"
+            ],
+            "author": "csaji",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"102905\">@csaji</user-mention> </p>\n<p data-unlink=\"true\">You can get classic core middleware apps for N6 from <a href=\"https://github.com/STMicroelectronics/stm32n6-classic-coremw-apps/tree/main/Projects\" rel=\"nofollow noopener noreferrer\" target=\"_self\">here</a>. </p>\n<p data-unlink=\"true\">Regarding the USBX standalone, you can start with this example and modify it in standalone (without threadX). If you face any issue, share your project so that we can help you.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I integrated the USB drivers from the classic core middleware and modified several files to suit my needs, since I only require a generic CDC interface.</p><p> </p><p>When I connect the USB, my computer does not detect any device. I noticed that the USB1 OTG HS interrupt was not enabled, but enabling it causes a hard fault.</p><p> </p><p>For context, I am running the project using an FSBL load-and-run configuration. The hard fault appears to occur when the FSBL attempts to jump to the application. Specifically, it happens during the application startup, at the bl __libc_init_array. My heap and stack are configured to 0x300 and 0x4000, respectively.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"csaji_0-1777403268742.png\" style=\"width: 400px;\"><img alt=\"csaji_0-1777403268742.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a30105be-8844-d78a-95ad-5fd2c985fc5d.png\" title=\"csaji_0-1777403268742.png\"/></span></p><p> </p><p>What could be wrong?</p></div>",
+                    "author": "csaji",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"102905\">@csaji</user-mention> </p>\n<p>I'm suspecting your linker file for FSBL context and Run context? In this case, this <a href=\"https://community.st.com/t5/stm32-mcus/how-to-execute-code-from-the-external-psram-using-the-stm32n6/ta-p/772691\" target=\"_self\">article </a>can be helpful. You need to check <span>the FSBL header.</span></p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I've followed various tutorials and forum posts already to set up the FSBL load and run configuration. I don't believe its that. Its when I add my USB library in everything hardfaults and crashes, specifically in the application project startup file at bl __libc_init_array.</p><p> </p><p>For sake of thoroughness, I'll go through everything I've done so far in terms of setup:<br/><br/>Device: STM32 - Nucleo-N657X0-Q</p><p><strong>RCC:</strong><br/>HSE: Crystal/Cermamic Resonator (Uses default 48MHz OSC)</p><p>LSE: Disabled</p><p> </p><p><strong>XSPIM:</strong></p><p>Runtime context: FSBL</p><p>Mode: Direct (XSPI1 to Port1; XPI2 to Port2; XSPI3 not used)</p><p> </p><p><strong>XSPI2:</strong><br/><br/></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"csaji_0-1777478125390.png\" style=\"width: 400px;\"><img alt=\"csaji_0-1777478125390.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8837e734-4c84-6703-7616-abb8a128760b.png\" title=\"csaji_0-1777478125390.png\"/></span></p><p> </p><p><strong>EXTMEM_MANAGER:</strong></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"csaji_1-1777478190946.png\" style=\"width: 400px;\"><img alt=\"csaji_1-1777478190946.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8f942389-4369-32af-3fa4-ee514911ef64.png\" title=\"csaji_1-1777478190946.png\"/></span></p><p> </p><p><strong>EXTMEM_LOADER:</strong></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"csaji_2-1777478211946.png\" style=\"width: 400px;\"><img alt=\"csaji_2-1777478211946.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bc6da630-1284-197b-02fc-734f8e4ba1dd.png\" title=\"csaji_2-1777478211946.png\"/></span></p><p> </p><p><strong>USB1_OTG_HS:</strong></p><p>Runtime Context: Application</p><p>Speed: Device HS 480MBits/s</p><p>Physical Interface: Internal HS Phy</p><p>Ref Clock Selection: 24 MHz</p><p>Everything else disabled.</p><p> </p><p><strong>Clock Configuration:<br/></strong>XPI2 Source Mux is set to IC3 @ 50MHz</p><p>To OTGHS1 is set to 48 MHz. I've seen forum posts for the H5 say to set this to 60MHz, but I can't seem to set it to that value.</p><p> </p><p>For both CORTEX_M55_FSBL and CORTEX_M55_S, the I and D cache are disabled for now, as well as the MPU.</p><p> </p><p><strong>Linker Scripts:</strong></p><p>For the FSBL project, I used the default <span>STM32N6XX_AXISRAM2_fsbl.ld.</span></p><div><div><p><span>_Min_Heap_Size</span> = 0x200; <span>/* required amount of heap */</span></p><p>_Min_Stack_Size = 0x800; <span>/* required amount of stack */</span></p><p> </p><p><span>/* Memories definition */</span></p><p>MEMORY</p><p>{</p><p>ROM (xrw) : ORIGIN = 0x34180400, LENGTH = 255K</p><p>RAM (xrw) : ORIGIN = 0x341C0000, LENGTH = 256K</p><p>}</p></div></div><p> </p><p>For the Application project, I use the default <span>STM32N6XX_LRUN.ld. I've increased the stack and heap sizes.</span></p><div><div><p><span>_Min_Heap_Size</span> = 0x3000; <span>/* required amount of heap */</span></p><p>_Min_Stack_Size = 0x3000; <span>/* required amount of stack */</span></p><p> </p><p><span>/* Memories definition */</span></p><p>MEMORY</p><p>{</p><p>ROM (xrw) : ORIGIN = 0x34000400, LENGTH = 511K</p><p>RAM (xrw) : ORIGIN = 0x34080000, LENGTH = 1536K</p><p>}</p></div></div><p> </p><p><strong>Header Signing:<br/></strong></p><p>I run this command to sign both the FSBL and application in the post-build steps;<br/><br/>cd \"${ProjDirPath}/Debug\" &amp;&amp; echo y | \"/home/christopher/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_SigningTool_CLI\" -bin \"${ProjName}.bin\" -nk -of 0x80000000 -t fsbl -o \"${ProjName}-Trusted.bin\" -hv 2.3 -dump \"${ProjName}-Trusted.bin\" -align</p><p> </p><p>Am I doing something inherently wrong here? Is there something with the USB peripheral I'm missing? Do I need to configure any other peripehral? Is there any power setup I have to do? The board examples don't seem to help much either.</p><p> </p><p>If there is any other information I can provide that could help, please don't hesitate to ask. Thanks</p></div>",
+                    "author": "csaji",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"102905\">@csaji</user-mention> </p>\n<p>Would you attach your project to investigate further? If possible to comment it and see what kind of issues that may pop up ?</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Attached below is my project. I appreciate you looking at this.</p><p><br/>I've realized my project was hard faulting in the startup file because I didn't increase the source code size in the extmem_manager. Now I'm getting the USB interrupt but it hardfaults in the USB IRQ handler. Something I'm doing in my USB_DEVICE folder is wrong.</p><p> </p><p> </p></div>",
+                    "author": "csaji",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>It figured out why it's hardfaulting. I was using the wrong PCD_HandlerTypeDef variable. I had one declared in main and one declared in usbd_conf.c. The PC detects the device, but it fails the enumeration process... Getting closer.</p></div>",
+                    "author": "csaji",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yess <user-mention data-id=\"102905\">@csaji</user-mention> .You must configure PHY reference clock and insert delay as explained <a href=\"https://community.st.com/t5/stm32-mcus/faq-troubleshooting-a-usb-core-soft-reset-stuck-on-an-stm32/ta-p/803224\" target=\"_self\">here</a> section 2.3 STM32N6 use case. </p>\n<p>This delay is necessary to avoid the situation where the CSRT bit in OTG_GRSTCTL gets stuck, which can result in a timeout error. The need for this delay is related to the dependency on compiler optimization, PHY frequency, and CPU frequency.</p></div>",
+                    "author": "FBL",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "FBL",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

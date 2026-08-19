@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "164542",
+            "publicId": "164542",
+            "title": "Confusion about LSM6DSM and lis3mdl integration",
+            "url": "https://community.st.com/mems-sensors-48/confusion-about-lsm6dsm-and-lis3mdl-integration-164542",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "Gyroscopes",
+                "INEMO inertial modules",
+                "Accelerometers",
+                "Ecosystem"
+            ],
+            "published_at": "2026-04-07T20:12:11+00:00",
+            "views": 215,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi @Purvesh ,\n\nWhen the sensor hub I²C read rate is higher than the external LIS3MDL ODR, the sensor hub reads the output registers at each trigger, and if the LIS3MDL has not updated its data, the same value is read and stored in the FIFO multiple times. There is no automatic duplication by the FIFO; rather, the same register value is read repeatedly until the LIS3MDL updates its output.\n\nSo,\n\nThe correct behavior is: b) The sensor hub continues to read the output registers at the trigger rate (~104 Hz in your case), but the registers are not updated until the sensor ODR, so the same data is read multiple times.\n\nThe FIFO will contain repeated samples if the sensor hub reads faster than the LIS3MDL updates its data.",
+            "best_answer_author": "Federica Bossi",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi everyone,\n\nI am working with the  LSM6DSM and an external LIS3MDL magnetometer and have the FIFO ODR set to 208 Hz, with no decimation configured.\n\nI am trying to understand exactly how the FIFO handles data in the following four scenarios. Could someone clarify what happens to the samples in the FIFO for each case?\n\n1. The Accelerometer or Gyroscope ODR is set **higher** than 208 Hz.\n\n2. The Accelerometer or Gyroscope ODR is set **lower** than 208 Hz.\n\n3. The external Magnetometer ODR is set **higher** than 208 Hz.\n\n4. The external Magnetometer ODR is set **lower** than 208 Hz.\n\nAny clear explanations on how the samples are handled (e.g., are they dropped, duplicated?) in these specific situations would be greatly appreciated.\n\nThanks!",
+            "images": [],
+            "author": "Purvesh",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105857\">@Purvesh</user-mention> ,</p>\n<p>For the LSM6DSM FIFO with an external LIS3MDL and FIFO ODR set to 208 Hz (no decimation):</p>\n<ul>\n<li>If a sensor's ODR is higher than the FIFO ODR, only samples at the FIFO ODR are stored; extra samples are dropped.</li>\n<li>If a sensor's ODR is lower than the FIFO ODR, the last available sample is duplicated in the FIFO until a new sample is available.</li>\n<li>This behavior applies to both the internal sensors (accelerometer, gyroscope) and the external magnetometer.</li>\n</ul></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"1608\">@Federica Bossi</user-mention>,</p><p>Just to confirm my understanding regarding the case when the sensor ODR is lower than the FIFO ODR:</p><p>In my setup:</p><ul><li><p>FIFO ODR = 208 Hz</p></li><li><p>External magnetometer (LIS3MDL) ODR = 80 Hz</p></li><li><p>START_CONFIG = 0</p></li></ul><p>From my logic analyzer, I observe that the sensor hub performs I²C reads at ~104 Hz.</p><p>Do you mean:</p><p>a) The sensor hub reads the external sensor only when new data is available, and the FIFO duplicates the last sample internally to match the FIFO ODR</p><p>or</p><p>b) The sensor hub continues to read the output registers at the trigger rate (~104 Hz in my case), but the registers are not updated until the sensor ODR, so the same data is read multiple times</p><p>Could you please confirm which behavior is correct in this scenario?</p><p>Thanks,<br/>Purvesh</p></div>",
+                    "author": "Purvesh",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"105857\">@Purvesh</user-mention> ,</p>\n<p><span>When the sensor hub I²C read rate is higher than the external LIS3MDL ODR, the sensor hub reads the output registers at each trigger, and if the LIS3MDL has not updated its data, the same value is read and stored in the FIFO multiple times. There is no automatic duplication by the FIFO; rather, the same register value is read repeatedly until the LIS3MDL updates its output.</span></p>\n<p><span>So, </span></p>\n<p>The correct behavior is: b) The sensor hub continues to read the output registers at the trigger rate (~104 Hz in your case), but the registers are not updated until the sensor ODR, so the same data is read multiple times.</p>\n<p>The FIFO will contain repeated samples if the sensor hub reads faster than the LIS3MDL updates its data.</p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

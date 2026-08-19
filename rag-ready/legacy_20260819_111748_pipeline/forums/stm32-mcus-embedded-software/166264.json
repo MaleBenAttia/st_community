@@ -1,0 +1,61 @@
+{
+    "forum": [
+        {
+            "id": "166243",
+            "publicId": "166264",
+            "title": "STM32U375 ADF1 Stereo Configuration with 2 PDM MEMS Microphones",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32u375-adf1-stereo-configuration-with-2-pdm-mems-microphones-166264",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "MDF",
+                "Microphones",
+                "STM32U3 series"
+            ],
+            "published_at": "2026-06-18T11:15:20+00:00",
+            "views": 101,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@leocav\n\nAs you mentioned, STM32U3 ADF has a single filter instance, thus it supports mono capture only.\n\nThe alternative is to use the SAI PDM block (pins SAI\\_D & SAI\\_CK).\n\nBr\n\nJonathan",
+            "best_answer_author": "JonathanC",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello!\n\nI am working on a project using the **STM32U375CGUx** MCU, and I am trying to implement a **Stereo Audio Acquisition** system using two omnidirectional digital PDM MEMS microphones.\n\n**Hardware Setup:**\n\n* **Microphone L:** L/R pin tied to GND (Rising Edge data output).\n\n* **Microphone R:** L/R pin tied to VDD (Falling Edge data output).\n\n* Both microphones share the same lines connected to the MCU: **PB4 (ADF1\\_SDI0)** for the clock and **PB3 (ADF1\\_CCK0)** for the data stream.\n\n**The Issue:**\n\nWhen configuring the peripheral through **STM32CubeMX**, I am unable to set up a true Stereo configuration. I can only make it work in Mono.\n\nLooking at the generated HAL initialization code, I am forced to choose either `MDF_BITSTREAM0_FALLING` or `MDF_BITSTREAM0_RISING` for the `FilterBistream` parameter. There is no option/macro to sample both edges (interleaved) simultaneously on the same filter instance:\n\n```\n\nAdfHandle0.Instance = ADF1_Filter0;\n\nAdfHandle0.Init.CommonParam.ProcClockDivider = 6;\n\nAdfHandle0.Init.CommonParam.OutputClock.Activation = ENABLE;\n\nAdfHandle0.Init.CommonParam.OutputClock.Pins = MDF_OUTPUT_CLOCK_0;\n\nAdfHandle0.Init.CommonParam.OutputClock.Divider = 1;\n\nAdfHandle0.Init.CommonParam.OutputClock.Trigger.Activation = DISABLE;\n\nAdfHandle0.Init.SerialInterface.Activation = ENABLE;\n\nAdfHandle0.Init.SerialInterface.Mode = MDF_SITF_LF_MASTER_SPI_MODE;\n\nAdfHandle0.Init.SerialInterface.ClockSource = MDF_SITF_CCK0_SOURCE;\n\nAdfHandle0.Init.SerialInterface.Threshold = 4;\n\nAdfHandle0.Init.FilterBistream = MDF_BITSTREAM0_FALLING; // Or MDF_BITSTREAM0_RISING, but cannot capture both\n\nif (HAL_MDF_Init(&AdfHandle0) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n```\n\nAccording to the [STM32U3 Reference Manual (RM0487)](https://www.st.com/resource/en/reference_manual/rm0487-stm32u3-series-armbased-32bit-mcus-stmicroelectronics.pdf) (**page 1131, Table 250: ADF features**), the **ADF1** implementation on the **STM32U3** family embeds only **1 filter (DFLTx)** and **1 serial interface (SITFx)**.\n\nUnlike the STM32U5 series (where we can allocate two separate physical filters like `MDF1_Filter3` and `MDF1_Filter4` pointing to the same bitstream to achieve stereo), the STM32U3 has a single filter instance.\n\n**My questions are:**\n\n1. Is there any register workaround or specific HAL configuration to force the single `ADF1_Filter0` to operate in an interleaved Stereo mode capturing both Rising and Falling edges on the STM32U3?\n\n2. If this is a strict hardware architecture limitation due to the single filter, does it mean that stereo PDM microphone acquisition is fundamentally **not supported** on the STM32U3 series using the ADF peripheral?\n\n3. Should I migrate to an **STM32U5** (which features multi-filter MDF blocks) to achieve this native PDM stereo acquisition, or is there a way to make it work on my current U3 chip?\n\n*(Please find attached my CubeMX configuration screenshot)*\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/26782a13-e2ec-40ca-b840-fb3051e6020a.png)\n\nThank you in advance for your support!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/26782a13-e2ec-40ca-b840-fb3051e6020a.png"
+            ],
+            "author": "leocav",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107549\">@leocav</user-mention> </p><blockquote><ol start=\"1\"><li> <p>Should I migrate to an <strong>STM32U5</strong> (which features multi-filter MDF blocks) to achieve this native PDM stereo acquisition, or is there a way to make it work on my current U3 chip?</p> </li></ol></blockquote><p>Why not use the SAI peripheral, which supports stereo mode? Please see the example below.</p><p><a href=\"https://github.com/STMicroelectronics/STM32CubeU3/tree/main/Projects/NUCLEO-U385RG-Q/Examples/SAI/SAI_AudioRecord_PDM\" rel=\"noopener noreferrer\" target=\"_blank\">STM32CubeU3/Projects/NUCLEO-U385RG-Q/Examples/SAI/SAI_AudioRecord_PDM at main · STMicroelectronics/STM32CubeU3</a></p><p> </p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"1684\">@Saket_Om</user-mention>,</p><p>Thanks for the reply!</p><p>Unfortunately, I cannot change the pin configuration at the moment. :(</p><p>The microphones are currently connected to <strong>PB3</strong> and <strong>PB4</strong> on my board. While I could definitely evaluate a hardware migration or a pin remapping for a next hardware revision, for the time being, I must stick with the current layout.</p><p>Because of this, I need to figure out exactly what can be achieved with the existing hardware setup.</p></div>",
+                    "author": "leocav",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107549\">@leocav</user-mention> </p><p> <br/>As you mentioned, STM32U3 ADF has a single filter instance, thus it supports mono capture only. <br/>The alternative is to use the SAI PDM block (pins SAI_D &amp; SAI_CK). <br/>Br<br/>Jonathan </p></div>",
+                    "author": "JonathanC",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JonathanC",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

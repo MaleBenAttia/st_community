@@ -1,0 +1,37 @@
+{
+    "forum": [
+        {
+            "id": "164573",
+            "publicId": "164573",
+            "title": "Adapted DRP1M1 Reference Design faults on Writing to UCPD controller",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/adapted-drp1m1-reference-design-faults-on-writing-to-ucpd-controller-164573",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32U5 series",
+                "USB Type-C and power delivery"
+            ],
+            "published_at": "2026-04-08T13:56:53+00:00",
+            "views": 165,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I figured it out. The kernel clock (HSI) wasn't being turned on.",
+            "best_answer_author": "JoeMck",
+            "best_answer_author_role": "Associate II",
+            "content_text": "I've adapted the NUCLEO DRP1M1 reference design to build and compile for our Custom STM32U5A9 board, and when I run it, iit gets through these relevant pieces:\n\nMX\\_GPDMA1\\_Init();\n\nMX\\_UCPD1\\_Init();\n\nMX\\_TCPP\\_Init();\n\nBut then in\n\nMX\\_USBPD\\_Init() is seems to hang in the Call to:\n\nUSBPD\\_CAD\\_Init() which is part of the compiled STM\\_USBPD\\_Library.\n\nRunning a debugger and working my way backup the call stack, it appears that the library calls CAD\\_Init()\n\nwhich ultimately calls\n\nUSBPDM1\\_AssertRd(PortNum)\n\nwhere the debugger falls apart. AssertRd has at the beginning the 2 below calls\n\nLL\\_UCPD\\_TypeCDetectionCC2Disable(Ports[PortNum].husbpd);\n\nLL\\_UCPD\\_TypeCDetectionCC1Disable(Ports[PortNum].husbpd);\n\nLL\\_UCPD\\_TypeCDetectionCC2Disable(Ports[PortNum].husbpd); <- appears to work fine.\n\nLL\\_UCPD\\_TypeCDetectionCC1Disable(Ports[PortNum].husbpd); <- stops functioning.\n\nhusbpd points the appropriate address for the UCPD controller.\n\nI've set a breakpoint here, and manually set CC2TDIS and is is fine, and then when I manually set CC1TDIS\n\nit stops functioning, the debugger starts spewing \"WARNING: Failed to read memory @ address 0x4000DCxxx\n\n\"\n\nI am certain that there are (many?) issues in what I've adapted, but I'm looking for leads as to why writes\n\nto the controller could be causing this condition. I backed out from triggering on reads/writes from the TCCP03-M20 chip.\n\nI haven't looked too much at either the ADCs nor the DMAs.\n\nI looked through UM2552 and didn't see too much about the actually controller.",
+            "images": [],
+            "author": "JoeMck",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I figured it out. The kernel clock (HSI) wasn't being turned on. </p></div>",
+                    "author": "JoeMck",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,131 @@
+{
+    "forum": [
+        {
+            "id": "165867",
+            "publicId": "165867",
+            "title": "STM32L451 comparator settings with VREFINTx inputs",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32l451-comparator-settings-with-vrefintx-inputs-165867",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "Documentation",
+                "COMP",
+                "STM32L4 series"
+            ],
+            "published_at": "2026-05-21T12:49:54+00:00",
+            "views": 312,
+            "reply_count": 8,
+            "best_answer": true,
+            "best_answer_content": "Hello all,\n\n> ---\n\n>\n\n> @mƎALLEm wrote:\n\n>\n\n> The case was internally escalated over this internal ticket ***CDM0062827*** for follow-up.\n\n>\n\n> ---\n\nAfter checking, the situation is as the following:\n\nSTM32L45x has only one DAC channel instance i.e.: DAC\\_CH1:\n\n![mALLEm_0-1779438781785.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1a959ef4-4133-e2a6-64a2-2329b28d42d5.png \"mALLEm_0-1779438781785.png\")\n\nVREFINTx are available for both COMP instances.\n\nThe note under the **figure 118** in the RM is a bit confusing. The proposal is to change the note to tell: *\"On devices with single DAC there is one single DAC input\"*\n\nTo conclude:\n\nThere are two COMP (COMP1, COMP2) each of them has all analog input flavors, but only L45x/L46x have no DAC2 input, but all the rest is available.\n\nHope it's clear.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi All,\n\nIn my application, I am using the STM32L451RCT6 and trying to configure COMP2 with the internal Vref as a reference (specifically 3/4 Vref). For some reason, it never worked. I was only able to get it working when using DAC\\_CH1 or an external source as the reference. After a few days of troubleshooting and research, I finally found a relevant block diagram along with an important note in the reference manual (page 532).\n\n![y_liosha_0-1779367182238.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6d6ae6c-43c3-bb27-4130-f04c4592d564.png \"y_liosha_0-1779367182238.png\")\n\nThe thing is, there are no mentions or explanations of this behavior in the reference manual, datasheet, or errata other than this. Could you confirm whether the STM32L45x series actually supports using the internal Vref as a comparator reference or am I facing some other issue here? Thank you!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/041429b3-79c9-0bcd-4406-a23a7849a02e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1a959ef4-4133-e2a6-64a2-2329b28d42d5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7adfd778-6a4d-69ae-1ec5-f138b69ded5b.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/11962829-4122-4822-5e2f-78cf6654fa79.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7b815520-bd58-21f2-dee9-5cf3a461f245.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fbcace96-f36b-3084-447f-aca6f106e30f.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6d6ae6c-43c3-bb27-4130-f04c4592d564.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ad4d5d83-c607-5464-5285-17d80fc792d7.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dae174e4-8fdc-ce39-53cc-b6414487c634.png"
+            ],
+            "author": "y_liosha",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"reply__content post__content post__content--new-editor\"><p>Hello all,</p>\n<blockquote><hr/><user-mention data-id=\"499\">@mƎALLEm</user-mention> wrote:<br/>\n<p>The case was internally escalated over this internal ticket <em><strong>CDM0062827</strong></em> for follow-up.</p>\n<hr/></blockquote>\n<p>After checking, the situation is as the following:</p>\n<p>STM32L45x has only one DAC channel instance i.e.: DAC_CH1:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1779438781785.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1779438781785.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1a959ef4-4133-e2a6-64a2-2329b28d42d5.png\" title=\"mALLEm_0-1779438781785.png\"/></span></p>\n<p>VREFINTx are available for both COMP instances.</p>\n<p>The note under the <strong>figure 118</strong> in the RM is a bit confusing. The proposal is to change the note to tell: <font color=\"#0000FF\"><em>\"On devices with single DAC there is one single DAC input\"</em></font></p>\n<p>To conclude:</p>\n<p><span data-teams=\"true\">There are two COMP (COMP1, COMP2) each of them has all analog input flavors, but only L45x/L46x have no DAC2 input, but all the rest is available.</span></p>\n<p><span data-teams=\"true\">Hope it's clear.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>If it was indicated by the reference manual especially the <a href=\"https://www.st.com/resource/en/reference_manual/rm0394-stm32l41xxx42xxx43xxx44xxx45xxx46xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">RM0394</a> / the note under the figure 118, no need to indicate the reason why this was not implemented nor to indicate it in the errata sheet.</p>\n<p>Perhaps, it was a choice by the design to not implement the VERFINTxxx on L45xx and L46xx as COMP inputs.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>This is a nasty documentation fail... I believe it's a design bug disguised as documented feature, but documented extremely poorly.</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_0-1779369140903.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_0-1779369140903.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/dae174e4-8fdc-ce39-53cc-b6414487c634.png\" title=\"waclawekjan_0-1779369140903.png\"/></span></p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_1-1779369224727.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_1-1779369224727.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fbcace96-f36b-3084-447f-aca6f106e30f.png\" title=\"waclawekjan_1-1779369224727.png\"/></span></p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_2-1779369289417.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_2-1779369289417.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7b815520-bd58-21f2-dee9-5cf3a461f245.png\" title=\"waclawekjan_2-1779369289417.png\"/></span></p><p>Also in DS:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_3-1779369476303.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_3-1779369476303.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/11962829-4122-4822-5e2f-78cf6654fa79.png\" title=\"waclawekjan_3-1779369476303.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_4-1779369544291.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_4-1779369544291.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ad4d5d83-c607-5464-5285-17d80fc792d7.png\" title=\"waclawekjan_4-1779369544291.png\"/></span></p><p>If DAC_CH2 is not connected, than that should be documented too.</p><p>JW</p><p>[EDIT] I've just noticed there's no 'L461; 'L45x/'L46x would be more appropriate; sorry.</p><p>[EDIT2] There's no DAC_CH2 in 'L45x/'L46x, that's documented properly in the DAC chapter and DS; should be mentioned in the INMSEL fields description, and the Fig.118 footnote should be formulated clearer.</p><p>[EDIT3] </p><p>Footnote to say unavailability of Vrefint and fractions, and DAC_CH2, should be added to <em>Table 90. COMP1 input minus assignment</em> and <em>Table 92. COMP2 input minus assignment</em>, too</p><p>Also, COMPx_CSR.SCALEN and COMPx_CSR.BRGEN appear to be linked to Vrefint and fractions. It would be nice if they would be depicted in Fig.118. The \"bandgap\" term should not be used in description of those bits, as this term is not explained/mentioned anywhere else in the RM (it is in the ADC chapter, where it may be confusing either). \"Internal reference voltage\", or \"Vrefint\" is used everywhere else.</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Yes, I agree. It is really hard to believe that such an important limitation is mentioned only once and in such an unexpected place. Unfortunately, it affects my project a bit. I guess I will have to solder a wire to an external pin.</p></div>",
+                    "author": "y_liosha",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The case was internally escalated over this internal ticket <em><strong>CDM0062827</strong></em> for follow-up.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thank you for such a quick reaction! I really appreciate it.</p></div>",
+                    "author": "y_liosha",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I looked also at Cube (not CubeMX, I don't use it and don't intend to install/run/learn).</p><p>In <a href=\"https://github.com/STMicroelectronics/stm32l4xx-hal-driver/blob/b2fcc05b480c360355e87b52eaefd04e20786ed2/Src/stm32l4xx_hal_comp.c#L157\" rel=\"nofollow noopener noreferrer\" target=\"_self\">stm32l4xx_hal_comp.c</a>, there's a table listing the options for comparator inputs/outputs. It lists exceptions for 'L41x/'L42x and for 'L43x/'L44x, for which I can't find references in the COMP chapter in RM0394, and, sure, doesn't list the exceptions for 'L45x/'L46x. Haven't had look at the actual code, if it performs some actual validity checks in this regard.</p><p>In <a href=\"https://github.com/STMicroelectronics/stm32l4xx-hal-driver/blob/b2fcc05b480c360355e87b52eaefd04e20786ed2/Src/stm32l4xx_ll_comp.c#L75\" rel=\"nofollow noopener noreferrer\" target=\"_self\">stm32l4xx_ll_comp.c</a>, there's an actual check, which does not take into account the discussed 'L45x/'L46x exception.</p><p>(Just to explain my surge of activity here: I do use the 'L431 and 'L451 actively in a group of projects, and although not COMP so far, it may happen such requirement will come one day as we've expanded the scope already several times, and I don't want to be surprised either. Btw. these are chips with a really nice set of features, truly.)</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>I totally understand that. In my case, I am using the Keil IDE and the HAL library, and every time I set VREFINT as the reference source, the MCU immediately jumps into a hard fault without any explanation or flag being raised (although I should mention that I may have missed something). </span><span>What I can confirm is that using an external reference source works well, although I only recently started testing that configuration. I have not tested DAC_CH1 as a reference source yet, but I assume it should work too.</span></p></div>",
+                    "author": "y_liosha",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; every time I set VREFINT as the reference source, the MCU immediately jumps into a hard fault</p><p>That's IMO unexpected and I would say there's some other unrelated reason.</p><p>Perhaps show, what expression exactly leads to that hardfault.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> ,</p><p>Thanks for this information. So, it appears, that - apart from the confusing footnote in Fig.118 - the probem was probably somewhere in  <user-mention data-id=\"107166\">@y_liosha</user-mention> 's code, correct?</p><p>Can you also please have a look at this:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_0-1779451808636.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_0-1779451808636.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/041429b3-79c9-0bcd-4406-a23a7849a02e.png\" title=\"waclawekjan_0-1779451808636.png\"/></span></p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"waclawekjan_1-1779452699896.png\" style=\"width: 400px;\"><img alt=\"waclawekjan_1-1779452699896.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7adfd778-6a4d-69ae-1ec5-f138b69ded5b.png\" title=\"waclawekjan_1-1779452699896.png\"/></span></p><p>Thanks,</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Preferably to ask the question related to the comp driver in the STM32 Embedded software. </p>\n<p>I'll check the documentation next Monday.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"499\">@mƎALLEm</user-mention> , thanks.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

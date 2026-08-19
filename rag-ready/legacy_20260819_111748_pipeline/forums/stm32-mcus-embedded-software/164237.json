@@ -1,0 +1,77 @@
+{
+    "forum": [
+        {
+            "id": "164237",
+            "publicId": "164237",
+            "title": "STM32 Write to internal EEPROM only work once",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32-write-to-internal-eeprom-only-work-once-164237",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32L0 series"
+            ],
+            "published_at": "2026-03-27T11:46:28+00:00",
+            "views": 345,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Welcome @Stefan-G, to the community!\n\nMost likely root cause: Flash/EEPROM is not erased before the second write.\n\nOn STM32 you can change bits only from 1 to 0 when programming; to go back to 1 you must erase the page/word first. First write works, second write to same addresses gives “corrupted” data.\n\nSo you need, before WriteEEPROM32Array():\n\n1. Unlock flash/EEPROM\n\n2. Erase the EEPROM/flash page containing 0x08080000 (using the correct PECR erase sequence from the reference manual)\n\n3. Then program the new values\n\n4. Lock again\n\nAdditional issues (also fix, but secondary to the main problem): in WriteEEPROM32Array and ReadEEPROM32Array, you ignore length and always loop i < 64; use i < length. Don’t use \\_\\_WFI() as “wait for flash”; instead, after each write:\n\n```\n\nwhile (FLASH->SR & FLASH_SR_BSY) { }\n\n// then check/clear error flags and EOP\n\n```\n\nIn SetEEPROM(), build KalibWerte with = instead of |= or clear it first:\n\n```\n\nKalibWerte[i] = (uint32_t)Rx[4*i] << 24;\n\nKalibWerte[i] |= (uint32_t)Rx[4*i+1] << 16;\n\nKalibWerte[i] |= (uint32_t)Rx[4*i+2] << 8;\n\nKalibWerte[i] |= (uint32_t)Rx[4*i+3];\n\n```\n\nHope that helps?\n\nRegards\n\n/Peter",
+            "best_answer_author": "Peter BENSCH",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi people,\n\ni have trouble with writing to the internal eeprom / flash. I can write values one time to the EEPROM and read it correct back from eeprom. When i write next time values to the eeprom and read them, the values changed but are incorrect. I tried many solutions, but know i am perplexed.\n\n```\n\n//EEPROM Funktionen\n\nvoid EEPROM_Unlock(void)\n\n{\n\nwhile ((FLASH->SR & FLASH_SR_BSY) != 0) /* Wait for FLASH to be free */\n\n{ /* insert timeout test */ }\n\nif ((FLASH->PECR & FLASH_PECR_PELOCK) != 0) /* If PELOCK is locked */\n\n{\n\nFLASH->PEKEYR = FLASH_PEKEY1; /* Unlock PELOCK */\n\nFLASH->PEKEYR = FLASH_PEKEY2;\n\n}\n\n//FLASH->PECR = FLASH->PECR | (FLASH_PECR_ERRIE | FLASH_PECR_EOPIE); /* enable flash interrupts */\n\n}\n\n// EEPROM lock\n\nvoid EEPROM_Lock(void)\n\n{\n\nwhile ((FLASH->SR & FLASH_SR_BSY) != 0) /* Wait for FLASH to be free */\n\n{ /* insert timeout test */\n\n}\n\n//FLASH->PECR = FLASH->PECR & ~(FLASH_PECR_ERRIE | FLASH_PECR_EOPIE); /* disable flash interrupts */\n\nFLASH->PECR |= FLASH_PECR_PELOCK; /* Lock memory with PELOCK */\n\n}\n\n// -----------------------------\n\n// 16-bit Array in EEPROM write\n\n// -----------------------------\n\nvoid WriteEEPROM32Array(uint32_t *src, size_t length)\n\n{\n\nuint32_t address = 0x08080000;\n\nEEPROM_Unlock();\n\nfor(size_t i = 0; i < 64;i++)\n\n{\n\n*(uint32_t *)(address) = src[i];\n\n__WFI();\n\naddress += 4;\n\n}\n\nEEPROM_Lock();\n\n}\n\n// -----------------------------\n\n// 16-bit Array in EEPROM read\n\n// -----------------------------\n\nvoid ReadEEPROM32Array(uint32_t *dest, size_t length)\n\n{\n\nuint32_t address = 0x08080000;\n\nfor (size_t i = 0; i < 64; i++)\n\n{\n\ndest[i] = *(__IO uint32_t*)address;\n\naddress += 4;\n\n}\n\n}\n\n```\n\nMy write routine\n\n```\n\nvoid SetEEPROM()\n\n{\n\nuint8_t Rx[256];\n\nMessung = 0;\t\t// Stopp Set EEprom\n\nHAL_NVIC_DisableIRQ(USART1_IRQn);\n\nHAL_UART_Abort(&huart1);\n\nHAL_UART_Receive(&huart1,(uint8_t*) Rx, 256, 20000);\n\nfor(uint8_t i = 0;i<64;i++)\n\n{\n\nKalibWerte[i] |= Rx[(4*i)]<<24;\n\nKalibWerte[i] |= Rx[(4*i)+1]<<16;\n\nKalibWerte[i] |= Rx[(4*i)+2]<<8;\n\nKalibWerte[i] |= Rx[(4*i)+3];\n\n}\n\nWriteEEPROM32Array(KalibWerte, 64);\n\nHAL_UART_Transmit(&huart1, (uint8_t*)(\"s\\r\"), 2, 10);\n\nHAL_NVIC_EnableIRQ(USART1_IRQn);\n\nHAL_UART_Receive_IT(&huart1,rxByte, 1);\n\n}\n\n```\n\nDoes anybody have an idea or solution?\n\nKR\n\nStefan",
+            "images": [],
+            "author": "Stefan-G",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome <user-mention data-id=\"105559\">@Stefan-G</user-mention>, to the community!</p>\n<p>Most likely root cause: Flash/EEPROM is not erased before the second write.</p>\n<p>On STM32 you can change bits only from 1 to 0 when programming; to go back to 1 you must erase the page/word first. First write works, second write to same addresses gives “corrupted” data.</p>\n<p>So you need, before WriteEEPROM32Array():</p>\n<ol>\n<li>Unlock flash/EEPROM</li>\n<li>Erase the EEPROM/flash page containing 0x08080000 (using the correct PECR erase sequence from the reference manual)</li>\n<li>Then program the new values</li>\n<li>Lock again</li>\n</ol>\n<p>Additional issues (also fix, but secondary to the main problem): in WriteEEPROM32Array and ReadEEPROM32Array, you ignore length and always loop i &lt; 64; use i &lt; length. Don’t use __WFI() as “wait for flash”; instead, after each write:</p>\n<pre class=\"lia-code-sample language-c\"><code>while (FLASH-&gt;SR &amp; FLASH_SR_BSY) { }\n// then check/clear error flags and EOP</code></pre>\n<p>In SetEEPROM(), build KalibWerte with = instead of |= or clear it first:</p>\n<pre class=\"lia-code-sample language-c\"><code>KalibWerte[i] = (uint32_t)Rx[4*i] &lt;&lt; 24;\nKalibWerte[i] |= (uint32_t)Rx[4*i+1] &lt;&lt; 16;\nKalibWerte[i] |= (uint32_t)Rx[4*i+2] &lt;&lt; 8;\nKalibWerte[i] |= (uint32_t)Rx[4*i+3];</code></pre>\n<p>Hope that helps?</p>\n<p>Regards<br/>/Peter </p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi Peter,</p><p>thanks for the fast response.</p><p>I already try to erase the flash/eeprom with the following function in the past. But i had the same results.</p><pre class=\"lia-code-sample language-c\"><code>void ClearEEPROM32Array(void)\n{\n\tuint32_t addr = 0x08080000;\n\tEEPROM_Unlock();\n\t__WFI();\n\tFLASH-&gt;PECR |= FLASH_PECR_ERASE | FLASH_PECR_DATA;\n\tfor (size_t i = 0; i &lt; 64; i++)\n\t{\n\t\t*(__IO uint32_t *)addr = (uint32_t)0;\n\t\t__WFI();\n\t\taddr += 4;\n\t}\n\tFLASH-&gt;PECR &amp;= ~(FLASH_PECR_ERASE | FLASH_PECR_DATA);\n\tEEPROM_Lock();\n}</code></pre><p>And thanks for the bug fixing. The code is still a bit buggy cause of the massive testing. </p><p>I will try without __WFI(), maybe this will work.</p><p> </p><p>KR</p><p>Stefan</p><p> </p></div>",
+                    "author": "Stefan-G",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2379\">@Peter BENSCH</user-mention> I think the L0 series has EEPROM that can simply be overwritten.</p><p>Here's my working EEPROM stuff (not HAL), used on <strong>L031</strong> and <strong>L073</strong>:</p><pre class=\"lia-code-sample language-c\"><code>uint8_t FlashEepWriteWord(uint32_t u32EepAddr, uint32_t u32Word)\n{\n\t/* address check */\n\tif( (u32EepAddr % 4) != 0 ) return ERROR_EEP_ADDR;\n\tif( (u32EepAddr &lt; DATA_EEPROM_BASE) || (u32EepAddr &gt; (DATA_EEPROM_END - 3)) ) return ERROR_EEP_ADDR;\n\n\t/* lock check */\n\tif( (FLASH-&gt;PECR &amp; FLASH_PECR_PELOCK) != 0 )\n\t{\n\t\t/* unlock */\n\t\tif( FlashEepUnlock() != 0 ) return ERROR_EEP_WRITE;\n\t}\n\n\t/* busy check */\n\tif( FlashEepBusy((uint32_t)FLASHEEP_TO_BUSY_MS) != 0 ) return ERROR_EEP_BUSY;\n\n/* writing happens here */\n\t*(uint32_t *)u32EepAddr = u32Word;\n\n\t/* busy check */\n\tif( FlashEepBusy((uint32_t)FLASHEEP_TO_BUSY_MS) != 0 ) return ERROR_EEP_BUSY;\n\n\t/* lock */\n\tif( FlashEepLock() != 0 ) return ERROR_EEP_WRITE;\n\n\treturn 0;\n}</code></pre><p> </p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Maybe you should add a BUSY check after each write.</p><p> </p><p>Here it is, from RM0367 for L0x3, page 85:</p><p><br/><strong>Write to data EEPROM</strong></p><p>...</p><p><strong>Description</strong><br/>This operation aims at writing a word or a part of a word in the data EEPROM. The user<br/>must write the right value at the right address and with the right size. <strong>The memory</strong><br/><strong>interface automatically executes an erase operation when necessary</strong> (if all bits are<br/>currently set to 0, there is no need to delete the old content before writing). Similarly, if<br/>the data to write is at 0, only the erase operation is executed. When only a write<br/>operation or an erase operation is executed, the duration is Tprog (3.2 ms); if both are<br/>executed, the duration is 2 x Tprog (6.4 ms). It is possible to force the memory interface<br/>to execute every time both erase and write operations set the FIX flag to 1.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi people,</p><p>I get it to work. Thanks for your help. I also will check the code from LCE, that looks short and easy.</p><p>I am not sure, what the problem was, but i made this.</p><ol><li>Unlock EEPROM</li><li>Erase the EEPROM/flash page containing 0x08080000 (using the correct PECR erase sequence from the reference manual)</li><li>Lock EEPROM</li><li>Unlock EEPROM</li><li>Then program the new values</li><li>Lock again</li></ol><p>And i did the erase not in the same function, where i do the programming. Maybe that is the reason??</p><p>Here is the working code</p><pre class=\"lia-code-sample language-c\"><code>//EEPROM Funktionen\n\nvoid EEPROM_Unlock(void)\n{\n\twhile ((FLASH-&gt;SR &amp; FLASH_SR_BSY) != 0) /* Wait for FLASH to be free */\n\t{ /* insert timeout test */ }\n\t\tif ((FLASH-&gt;PECR &amp; FLASH_PECR_PELOCK) != 0) /* If PELOCK is locked */\n\t\t{\n\t\t\tFLASH-&gt;PEKEYR = FLASH_PEKEY1; /* Unlock PELOCK */\n\t\t\tFLASH-&gt;PEKEYR = FLASH_PEKEY2;\n\t\t}\n\n\t//FLASH-&gt;PECR = FLASH-&gt;PECR | (FLASH_PECR_ERRIE | FLASH_PECR_EOPIE); /* enable flash interrupts */\n}\n\n// EEPROM sperren\nvoid EEPROM_Lock(void)\n{\n\twhile ((FLASH-&gt;SR &amp; FLASH_SR_BSY) != 0) /* Wait for FLASH to be free */\n\t{ /* insert timeout test */\n\n\t}\n\t//FLASH-&gt;PECR = FLASH-&gt;PECR &amp; ~(FLASH_PECR_ERRIE | FLASH_PECR_EOPIE); /* disable flash interrupts */\n\tFLASH-&gt;PECR |= FLASH_PECR_PELOCK; /* Lock memory with PELOCK */\n\n}\n\n// -----------------------------\n// 16-bit Array in EEPROM schreiben\n// -----------------------------\n\nvoid WriteEEPROM32Array(uint32_t *src, size_t length)\n{\n uint32_t address = 0x08080000;\n for(size_t i = 0; i &lt; length;i++)\n {\n \t*(uint32_t *)(address) = src[i];\n \twhile ((FLASH-&gt;SR &amp; FLASH_SR_BSY) != 0)\n \t{\n \t\t// wait for flash\n \t}\n \taddress += 4;\n }\n}\n\n// -----------------------------\n// 16-bit Array in EEPROM lesen\n// -----------------------------\nvoid ReadEEPROM32Array(uint32_t *dest, size_t length)\n{\n\tuint32_t address = 0x08080000;\n\tfor (size_t i = 0; i &lt; length; i++)\n\t{\n\t\tdest[i] = *(__IO uint32_t*)address;\n\t\taddress += 4;\n\t}\n}\n\nvoid ClearEEPROM32Array(size_t length)\n{\n\tuint32_t addr = 0x08080000;\n\tFLASH-&gt;PECR |= FLASH_PECR_ERASE | FLASH_PECR_DATA;\n\tfor (size_t i = 0; i &lt; length; i++)\n\t{\n\t\t*(__IO uint32_t *)addr = (uint32_t)0;\n\t\twhile ((FLASH-&gt;SR &amp; FLASH_SR_BSY) != 0)\n\t\t{\n\t\t}\n\t\taddr += 4;\n\t}\n\tFLASH-&gt;PECR &amp;= ~(FLASH_PECR_ERASE | FLASH_PECR_DATA);\n}</code></pre><pre class=\"lia-code-sample language-c\"><code>void SetEEPROM()\n{\n\tuint8_t Rx[256];\n\tMessung = 0;\t\t// Stopp Set EEprom\n\tHAL_NVIC_DisableIRQ(USART1_IRQn);\n\tHAL_UART_Abort(&amp;huart1);\n\n\tHAL_UART_Receive(&amp;huart1,(uint8_t*) Rx, 256, 20000);\n\n\tfor(uint8_t i = 0;i&lt;64;i++)\n\t{\n\t\tKalibWerte[i] |= Rx[(4*i)]&lt;&lt;24;\n\t\tKalibWerte[i] |= Rx[(4*i)+1]&lt;&lt;16;\n\t\tKalibWerte[i] |= Rx[(4*i)+2]&lt;&lt;8;\n\t\tKalibWerte[i] |= Rx[(4*i)+3];\n\t}\n\tEEPROM_Unlock();\n\tWriteEEPROM32Array(KalibWerte, 64);\n\tEEPROM_Lock();\n\tHAL_UART_Transmit(&amp;huart1, (uint8_t*)(\"s\\r\"), 2, 10);\n\tHAL_NVIC_EnableIRQ(USART1_IRQn);\n\tHAL_UART_Receive_IT(&amp;huart1,rxByte, 1);\n}\n\nvoid GetEEPROM()\n{\n\tuint8_t Tx[256];\n\tReadEEPROM32Array(KalibWerte, 64);\n\tfor(uint8_t i = 0; i&lt;64;i++)\n\t{\n\t\tTx[4*i] = (uint8_t)(KalibWerte[i] &gt;&gt; 24);\n\t\tTx[(4*i)+1] = (uint8_t)(KalibWerte[i] &gt;&gt; 16);\n\t\tTx[(4*i)+2] = (uint8_t)(KalibWerte[i] &gt;&gt; 8);\n\t\tTx[(4*i)+3] = (uint8_t)(KalibWerte[i]);\n\t}\n\n\tHAL_UART_Transmit(&amp;huart1, Tx, 256, 100);\n}</code></pre><p> Somewhere in the sate machine</p><pre class=\"lia-code-sample language-c\"><code>EEPROM_Unlock();\nClearEEPROM32Array(64);\nEEPROM_Lock();</code></pre><p>Thanks</p><p>Stefan</p></div>",
+                    "author": "Stefan-G",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I'm pretty sure it's the BUSY check after each write, so please mark Peter's post as solution.</p><p> </p><p>PS: if you have the flash space and time, never use any while loops without a timeout / break mechanism!</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Okay, thanks. I marked him.</p></div>",
+                    "author": "Stefan-G",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

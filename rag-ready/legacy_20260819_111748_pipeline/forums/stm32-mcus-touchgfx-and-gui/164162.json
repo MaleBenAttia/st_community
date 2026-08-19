@@ -1,0 +1,41 @@
+{
+    "forum": [
+        {
+            "id": "164162",
+            "publicId": "164162",
+            "title": "Unused Parameters in CompressedUnmappedFontCache and CompressedFontCache",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/unused-parameters-in-compressedunmappedfontcache-and-compressedfontcache-164162",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-03-25T14:55:28+00:00",
+            "views": 160,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello .\n\nThank you for reporting this issue. I will make sure a fix is included in TouchGFX 4.27.0.\n\nIn the meantime, to avoid having to manually modify the generated code, you can create a Ruby script and run it from the Post Generate Target Command, which you can find under Config -> Build.\n\nBest regards,\n\nJohan",
+            "best_answer_author": "JohanAstrup",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "I get the build warning (which is treated as an error):\n\n```\n\nCompressedUnmappedFontCache.cpp:146:66: error: unused parameter 'glyphNode' [-Werror=unused-parameter]\n\n[build]   146 | void CompressedUnmappedFontCache::unableToCache(const GlyphNode\\* glyphNode, int byteSize)\n\n```\n\nThis is easily fixed with\n\n```\n\nvoid CompressedUnmappedFontCache::unableToCache(const GlyphNode* /*glyphNode*/, int /*byteSize*/)\n\n{\n\nwhile(1);\n\n}​\n\n```\n\nBut, it's generated code, so I have to make this fix every time a regenerate. This warning happens in both `CompressedUnmappedFontCache` and `CompressedFontCache`.",
+            "images": [],
+            "author": "MillerWeldsJack",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello .</p><p>Thank you for reporting this issue. I will make sure a fix is included in TouchGFX 4.27.0.</p><p>In the meantime, to avoid having to manually modify the generated code, you can create a Ruby script and run it from the Post Generate Target Command, which you can find under Config -&gt; Build.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

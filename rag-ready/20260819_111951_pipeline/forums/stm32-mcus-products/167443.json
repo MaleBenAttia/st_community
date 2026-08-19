@@ -1,0 +1,101 @@
+{
+    "forum": [
+        {
+            "id": "167415",
+            "publicId": "167443",
+            "title": "Is low impedance for the ADC input good or bad?",
+            "url": "https://community.st.com/stm32-mcus-products-25/is-low-impedance-for-the-adc-input-good-or-bad-167443",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32G4 series",
+                "ADC"
+            ],
+            "published_at": "2026-08-03T16:56:08+00:00",
+            "views": 340,
+            "reply_count": 5,
+            "best_answer": true,
+            "best_answer_content": "Your wrong.\n\nOn these kind of ADC you always need low impedance at input, preferably a cer. cap with 10 or 100 nF direct to ground.\n\nIf you want to know why, read about \"charge redistribution ADC\" , then you should understand.\n\nThe maximum impedance depends on sampling time and there is a table with values in the RM.\n\nAnd have very short wire to the cap or impedance buffer amp, as on high resolution ADC you get many millivolts RF even on 50mm wire to ground.",
+            "best_answer_author": "AScha.3",
+            "best_answer_author_role": "Super User",
+            "content_text": "I have noticed several recommendations on internet, that recommend providing a low high frequency impedance driving the ADC input for the MCU. For instance, you could add an RC-filter with the capacitance directly between the input pin and analog ground.\n\nThis is one of the recommendations:\n\n<https://community.st.com/stm32-mcus-products-25/many-people-have-complained-about-noise-on-adc-inputs-maybe-to-do-with-impedance-has-this-be-rectified-on-any-version-or-family-of-the-stm32-42573?tid=42573&fid=25>\n\nWell, I am not sure of such a recommendation anymore…\n\nPerhaps I should just state that I am a novice regarding the use of STM32 processors, but I am old regarding general electronics design and electrical noise.\n\nI have just tried this circuit with a Nucleo STM32G474RE board with 100 nF decoupling capacitor and a series resistor that I vary on the input pin:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00682e44-d0a5-42c3-9ce9-77e921a4d087.png)\n\nThe preconditions are that I make an AD-conversion every second and with a 170 MHz sysclock and a 42.5 MHz ADC clock. The sample time is set to 12.5 clock cycles or 294 ns. No oversampling.\n\nWith the R-resistor set to 0 ohm, I get a peak-peak variation in the result value over one minute of about 33 LSB. When I change the resistor to 6.8 kOhm, the variation drops to about 12 LSB. It is about a 9 dB improvement.\n\nI have also tried values of 3.3 kOhm and 12 kOhm, but then the noise tends to increase. So there seems to be a sweet spot here of this resistor value.\n\nSome applications rightfully note that you should be aware of sufficient time for the internal SAR capacitors of the ADC to charge, and discharge from previous ADC conversion. I want to limit the previous charge to less than a ½ LSB of the 12 bits, and it is within 1/8192 in value, and you need 9 RC time constants for that. Therefore, you need a RC time constant below 294 ns/9 = 33 ns. According to datasheet the internal SAR capacitance is 5 pF. So, the calculated resistance becomes 6.5 kOhm – or close to the selected value of 6.8 kOhm.\n\nI think that you can have some common GND wires inside the chip or some inductive coupling with high frequency spikes, that can change the charged value just before the sampling switches switches off. With a low driving impedance such a spike has larger influence on the remaining voltage on the SAR capacitance. The series resistor causes the SAR capacitance to act as a filter by itself and reduce this effect.\n\nThe test circuit I use is open with about 10 cm wires, so this is no proof. But if you are interested in lower noise at moderate conversion speeds, I think you should consider trying a series resistor there.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/00682e44-d0a5-42c3-9ce9-77e921a4d087.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b05520df-eacf-42f4-b894-9a2534e60f92.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/744d91ac-d4e9-4322-a393-e1fead5832a5.jpg"
+            ],
+            "author": "Backflip",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your wrong.</p><p>On these kind of ADC you always need low impedance at input, preferably a cer. cap with 10 or 100 nF direct to ground. </p><p>If you want to know why, read about \"charge redistribution ADC\" , then you should understand.</p><p>The maximum impedance depends on sampling time and there is a table with values in the RM.</p><p>And have very short wire to the cap or impedance buffer amp, as on high resolution ADC you get many millivolts RF even on 50mm wire to ground.</p></div>",
+                    "author": "AScha.3",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I think you are right and I was wrong. I repeated the test with the 100 nF decoupling brown capacitor closer to the PCB as you see here. But I use the normal power GND here, because it is closer.<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b05520df-eacf-42f4-b894-9a2534e60f92.jpg\"/></figure><p>This reduced the measured noise to about 3 LSB peak-peak. The same schematic with about 100 mm long wires to the decoupling capacitor resulted in 33 LSB peak-peak as reported before. Apparently the possible inductive loop here could pick up a significant amount of noise. I know this position of the capacitor is still not perfect, and could be made better when you make a PCB design.<br/> </p><p>I did also try to add the resistor in this situation like this:<br/> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/744d91ac-d4e9-4322-a393-e1fead5832a5.jpg\"/></figure><p>This resulted in higher noise values and about 10 LSB peak-peak.<br/><br/>So now I am sorry to have made this post, but at least it can illustrate that such external wiring can pick up significant noise.</p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The primary concern is that the measured value is not a true representation of input signal. Noise is somewhat secondary, and its reasons are more complex - IMO mostly crosstalk between the input signal and VREF+, possibly through ground impedance; but maybe other crostallks too. The ‘G4 ADC (or analog portion in general) in particular has its share of issues, as witnessed by ‘G4 ADC-related appnotes and the ‘G4-specific ADC appnote.</p><p>The concept of “let’s improve big output impedance of the signal source by using a huge capacitor” as a panacea is fundamentally flawed. Let’s assume you have the pot’s wiper at its middle, 50k, and the sampling capacitor is fully discharged at the beginning of sampling, which in practice <a href=\"http://www.efton.sk/STM32/gotcha/g219.html\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">is not</a>, but we can’t be sure as there’s no guarantee for that and have to account for the worst case. That means that you are charging a 5pF capacitor to 1.5V each 294ns, that gives you an average current (smoothed out by the 100nF capacitor) of 5pF*1.5V/294ns = 25.5uA. That current is drawn through the 50kOhm portion of the pot, adding up to the “normal” divider current of 3V/100kOhm=30uA. Guess what’s the result.</p><p>For R&gt;6.5kOhm this compounds with the fact that the sampling capacitor does not succeed to fully charge.</p><p>So, you either perform all these calculations for worst case, and change sampling rate accordingly; or spare yourself some disappointment and use an opamp-based buffer.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I don’t agree with you calculation, because your calculated currents are short term - not long term. I measure only once each second. With a 25 kOhm driving resistance from the potentiometer, you have a time constant for charging the 100 nF of 2.5 ms. So you got 400 time constants of charging in 1 second, and therefore it will get to the intended voltage in one second. As I stated - 9 time constants in time are sufficient to get within ½ LSB of intended value of a 12 bit signal.<br/><br/>Anyway as I already reported, the problem I got was too long wires for the decoupling capacitor.</p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Study differential mode of the ADC, it helps a lot to reject noise over wiring. Simple twisted pair attenuates over 50 dB <a href=\"https://www.ti.com/lit/an/slyt737/slyt737.pdf?ts=1785793293205&amp;ref_url=https%253A%252F%252Fwww.google.com%252F\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">according to this paper.</a></p><p> </p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><ol><li>“<strong>A</strong>GND” should be connected to the common GND plane, as low impedance as possible. It would be nice to have the VDDA buffering cap(s) directly at the VDDA &amp; AGND pins, but with the many ADC inputs all over the package, there’s no use connecting the ADC input RCs to AGND. Just make sure that the ADC input RCs are as close to the ADC input pin as possible, without any noisy digital IO adjacent - if possible.</li> <li>The Nucleos… great &amp; inexpensive tools, but the PCB layout was made for many different uses, not much for the ADC inputs. There are some terribly long tracks running all around the board, due to solder bridge and connector options.</li></ol><p>So with better placement and layout, signal quality will probably reach the number of bits as advertised, but also depending on the sampling rate.</p><p>And as Jan said, in case of doubt a big cap might not be good enough, so a driver op- / dif-amp and using differential inputs might be required.</p><p>I use the STM32’s ADC on all types (H7, G4, L0) that I use, but only for DC voltage monitoring. And for that 1k / 10nF (+ a possible not too high resisitvie divider) at single-ended and some oversampling is by far good enough.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"39813\">@LCE</user-mention> <br/><br/>Yes, I agree.<br/><br/>In general it is very difficult to maintain a concept of separate GNDs and this AGND. The main issue is, that you need a GND plane with no big holes to keep a low impedance at high frequencies. Tracks will be more subjected to inductive coupling and got higher inductance. I think extending an AGND outside a PCB will start to cause more problems than it might solve. So for a solid first design I would first go for one GND as a GND-plane for both AGND and and GND. In this way you will be able to keep a good reference for the driving circuit to the analog input pin.<br/><br/>I got a documentation with the schematics for the Nucleo64 STM32G4 boards, MB1367, but it do not include the actual PCB layout regarding GND-planes and tracks. Have the layout been published for the Nucleo boards?</p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I did find the NUCLEO PCB-layout under “Manufacturing files” here:<br/><a href=\"https://www.st.com/en/evaluation-tools/nucleo-g474re.html#cad-resources\" rel=\"noreferrer noopener nofollow ugc\" target=\"_blank\">https://www.st.com/en/evaluation-tools/nucleo-g474re.html#cad-resources</a></p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>That's an interesting observation, and your measurements make the discussion much more useful than the usual \"always use a low impedance source\" recommendation.</p><p>One thing worth considering is that the series resistor and the external capacitor are forming more than just a source impedance—they're also isolating the ADC's sample-and-hold capacitor from high-frequency disturbances. If the resistor is too small, the sampling capacitor can directly \"see\" switching noise from the MCU, supply rails, or PCB parasitics. If it's too large, however, the sample-and-hold capacitor may not settle completely within the acquisition time, introducing conversion error.</p><p>That would explain why you found a sweet spot around 6.8 kΩ instead of seeing a monotonic improvement. In other words, there is a trade-off between noise filtering and settling accuracy.</p><p>It would also be interesting to repeat the experiment while varying:</p><ul><li>The ADC sample time (longer acquisition windows).</li> <li>The external capacitor value (e.g., 1 nF, 10 nF, 100 nF).</li> <li>Continuous conversion versus one sample per second.</li> <li>A proper PCB layout with a low-noise voltage reference instead of flying wires.</li></ul><p>If the optimum resistor shifts with sample time, that would strongly support the settling-time explanation. If it remains around the same value, it could point more toward internal switching noise or coupling inside the MCU.</p><p>Thanks for sharing the data—it's a good reminder that the \"lowest possible source impedance is always best\" rule isn't universally true for SAR ADCs, especially when practical noise sources are involved</p></div>",
+                    "author": "creativeshelf37",
+                    "role": "Visitor"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"108816\">@creativeshelf37</user-mention>  Thanks for your reply. I think you got the point I was trying to make.<br/><br/>I hope you did see my response with new measurement results in my reply to ​<user-mention data-id=\"34409\">@AScha.3</user-mention> </p><p>It can be hard to determine what the main noise contributors are in each case. In my case it was the external long wiring to the decoupling capacitor that caused most of the noise in the first measurements. But with a better PCB layout for an application this can be done much better. In my later measurements, an important source to noise may be capacitive coupling from digital signals to the input pin area. I don’t know for sure and different approaches for noise reduction will apply.  <br/> </p></div>",
+                    "author": "Backflip",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; I don’t agree with you calculation, because your calculated currents are short term - not long term. I measure only once each second.</p><p>Fair, I’ve missed the “once per second” part, that of course makes all the difference. And the calculation has to be done.</p><p>My problem is presenting the capacitor as a solution to the high signal impedance problem, without being explicit that it implies sample rate limitation.</p><p>And if you are going to work with the ‘G4 ADC, I still recommend you to read the errata and the ‘G4-ADC-specific appnote I mentioned above.</p><p>JW</p></div>",
+                    "author": "waclawek.jan",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

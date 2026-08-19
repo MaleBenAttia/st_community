@@ -1,0 +1,49 @@
+{
+    "forum": [
+        {
+            "id": "163939",
+            "publicId": "163939",
+            "title": "STM32H7S78-DK. hangs and eventually Hard Faults writing to XSPI NOR flash",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32h7s78-dk-hangs-and-eventually-hard-faults-writing-to-xspi-nor-flash-163939",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32H7 series",
+                "Flash",
+                "XSPI"
+            ],
+            "published_at": "2026-03-18T11:36:19+00:00",
+            "views": 278,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nAlmost the same question asked in this [post](https://community.st.com/t5/stm32-mcus-embedded-software/stm32h7s7-how-to-write-to-external-flash/m-p/885198).\n\nYou can't write to that memory while executing from it. You said it yourself: you need to switch from memory-mapped mode to indirect/command mode so the instruction fetch is no more available.\n\nNeed either:\n\n- To use two external XSPI memories: one for execution and one for the data storage so you don't have a such issue. Refer to the [AN6228](https://www.st.com/resource/en/application_note/an6228-how-to-implement-xspi-readwhilewrite-feature-on-stm32-mcus-stmicroelectronics.pdf) \"How to implement XSPI read-while-write feature on STM32 MCUs\"\n\n- Or to execute that code that writes to the external flash from the internal Flash (could be a bit tricky).\n\nHope I've answered your question.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Currently I am working on STM32H7S78-DK board, In that I am trying to save some data in External flash which will be read over every boot up but while trying to write in specific memory location it will hit to hard fault. I would like to seek clarification regarding write and erase operations on external NOR flash while operating in XIP (memory-mapped) mode on the STM32H7S78-DK.\n\n**Current Setup:**\n\n* The application is executed directly from external NOR flash (mapped at 0x70000000 via XSPI).\n\n* Memory-mapped (XIP) mode is enabled for instruction execution.\n\n* Read operations from external flash are working as expected.\n\n**Observed Issue:**\n\n* During erase/write operations, the system encounters hangs and eventually enters a Hard Fault condition.\n\n**Understanding of the Issue:**\n\n* Erase/program operations require switching the XSPI interface from memory-mapped mode to indirect/command mode.\n\n* During this transition:\n\n+ External flash is not available for instruction fetch.\n\n+ The CPU continues attempting to execute code from the same external flash.\n\n+ This results in instruction fetch conflicts, leading to system instability (hangs/HardFault).\n\n* Additional factors increasing complexity:\n\n+ Interrupts and ISRs may still reside in external flash.\n\n+ RTOS-based execution further increases the likelihood of conflicts.\n\n* Whether write/erase operations on the same external NOR flash are supported during XIP execution.\n\n* Recommended approach to safely perform these operations:\n\n+ Executing flash drivers from internal RAM\n\n+ Relocating interrupt handlers to RAM\n\n+ Any required restrictions or best practices\n\n* Availability of any reference examples or application notes specific to STM32H7S78-DK.",
+            "images": [],
+            "author": "amar_1",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Almost the same question asked in this <a href=\"https://community.st.com/t5/stm32-mcus-embedded-software/stm32h7s7-how-to-write-to-external-flash/m-p/885198\" target=\"_blank\">post</a>.</p>\n<p>You can't write to that memory while executing from it. You said it yourself: you need to switch <span>from memory-mapped mode to indirect/command mode so the instruction fetch is no more available.</span></p>\n<p><span>Need either:</span></p>\n<p><span>- To use two external XSPI memories: one for execution and one for the data storage so you don't have a such issue. Refer to the <a href=\"https://www.st.com/resource/en/application_note/an6228-how-to-implement-xspi-readwhilewrite-feature-on-stm32-mcus-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN6228</a> \"How to implement XSPI read-while-write feature on STM32 MCUs\"</span></p>\n<p><span>- Or to execute that code that writes to the external flash from the internal Flash (could be a bit tricky). </span></p>\n<p><span>Hope I've answered your question.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello </p><p><user-mention data-id=\"96081\">@amar_1</user-mention> <user-mention data-id=\"499\">@mƎALLEm</user-mention> </p><p> </p><p>For my side i was wondering how to do a FW update ( so write data to XSPI1 while XIP) .</p><p> </p><p>I checked the application note AN6228 but it is so hard to configure it because it require to have 2 config one with flash + psram and one with only flash and 2 port multiplexed.</p><p> </p><p>So for that i write from the internal flash code (BOOT) to XSPI1 . It is really easy to do it you can take exemple of the EXTMEM functions used in the memory manager included in boot. Or you can check exemple in cubeh7rs to write to flash with xspi commands.</p></div>",
+                    "author": "Hamady",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

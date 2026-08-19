@@ -1,0 +1,141 @@
+{
+    "forum": [
+        {
+            "id": "164040",
+            "publicId": "164040",
+            "title": "TouchGFX UI works in simulator but not displaying on STM32H7B3I-EVAL TFT (only backlight ON)",
+            "url": "https://community.st.com/stm32-mcus-touchgfx-and-gui-33/touchgfx-ui-works-in-simulator-but-not-displaying-on-stm32h7b3i-eval-tft-only-backlight-on-164040",
+            "category": "STM32 MCUs TouchGFX and GUI",
+            "tags": [
+                "TouchGFX"
+            ],
+            "published_at": "2026-03-21T07:39:33+00:00",
+            "views": 618,
+            "reply_count": 7,
+            "best_answer": true,
+            "best_answer_content": "Hello @vijayajangam.\n\nWhich board revision do you have? You can find it on a sticker on the underside of the board.\n\nI have just tested with the board I have here, and it works fine. The board revision I am using is MB1331-H7B3LIQ-**D03**.\n\nBest regards,\n\nJohan",
+            "best_answer_author": "JohanAstrup",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nThe board revision I am using is MB1370-lcd-b02 a254300030.\n\nI am working with the **STM32H7B3I-EVAL board** and using **TouchGFX** (TouchGFX Designer).\n\nI have created a simple screen in TouchGFX, and:\n\n* The **simulation runs correctly** on PC\n\n* The project builds successfully in **STM32CubeIDE**\n\n* The code flashes successfully to the board\n\nHowever, on hardware:\n\n* The **TFT backlight turns ON**\n\n* But **no UI is displayed** (screen is blank)",
+            "images": [],
+            "author": "vijayajangam",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104149\">@vijayajangam</user-mention>.</p><p>Which board revision do you have? You can find it on a sticker on the underside of the board.</p><p>I have just tested with the board I have here, and it works fine. The board revision I am using is MB1331-H7B3LIQ-<strong>D03</strong>.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"66911\">@JohanAstrup</user-mention>  I’m experiencing the same issue on my side.</p><p>In my case, I’m using the <strong>STM32H7B3I-EVAL D04</strong> board revision.</p><p>The project compiles and flashes correctly, but nothing is displayed on the screen (black screen / backlight only). The TouchGFX simulator works fine.</p><p>For reference, here are my versions:</p><ul><li><p>TouchGFX Designer: <strong>4.26.1</strong></p></li><li><p>Demo version: <strong>v3.0.17</strong></p></li><li><p>STM32 MCU Package: <strong>v1.13.0</strong></p></li><li>STM32CubeMx Version: <strong>v6.17.0</strong></li></ul><p>I suspect this might be related to external memory initialization or loader configuration, but I haven’t found a clear solution yet.</p><p>Has anyone managed to get this working with this combination of versions and board revision?</p><p>Any guidance would be appreciated.</p></div>",
+                    "author": "theboops",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Was there an application already running on the board when you received it?</p><p>How are you powering the board? With this specific EVAL board, I sometimes experience issues if I do not use an external power supply, as the board requires quite a lot of power. Please remember to set the jumper correctly according to your setup on the pins between the DC jack and the RS232 connector.</p><p>Could you also try to run one of the demos from the firmware pack? For example the one placed here:<br/>C:\\Users\\YOUR_USER_NAME\\STM32Cube\\Repository\\STM32Cube_FW_H7_V1.13.0\\Projects\\STM32H7B3I-EVAL\\Examples\\LTDC\\LTDC_ColorKeying.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello again.</p><p>I have investigated this a bit further. Since I do not have the correct hardware yet, I am unfortunately unable to verify the issue.</p><p>However, as far as I can see, the touch driver has been changed from FT5336 to GT911 on D04. Since the TBS available in TouchGFX Designer uses BSP code, there is a good chance that this could cause a hardfault. I do not know whether you have tried debugging the application to see what happens .. ?<br/>You can quickly verify whether this resolves the issue by commenting out the contents of TouchGFX/target/STM32TouchController.cpp.</p><p>If this is indeed the issue, then there are two ways to fix this:</p><p>1. We previously had the exact same case with the STM32H735G-DK. This was fixed in version 3.0.22 of the TBS. You could look at TouchGFX/target/STM32TouchController.cpp in that project and try to replicate the behavior.</p><p>2. Update to the latest version of the BSP, which you can find in the firmware package.</p><p>Unfortunately, I cannot guarantee that the touch driver is the only issue until I get the new revision. Once we receive the new revision, we will update the relevant projects available in TouchGFX Designer.</p><p>Please let me know once you have had time to test it. Thank you!<br/><br/></p><p><span>Best regards,<br/>Johan</span></p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <span> </span><span class=\"\"><a class=\"\" href=\"https://community.st.com/t5/user/viewprofilepage/user-id/66911\" target=\"_blank\"><span class=\"\">JohanAstrup</span></a></span></p><p><span class=\"\"><span class=\"\">my touch gfx project zip attatched here please find it and give me proper solution.</span></span></p><p><span class=\"\"><span class=\"\"><span>The board revision I am using is <strong>MB1370-lcd-b02 a254300030.</strong></span></span></span></p><p> </p><p><span class=\"\"><span class=\"\">Thanks</span></span></p><p><span class=\"\"><span class=\"\">Vijaya</span></span></p></div>",
+                    "author": "vijayajangam",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>It could be the something related to the external flash. So the assets are not uploaded to the external flash.</p>\n<p>Check what CubeIDE is saying when uploading your application to the board.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p><strong>Touch GFX</strong> is suport dirrectly flash code into controller or need STM32cube IDE for generate output file dirreclty from TOuch GFX uplaod the code into controller.</p><p> </p><p>Thanks.</p><p>Vijaya.</p></div>",
+                    "author": "vijayajangam",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104149\">@vijayajangam</user-mention>.</p><p>There have recently been similar reports of this issue. It appears that the touch driver was changed in the latest board revision, introducing breaking changes to the software.</p><p>I have attached a project in which I updated the latest TBS to the newest version of the BSP code. Please validate and confirm whether this resolves your issue. If it does, I will upload a new version of the TBS with this fix.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ,</p><p>please <span>upload a new version of the TBS with this fix. </span></p><p><span>Thank You</span></p><p><span>Vijaya.</span></p></div>",
+                    "author": "vijayajangam",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello again.</p><p>This is a duplicate of this <a href=\"https://community.st.com/t5/stm32-mcus-touchgfx-and-gui/touchgfx-ui-works-in-simulator-but-not-displaying-on-stm32h7b3i/td-p/893373\" target=\"_self\">this ticket</a>. Please refer to the solution proposed there.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I need you to confirm that it works before I can upload it.<br/>Could you please test the previously attached project and let me know whether it fixes the issue?</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>no my issue not yet solve </p></div>",
+                    "author": "vijayajangam",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>New versions of both the STM32H7B3I-EVAL TBS and BSD, which support newer board revisions, have now been uploaded to TouchGFX Designer.</p><p>The new TBS version is 3.0.21, and the new BSD version is 3.0.18. Please check and confirm whether these versions work on your board.</p><p>Best regards,<br/>Johan</p></div>",
+                    "author": "JohanAstrup",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "JohanAstrup",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

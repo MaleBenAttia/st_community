@@ -1,0 +1,62 @@
+{
+    "forum": [
+        {
+            "id": "167024",
+            "publicId": "167043",
+            "title": "Queries Regarding ESD Protection and STDC14 UART Connections for STM32MP157FAC1",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/queries-regarding-esd-protection-and-stdc14-uart-connections-for-stm32mp157fac1-167043",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32CubeMX",
+                "STM32MP15 lines",
+                "UART-USART"
+            ],
+            "published_at": "2026-07-17T11:58:53+00:00",
+            "views": 107,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hi,\n\nThis is a warning to inform you that some modes are not available (pins used by other IPs or GPIOs).\n\nHere for DEBUG, it is probably some TRACE\\_DATA pins which might be ‘blocked’ by GPIO, UART4 or UART7 assignments.\n\nYou could more details on ‘pink’ options in the Debug drop-down.\n\nSimilarly for UART4.\n\nRegards.",
+            "best_answer_author": "PatrickF",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nWe are designing a custom board using the STM32MP157FAC1 device. For programming and debugging, we are providing an STDC14 connector on our board and use the STLINK-V3SET debugger/programmer.\n\nAs per AN5031 (Section 8.3.3), the recommended ESD protection device is ESDALC6V1W5. Snapshot is attached for kind reference.\n\nWe have the following queries:\n\nQuery 1:\n\nCan we use the HSP053-4M5 device instead of the ESDALC6V1W5 for ESD protection? We are already using the HSP053-4M5 to protect the data, clock, and command lines of the microSD card interface. Using the same device for the STDC14 interface would help us optimize the BOM.\n\nQuery 2:\n\nCan we connect USART1\\_TX (PA9) and USART1\\_RX (PB15) of the STM32MP157FAC1 to Pin 14 (T\\_VCP\\_TX) and Pin 13 (T\\_VCP\\_RX), respectively, on the STDC14 connector for the STLINK-V3SET Virtual COM Port interface?\n\nRegards,\n\nPS\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/747548ec-8c60-42bc-b3af-35257ca32c4a.png)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/68bee189-1687-4c31-a79c-824e347fea31.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/747548ec-8c60-42bc-b3af-35257ca32c4a.png"
+            ],
+            "author": "PS_115",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"107509\">@PS_115</user-mention> </p><p> </p><p>for ESD device, you could certainly put another one, JTAG is quite slow, so the one for SD-Card is OK even if overkilling.</p><p>For UART, you could use any UART pins assuming your SW device tree will be adapted to use this one as console output. there is come community posts showing that USART1 has been slightly more complex to setup in DT as secure by default (especially in TF-A early console), but there is no HW limitation to use it.</p><p>Notice also that USART1 is not part of possible BootROM boot pins (please refer to AN5031), but this is only a concern during early board bring-up in case USB DFU is not working (which is rarely the case except big HW mistakes). Boot UART allow to download basic tests (TF-A / uBoot), until board USB DFU being corrected.</p><p> </p><p>UART4 PB2 and PG11 are still the recommended UART console (as it default to this one in our OpenSTLinux ecosystem deliveries)</p><p> </p><p>Regards.</p><p> </p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"642\">@PatrickF</user-mention>,</p><p> </p><p>Thank you for your valuable response.</p><p>We are planning to use the SWD interface (instead of JTAG) for programming and debugging. In this case, would it be acceptable to use the HSP053-4M5 device for ESD protection as well?</p><p>Regarding the UART, yes the USART1 is not one of the BootROM boot interfaces as mentioned.</p><p>We are using STM32CubeMX software for the pin assignments of STM32MP157FAC1, and we observed that whenever UART4 is enabled in our project, CubeMX reports a warning (shown in the attached snapshots) at both UART4 and DEBUG interface. When UART4 is disabled, the warning disappears.</p><p>Could you please help us understand the reason for this warning and advise whether it has any impact on the design or we can just ignore it and connect UART4 with the VCP of the programmer ?</p><p> </p><p>Regards,</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/68bee189-1687-4c31-a79c-824e347fea31.png\"/></figure><p> </p></div>",
+                    "author": "PS_115",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi,</p><p>This is a warning to inform you that some modes are not available (pins used by other IPs or GPIOs).<br/>Here for DEBUG, it is probably some TRACE_DATA pins which might be ‘blocked’ by GPIO, UART4 or UART7 assignments.</p><p>You could more details on ‘pink’ options in the Debug drop-down.<br/> </p><p>Similarly for UART4.</p><p> </p><p>Regards.</p></div>",
+                    "author": "PatrickF",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    },
+                    {
+                        "author": "PatrickF",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

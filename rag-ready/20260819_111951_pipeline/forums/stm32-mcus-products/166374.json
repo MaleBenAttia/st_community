@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "166353",
+            "publicId": "166374",
+            "title": "STM32C5 MCU COMP2_IN Pins assignment",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32c5-mcu-comp2-in-pins-assignment-166374",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "COMP",
+                "ADC",
+                "STM32C5 series"
+            ],
+            "published_at": "2026-06-23T12:28:14+00:00",
+            "views": 146,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@blaziBUCK and welcome to the ST community,\n\nI’m not sure I understood the question. Are you asking about the correspondence between COMP2\\_INPx/COMP2\\_INMx and the GPIO pin (which IO pin)?\n\nBy using [CubeMX2 tool](https://www.st.com/en/development-tools/stm32cubemx.html)\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8ab74cec-1efa-4658-bc7c-c4746682f1b6.png)\n\n**COMP2\\_INP**:\n\nIO1: PA3\n\nIO2: PB15\n\nIO3: PC0\n\n**COMP2\\_INM**:\n\nIO1: PC1\n\nIO2: PC5\n\nIO3: PA2\n\nMeanwhile, I don’t see the I/O correspondence with COMPx-INy in the documentation.\n\nI’m checking internally. Internal ticket for follow-up: ***CDM0063783***",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Dear Gentlemen,\n\nas a relative beginner using STM32C5 MCU-s,\n\nI need your help to resolve one issue.\n\nNamely,\n\nIn new design,  where planned MCU is STM32C542CCT6 device, (LQFP48 package),\n\nI plan to use internal Comparator COMP2.\n\nProblem (for me) arises when I have to declare connection between Comparator nodes\n\n(INP-  (M), INP + (P) and OUTPUT) with some specific pins on LQFP48 package,\n\nmore precisely it would be ideal for me to use\n\nPA7 pin as Comparator2 Output\n\nand pin PA2 as Comparator2 -INPut,\n\nand pin PA3 as Comparator2 +INPut.\n\nIn short,\n\nit is not a problem to \"connect\" Comparator Output, COMP2\\_OUT as shown in\n\nTable 12 STM32C542xx pin/ball definition, on STM32C542xx data sheet (DS), page 41, or in\n\nTable 13 Alternate functions,\n\nsince i will declare AF14 = COMP2\\_OUT in appropriate GPIOA\\_AFRL register,\n\nsee page 352 in RM0522 Reference manual, (RM)\n\nbut I have problem to declare Comparator2 INPut pins, since it is selected thru peripheral registers,\n\nas stated in Table 11 in device DS,\n\n...Additional functions / Functions directly selected/enabled through peripheral registers...\n\nHowever,\n\nwhen I look at Comparator2 INPSEL bits, from page 712 in RM\n\nTable 169. COMP implementation non-inverting input assignment for STM32C53x/542\n\nI see three (3) Input signals, with \"names\"\n\nCOMP2\\_INP1\n\nCOMP2\\_INP2\n\nCOMP2\\_INP3\n\nalso,\n\nwhen I look at Comparator2 INMSEL bits, from page 714 in RM\n\nTable 172. COMP inverting input assignment\n\nI see three (3) Input signals, with \"names\"\n\nCOMP2\\_INM1\n\nCOMP2\\_INM2\n\nCOMP2\\_INM3\n\nbut, in DS page 41,\n\nPin name PA2 could be connected with Additional functions :\n\nADC1\\_IN2,\n\nCOMP2\\_INM,\n\nOPAMP1\\_VINM0,\n\nTAMP\\_IN3, WKUP2\n\nmy question is, what I have to do,\n\nto \"connect\" pin PA2 with COMP2\\_INM, and with one of three(3)\n\nCOMP2\\_INM1\n\nCOMP2\\_INM2\n\nCOMP2\\_INM3 choices ?\n\nBesides, the very same question is :\n\nin DS page 41,\n\nPin name PA3 could be connected with Additional functions :\n\nADC1\\_IN3,\n\nCOMP2\\_INP\n\nmy question is, what I have to do,\n\nto \"connect\" pin PA3 with COMP2\\_INP, and with one of three(3)\n\nCOMP2\\_INP1\n\nCOMP2\\_INP2\n\nCOMP2\\_INP3 choices ?\n\nMany thanks for your help !",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8ab74cec-1efa-4658-bc7c-c4746682f1b6.png"
+            ],
+            "author": "blaziBUCK",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107689\">@blaziBUCK</user-mention> and welcome to the ST community,</p><p>I’m not sure I understood the question. Are you asking about the correspondence between COMP2_INPx/COMP2_INMx and the GPIO pin (which IO pin)?</p><p>By using <a href=\"https://www.st.com/en/development-tools/stm32cubemx.html\" rel=\"noreferrer noopener\" target=\"_blank\">CubeMX2 tool</a> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8ab74cec-1efa-4658-bc7c-c4746682f1b6.png\"/></figure><p><strong>COMP2_INP</strong>:</p><p>IO1: PA3</p><p>IO2: PB15</p><p>IO3: PC0</p><p><strong>COMP2_INM</strong>:</p><p>IO1: PC1</p><p>IO2: PC5</p><p>IO3: PA2</p><p>Meanwhile, I don’t see the I/O correspondence with COMPx-INy in the documentation.</p><p>I’m checking internally. Internal ticket for follow-up: <em><strong>CDM0063783</strong></em></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"107689\">@blaziBUCK</user-mention> </p><p>This post has been marked by you as Best Answer. Did you unmark it?</p><p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Dear ST Technical Moderator,<br/>(mEALLEm)</p><p>Yes,</p><p>I unmarked it for a moment/<strong>Temporarily,  </strong>until I got reply to my second message,</p><p>if possible to get some <strong>code snippet</strong> as generated in CubeMX2…</p><p> </p><p>Then, I hope the problem is completely solved with your help !</p><p>(besides, what about the documents, not mentioning the “correspondence ” ?)</p><p> </p><p>best regards,</p><p>Blazimir</p></div>",
+                    "author": "blaziBUCK",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>​<user-mention data-id=\"107689\">@blaziBUCK</user-mention> </p><p>A new question = new post.</p><p>I need to move the second question to CubeMx forum board with label CubeMx2.</p><p>I’ve already moved it: </p><p><oembed url=\"https://community.st.com/stm32-mcus-products-25/stm32c5-mcu-comp2-in-pins-assignment-166374\"></oembed></p><p>When the correspondence of COMP input pins with I/Os this post should be closed.</p><p>Thank you.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

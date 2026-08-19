@@ -1,0 +1,71 @@
+{
+    "forum": [
+        {
+            "id": "167706",
+            "publicId": "167738",
+            "title": "STM32N657L0 NOR flash XIP/LRUN problem",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32n657l0-nor-flash-xip-lrun-problem-167738",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32N6 series",
+                "XSPI"
+            ],
+            "published_at": "2026-08-17T07:31:59+00:00",
+            "views": 42,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "The problem was in hardware. the VDDA1v8PLL was not connected. After fixing the hardware issue, it starts to works. Thanks for your help and support.",
+            "best_answer_author": "javad321javad",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi,\n\nI’m trying to run a simple FSBL application from NOR flash on a custom STM32N657L0 board. The application runs without any issues in Dev-Mode from RAM. However, when I sign and flash the same application, it does not run.\n\nI’m using a custom external flash loader for the W25Q64JV NOR flash, based on the template provided in the STM32Cube repository. I’ve attached it for your reference.\n\nI also have a question regarding VDDCORE. It is currently set to 0.89 V, while we are operating in normal-speed mode. Should we reduce the voltage to 0.8 V? Could the current VDDCORE setting be a potential cause of the problem?\n\nGeneral info:\n\n* Board is working with 3v3 domain\n\n* XSPI2 is used.\n\n* HSE with no PLL is used (48MHz).\n\nI have used the following the guides provided by ST for the tests:\n\n<https://community.st.com/stm32-mcus-60/how-to-create-an-stm32n6-fsbl-load-and-run-146359><https://community.st.com/stm32-mcus-60/how-to-debug-stm32n6-using-stm32cubeide-151187><https://community.st.com/stm32-mcus-60/stm32n6-fsbl-explained-145831>",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e1e9995d-4afc-4146-acc8-be54f9b875b2.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5586fbdd-5e14-4905-809c-ea99cc25d6ed.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd2e6ac1-3b1c-4405-a906-8e2d4a998b3c.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f0fb0f9-e978-4475-8fbf-9864ed252e57.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/113db44c-b4d3-4964-919d-2f4c54ca50c9.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf5ec83b-ef45-4533-8663-411d09c53187.png"
+            ],
+            "author": "javad321javad",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"96082\">@javad321javad</user-mention> and welcome to the community;</p><p> </p><p>Could you please to check your external loader configuration.</p><p>May be this wiki <a href=\"https://wiki.st.com/stm32mcu/wiki/Getting_started_with_External_memory_Manager_and_External_memory_loader\" rel=\"noopener noreferrer\" target=\"_blank\">Getting started with External memory Manager and External memory loader - stm32mcu</a> can help you.</p><p> </p><p>Thank you.</p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"2019\">@KDJEM.1</user-mention> ,<br/>Thanks a lot for your reply,<br/>I have checked that link and modified my project configuation based on”W25Q64JV” NOR flash. To be compatible with the default setings to read from XSPI1/Single line, I also modified the project configuartion to use XSPI1.</p><p>Still not able to run from the flash.</p><p>Now the configuation looks like this:</p><ul><li>For XSPI1:</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/e1e9995d-4afc-4146-acc8-be54f9b875b2.png\"/></figure><ul><li>For MXSPI:</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/fd2e6ac1-3b1c-4405-a906-8e2d4a998b3c.png\"/></figure><ul><li>For EXTMEM_MANAGER:</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/bf5ec83b-ef45-4533-8663-411d09c53187.png\"/></figure><p>and</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5586fbdd-5e14-4905-809c-ea99cc25d6ed.png\"/></figure><ul><li>For EXTMEM_LOADER:</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9f0fb0f9-e978-4475-8fbf-9864ed252e57.png\"/></figure><ul><li>PWR</li></ul><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/113db44c-b4d3-4964-919d-2f4c54ca50c9.png\"/></figure><p> </p></div>",
+                    "author": "javad321javad",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The problem was in hardware. the VDDA1v8PLL was not connected. After fixing the hardware issue, it starts to works. Thanks for your help and support.</p></div>",
+                    "author": "javad321javad",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"96082\">@javad321javad</user-mention> ,</p><p> </p><p>Glad to know that the issue has been resolved, and I want to thank you for coming back to the community to share the solution.</p><p>Thank you for your contribution in STCommunity.</p><p> </p><p>Kaouthar</p></div>",
+                    "author": "KDJEM.1",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "KDJEM.1",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

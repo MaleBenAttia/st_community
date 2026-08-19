@@ -1,0 +1,68 @@
+{
+    "forum": [
+        {
+            "id": "163515",
+            "publicId": "163515",
+            "title": "STM32F303C6T6 ADC DUAL REGULAR MODE",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f303c6t6-adc-dual-regular-mode-163515",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F3 series",
+                "ADC"
+            ],
+            "published_at": "2026-03-06T01:21:00+00:00",
+            "views": 327,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Jaybitbyte\n\nSTM32F3 ADC can measure voltages in range [0; 3.3V], so I assume you have a resistive voltage ladder to divide 24V voltage.\n\nIf it is the case, resistances values must be selected:\n\n- highest possible to reduce leakage in your application\n\n- not too high: ADC input impedance has some constraints, refer to datasheet table \"Maximum ADC RAIN\" (highest impedance max with ADC kernel clock 72MHz and sampling time 601.5 clock cycles is order of 80kOhm).\n\nAlso, for hypothesis of noisy signal: a decoupling capacitor can be added on signal to ADC input.",
+            "best_answer_author": "Saket_Om",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nI am experiencing a problem with **ADC1 and ADC2**. I configured them in **Dual Regular Simultaneous Mode**, where **ADC1 acts as the master** and **ADC2 acts as the slave**.\n\nThe ADC channel connections are as follows:\n\n* **ADC1 Channel 1**: 24V\\_Sense\n\n* **ADC1 Channel 2**: 5V\\_Sense\n\n* **ADC2 Channel 14**: IOut\\_Sense\n\n* **ADC2 Channel Vrefint**: Internal reference voltage\n\nHowever, I noticed that **IOut\\_Sense always has a value**, while **24V\\_Sense is unstable and fluctuating**.\n\n**OUTPUT:**V24:24011 mV | V5:3 mV | I:23653 mA\n\nV24:8807 mV | V5:3 mV | I:8675 mA\n\nV24:8726 mV | V5:1 mV | I:8675 mA\n\nV24:8844 mV | V5:3 mV | I:8675 mA\n\nV24:23767 mV | V5:1 mV | I:23528 mA\n\nV24:23853 mV | V5:0 mV | I:23590 mA\n\nV24:23727 mV | V5:0 mV | I:23435 mA\n\nV24:23968 mV | V5:0 mV | I:23481 mA\n\nV24:8832 mV | V5:3 mV | I:8675 mA\n\nV24:23541 mV | V5:0 mV | I:23388 mA\n\n```\n\nuint32_t adc_dual_buffer[4];\n\nint main(void)\n\n{\n\nHAL_Init();\n\nSystemClock_Config();\n\nMX_GPIO_Init();\n\nMX_ADC1_Init();\n\nMX_ADC2_Init();\n\nMX_USART1_UART_Init();\n\nMX_I2C1_Init();\n\nMX_DMA_Init();\n\n/* USER CODE BEGIN 2 */\n\nHAL_UART_Receive_IT(&huart1, &rxByte, 1);\n\nHAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);\n\nHAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);\n\n// 2️⃣ Start slave ADC first\n\nHAL_ADC_Start(&hadc2);\n\n// 3️⃣ Start dual mode DMA from master\n\nHAL_ADCEx_MultiModeStart_DMA(&hadc1,\n\n(uint32_t*)adc_dual_buffer,\n\n4);\n\nwhile (1)\n\n{\n\nRead_ADC_Values();\n\n}\n\n}\n\nADC configuration:\n\nvoid MX_ADC1_Init(void)\n\n{\n\nADC_ChannelConfTypeDef sConfig = {0};\n\nADC_MultiModeTypeDef multimode = {0};\n\n__HAL_RCC_ADC12_CLK_ENABLE();\n\nhadc1.Instance = ADC1;\n\nhadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;\n\nhadc1.Init.Resolution = ADC_RESOLUTION_12B;\n\nhadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;\n\nhadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;\n\nhadc1.Init.ContinuousConvMode = ENABLE;\n\nhadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;\n\nhadc1.Init.NbrOfConversion = 2;\n\nhadc1.Init.DMAContinuousRequests = ENABLE;\n\nHAL_ADC_Init(&hadc1);\n\n// Rank 1 - Vout24V\n\nsConfig.Channel = ADC_CHANNEL_1; // change to your real pin\n\nsConfig.Rank = ADC_REGULAR_RANK_1;\n\nsConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5;\n\nHAL_ADC_ConfigChannel(&hadc1, &sConfig);\n\n// Rank 2 - Vout5V\n\nsConfig.Channel = ADC_CHANNEL_2; // change to your real pin\n\nsConfig.Rank = ADC_REGULAR_RANK_2;\n\nsConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5;\n\nHAL_ADC_ConfigChannel(&hadc1, &sConfig);\n\n// MULTIMODE CONFIG\n\nmultimode.Mode = ADC_DUALMODE_REGSIMULT;\n\nmultimode.DMAAccessMode = ADC_DMAACCESSMODE_12_10_BITS;\n\nmultimode.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_5CYCLES;\n\nHAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);\n\n}\n\nvoid MX_ADC2_Init(void)\n\n{\n\nADC_ChannelConfTypeDef sConfig = {0};\n\n__HAL_RCC_SYSCFG_CLK_ENABLE();\n\nhadc2.Instance = ADC2;\n\nhadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;\n\nhadc2.Init.Resolution = ADC_RESOLUTION_12B;\n\nhadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;\n\nhadc2.Init.ScanConvMode = ADC_SCAN_ENABLE;\n\nhadc2.Init.ContinuousConvMode = ENABLE;\n\nhadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;\n\nhadc2.Init.NbrOfConversion = 2;\n\nHAL_ADC_Init(&hadc2);\n\n// Rank 1 - Iout (CH14)\n\nsConfig.Channel = ADC_CHANNEL_14;\n\nsConfig.Rank = ADC_REGULAR_RANK_1;\n\nsConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5;\n\nHAL_ADC_ConfigChannel(&hadc2, &sConfig);\n\n// Rank 2 - Vrefint\n\nsConfig.Channel = ADC_CHANNEL_VREFINT;\n\nsConfig.Rank = ADC_REGULAR_RANK_2;\n\nsConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5; // VERY IMPORTANT\n\nHAL_ADC_ConfigChannel(&hadc2, &sConfig);\n\n}\n\nstatic void MX_DMA_Init(void)\n\n{\n\n__HAL_RCC_DMA1_CLK_ENABLE();\n\nhdma_adc1.Instance = DMA1_Channel1;\n\nhdma_adc1.Init.Direction = DMA_PERIPH_TO_MEMORY;\n\nhdma_adc1.Init.PeriphInc = DMA_PINC_DISABLE;\n\nhdma_adc1.Init.MemInc = DMA_MINC_ENABLE;\n\nhdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;\n\nhdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;\n\nhdma_adc1.Init.Mode = DMA_CIRCULAR;\n\nhdma_adc1.Init.Priority = DMA_PRIORITY_HIGH;\n\nif (HAL_DMA_Init(&hdma_adc1) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n__HAL_LINKDMA(&hadc1, DMA_Handle, hdma_adc1);\n\n}\n\n```",
+            "images": [],
+            "author": "Jaybitbyte",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<blockquote><hr/><user-mention data-id=\"87831\">@Jaybitbyte</user-mention> wrote:\n<p>However, I noticed that <strong>IOut_Sense always has a value</strong>, while <strong>24V_Sense is unstable and fluctuating</strong>.</p>\n<p><strong>OUTPUT:<br/></strong><font size=\"1 2 3 4 5 6 7\">V24:24011 mV | V5:3 mV | I:23653 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:8807 mV | V5:3 mV | I:8675 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:8726 mV | V5:1 mV | I:8675 mA</font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:8844 mV | V5:3 mV | I:8675 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:23767 mV | V5:1 mV | I:23528 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:23853 mV | V5:0 mV | I:23590 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:23727 mV | V5:0 mV | I:23435 mA</font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:23968 mV | V5:0 mV | I:23481 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:8832 mV | V5:3 mV | I:8675 mA </font></p>\n<p><font size=\"1 2 3 4 5 6 7\">V24:23541 mV | V5:0 mV | I:23388 mA</font><br/><br/></p>\n<hr/></blockquote>\n<p>It could be something related to the 24V source you are measuring perhaps affected by a noise.</p>\n<p>Add a capacitor at that 24V source output..</p>\n<p>Check also with an oscilloscope if that source is stable and it is not fluctuating.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,<br/><br/>The source 24V is stable it is an SMPS.<br/><br/>Thank you</p></div>",
+                    "author": "Jaybitbyte",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>SMPS is a bit noisy source due to the internal switching to regulate the voltage. </p>\n<p>To confirm that, use a voltage source based on LDO.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"87831\">@Jaybitbyte</user-mention> </p>\n<p>STM32F3 ADC can measure voltages in range [0; 3.3V], so I assume you have a resistive voltage ladder to divide 24V voltage.<br/>If it is the case, resistances values must be selected:<br/>- highest possible to reduce leakage in your application<br/>- not too high: ADC input impedance has some constraints, refer to datasheet table \"Maximum ADC RAIN\" (highest impedance max with ADC kernel clock 72MHz and sampling time 601.5 clock cycles is order of 80kOhm).</p>\n<p>Also, for hypothesis of noisy signal: a decoupling capacitor can be added on signal to ADC input.</p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,39 @@
+{
+    "forum": [
+        {
+            "id": "166780",
+            "publicId": "166800",
+            "title": "Cubemx2 : IAR toolchain had a problem",
+            "url": "https://community.st.com/stm32cubemx2-mcus-151/cubemx2-iar-toolchain-had-a-problem-166800",
+            "category": "STM32CubeMX2 (MCUs)",
+            "tags": [
+                "STM32C5 series",
+                "STM32CubeMX2"
+            ],
+            "published_at": "2026-07-09T09:06:39+00:00",
+            "views": 60,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hi\n\nI Solved it\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cea46753-8bd2-4f1a-afc5-adc8d415b200.jpg)",
+            "best_answer_author": "ptb",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hi\n\nI recently started using CubeMX2 and my board is the Nucleo-C542RC.\n\nThe issue is: I'm trying to use a timer interrupt, but the IRQ Handler doesn't seem to trigger when using the IAR toolchain. (The timer value itself increases normally when I use 'get Value', so the timer peripheral is working).\n\nHowever, it works perfectly when I use CMake.\n\nAre there any additional settings I should check in the configuration?\n\nHere’s my Main and Timer code :\n\nMain :\n\n```\n\n/**\n\n******************************************************************************\n\n* file           : main.c\n\n* brief          : Main program body\n\n*                  Calls target system initialization then loop in main.\n\n******************************************************************************\n\n*\n\n* Copyright (c) 2025 STMicroelectronics.\n\n* All rights reserved.\n\n*\n\n* This software is licensed under terms that can be found in the LICENSE file\n\n* in the root directory of this software component.\n\n* If no LICENSE file comes with this software, it is provided AS-IS.\n\n*\n\n******************************************************************************\n\n*/\n\n/* Includes ------------------------------------------------------------------*/\n\n#include \"main.h\"\n\n/* Private typedef -----------------------------------------------------------*/\n\n/* Private define ------------------------------------------------------------*/\n\n/* Private macro -------------------------------------------------------------*/\n\n/* Private variables ---------------------------------------------------------*/\n\n/* Private functions prototype -----------------------------------------------*/\n\n/**\n\n* brief:  The application entry point.\n\n* retval: none but we specify int to comply with C99 standard\n\n*/\n\nint main(void)\n\n{\n\n/** System Init: this code placed in targets folder initializes your system.\n\n* It calls the initialization (and sets the initial configuration) of the peripherals.\n\n* You can use STM32CubeMX to generate and call this code or not in this project.\n\n* It also contains the HAL initialization and the initial clock configuration.\n\n*/\n\nif (mx_system_init() != SYSTEM_OK)\n\n{\n\nreturn (-1);\n\n}\n\nelse\n\n{\n\n/*\n\n* You can start your application code here\n\n*/\n\nif (HAL_TIM_Start_IT(mx_tim2_gethandle()) != HAL_OK)\n\n{\n\n}\n\nwhile (1) {}\n\n}\n\n} /* end main */\n\n```\n\nTim2 :\n\n```\n\n/**\n\n******************************************************************************\n\n* @file           : mx_tim2.c\n\n* @brief          : Peripheral initialization\n\n******************************************************************************\n\n* @attention\n\n*\n\n* Copyright (c) 2026 STMicroelectronics.\n\n* All rights reserved.\n\n*\n\n* This software is licensed under terms that can be found in the mx_stm32c5xx_hal_drivers_license.md file\n\n* in the same directory as the generated code.\n\n* If no mx_stm32c5xx_hal_drivers_license.md file comes with this software, it is provided AS-IS.\n\n*\n\n******************************************************************************\n\n*/\n\n/* Includes ------------------------------------------------------------------*/\n\n#include \"mx_tim2.h\"\n\n/* Private typedef -----------------------------------------------------------*/\n\n/* Private define ------------------------------------------------------------*/\n\n/* Private macro -------------------------------------------------------------*/\n\n/* Private variables ---------------------------------------------------------*/\n\n/* Private functions prototype------------------------------------------------*/\n\n/* Exported variables by reference--------------------------------------------*/\n\nstatic hal_tim_handle_t hTIM2;\n\n/* Exported function definition ----------------------------------------------*/\n\n/******************************************************************************/\n\n/* Exported functions for TIM2 in HAL layer */\n\n/******************************************************************************/\n\nhal_tim_handle_t *mx_tim2_init(void)\n\n{\n\nif (HAL_TIM_Init(&hTIM2, HAL_TIM2) != HAL_OK)\n\n{\n\nreturn NULL;\n\n}\n\nHAL_RCC_TIM2_EnableClock();\n\n/* Timer configuration to reach the output frequency at 100 Hz */\n\nhal_tim_config_t config;\n\nconfig.prescaler              = 1439;\n\nconfig.counter_mode           = HAL_TIM_COUNTER_UP;\n\nconfig.period                 = 0x3E7;\n\nconfig.repetition_counter     = 0;\n\nconfig.clock_sel.clock_source = HAL_TIM_CLK_INTERNAL;\n\nif (HAL_TIM_SetConfig(&hTIM2, &config) != HAL_OK)\n\n{\n\nreturn NULL;\n\n}\n\n/* Sampling Clock */\n\nif (HAL_TIM_SetDTSPrescaler(&hTIM2, HAL_TIM_DTS_DIV1) != HAL_OK)\n\n{\n\nreturn NULL;\n\n}\n\nif (HAL_TIM_SetDTS2Prescaler(&hTIM2, HAL_TIM_DTS2_DIV1) != HAL_OK)\n\n{\n\nreturn NULL;\n\n}\n\n/* Update Event Management */\n\nif (HAL_TIM_SetUpdateSource(&hTIM2, HAL_TIM_UPDATE_REGULAR) != HAL_OK)\n\n{\n\nreturn NULL;\n\n}\n\nif (HAL_TIM_EnableUpdateGeneration(&hTIM2) != HAL_OK)\n\n{\n\nreturn NULL;\n\n}\n\n/* Master Mode Configuration */\n\n/* No GPIO configuration required for TIM2 */\n\n/* Enable the Timer global interrupt */\n\nHAL_CORTEX_NVIC_SetPriority(TIM2_IRQn, HAL_CORTEX_NVIC_PREEMP_PRIORITY_0, HAL_CORTEX_NVIC_SUB_PRIORITY_0);\n\nHAL_CORTEX_NVIC_EnableIRQ(TIM2_IRQn);\n\nreturn &hTIM2;\n\n}\n\nvoid mx_tim2_deinit(void)\n\n{\n\n(void)HAL_TIM_DeInit(&hTIM2);\n\nHAL_RCC_TIM2_DisableClock();\n\nHAL_RCC_TIM2_Reset();\n\n/* No GPIO de-initialization required for TIM2 */\n\n/* Disable Timer global interrupt */\n\nHAL_CORTEX_NVIC_DisableIRQ(TIM2_IRQn);\n\n}\n\nhal_tim_handle_t *mx_tim2_gethandle(void)\n\n{\n\nreturn &hTIM2;\n\n}\n\n/******************************************************************************/\n\n/*                           TIM2 global interrupt                            */\n\n/******************************************************************************/\n\nvoid TIM2_IRQHandler(void)\n\n{\n\nHAL_TIM_IRQHandler(&hTIM2);\n\n}\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cea46753-8bd2-4f1a-afc5-adc8d415b200.jpg"
+            ],
+            "author": "ptb",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi</p><p> </p><p>I Solved it</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/cea46753-8bd2-4f1a-afc5-adc8d415b200.jpg\"/></figure><p> </p><p> </p></div>",
+                    "author": "ptb",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

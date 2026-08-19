@@ -24,10 +24,11 @@ ROLES_FILE = BASE_DIR / "author_roles.json"
 SOURCES = [OUTPUT_FORUMS_DIR]
 
 
-def aggregate_roles() -> dict:
+def aggregate_roles(sources=None) -> dict:
     """Agrège {auteur: {roles...}} depuis les JSONs sources (récursif, par catégorie)."""
+    sources = sources if sources is not None else SOURCES
     roles = defaultdict(set)
-    for src in SOURCES:
+    for src in sources:
         if not src.exists():
             continue
         for f in src.rglob("*.json"):
@@ -47,8 +48,8 @@ def aggregate_roles() -> dict:
     return out
 
 
-def main() -> None:
-    aggregated = aggregate_roles()
+def main(sources=None) -> None:
+    aggregated = aggregate_roles(sources)
 
     existing = {}
     if ROLES_FILE.exists():

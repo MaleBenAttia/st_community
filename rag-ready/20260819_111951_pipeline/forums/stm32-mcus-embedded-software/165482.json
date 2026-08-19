@@ -1,0 +1,65 @@
+{
+    "forum": [
+        {
+            "id": "165482",
+            "publicId": "165482",
+            "title": "How to enable I3C on Nucleo-H563ZI in Zephyr RTOS?",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/how-to-enable-i3c-on-nucleo-h563zi-in-zephyr-rtos-165482",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Zephyr",
+                "STM32H5 series",
+                "I3C"
+            ],
+            "published_at": "2026-05-07T14:09:15+00:00",
+            "views": 320,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi Hamdi,\n\nThe minimal configuration works well.\n\nThank you for your support\n\nAlvin",
+            "best_answer_author": "Alvin0916",
+            "best_answer_author_role": "Associate II",
+            "content_text": "Hi Technical Support Team,\n\nI am working with the Nucleo-H563ZI board and would like to enable the I3C interface within the Zephyr environment.\n\nCould you provide a minimal sample project or a reference configuration (Devicetree/Kconfig) to validate the I3C host driver and I3C shell?\n\nThank you for your assistance.\n\n----------------------------------------------\n\nprj.conf\n\nCONFIG\\_I3C=y\n\nCONFIG\\_I3C\\_SHELL=y\n\nCONFIG\\_I3C\\_STM32=y\n\nCONFIG\\_USERSPACE=y\n\nCONFIG\\_I3C\\_RTIO=y\n\n----------------------------------------------",
+            "images": [],
+            "author": "Alvin0916",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106653\">@Alvin0916</user-mention> </p>\n<p>Please refer to the following video: </p>\n<p><a href=\"https://www.youtube.com/watch?v=G_QP80V0u_Y\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">Using I3C bus for connecting I3C and I2C sensors - Zephyr Meetup Prague</a></p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><font color=\"#000000\">Hi <span>Saket_Om,</span></font></p><p><font color=\"#000000\"><span>Could you let me know which Zephyr version this demo is implemented with?<br/><font size=\"1 2 3 4 5 6 7\">compiler environment # Zephyr version :4.3.99</font><br/>Is the arduino_i3c: &amp;i3c1 {}; line necessary for the I3C driver to work?<br/></span></font><br/><font color=\"#000000\">Would it be possible for you to review the <span>nucleo_h563zi.overlay？<br/><font size=\"1 2 3 4 5 6 7\">#video's Timestamp at 10:53</font><br/></span></font></p><pre class=\"lia-code-sample language-c\"><code>------------------------nucleo_h563zi.overlay-------------------------\n\n&amp;i3c1 {\npinctrl-0 = &lt;&amp;i3c1_scl_pd12 &amp;i3c1_sda_pd13&gt;;\npinctrl-names = \"default\";\nstatus = \"okay\";\n\nclocks = &lt;&amp;rcc STM32_CLOCK(APB1, 23U)&gt;,\n &lt;&amp;rcc STM32_SRC_HSI I3C1_SEL(2)&gt;;\ni2c-scl-hz = &lt;400000&gt;;\ni3c-scl-hz = &lt;6000000&gt;;\n}\n-------------------------------------------ref info-----------------------------\n\n/* /home/alvin/zephyrproject/zephyr/boards/st/nucleo_h563zi/nucleo_h563zi-common.dtsi */\n&amp;i3c1 {\n\tpinctrl-0 = &lt;&amp;i3c1_scl_pd12 &amp;i3c1_sda_pd13&gt;;\n\tpinctrl-names = \"default\";\n\ti3c-scl-hz = &lt;12500000&gt;;\n\tstatus = \"okay\";\n};\n\n&amp;rcc {\n\tclocks = &lt;&amp;pll&gt;;\n\tclock-frequency = &lt;DT_FREQ_M(240)&gt;;\n\tahb-prescaler = &lt;1&gt;;\n\tapb1-prescaler = &lt;2&gt;;\n\tapb2-prescaler = &lt;1&gt;;\n\tapb3-prescaler = &lt;2&gt;;\n};\n\n/* /home/alvin/zephyrproject/zephyr/dts/arm/st/h5/stm32h5.dtsi */\ni3c1: i3c@40005c00 {\ncompatible = \"st,stm32-i3c\";\nreg = &lt;0x40005c00 0x400&gt;;\ninterrupts = &lt;123 0&gt;, &lt;124 0&gt;;\ninterrupt-names = \"event\", \"error\";\n#address-cells = &lt;3&gt;;\n#size-cells = &lt;0&gt;;\nclocks = &lt;&amp;rcc STM32_CLOCK(APB1, 23)&gt;;\nresets = &lt;&amp;rctl STM32_RESET(APB1L, 23)&gt;;\nzephyr,pm-device-runtime-auto;\nstatus = \"disabled\";\n};\n\nrcc: rcc@44020c00 {\n\t\t\tcompatible = \"st,stm32h5-rcc\";\n\t\t\tclocks-controller;\n\t\t\t#clock-cells = &lt;2&gt;;\n\t\t\treg = &lt;0x44020c00 0x400&gt;;\n\n\t\t\trctl: reset-controller {\n\t\t\t\tcompatible = \"st,stm32-rcc-rctl\";\n\t\t\t\t#reset-cells = &lt;1&gt;;\n\t\t\t};\n\t\t};</code></pre><p><font color=\"#000000\"><span> </span></font></p></div>",
+                    "author": "Alvin0916",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"106653\">@Alvin0916</user-mention> </p>\n<p><span>Yes —arduino_i3c: &amp;i3c1 {}; </span><strong><span> </span>is not necessary</strong><span> for the I3C driver to work.</span></p>\n<p><span>For your overlay, the simple recommended version is:</span></p>\n<pre class=\"lia-code-sample language-c\"><code>&amp;i3c1 {\n i2c-scl-hz = &lt;400000&gt;;\n i3c-scl-hz = &lt;6000000&gt;;\n};</code></pre>\n<p><span>&amp;i3c1 is already enabled in nucleo_h563zi-common.dtsi</span><span>, so you do </span><strong>not</strong><span> need to repeat the following:</span></p>\n<pre class=\"lia-code-sample line-numbers language-c\" tabindex=\"0\"><code>pinctrl-0 = &lt;&amp;i3c1_scl_pd12 &amp;i3c1_sda_pd13&gt;;\npinctrl-names = \"default\";\nstatus = \"okay\";</code></pre>\n<p><span> I also suggest removing the clocks line for now, unless you have a confirmed reason to override it.</span></p>\n<p><span>with regrads,</span></p>\n<p><span>Hamdi</span></p></div>",
+                    "author": "T_Hamdi",
+                    "role": "ST Employee"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span>Hi Hamdi,</span></p><p><span>The minimal configuration works well.</span></p><p><span>Thank you for your support</span></p><p><span>Alvin </span></p></div>",
+                    "author": "Alvin0916",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "T_Hamdi",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

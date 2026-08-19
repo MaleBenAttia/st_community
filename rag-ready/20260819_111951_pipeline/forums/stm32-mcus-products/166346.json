@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "166325",
+            "publicId": "166346",
+            "title": "will IWDG stop after system reset before next time initialization if option byte IWDG_SW equal TRUE?",
+            "url": "https://community.st.com/stm32-mcus-products-25/will-iwdg-stop-after-system-reset-before-next-time-initialization-if-option-byte-iwdg-sw-equal-true-166346",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "IWDG-WWDG",
+                "STM32G4 series"
+            ],
+            "published_at": "2026-06-23T03:43:16+00:00",
+            "views": 70,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "From the [reference manual](https://www.st.com/resource/en/reference_manual/rm0440-stm32g4-series-advanced-armbased-32bit-mcus-stmicroelectronics.pdf):\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee3f8ca6-88ac-4dac-a5bd-38703a5658af.png)\n\nSo if the IWDG is enabled in the option byte the counter is running automatically after reset until you write the key to the IWDG\\_KR register to reset the counter. Otherwise if it reaches 0 that resets the MCU.\n\nHope it’s clear.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "hi\n\nfor stm32G4 series,\n\nif MCU option byte IWDG\\_SW equal TRUE, and the software start the IWDG by calling HAL\\_IWDG\\_Init(),\n\nwhen a system reset happen( for example, call HAL\\_NVIC\\_SystemReset() or IWDG reset), will IWDG stop counting before  next time initialization?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee3f8ca6-88ac-4dac-a5bd-38703a5658af.png"
+            ],
+            "author": "feixiao",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>When the IWDG_SW option byte is enabled, the IWDG can be started by software. If the option bits are configured to enable automatic IWDG activation, the IWDG is automatically enabled at power-on and after any reset (including software reset via HAL_NVIC_SystemReset() or a reset caused by the IWDG itself). In this configuration, the IWDG will continue running after a reset and will not stop counting unless the device is powered down or the option bytes are reconfigured. The software must reload the IWDG counter before it reaches zero to avoid another reset.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Thanks for responding.</p><p>Can I undertand like this: in conclusion, when option byte IWDG_SW value is 1, it is a software iwdg, and it will NOT enabled automatically after system reset?</p></div>",
+                    "author": "feixiao",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>From the <a href=\"https://www.st.com/resource/en/reference_manual/rm0440-stm32g4-series-advanced-armbased-32bit-mcus-stmicroelectronics.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">reference manual</a>:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/ee3f8ca6-88ac-4dac-a5bd-38703a5658af.png\"/></figure><p>So if the IWDG is enabled in the option byte the counter is running automatically after reset until you write the key to the IWDG_KR register to reset the counter. Otherwise if it reaches 0 that resets the MCU.</p><p>Hope it’s clear.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

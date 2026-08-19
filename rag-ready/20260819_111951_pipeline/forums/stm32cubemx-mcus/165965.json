@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "165953",
+            "publicId": "165965",
+            "title": "Wrong Baudrate for UART at NUCLEO-H563ZI with MX",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/wrong-baudrate-for-uart-at-nucleo-h563zi-with-mx-165965",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeIDE",
+                "STM32CubeMX",
+                "Bug-report"
+            ],
+            "published_at": "2026-06-09T12:09:59+00:00",
+            "views": 72,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@Heinz\\_Baumer\n\nDid you fit SB3 and SB4 to use HSE since they are not fitted by default?\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8a2ebea-3605-46fe-b7c1-fbf4945bc343.png)\n\nA factor of 3 exists between the configured baud rate and the expected baud rate. This difference can result from the use of the STLINK-V3 MCO output.\n\nOpen STM32CubeProgrammer, and click **Firmware upgrade**. Then open the tool in update mode, check the clock frequency in use, and enter that value as the input frequency instead of 25 MHz to obtain correct values.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76ab28ac-63ce-4598-812b-b68bfff05b63.png)\n\nYou can seek this article for more details:  [article](https://community.st.com/stm32-mcus-60/how-to-use-stlink-v3-mco-output-on-nucleo-boards-as-a-precise-clock-source-for-stm32-140173)\n\nBR\n\nGyessine",
+            "best_answer_author": "Gyessine",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Is there any way to correctly specify the baud rate for different UARTs in STM32CubeMX?\n\nI am currently using: STM32CubeMX V6.17.0 with STM32Cube\\_FW\\_H5\\_V1.6.0\n\nI wanted to set the baud rate to 9600 for LPUART1, UART4, and USART2.\n\nHowever, this isn't working; all three UARTs are outputting the same incorrect baud rate based on the calculated divider.\n\nInstead of **9600 baud**, transmission occurs at **3075 baud** (a factor of 3.12195121951219512195:1 too slow).\n\nThe external 25 MHz HSE oscillator is used as the clock source (original from the Nucleo Board).\n\nPLL2Q is used as the clock source for each of the UARTs.\n\nI have already tried the following:\n\n* Updating STM32CubeMX,\n\n* Updating STM32Cube\\_FW\\_H5,\n\n* Changing the UART clock from 250 MHz to 25 MHz and 5 MHz,\n\n* Changing the baud rate from 9600 to 19200.\n\nWhen I initialize the UARTs at 19200, they all transmit at 6150 baud.\n\nThe project was previously built using MX V6.16 and STM32Cube\\_FW\\_H5\\_V1.5.0/V1.5.1, but the problem persisted.\n\nDoes anyone know how to correctly set the baud rate in MX?\n\nUART initialization:\n\n```\n\nMX_LPUART1_UART_Init();\n\nMX_UART4_Init();\n\nMX_USART2_UART_Init();\n\n```\n\nPLL-Init:\n\n```\n\nvoid PeriphCommonClock_Config(void)\n\n{\n\nRCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};\n\n/** Initializes the peripherals clock\n\n*/\n\nPeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_UART4\n\n|RCC_PERIPHCLK_LPUART1;\n\nPeriphClkInitStruct.PLL2.PLL2Source = RCC_PLL2_SOURCE_HSE;\n\nPeriphClkInitStruct.PLL2.PLL2M = 4;\n\nPeriphClkInitStruct.PLL2.PLL2N = 80;\n\nPeriphClkInitStruct.PLL2.PLL2P = 2;\n\nPeriphClkInitStruct.PLL2.PLL2Q = 20;\n\nPeriphClkInitStruct.PLL2.PLL2R = 2;\n\nPeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2_VCIRANGE_2;\n\nPeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2_VCORANGE_WIDE;\n\nPeriphClkInitStruct.PLL2.PLL2FRACN = 0;\n\nPeriphClkInitStruct.PLL2.PLL2ClockOut = RCC_PLL2_DIVQ;\n\nPeriphClkInitStruct.Usart2ClockSelection = RCC_USART2CLKSOURCE_PLL2Q;\n\nPeriphClkInitStruct.Uart4ClockSelection = RCC_UART4CLKSOURCE_PLL2Q;\n\nPeriphClkInitStruct.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PLL2Q;\n\nif (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)\n\n{\n\nError_Handler();\n\n}\n\n}\n\n```\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8473fea-caa4-42de-aca7-81f399bac629.jpg)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ba21101-7e70-4d86-bda1-06aa6e4b9ce7.jpg)",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76ab28ac-63ce-4598-812b-b68bfff05b63.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7ba21101-7e70-4d86-bda1-06aa6e4b9ce7.jpg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8a2ebea-3605-46fe-b7c1-fbf4945bc343.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8473fea-caa4-42de-aca7-81f399bac629.jpg"
+            ],
+            "author": "Heinz_Baumer",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"88595\">@Heinz_Baumer</user-mention> <br/>Did you fit SB3 and SB4 to use HSE since they are not fitted by default?</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b8a2ebea-3605-46fe-b7c1-fbf4945bc343.png\"/></figure><p>A factor of 3 exists between the configured baud rate and the expected baud rate. This difference can result from the use of the STLINK-V3 MCO output.</p><p>Open STM32CubeProgrammer, and click <strong>Firmware upgrade</strong>. Then open the tool in update mode, check the clock frequency in use, and enter that value as the input frequency instead of 25 MHz to obtain correct values.</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/76ab28ac-63ce-4598-812b-b68bfff05b63.png\"/></figure><p><br/>You can seek this article for more details:  <a href=\"https://community.st.com/stm32-mcus-60/how-to-use-stlink-v3-mco-output-on-nucleo-boards-as-a-precise-clock-source-for-stm32-140173\" rel=\"noopener noreferrer\" target=\"_self\">article</a><br/>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Wonderful. That was the solution.</p></div>",
+                    "author": "Heinz_Baumer",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi ​<user-mention data-id=\"88595\">@Heinz_Baumer</user-mention> ,</p><p>If a post answers your question, please click \"Best answer\" on that post.</p><p>This will help other users find this solution more quickly.</p></div>",
+                    "author": "Imen.D",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Imen.D",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

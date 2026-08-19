@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "163642",
+            "publicId": "163642",
+            "title": "Incorrect static library link order in CubeMX generated BLE CMake project for STM32WBA",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/incorrect-static-library-link-order-in-cubemx-generated-ble-cmake-project-for-stm32wba-163642",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX",
+                "Bug-report",
+                "STM32WB series"
+            ],
+            "published_at": "2026-03-10T10:16:48+00:00",
+            "views": 365,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello @jmk\n\nYour contribution is much appreciated.\n\nTwo tickets **227523** and **226286** have been escalated to dev team to correct this issue.\n\nI will keep you posted with updates.\n\nTHX\n\nGhofrane",
+            "best_answer_author": "Ghofrane GSOURI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello,\n\nWhen generating a basic Bluetooth project for NUCLEO‑WBA55CG using STM32CubeMx 6.17 (and 6.16) with Cmake as the toolchain, the project compilation fails to a missing symbol during the link stage.\n\nHere is the error message:\n\n```\n\nle_ctrl.c:(.text.HCI_READ_LOCAL_VERSION_INFORMATION+0x20): undefined reference to `ll_sys_get_brief_fw_version'\n\n```\n\nAfter investigation, it turns out the issue is caused by the incorrect order of linked static BLE libraries in the generated CMake file \"cmake/stm32cubemx/CMakeLists.txt\". CubeMX places the **Link Layer** and **BLE Stack** libraries in an order that prevents the linker from resolving symbols correctly. Reordering the libraries fixes the issue.\n\nHere is the corrected order that resolves the error:\n\n```\n\n# Project static libraries\n\nset(MX_LINK_LIBS\n\n:stm32wba_ble_stack_basic.a\n\n:WBA5_LinkLayer_BLE_Basic_lib.a\n\nSTM32_Drivers\n\n${TOOLCHAIN_LINK_LIBRARIES}\n\nUtilities\n\nSTM32_WPAN\n\nCommon\n\n)\n\n```\n\nBest regards",
+            "images": [],
+            "author": "jmk",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104943\">@jmk</user-mention> </p>\n<p>I'm currently checking this behavior. I will get back to you ASAP.</p>\n<p>It would be useful if you could provide your IOC to reproduce the issue.</p>\n<p>Thx</p>\n<p>Ghofrane</p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"2061\">@Ghofrane GSOURI</user-mention>, Here is my IOC file.<br/><br/>I'm using cmake version 4.0.2.</p></div>",
+                    "author": "jmk",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"104943\">@jmk</user-mention> </p>\n<p>Your contribution is much appreciated.</p>\n<p data-unlink=\"true\">Two tickets <strong> 227523</strong> and <strong>226286</strong> have been escalated to dev team to correct this issue.</p>\n<p data-unlink=\"true\"><span>I will keep you posted with updates.</span></p>\n<p data-unlink=\"true\"><span>THX</span></p>\n<p data-unlink=\"true\"><span>Ghofrane </span></p></div>",
+                    "author": "Ghofrane GSOURI",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Ghofrane GSOURI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "166042",
+            "publicId": "166054",
+            "title": "STM32F107VCT6 Ethernet issue",
+            "url": "https://community.st.com/stm32-mcus-products-25/stm32f107vct6-ethernet-issue-166054",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "STM32F1 series",
+                "Ethernet"
+            ],
+            "published_at": "2026-06-11T05:38:58+00:00",
+            "views": 122,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@BKun and welcome to the ST community,\n\nIf your issue is linked to a specific batch of STM32, I suggest to contact your local ST FAE or sales. I don’t think we can help on that in the community.\n\nGood luck",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Device A is an Ethernet implementation based on the STM32F107VCT6 microcontroller and the LAN9303 Ethernet transceiver. It connects to a host computer via a Layer 3 switch, with Device A and the host computer assigned IP addresses in different network segments.\n\nTwo batches of STM32F107VCT6 microcontrollers are currently deployed. With the Layer 3 switch properly configured, the following test results are observed:\n\n1. For the older batch of STM32F107VCT6 devices, the host computer can successfully ping Device A, regardless of whether the Layer 3 switch is a Huawei or TP-LINK model.\n\n2. For the newer batch of STM32F107VCT6 devices, the host computer cannot ping Device A when using a Huawei Layer 3 switch; however, ping communication is successful when using a TP-LINK Layer 3 switch.\n\nThe above observations indicate a batch-specific anomaly in the network functionality of the STM32F107VCT6. What is the specific root cause of this issue?\n\nUpon verification, the defective STM32F107VCT6 units have lot codes 326 and 319, both of which are 2023 production batches; the unaffected lot code is 245.",
+            "images": [],
+            "author": "BKun",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107348\">@BKun</user-mention> and welcome to the ST community,</p><p>If your issue is linked to a specific batch of STM32, I suggest to contact your local ST FAE or sales. I don’t think we can help on that in the community.</p><p>Good luck</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>The above observations indicate a batch-specific anomaly in the network functionality of the STM32F107VCT6</p></blockquote><p>That’s a hypothesis.</p><p>So what investigation/testing/debugging have you done to prove (or disprove) that hypothesis?</p><p>And how do you know it’s specifically something in the STM32s - rather than anything else in the devices?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>We have full confidence in the quality of STM32 products, so we never suspected the STM32 chip was the root cause of the fault at first.</p><p>Initially, we replaced all components on the circuit board, including the LAN9303, Ethernet transformers, capacitors, crystals, ferrite beads and other parts, leaving only the STM32F107VCT6 untouched. However, the fault persisted.</p><p>We then replaced the STM32F107VCT6: swapped the units from Batch 326 with those from Batch 245, and the fault was resolved immediately.</p><p>Afterwards, we reinstalled the STM32F107VCT6 from Batch 326, and the fault reappeared.</p><p>We further tested STM32F107VCT6 from Batch 319, which exhibited the same malfunction.</p></div>",
+                    "author": "BKun",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What I would recommend, make a wireshark protocol of both setups, (Huawei &amp; TP), and see if you can detect any difference between the two.</p></div>",
+                    "author": "Ozone",
+                    "role": "Principal"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>&gt; For the newer batch of STM32F107VCT6 devices, the host computer cannot ping Device A when using a Huawei Layer 3 switch; however, ping communication is successful when using a TP-LINK Layer 3 switch.</p><p>Interesting!  Can be timing issue or something in low-level Ethernet frame formatting. Need to observe traffic using professional capture equipment. If cannot do this - test with more good switches (Cisco).</p><p> </p></div>",
+                    "author": "Pavel A.",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><p>​<user-mention data-id=\"37189\">@Pavel A.</user-mention> </p><p>Need to observe traffic</p></blockquote><p> </p><p>Absolutely!</p><p> </p><p>​<user-mention data-id=\"107348\">@BKun</user-mention> - also instrument your code so that you can see what’s going on internally.</p><p>You haven’t said what stack you’re using, but this is for LwIP:</p><oembed url=\"https://community.st.com/stm32-mcus-products-25/lwip-ethernet-in-stm32h7-working-in-stm32cubeide-but-not-in-iar-143586?postid=633655#post633655\"></oembed><p> </p><p>You haven’t shown your schematic - there might be something marginal…</p><p> </p><p><em><u><a href=\"https://community.st.com/community-guidelines-160/how-to-write-your-question-to-maximize-your-chances-to-find-a-solution-118622\" rel=\"noopener noreferrer nofollow ugc\" target=\"_self\"><u>How to write your question to maximize your chances to find a solution</u></a></u></em></p><p> </p><p> </p><p>Does the TP-LINK give any diagnostics/statistics that can help?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

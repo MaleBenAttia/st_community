@@ -1,0 +1,70 @@
+{
+    "forum": [
+        {
+            "id": "164427",
+            "publicId": "164427",
+            "title": "USART DFU timeout issue-STM32F446RET6 controller",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/usart-dfu-timeout-issue-stm32f446ret6-controller-164427",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "STM32F4 series",
+                "UART-USART"
+            ],
+            "published_at": "2026-04-02T17:31:26+00:00",
+            "views": 345,
+            "reply_count": 6,
+            "best_answer": true,
+            "best_answer_content": "Resolved the issue,My code was disabling systick timer before deinit the clock\n\nvoid jump\\_to\\_bootloader(void)\n\n{\n\nvoid (\\*SysMemBootJump)(void);\n\n//system address defined\n\nvolatile uint32\\_t addr = 0x1FFF0000;\n\n//disable all interrupt request and stop SysTick\n\n\\_\\_disable\\_irq();\n\n**//set the clock to default state**\n\n**HAL\\_RCC\\_DeInit();**\n\n**//disable systick imer**\n\n**SysTick->CTRL = 0;**\n\n**SysTick->LOAD = 0;**\n\n**SysTick->VAL = 0;**\n\nHAL\\_DeInit();\n\n//clear interrupt enable register and interrupt pending register\n\nfor(int i =0; i < sizeof(NVIC->ICER) / sizeof(NVIC->ICER[0]) ; i++) {\n\nNVIC -> ICER[i] = 0xFFFFFFFF;\n\nNVIC->ICPR[i] = 0xFFFFFFFF;\n\n}\n\n//jump system\\_memory\n\nSysMemBootJump = (void (\\*)(void))(\\*((uint32\\_t\\*)((addr + 4))));\n\n//set msp\n\n\\_\\_set\\_MSP(\\*(uint32\\_t\\*)addr);\n\n// REMAP\n\n// SYSCFG->MEMRMP = 0x01;\n\n//re-enable all interupts\n\n\\_\\_enable\\_irq();\n\nSysMemBootJump();\n\nwhile(1)\n\n{\n\n//code should not reach here\n\n}\n\n}",
+            "best_answer_author": "sneha_giby",
+            "best_answer_author_role": "Associate II",
+            "content_text": "![programmer_tool_error.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0938861d-8a21-628c-eefc-8a9f4b3b2fac.png \"programmer_tool_error.png\")\n\nHi Team\n\nI am trying to do UART bootloader, using cli command.\n\nThe MCU used is STM32F446RET6 and dev kit used is nucleo-f446re.I am using USART1, for printf and cli command with interrupt. CLI command is used to enter system memory /bootloader but as shared above the programmer is not giving timeout error.\n\nvoid jump\\_to\\_bootloader(void)\n\n{\n\nvoid (\\*SysMemBootJump)(void);\n\n//system address defined\n\nvolatile uint32\\_t addr = 0x1FFF0000;\n\n// //introduce delay before switcing to bootloader after printf.\n\n// HAL\\_Delay(200);\n\n//disable all interrupt request and stop SysTick\n\n\\_\\_disable\\_irq();\n\n// SysTick->CTRL = 0;\n\n// SysTick->VAL = 0;\n\n//\n\n// \\_\\_HAL\\_RCC\\_SYSCFG\\_CLK\\_ENABLE();\n\n// SYSCFG->MEMRMP = 0x01;\n\n//Deinit HAL and all peripheral\n\n// HAL\\_UART\\_DeInit(&huart1);\n\n//reset uart pins and gpio\n\n// \\_\\_HAL\\_RCC\\_USART1\\_FORCE\\_RESET();\n\n// \\_\\_HAL\\_RCC\\_USART1\\_RELEASE\\_RESET();\n\n// HAL\\_GPIO\\_DeInit(GPIOA,GPIO\\_PIN\\_9 | GPIO\\_PIN\\_10);\n\nHAL\\_RCC\\_DeInit();\n\nHAL\\_DeInit();\n\n// Disable all interrupts in NVIC\n\n// for(int i =0; i <8 ; i++) {\n\n// NVIC -> ICER[i] = 0xFFFFFFFF;\n\n// NVIC->ICPR[i] = 0xFFFFFFFF;\n\n// }\n\n//set msp\n\n\\_\\_set\\_MSP(\\*(uint32\\_t\\*)addr);\n\n//jump system\\_memory\n\nSysMemBootJump = (void (\\*)(void))(\\*(uint32\\_t\\*)(addr + 4));\n\nSysMemBootJump();\n\nwhile(1)\n\n;\n\n}\n\nHardware connection - NUCLEO PA9,PA10-UART1 connected to FTDI cable,USB cable connected for power supply the nucleo board which is used for STLINK.",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ed5efdc-6e31-e622-1bc2-dfbe0af3291e.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/0938861d-8a21-628c-eefc-8a9f4b3b2fac.png"
+            ],
+            "author": "sneha_giby",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Use this code:</p><p><a href=\"https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424\" target=\"_blank\">https://community.st.com/t5/stm32-mcus/how-to-jump-to-system-bootloader-from-application-code-on-stm32/ta-p/49424</a></p><p>Don't jump from within an interrupt.</p><p> </p><p>(Note: \"DFU\" is a USB class. There is no \"USART DFU\" bootloader, just \"USART bootloader\".)</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><div class=\"\"> </div><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"debug_entry.png\" style=\"width: 400px;\"><img alt=\"debug_entry.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6ed5efdc-6e31-e622-1bc2-dfbe0af3291e.png\" title=\"debug_entry.png\"/></span></p><p>after running my project ,as suggested by the document the Debugger suggest that my MCU is inside System Memeory (0x1fff0000).but i still get timeout error.</p><p>Is there any hardware change required for Nucleo board</p><p> </p></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Do i have remove the usb power supply(STLINK -default )</p><p>and use external power supply.</p></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Did you change your code as I suggested? Show your updated code.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>yes i have used the same code mentioned in the Docs</p><div><div><p><span>void</span> <span>jump_to_bootloader</span><span>(</span><span>void</span><span>)</span></p><p><span>{</span></p><p><span>void</span><span> (*SysMemBootJump)(</span><span>void</span><span>);</span></p><p> </p><p><span>//system address defined</span></p><p><span>volatile</span> <span>uint32_t</span><span> addr = 0x1FFF0000;</span></p><p> </p><p><span>//disable all interrupt request and stop SysTick</span></p><p><span>__disable_irq();</span></p><p> </p><p><span>//disable </span><span>systick</span> <span>imer</span></p><p><span>SysTick-&gt;</span><span>CTRL</span><span> = 0;</span></p><p><span>SysTick-&gt;</span><span>LOAD</span><span> = 0;</span></p><p><span>SysTick-&gt;</span><span>VAL</span><span> = 0;</span></p><p><span>//set the clock to default state</span></p><p><span>HAL_RCC_DeInit();</span></p><p><span>HAL_DeInit();</span></p><p><span>//clear interrupt enable register and interrupt pending register</span></p><p><span>for</span><span>(</span><span>int</span><span> i =0; i &lt; </span><span>sizeof</span><span>(NVIC-&gt;</span><span>ICER</span><span>) / </span><span>sizeof</span><span>(NVIC-&gt;</span><span>ICER</span><span>[0]) ; i++) {</span></p><p><span>NVIC -&gt; </span><span>ICER</span><span>[i] = 0xFFFFFFFF;</span></p><p><span>NVIC-&gt;</span><span>ICPR</span><span>[i] = 0xFFFFFFFF;</span></p><p><span>}</span></p><p> </p><p><span>// REMAP</span></p><p><span>//SYSCFG-&gt;MEMRMP = 0x01;</span></p><p> </p><p><span>//re-enable all </span><span>interupts</span></p><p><span>__enable_irq();</span></p><p> </p><p><span>//jump system_memory</span></p><p><span>SysMemBootJump = (</span><span>void</span><span> (*)(</span><span>void</span><span>))(*((</span><span>uint32_t</span><span>*)((addr + 4))));</span></p><p> </p><p><span>//set </span><span>msp</span></p><p><span>__set_MSP(*(</span><span>uint32_t</span><span>*)addr);</span></p><p> </p><p><span>SysMemBootJump();</span></p><p><span>while</span><span>(1)</span></p><p><span>{</span></p><p><span>//code should not reach here</span></p><p><span>}</span></p><p><span>}</span></p><p><span>Note:SYSCFG-&gt;MEMRMP = 0x01; is commented out because i found that when i set this in above code makes my board enter application rather than than BOOTLOADER</span></p><p> </p></div></div></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Resolved the issue,My code was disabling systick timer before deinit the clock  </p><div><div><p><span>void</span> <span>jump_to_bootloader</span><span>(</span><span>void</span><span>)</span></p><p><span>{</span></p><p><span>void</span><span> (*SysMemBootJump)(</span><span>void</span><span>);</span></p><p> </p><p><span>//system address defined</span></p><p><span>volatile</span> <span>uint32_t</span><span> addr = 0x1FFF0000;</span></p><p> </p><p><span>//disable all interrupt request and stop SysTick</span></p><p><span>__disable_irq();</span></p><p> </p><p> </p><p><strong>//set the clock to default state</strong></p><p><strong>HAL_RCC_DeInit();</strong></p><p> </p><p><strong>//disable systick imer</strong></p><p><strong>SysTick-&gt;CTRL = 0;</strong></p><p><strong>SysTick-&gt;LOAD = 0;</strong></p><p><strong>SysTick-&gt;VAL = 0;</strong></p><p> </p><p><span>HAL_DeInit();</span></p><p><span>//clear interrupt enable register and interrupt pending register</span></p><p><span>for</span><span>(</span><span>int</span><span> i =0; i &lt; </span><span>sizeof</span><span>(NVIC-&gt;</span><span>ICER</span><span>) / </span><span>sizeof</span><span>(NVIC-&gt;</span><span>ICER</span><span>[0]) ; i++) {</span></p><p><span>NVIC -&gt; </span><span>ICER</span><span>[i] = 0xFFFFFFFF;</span></p><p><span>NVIC-&gt;</span><span>ICPR</span><span>[i] = 0xFFFFFFFF;</span></p><p><span>}</span></p><p> </p><p><span>//jump system_memory</span></p><p><span>SysMemBootJump = (</span><span>void</span><span> (*)(</span><span>void</span><span>))(*((</span><span>uint32_t</span><span>*)((addr + 4))));</span></p><p> </p><p><span>//set </span><span>msp</span></p><p><span>__set_MSP(*(</span><span>uint32_t</span><span>*)addr);</span></p><p> </p><p><span>// REMAP</span></p><p><span>// SYSCFG-&gt;MEMRMP = 0x01;</span></p><p> </p><p><span>//re-enable all </span><span>interupts</span></p><p><span>__enable_irq();</span></p><p> </p><p><span>SysMemBootJump();</span></p><p><span>while</span><span>(1)</span></p><p><span>{</span></p><p><span>//code should not reach here</span></p><p><span>}</span></p><p><span>}</span></p></div></div></div>",
+                    "author": "sneha_giby",
+                    "role": "Associate II"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

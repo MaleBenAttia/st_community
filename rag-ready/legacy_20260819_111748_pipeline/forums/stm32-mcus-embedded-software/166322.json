@@ -1,0 +1,60 @@
+{
+    "forum": [
+        {
+            "id": "166301",
+            "publicId": "166322",
+            "title": "Set the bor threshold for stm32u575",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/set-the-bor-threshold-for-stm32u575-166322",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Flash",
+                "STM32U5 series"
+            ],
+            "published_at": "2026-06-22T09:31:38+00:00",
+            "views": 74,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "The function prototype is as follows. When the program executed WRITE\\_REG(FLASH->OPTKEYR, FLASH\\_OPTKEY1), HardFault\\_Handler interrupt was triggered.At this moment, R13(SP) = 0x200BFF40, R14(LR) = 0xFFFFFFA8, R15(PC) = 0x08008250。I have identified the cause. The ICACHE needs to be disabled.\n\n```\n\nHAL_StatusTypeDef HAL_FLASH_OB_Unlock(void)\n\n{\n\nif (READ_BIT(FLASH->NSCR, FLASH_NSCR_OPTLOCK) != 0U)\n\n{\n\n/* Authorizes the Option Byte register programming */\n\nWRITE_REG(FLASH->OPTKEYR, FLASH_OPTKEY1);\n\nWRITE_REG(FLASH->OPTKEYR, FLASH_OPTKEY2);\n\n/* Verify that the Option Bytes are unlocked */\n\nif (READ_BIT(FLASH->NSCR, FLASH_NSCR_OPTLOCK) != 0U)\n\n{\n\nreturn HAL_ERROR;\n\n}\n\n}\n\nreturn HAL_OK;\n\n}\n\n```",
+            "best_answer_author": "杜明恢",
+            "best_answer_author_role": "Associate II",
+            "content_text": "When I was developing the stm32u575, I needed to set the threshold for the bor (power-on reset). I wanted the device to reset when the voltage was below a certain level. While configuring the bor threshold for the stm32u575, I followed the configuration process of the stm32f405, but it didn't work. The program got stuck at HAL\\_FLASH\\_OB\\_Unlock(). Why did this happen? What was the problem?\n\n```\n\nFLASH_OBProgramInitTypeDef OBInit;\n\nHAL_FLASHEx_OBGetConfig(&OBInit);\n\nOBInit.USERType = OB_USER_BOR_LEV;\n\nOBInit.USERConfig = OB_BOR_LEVEL_1;\n\nHAL_FLASH_OB_Unlock();\n\nHAL_FLASHEx_OBProgram(&OBInit);\n\nHAL_FLASH_OB_Launch();\n\nHAL_FLASH_OB_Lock();\n\n```",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7e6e29d-2247-4871-bb38-8b082f3852a0.png"
+            ],
+            "author": "杜明恢",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"103556\">@杜明恢</user-mention> </p><p>Could you please check the return value of HAL_FLASH_OB_Unlock() first?<br/>It would be useful to update the code so that every HAL function return status is verified.</p><p>On STM32U575, the option-byte programming flow is not identical to STM32F405, so reusing the same sequence may lead to issues. If the code appears to stop at HAL_FLASH_OB_Unlock(), the first thing to confirm is whether the function is actually returning HAL_OK, or whether it is returning an error.</p></div>",
+                    "author": "Saket_Om",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The function prototype is as follows. When the program executed WRITE_REG(FLASH-&gt;OPTKEYR, FLASH_OPTKEY1), HardFault_Handler interrupt was triggered.At this moment, R13(SP) = 0x200BFF40, R14(LR) = 0xFFFFFFA8, R15(PC) = 0x08008250。I have identified the cause. The ICACHE needs to be disabled.</p><pre><code class=\"language-c\">HAL_StatusTypeDef HAL_FLASH_OB_Unlock(void)<br/>{<br/>  if (READ_BIT(FLASH-&gt;NSCR, FLASH_NSCR_OPTLOCK) != 0U)<br/>  {<br/>    /* Authorizes the Option Byte register programming */<br/>    WRITE_REG(FLASH-&gt;OPTKEYR, FLASH_OPTKEY1);<br/>    WRITE_REG(FLASH-&gt;OPTKEYR, FLASH_OPTKEY2);<br/><br/>    /* Verify that the Option Bytes are unlocked */<br/>    if (READ_BIT(FLASH-&gt;NSCR, FLASH_NSCR_OPTLOCK) != 0U)<br/>    {<br/>      return HAL_ERROR;<br/>    }<br/>  }<br/><br/>  return HAL_OK;<br/>}</code></pre><p> </p></div>",
+                    "author": "杜明恢",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"103556\">@杜明恢</user-mention> <br/>Add to what ​<user-mention data-id=\"1684\">@Saket_Om</user-mention> said, I should mention that you can modify BOR level using STM32CubeProgrammer<br/>just connect the product and select the wanted BOR level<br/>looks like an easier way</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a7e6e29d-2247-4871-bb38-8b082f3852a0.png\"/></figure><p>BR<br/>Gyessine</p></div>",
+                    "author": "Gyessine",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Saket_Om",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "Gyessine",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

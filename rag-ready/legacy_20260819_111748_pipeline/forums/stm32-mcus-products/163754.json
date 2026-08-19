@@ -1,0 +1,48 @@
+{
+    "forum": [
+        {
+            "id": "163754",
+            "publicId": "163754",
+            "title": "Can SDRAM Work with Cross-Connected FMC Lines on STM32H7?",
+            "url": "https://community.st.com/stm32-mcus-products-25/can-sdram-work-with-cross-connected-fmc-lines-on-stm32h7-163754",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "FMC-FSMC",
+                "STM32H7 series"
+            ],
+            "published_at": "2026-03-13T04:45:44+00:00",
+            "views": 476,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "If you ensure all read/writes are 16-bits, then you can do these swaps. Otherwise, no.\n\nThere is probably a way to do this in the FMC.",
+            "best_answer_author": "TDK",
+            "best_answer_author_role": "",
+            "content_text": "For STM32H7, if the FMC data lines and SDRAM data lines are cross-connected (not D0 to D0), and address lines are also cross-connected (not A0 to A0), can SDRAM work properly?\n\nMy PCB is about to be manufactured, but due to the hardware engineer’s design, the SDRAM data lines and the MCU’s FMC data lines, as well as the SDRAM address lines and the MCU’s FMC address lines, are not connected one-to-one according to the CubeMX standard. Instead, the order has been shuffled. The actual wiring relationships are as follows:\n\nData line connections:\n\nMCU FMC\\_D0 is connected to SDRAM\\_D13\n\nMCU FMC\\_D1 is connected to SDRAM\\_D14\n\nMCU FMC\\_D13 is connected to SDRAM\\_D1\n\nMCU FMC\\_D14 is connected to SDRAM\\_D0\n\nMCU FMC\\_D4 is connected to SDRAM\\_D7\n\nMCU FMC\\_D5 is connected to SDRAM\\_D6\n\nMCU FMC\\_D6 is connected to SDRAM\\_D5\n\nMCU FMC\\_D7 is connected to SDRAM\\_D4\n\nAddress line connections:\n\nMCU FMC\\_A0 is connected to SDRAM\\_A2\n\nMCU FMC\\_A1 is connected to SDRAM\\_A3\n\nMCU FMC\\_A2 is connected to SDRAM\\_A0\n\nMCU FMC\\_A3 is connected to SDRAM\\_A1\n\nMCU FMC\\_A4 is connected to SDRAM\\_A4\n\nMCU FMC\\_A5 is connected to SDRAM\\_A5\n\nIn other words, the MCU’s FMC data lines and SDRAM data lines, as well as the address lines, are “cross-connected” rather than D0 to D0, A0 to A0, etc. This is not IO remapping (not moving FMC\\_D0 to another pin), but rather FMC\\_D0 is physically connected to SDRAM\\_D13, and so on. Moreover, the corresponding MCU IO cannot be mapped to the corresponding SDRAM data bit.\n\nMy questions are:\n\nIn this situation, can SDRAM still work properly? Can functions like memcpy and malloc work correctly?\n\nIf not, is there any way to fix this through software configuration or code? Would such a fix have a significant impact on performance?\n\nAre there any cases or official documents explaining whether this kind of “cross-connection” is feasible?\n\nThank you very much for your help!",
+            "images": [],
+            "author": "BrolyChen",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>If you ensure all read/writes are 16-bits, then you can do these swaps. Otherwise, no.</p><p>There is probably a way to do this in the FMC.</p></div>",
+                    "author": "TDK",
+                    "role": ""
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>To my knowledge you can shuffle data lines but for the address you can only shuffle inside the rows, inside the columns and inside the banks. Not possible for example to cross the SDRAM rows and columns.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

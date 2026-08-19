@@ -1,0 +1,43 @@
+{
+    "forum": [
+        {
+            "id": "166329",
+            "publicId": "166350",
+            "title": "Clarification on CubeMX FMC Warning for STM32H747BIT6 LQFP208",
+            "url": "https://community.st.com/stm32cubemx-mcus-29/clarification-on-cubemx-fmc-warning-for-stm32h747bit6-lqfp208-166350",
+            "category": "STM32CubeMX (MCUs)",
+            "tags": [
+                "STM32CubeMX"
+            ],
+            "published_at": "2026-06-23T05:05:19+00:00",
+            "views": 68,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nI did the exercise from my side by creating an ioc file from scratch:\n\n* Activate the SDRAM bank 1 with the same configuration as you requiring, counted the pin number used: **57** GPIOs\n\n* Deactivate the SDRAM and activate LTDC with the same config as your,  counted the pin number used: **28** GPIOs\n\nThe sum = **85** GPIOs\n\nActivating both SDRAM bank 1 and LTDC interface counted the pin number and had **85 GPIOs** so there is no conflict at all.\n\nThat’s just a warning and I think is about PH2 GPIO that contains the two alternate functions FMC\\_SDCKE0 and LTDC\\_R0:\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9dd61d69-7524-4452-a220-aa9422927ff4.png)\n\nAnd you are using different GPIOs for these two AFs.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hello ST Team,\n\nWe are evaluating the STM32H747BIT6 in the LQFP208 package for our application. To verify the feasibility of our design, we created a CubeMX project and configured the required peripherals, including LTDC RGB888 (24-bit), FMC SDRAM (32-bit), USB FS, I2C1/I2C2/I2C3, USART1/USART3, SPI1 and TIM PWM outputs.\n\nWhile configuring the project, CubeMX allowed us to assign all the required signals, and all pins are shown in green. We also checked the LTDC and FMC SDRAM signals and found that they are assigned to unique pins with no visible pin conflicts in the pinout view. **Could you also review the attached .ioc file and confirm whether there are any pin conflicts that we may have overlooked?**\n\nHowever, CubeMX displays the following warning on the FMC peripheral\n\n\"Partly disabled conflict with:\n\nFMC (SDRAM1): Clock and chip enable SDCKE0 + SDNE0 and/or\n\nLTDC: Display Type RGB888 (24 bits)\".\n\nCould you please help us understand what this warning indicates and why CubeMX is reporting it? We would like to know whether this warning is expected for this configuration and if there are any specific considerations associated with it. Your clarification regarding the reason for this warning would be greatly appreciated.\n\nFor reference, we have attached the CubeMX .ioc file along with screenshots of the warning and the pin assignment view.\n\nThank you for your support.\n\nBest regards,\n\nKannika M Mallu\n\nLogycent",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9dd61d69-7524-4452-a220-aa9422927ff4.png"
+            ],
+            "author": "Kannika",
+            "scraped_replies": [
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p><p>I did the exercise from my side by creating an ioc file from scratch:</p><ul><li>Activate the SDRAM bank 1 with the same configuration as you requiring, counted the pin number used: <strong>57 </strong>GPIOs</li> <li>Deactivate the SDRAM and activate LTDC with the same config as your,  counted the pin number used: <strong>28 </strong>GPIOs</li></ul><p>The sum = <strong>85 </strong>GPIOs</p><p>Activating both SDRAM bank 1 and LTDC interface counted the pin number and had <strong>85 GPIOs</strong> so there is no conflict at all.</p><p>That’s just a warning and I think is about PH2 GPIO that contains the two alternate functions FMC_SDCKE0 and LTDC_R0:</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9dd61d69-7524-4452-a220-aa9422927ff4.png\"/></figure><p>And you are using different GPIOs for these two AFs.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

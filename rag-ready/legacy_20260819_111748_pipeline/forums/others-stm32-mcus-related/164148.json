@@ -1,0 +1,72 @@
+{
+    "forum": [
+        {
+            "id": "164148",
+            "publicId": "164148",
+            "title": "Dual MCU design for an high processing LoRa device",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/dual-mcu-design-for-an-high-processing-lora-device-164148",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "Documentation",
+                "STM32L4 series"
+            ],
+            "published_at": "2026-03-25T11:18:50+00:00",
+            "views": 384,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "FUOTA is going to have to be custom to some degree - as there are 2 sets of firmware to update.\n\nAgain, this *could* be handled as 2 entirely separate projects - each microcontroller independently.\n\nNote that FUOTA is challenging over LoRa because of its very small payloads - especially at the extremes of range...",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hello,\n\nI recently came across an ST article describing a Condition-Based Monitoring architecture using a dual-MCU approach, with an STM32L476RG handling signal processing (and potentially edge AI), and an STM32WL dedicated to network connectivity.\n\nI find this architecture very interesting and relevant for a project I’m currently exploring, but I would like to better understand what level of support and resources are available from ST for implementing such a solution in practice.\n\nIn particular, I have a few questions:\n\n* Does ST provide official support or reference designs for this kind of dual-MCU architecture (STM32L4 + STM32WL)?\n\n* Are there any example projects, application notes, or firmware packages that demonstrate communication between the two MCUs in this context?\n\n* Regarding FUOTA (Firmware Update Over The Air), are there existing solutions or middleware provided by ST that support this setup, especially with STM32WL acting as the communication node?\n\n* Are there recommended tools, libraries, or ecosystems (e.g., STM32Cube, expansion packages) specifically targeting Condition-Based Monitoring or predictive maintenance use cases?\n\n* Finally, is there any dedicated customer support, documentation, or training material available on the STM website for this type of architecture?\n\nAny pointers to documentation, examples, or experience feedback would be greatly appreciated.\n\nThanks in advance for your help!\n\nBest regards,\n\nSamy Haouara",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6b04873e-bf08-8330-9b06-08ce84dbffbe.png"
+            ],
+            "author": "SamyHaouaraUTC",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>I don't think there is a specific application/application note or documentation related to that specific architecture. </p>\n<p>For <span>FUOTA, please refer to the <a href=\"https://www.st.com/resource/en/application_note/an5554-lorawan-firmware-update-over-the-air-with-stm32cubewl-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5554</a> \"LoRaWAN® firmware update over the air with STM32CubeWL up to v1.4.0\"</span></p>\n<p> </p>\n<p> </p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"89653\">@SamyHaouaraUTC</user-mention> wrote:<br/><p class=\"\"><span>I would like to better understand what level of support and resources are available from ST for implementing such a solution in practice.</span></p><hr/></blockquote><p>There aren't really any special resources or support necessary - just treat it as two separate microcontroller projects.</p><p>Most likely, they will just communicate via one simple interface; eg, UART.</p><p> </p><p>An example would be the LoRa projects which implement an AT-command interface</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"Image4.png\" style=\"width: 400px;\"><img alt=\"Image4.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6b04873e-bf08-8330-9b06-08ce84dbffbe.png\" title=\"Image4.png\"/></span></p><p><a href=\"https://www.st.com/resource/en/user_manual/um2073-stm32-lorawan-expansion-package-for-stm32cube-stmicroelectronics.pdf#page=37\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/resource/en/user_manual/um2073-stm32-lorawan-expansion-package-for-stm32cube-stmicroelectronics.pdf#page=37</a></p><p><em>via: <a href=\"https://www.st.com/en/embedded-software/i-cube-lrwan.html#documentation\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.st.com/en/embedded-software/i-cube-lrwan.html#documentation</a></em></p><p> </p><p> </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p class=\"\"><span>Thank you both for your answers and the shared resources — very helpful.</span></p><p class=\"\"><span>I do have one follow-up question:</span></p><p class=\"\"><span>From your perspective, do you see any incompatibilities or major challenges in implementing FUOTA within this dual-MCU architecture, specifically to update both the STM32WL (connectivity side) and the STM32L4 (application/processing side)?</span></p><p class=\"\"><span>For example, would this typically require a custom mechanism between the two MCUs for relaying firmware updates, or are there existing approaches/recommendations from ST for handling this kind of setup?</span></p><p class=\"\"><span>Thanks again for your insights.</span></p><p><span>Best regards,</span></p><p>Samy Haouara</p></div>",
+                    "author": "SamyHaouaraUTC",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>For STM32WL you can consider the <span> </span><a href=\"https://www.st.com/resource/en/application_note/an5554-lorawan-firmware-update-over-the-air-with-stm32cubewl-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN5554</a> while for <span>STM32L4 you need to consider either to implement a custom bootloader or simply use the ST bootloader (<a href=\"https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN2606</a>) most probably using the UART interface and make STM32WL a bridge between the wireless server and STM32L4. Indeed you need to implement a mechanism that makes each of STM32WL and STM32L4 knows that the other MCU is going to be updated and synchronize with it.</span></p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>FUOTA is going to have to be custom to some degree - as there are 2 sets of firmware to update.</p><p>Again, this <em>could</em> be handled as 2 entirely separate projects - each microcontroller independently.</p><p> </p><p>Note that FUOTA is challenging over LoRa because of its very small payloads - especially at the extremes of range...</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    },
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

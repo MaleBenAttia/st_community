@@ -1,0 +1,75 @@
+{
+    "forum": [
+        {
+            "id": "164775",
+            "publicId": "164775",
+            "title": "Microcontroller with some kind of audio I/O capability ?",
+            "url": "https://community.st.com/stm32-mcus-products-25/microcontroller-with-some-kind-of-audio-i-o-capability-164775",
+            "category": "STM32 MCUs Products",
+            "tags": [
+                "I2S",
+                "ADC"
+            ],
+            "published_at": "2026-04-15T13:06:28+00:00",
+            "views": 455,
+            "reply_count": 4,
+            "best_answer": true,
+            "best_answer_content": "Hello,\n\nLook at [STM32WBA65I-DK1](https://www.st.com/en/evaluation-tools/stm32wba65i-dk1.html) board.\n\nSTM32WBA65 features only Bluetooth Low Energy. No WIFI available.\n\nFrom STM32WBA65I-DK1 board [schematic](https://www.st.com/resource/en/schematic_pack/mb2143-wba65i-a02-schematic.pdf):\n\n![mALLEm_0-1776263948915.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d117f6c-d8c1-831a-f53b-1324799aaeea.png \"mALLEm_0-1776263948915.png\")\n\nIt uses mems microphone and an audio Codec over SAI interface. Definitely you need an external codec for audio output. There is no audio codec integrated on STM32.\n\nYou can refer to the audio example available on the STM32WBA6 Cube package: <https://github.com/STMicroelectronics/STM32CubeWBA/tree/main/Projects/STM32WBA65I-DK1/Examples/SAI/SAI_AudioPlay>\n\nIf you are looking for WIFI you need to add an external module.\n\nPS: other non-wireless MCUs feature SAI interface.\n\nExample STM32F769. Look at the [STM32F769-DISCO](https://www.st.com/en/evaluation-tools/32f769idiscovery.html#overview) board [schematic](https://www.st.com/resource/en/schematic_pack/mb1225-f769i-b02_schematic.pdf):\n\n![mALLEm_0-1776264644537.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/decc298c-4930-b2a8-5d35-a8b494cd2510.png \"mALLEm_0-1776264644537.png\")\n\nIf are looking for a low cost product, make a search with [STM32Finder](https://www.st.com/en/development-tools/stm32-finder.html) tool or use the MCU product selector tool  and make a search of products having SAI interface and inspire from what I proposed as reference designs.",
+            "best_answer_author": "mƎALLEm",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "*Split from [WiFi or WiFi+BT modules architecture and parts recommendations](https://community.st.com/t5/stm32-mcus-wireless/wifi-or-wifi-bt-modules-architecture-and-parts-recommendations/td-p/892302) as that's really a separate question!*\n\n---\n\nThank you @Andrew Neil\n\nI didn’t explain myself very clearly. The part I’m mainly interested in is the audio side — specifically, a microcontroller with some kind of audio I/O capability, such as microphone input and speaker output, for recording (and then saving to uSD - perhaps using DMA if it makes sense). I’ve never worked with microcontrollers for audio recording before, so if such micro is not available, I’m also open to a low-cost solution/architecture that uses external components.\n\nThank you",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d117f6c-d8c1-831a-f53b-1324799aaeea.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/decc298c-4930-b2a8-5d35-a8b494cd2510.png"
+            ],
+            "author": "Ricko",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>AFAIK, No ST MCUs have specific mic input or speaker output - you would have to add external (pre)amplifiers.</p><p>Maybe also external ADC/DAC - or a CODEC chip.</p><p>Some have I2S, etc for digital audio IO...</p><p>eg, see:</p><p><a href=\"https://www.st.com/resource/en/application_note/an3997-audio-playback-and-recording-using-the-stm32f4discovery-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN3997 </a>Audio playback and recording using the STM32F4DISCOVERY</p><p><a href=\"https://www.st.com/resource/en/application_note/an3998-pdm-audio-software-decoding-on-stm32-microcontrollers-stmicroelectronics.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">AN3998 </a>PDM audio software decoding on STM32 microcontrollers</p><p>The <a href=\"https://www.st.com/en/evaluation-tools/stm32f4discovery.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32F4DISCOVERY</a> has an external audio CODEC; also <a href=\"https://www.st.com/en/evaluation-tools/32f413hdiscovery.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32F413HDISCOVERY</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello,</p>\n<p>Look at <a href=\"https://www.st.com/en/evaluation-tools/stm32wba65i-dk1.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32WBA65I-DK1</a> board.</p>\n<p>STM32WBA65 features only Bluetooth Low Energy. No WIFI available.</p>\n<p data-unlink=\"true\">From STM32WBA65I-DK1 board <a href=\"https://www.st.com/resource/en/schematic_pack/mb2143-wba65i-a02-schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">schematic</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776263948915.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776263948915.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/1d117f6c-d8c1-831a-f53b-1324799aaeea.png\" title=\"mALLEm_0-1776263948915.png\"/></span></p>\n<p>It uses mems microphone and an audio Codec over SAI interface. Definitely you need an external codec for audio output. There is no audio codec integrated on STM32.</p>\n<p>You can refer to the audio example available on the STM32WBA6 Cube package: <a href=\"https://github.com/STMicroelectronics/STM32CubeWBA/tree/main/Projects/STM32WBA65I-DK1/Examples/SAI/SAI_AudioPlay\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">https://github.com/STMicroelectronics/STM32CubeWBA/tree/main/Projects/STM32WBA65I-DK1/Examples/SAI/SAI_AudioPlay</a></p>\n<p>If you are looking for WIFI you need to add an external module.</p>\n<p>PS: other non-wireless MCUs feature SAI interface. </p>\n<p>Example STM32F769. Look at the <a href=\"https://www.st.com/en/evaluation-tools/32f769idiscovery.html#overview\" rel=\"noopener noreferrer\" target=\"_blank\">STM32F769-DISCO</a> board <a href=\"https://www.st.com/resource/en/schematic_pack/mb1225-f769i-b02_schematic.pdf\" rel=\"noopener noreferrer\" target=\"_blank\">schematic</a>:</p>\n<p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"mALLEm_0-1776264644537.png\" style=\"width: 400px;\"><img alt=\"mALLEm_0-1776264644537.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/decc298c-4930-b2a8-5d35-a8b494cd2510.png\" title=\"mALLEm_0-1776264644537.png\"/></span></p>\n<p>If are looking for a low cost product, make a search with <a href=\"https://www.st.com/en/development-tools/stm32-finder.html\" rel=\"noopener noreferrer\" target=\"_blank\">STM32Finder</a> tool or use the MCU product selector tool  and make a search of products having SAI interface and inspire from what I proposed as reference designs.</p></div>",
+                    "author": "mƎALLEm",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"499\">@mƎALLEm</user-mention> wrote:<br/><p>only Bluetooth Low Energy. </p><hr/></blockquote><p><user-mention data-id=\"76854\">@Ricko</user-mention> In particular, not Bluetooth \"Classic\" </p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Since you mention low-cost &amp; mic's input, than likely quality 24-bits and low distortion is not required.</p><p>You can use internal adc/ dac (almost all ST uCPU have, at least 12-bits, and some even better).</p><p>Still mic preamp 'd be necessary, amd power amp to drive speaker.</p></div>",
+                    "author": "MasterT",
+                    "role": "Lead II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The vast majority of MCUs do not feature an integrated audio codec.<br/>STM32 + External Audio Codec<br/>Recommended:<br/>WM8960<br/>CS43L22<br/>TLV320AIC Series<br/>WM8960 Stereo Audio Codec Module<br/>A widely used audio codec module that supports both recording and playback, designed for compatibility with the STM32 I2S interface.</p></div>",
+                    "author": "Eastech",
+                    "role": "Visitor II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><blockquote><hr/><user-mention data-id=\"106159\">@Eastech</user-mention> wrote:<br/><p>designed for compatibility with the STM32 I2S interface.</p><hr/></blockquote><p>You mean, \"<em>designed for compatibility with <strong>I2S</strong></em>\" ?</p><p>I2S is an industry standard - not specific to ST or STM32</p><p><a href=\"https://en.wikipedia.org/wiki/I2S\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://en.wikipedia.org/wiki/I2S</a></p><p><a href=\"https://www.nxp.com/docs/en/user-manual/UM11732.pdf\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">I2S bus specification</a> - NXP (<em>nee</em> Philips)</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "mƎALLEm",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

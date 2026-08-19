@@ -1,0 +1,59 @@
+{
+    "forum": [
+        {
+            "id": "164772",
+            "publicId": "164772",
+            "title": "LSM6DSV320X sensor not responding",
+            "url": "https://community.st.com/mems-sensors-48/lsm6dsv320x-sensor-not-responding-164772",
+            "category": "MEMS (sensors)",
+            "tags": [
+                "INEMO inertial modules"
+            ],
+            "published_at": "2026-04-15T12:33:13+00:00",
+            "views": 298,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "Hello @Federica Bossi , I finally found the issue. It was a solder joint issue, and i blamed the software for nothing. One tip for other users that may encounter similar issues : When hand soldering a sensor like this one with a hot air gun, first apply solder on the PCB pads, then apply solder ALSO on the sensor. I applied solder on PCB pads but not on the sensor, resulting in really poor connection and therefore, a unusable IC.\n\nThank you for helping, I'm closing the thread",
+            "best_answer_author": "yaxsomo",
+            "best_answer_author_role": "Associate III",
+            "content_text": "Hello everyone.\n\nI would really appreciate if someone could help me sort out a really annoying issue i have with a new STM32WB5MMGH6 based board i made.\n\nOn this board i have two sensors connected to the same SPI interface (hspi2) with different CS pins to address the sensors. Here's the schematic sections of the two sensors :\n\nMS5607 :\n\n![Screenshot 2026-04-15 at 14.24.40.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8ab9995d-ea7c-e074-9f3a-77facbb9aa7d.png \"Screenshot 2026-04-15 at 14.24.40.png\")\n\nLSM6DSV320XTR with an auxiliary IIS2MDCTR tied directly to it (for the test board, the magnetometer is not soldered yet):\n\n![Screenshot 2026-04-15 at 14.25.41.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/29faf2a0-191a-70ea-e44c-c7dcf624db04.png \"Screenshot 2026-04-15 at 14.25.41.png\")\n\nI'm currently on test phase, and the MS5607 is responding correctly. But the LSM6DSV320XTR does not respond at all. i'm not even getting the whoami ID (i get a 0).\n\nFor the SPI configuration i have this :\n\n![Screenshot 2026-04-15 at 14.29.50.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b332dea4-abea-3ba8-c635-ea74d2de7a11.png \"Screenshot 2026-04-15 at 14.29.50.png\")\n\nFor the 2 Chip Select pins i have this config :\n\n![Screenshot 2026-04-15 at 14.31.57.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9a67fadb-1b3a-40ff-52b4-683984fa3ef4.png \"Screenshot 2026-04-15 at 14.31.57.png\")\n\n![Screenshot 2026-04-15 at 14.31.57.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/241b1270-1b68-a752-ba30-968b04102cf0.png \"Screenshot 2026-04-15 at 14.31.57.png\")\n\nI don't understand where the problem comes from. Could someone help me asap ? I'm losing hope :(",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/9a67fadb-1b3a-40ff-52b4-683984fa3ef4.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/8ab9995d-ea7c-e074-9f3a-77facbb9aa7d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/b332dea4-abea-3ba8-c635-ea74d2de7a11.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/241b1270-1b68-a752-ba30-968b04102cf0.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/29faf2a0-191a-70ea-e44c-c7dcf624db04.png"
+            ],
+            "author": "yaxsomo",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"79698\">@yaxsomo</user-mention> ,</p>\n<p>Using MKI109D motherboard with STEVAL-MKI251A, the sensor communicate correctly using your SPI configuration (Baud Rate: 4MBits/s, CPOL: High, CPHA: 2Edge) and assuming IMU_CS configuration same of BARO_CS that you posted.</p>\n<p>Debug tips:</p>\n<p>Are you sure that SPI2 lines are connected to LSM6DSV320X? Do they move on its side when communicate with the other sensor (oscilloscope probing)?</p>\n<p>Did you check on IMU_CS behavior (oscilloscope probing)?</p>\n<p>In your main FW when LSM6DSV320X communication takes place? Did you try to communicate only with it?</p>\n<p><li-wrapper></li-wrapper></p></div>",
+                    "author": "Federica Bossi",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1608\">@Federica Bossi</user-mention> , sorry for the late response, i'm trying to debug this thing.<br/>I'm starting to think it's a soldering issue, because when communicating with the barometer, there's no issue.</p><p>And the <span>LSM6DSV320X is soldered with a hot air gun. </span></p><p><span>I tried to communicate only with the IMU on main.c and i get zeroed values, which is not good at all.</span></p><p><span>Is it an issue if the sensor is powered (both VDD and VDDIO) with 3.3V ? </span></p></div>",
+                    "author": "yaxsomo",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello <user-mention data-id=\"1608\">@Federica Bossi</user-mention> , I finally found the issue. It was a solder joint issue, and i blamed the software for nothing. One tip for other users that may encounter similar issues : When hand soldering a sensor like this one with a hot air gun, first apply solder on the PCB pads, then apply solder ALSO on the sensor. I applied solder on PCB pads but not on the sensor, resulting in really poor connection and therefore, a unusable IC. </p><p>Thank you for helping, I'm closing the thread</p></div>",
+                    "author": "yaxsomo",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Federica Bossi",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

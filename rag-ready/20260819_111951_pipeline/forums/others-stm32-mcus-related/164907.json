@@ -1,0 +1,79 @@
+{
+    "forum": [
+        {
+            "id": "164907",
+            "publicId": "164907",
+            "title": "BNO085 I2C with STM32H7A3 via SH2 library — stuck at 44Hz but ESP32 achieves 1.2ms read time",
+            "url": "https://community.st.com/others-stm32-mcus-related-142/bno085-i2c-with-stm32h7a3-via-sh2-library-stuck-at-44hz-but-esp32-achieves-1-2ms-read-time-164907",
+            "category": "Others: STM32 MCUs related",
+            "tags": [
+                "STM32CubeMX",
+                "STM32H7 series",
+                "I2C"
+            ],
+            "published_at": "2026-04-20T09:30:28+00:00",
+            "views": 362,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "<https://learn.sparkfun.com/tutorials/how-to-use-an-oscilloscope/all>\n\n<https://courses.physics.illinois.edu/phys524/fa2023/phys524_units/2/2.pdf>\n\n[This post](https://electronics.stackexchange.com/a/473799) has a good illustration of the effects of pullup value (too high; too low) on the I2C waveform.",
+            "best_answer_author": "Andrew Neil",
+            "best_answer_author_role": "Super User",
+            "content_text": "Hi everyone,\n\nI am working on a project using BNO085 IMU sensor and STM32H7A3ZIT6Q. I have a single sensor working but stuck at 44Hz. The same sensor with SparkFun library on ESP32 achieves 1.2ms read time. I need help understanding why and how to match ESP32 performance on STM32.\n\nHardware:\n\n* NUCLEO-H7A3ZI-Q (STM32H7A3ZIT6Q, Cortex-M7 @ 280MHz)\n\n* Adafruit BNO085 breakout board\n\n* I2C on PB8 (SCL), PB9 (SDA), PC0 (INT pin)\n\n* P0 and P1 tied to GND (I2C mode, address 0x4A)\n\nSoftware:\n\n* STM32CubeIDE with HAL\n\n* Official CEVA SH2 library from github.com/ceva-dsp/sh2\n\n* REPORT\\_INTERVAL\\_US = 2500 (targeting 400Hz)\n\n* SH2\\_ROTATION\\_VECTOR (9-axis full quaternion)\n\nSTM32 performance achieved so far:\n\n* I2C 400kHz polling: 28Hz, read\\_ms = 32ms\n\n* I2C 1MHz Fast Mode Plus: 44Hz, read\\_ms = 19ms\n\n* INT pin wait inside sh2\\_hal\\_read(): still 44Hz, read\\_ms = 19ms\n\nESP32 performance with same sensor and SparkFun SH2 library:\n\n* read time: 1.2ms\n\n* Data rate: close to 400Hz\n\nThis is a huge difference. 19ms on STM32 vs 1.2ms on ESP32 with the same SH2 library underneath.\n\nCurrent STM32 sh2\\_hal\\_read implementation:\n\n```\n\nstatic int sh2_hal_read( sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t_us )\n\n{\n\nuint32_t timeout = HAL_GetTick() + 100;\n\nwhile (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_SET)\n\n{\n\nif (HAL_GetTick() > timeout) return 0;\n\n}\n\nHAL_StatusTypeDef status;\n\nstatus = HAL_I2C_Master_Receive( &hi2c1, BNO085_ADDR, pBuffer, len, 100 );\n\nif( status != HAL_OK ) return SH2_ERR_IO;\n\n*t_us = HAL_GetTick() * 1000;\n\nreturn len;\n\n}\n\n```\n\nKey observation: ESP32 SparkFun library reads 4 byte header first, then reads payload in 32 byte chunks with INT pin check between each chunk. Our STM32 reads entire packet in one HAL\\_I2C\\_Master\\_Receive call. Not sure if this is the cause of the difference.\n\nWhat I have tried:\n\n1. I2C 400kHz to 1MHz Fast Mode Plus — improved from 28Hz to 44Hz\n\n2. INT pin wait inside sh2\\_hal\\_read() — no improvement\n\n3. Direct pin polling in main loop — no improvement\n\nQuestions:\n\n1. Why does ESP32 achieve 1.2ms at 400kHz I2C while STM32 takes 19ms at 1MHz?\n\n2. Is the bottleneck in HAL\\_I2C\\_Master\\_Receive vs ESP32 Wire implementation?\n\n3. Has anyone implemented a proper sh2\\_hal\\_read() for STM32H7 that achieves fast read times?\n\n4. Has anyone used I2C DMA with SH2 library on STM32H7? What improvement did you see?\n\n5. Is SPI the only reliable path to 200Hz+?\n\n---\n\n***Edited to apply source code formatting - please see [How to insert source code](https://community.st.com/t5/community-guidelines/how-to-insert-source-code/ta-p/693413) for future reference.***",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6d17315-5f46-a5e6-0172-0b1ff377a640.jpeg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/44bc3ae5-e313-628d-ceb1-053c39a3dcd8.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eca173b6-a340-8ac4-f2cb-5cfc0ac6fa28.jpeg",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d4ec6b95-adfd-ac63-3cdc-0819f6cab544.jpeg"
+            ],
+            "author": "dinesh_ee_bme_72",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>What pullups are you using?</p><p>Have you looked at the I2C lines with an oscilloscope and/or logic analyser to see what's actually happening on the wires?</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>No can u please guide me how to do that I am new to the filed, I ma not aware how to do that </p></div>",
+                    "author": "dinesh_ee_bme_72",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><a href=\"https://learn.sparkfun.com/tutorials/how-to-use-an-oscilloscope/all\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://learn.sparkfun.com/tutorials/how-to-use-an-oscilloscope/all</a></p><p><a href=\"https://courses.physics.illinois.edu/phys524/fa2023/phys524_units/2/2.pdf\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">https://courses.physics.illinois.edu/phys524/fa2023/phys524_units/2/2.pdf</a></p><p> </p><p><a href=\"https://electronics.stackexchange.com/a/473799\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">This post</a> has a good illustration of the effects of pullup value (too high; too low) on the I2C waveform.</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"WhatsApp Image 2026-05-04 at 3.24.22 PM.jpeg\" style=\"width: 400px;\"><img alt=\"WhatsApp Image 2026-05-04 at 3.24.22 PM.jpeg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/a6d17315-5f46-a5e6-0172-0b1ff377a640.jpeg\" title=\"WhatsApp Image 2026-05-04 at 3.24.22 PM.jpeg\"/></span></p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"WhatsApp Image 2026-05-04 at 4.10.45 PM.jpeg\" style=\"width: 400px;\"><img alt=\"WhatsApp Image 2026-05-04 at 4.10.45 PM.jpeg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/eca173b6-a340-8ac4-f2cb-5cfc0ac6fa28.jpeg\" title=\"WhatsApp Image 2026-05-04 at 4.10.45 PM.jpeg\"/></span></p><p> </p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"WhatsApp Image 2026-05-04 at 4.10.38 PM.jpeg\" style=\"width: 400px;\"><img alt=\"WhatsApp Image 2026-05-04 at 4.10.38 PM.jpeg\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d4ec6b95-adfd-ac63-3cdc-0819f6cab544.jpeg\" title=\"WhatsApp Image 2026-05-04 at 4.10.38 PM.jpeg\"/></span></p><p> </p><p class=\"\"><strong>Oscilloscope Capture — BNO085 + STM32H7A3, I2C1 @ 1 MHz</strong></p><p class=\"\"><strong>Scope: Tektronix TBS1022 | Date: 4-May-26 16:12</strong></p><p class=\"\"><strong>Channel settings:</strong></p><ul class=\"\"><li>CH1 (yellow): 2.00 V/div</li><li>CH2 (cyan): 2.00 V/div</li><li>Timebase: 5.00 ms/div (50 ms total window)</li><li>Trigger: CH1 rising edge @ 1.60 V</li><li>Scope-measured frequency: <strong>43.25 – 43.46 Hz</strong></li></ul><p class=\"\"><strong>What is visible on CH1 (yellow trace):</strong></p><p class=\"\">The yellow trace sits at a steady HIGH level for most of the window. It then drops sharply to LOW for a short duration, then returns to HIGH. This pattern repeats twice within the 50 ms window. The scope's auto-frequency measurement reads the period of this repeating HIGH-LOW-HIGH cycle as approximately 43.4 Hz.</p><p class=\"\"><strong>What is visible on CH2 (cyan trace):</strong></p><p class=\"\">The cyan trace shows alternating regions. In some regions it is flat and quiet, sitting at a steady level. In other regions it becomes a dense, rapidly oscillating hash — this is the I2C clock toggling at 1 MHz, which is too fast to resolve individually at the 5 ms/div timebase so it appears as a filled block of activity. Within the 50 ms window, there are multiple such active blocks separated by quiet flat sections.</p><p class=\"\"><strong>Spatial relationship between CH1 and CH2:</strong></p><p class=\"\">The transitions on the yellow trace (CH1) and the active hash blocks on the cyan trace (CH2) occur in the same regions of the time window. The quiet flat sections on CH2 correspond to the periods where CH1 is sitting steadily HIGH.</p></div>",
+                    "author": "dinesh_ee_bme_72",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your scope has a USB socket for a Flash Drive on the front:</p><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"AndrewNeil_0-1779436654176.png\" style=\"width: 400px;\"><img alt=\"AndrewNeil_0-1779436654176.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/44bc3ae5-e313-628d-ceb1-053c39a3dcd8.png\" title=\"AndrewNeil_0-1779436654176.png\"/></span></p><p>You will be able to capture screenshots to this.</p><p>This will give much better results than photographs!</p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>is there offical driver library  like bno055 , provided for bno085 i,e is theire offical libray from bno085 which i can use with stm </p></div>",
+                    "author": "dinesh_ee_bme_72",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><content-quote data-username=\"dinesh_ee_bme_72\"><div class=\"content-quote-content\"> <div class=\"content-quote-content\"> <p>is there offical driver library   </p> </div> </div></content-quote><p><span style=\"background-color:#cccccc;\">It’s a Bosch product - so any Official driver would come from Bosch.</span></p><p><a href=\"https://www.bosch-sensortec.com/en/software-tools\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\"><span style=\"background-color:#cccccc;\">https://www.bosch-sensortec.com/en/software-tools</span></a></p><p><a href=\"https://www.bosch-sensortec.com/en/about-us/contact\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\"><span style=\"background-color:#cccccc;\">https://www.bosch-sensortec.com/en/about-us/contact</span></a></p><p><a href=\"https://community.bosch-sensortec.com/\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\"><span style=\"background-color:#cccccc;\">https://community.bosch-sensortec.com/</span></a></p><p> </p><p>Sensor manufacturers do, indeed, usually provide portable driver software for their products</p><p> </p><p><strong>Edit: Correction - it’s a CEVA Product:</strong></p><p><a href=\"https://www.ceva-ip.com/search-results/?q=BNO085#all\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.ceva-ip.com/search-results/?q=BNO085#all</a></p><p><a href=\"https://www.ceva-ip.com/product/bno-9-axis-imu/\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.ceva-ip.com/product/bno-9-axis-imu/</a></p><p><a href=\"https://www.ceva-ip.com/contact-us/\" rel=\"noopener noreferrer nofollow ugc\" target=\"_blank\">https://www.ceva-ip.com/contact-us/</a></p></div>",
+                    "author": "Andrew Neil",
+                    "role": "Super User"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

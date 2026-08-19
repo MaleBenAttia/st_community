@@ -1,0 +1,64 @@
+{
+    "forum": [
+        {
+            "id": "163781",
+            "publicId": "163781",
+            "title": "Issue with \"multilib.yaml\" error when using ST_ARM_CLANG in VS Code",
+            "url": "https://community.st.com/stm32cubeide-for-visual-studio-code-mcus-133/issue-with-multilib-yaml-error-when-using-st-arm-clang-in-vs-code-163781",
+            "category": "STM32CubeIDE for Visual Studio Code (MCUs)",
+            "tags": [
+                "VSCode for STM32",
+                "ST Arm Clang"
+            ],
+            "published_at": "2026-03-13T16:09:48+00:00",
+            "views": 370,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hi  @ANeam.1\n\na fi is under cooking and will be delivered ASAP",
+            "best_answer_author": "Nawres GHARBI",
+            "best_answer_author_role": "ST Technical Moderator",
+            "content_text": "Hi,\n\nI am using the latest version of STM32Cube extension for VS Code (3.8.0). I created a simple project for STM32H735G-DK board using CMake as the toolchain and ST-ARM-CLANG as the compiler. I do not know if it is relevant, but I also enabled FreeRTOS and configured the USE\\_NEWLIB\\_REENTRANT option to Enabled.\n\nI generated the project and I am compiling it with VSCode. I changed in the starm-clang.make to use the NEWLIB instead of the PICOLIBC:\n\n```\n\nset(STARM_TOOLCHAIN_CONFIG \"STARM_NEWLIB\")\n\n```\n\nThe compilation works, but clangd complains about some errors. In the output of clangd, I can see multiple instances of:\n\n```\n\nD:\\ST\\stm32cube\\bundles\\st-arm-clang\\21.1.1+st.6\\bin\\..\\lib\\clang-runtimes\\multilib.yaml:47:3: error: unknown key 'IncludeDirs'\n\nIncludeDirs:\n\n^~~~~~~~~~~\n\nD:\\ST\\stm32cube\\bundles\\st-arm-clang\\21.1.1+st.6\\bin\\..\\lib\\clang-runtimes\\multilib.yaml:21:1: error: multilib \"arm-none-eabi/armv4t_exn_rtti_size\" specifies undefined group name \"stdlibs\"\n\nMultilibVersion: '1.0'\n\n^\n\n```\n\nand because of these errors some headers are not found, like:\n\n![Screenshot 2026-03-13 120753.png](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2f1435eb-f96f-9a7f-2098-cfc80b50e9d3.png \"Screenshot 2026-03-13 120753.png\")\n\nThank you!",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2f1435eb-f96f-9a7f-2098-cfc80b50e9d3.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d17f9e11-004f-7076-93fe-e893a4606038.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/741d9c51-0931-74b8-e314-486acf2eb30e.png"
+            ],
+            "author": "ANeam.1",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"54134\">@ANeam.1</user-mention> ,</p><p>could you check what STM32Cube clangd outputs under “OUTPUT” when you run it?<br/>After opening the project in VSCode and opening the first source file, I get this:</p><div class=\"\"> </div><p><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"clangd.png\" style=\"width: 999px;\"><img alt=\"clangd.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/d17f9e11-004f-7076-93fe-e893a4606038.png\" title=\"clangd.png\"/></span><br/>If you see here old versions, please check the VSCode settings:<br/><span class=\"lia-inline-image-display-wrapper lia-image-align-inline\" image-alt=\"clangd_sttings.png\" style=\"width: 861px;\"><img alt=\"clangd_sttings.png\" role=\"button\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/741d9c51-0931-74b8-e314-486acf2eb30e.png\" title=\"clangd_sttings.png\"/></span><br/>(Depending on whether you're using a workspace file, the storage location varies: Workspace, or project folder.)<br/><br/>To get the correct path here, simply delete the two entries (preferably in the JSON view), save the file, close VSCode, and reopen it. The latest entry should now be used.<br/><br/><br/><br/>But, regarding your original question:</p><pre>D:\\ST\\stm32cube\\bundles\\st-arm-clang\\21.1.1+st.6\\bin\\..\\lib\\clang-runtimes\\multilib.yaml:47:3: error: unknown key 'IncludeDirs'\n IncludeDirs:\n ^~~~~~~~~~~</pre><p>I'm getting the same error, but I haven't noticed any issues.<br/>The old version of multilib.yaml (included st-arm-clang v19.1.6.) don't has this \"IncludeDirs:\" keyword.<br/><br/>Maybe I'm completely misinterpreting what follows...<br/><br/>This LLVM/Clang RFC introduces the new keyword “IncludeDirs”:<br/><a href=\"https://discourse.llvm.org/t/rfc-support-target-triple-specific-include-paths-derived-from-sysroot-via-multilib-yaml-or-driver-logic/86925\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">[RFC] Support Target Triple Specific Include Paths Derived from Sysroot via multilib.yaml or Driver Logic - Clang Frontend - LLVM Discussion Forums</a><br/>In this RFC are linked 2 pull requests:<br/>1. <a href=\"https://github.com/llvm/llvm-project/pull/146651\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">[Multilib] Extend the Multilib system to support an IncludeDirs field. by simpal01 · Pull Request #146651 · llvm/llvm-project</a><br/>2. <a href=\"https://github.com/llvm/llvm-project/pull/165321\" rel=\"noopener nofollow noreferrer\" target=\"_blank\">[Clang][Driver] Fix the missing Target-Triple-Level include path resolution in Baremetal Driver by simpal01 · Pull Request #165321 · llvm/llvm-project</a><br/><br/>The second one is merged, the first not. But the first one contains the keyword \"IncludeDirs:\"<br/><br/>Maybe t<span>he patch was applied as a downstream change to the </span>arm/arm-toolchain<span> repository (</span><a target=\"_blank\" title=\"\">arm/arm-toolchain#447</a><span>). It is suspected that ST incorporated this patch into </span>st-arm-clang<span> but not into </span>st-arm-clangd<span> — however, no direct evidence for this has been found.<br/><br/></span><br/><br/></p></div>",
+                    "author": "FluxPower42",
+                    "role": "Associate III"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi <user-mention data-id=\"89333\">@FluxPower42</user-mention> ,</p><p>Yes, for this specific bug, I made sure I have the latest drivers for --query-driver. Although I did update them manually after I updated them in the bundles manager through the extension.</p><p>I agree with you that it is tedious to update them each time you update the bundles manually. I even have other places where I need to do the same trick. Maybe there is a solution to abstract these in some sort of common place and everywhere else use the alias? Just thoughts.</p></div>",
+                    "author": "ANeam.1",
+                    "role": "Associate II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hi  <user-mention data-id=\"54134\">@ANeam.1</user-mention> <br/>a fi is under cooking and will be delivered ASAP</p></div>",
+                    "author": "Nawres GHARBI",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p><user-mention data-id=\"443\">@Nawres GHARBI</user-mention> <br/><br/>nice!<br/><br/>But which of these two issues?<br/>1. clangd - <span>multilib.yaml - IncludeDirs<br/>2. the not updated query-driver path?<br/>As for the second point: It would be nice if the STMCubeIDE extension asked the user after updating the toolchain whether the paths should also be updated (or did I just not see that?<br/><br/>Regarding the toolchain: Does ST <strong>publish the source code</strong> for the ST forks (such as st-arm-clang)?<br/>It would be much easier to verify such behavior if the source code were publicly available, as is the case with the LLVM project.<br/><br/>Is there a place where we can look up which bugs are known in ST?<br/>Since I’m reluctant to report bugs that aren’t actually bugs, I take quite a bit of time to reproduce and describe them. We could save that time if there were a page listing <strong>known bugs</strong>.<br/> <br/>Beste regards,<br/>Timo</span></p></div>",
+                    "author": "FluxPower42",
+                    "role": "Associate III"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Nawres GHARBI",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}

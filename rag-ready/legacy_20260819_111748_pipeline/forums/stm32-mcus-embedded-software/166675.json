@@ -1,0 +1,66 @@
+{
+    "forum": [
+        {
+            "id": "166650",
+            "publicId": "166675",
+            "title": "STM32F4 connected to AM312 through ISR issue",
+            "url": "https://community.st.com/stm32-mcus-embedded-software-32/stm32f4-connected-to-am312-through-isr-issue-166675",
+            "category": "STM32 MCUs Embedded software",
+            "tags": [
+                "Interrupt",
+                "STM32F4 series"
+            ],
+            "published_at": "2026-07-04T16:34:51+00:00",
+            "views": 89,
+            "reply_count": 3,
+            "best_answer": true,
+            "best_answer_content": "oh, my goodness ! I messed up  …\n\nI had generated the code with ISR in CubeMX, but I am writing not in .c but .cpp, and I had my new file generated with ISR as .c file, but I am using g++ compiler for .cpp\n\nThanks everyone for support :(",
+            "best_answer_author": "DennisM",
+            "best_answer_author_role": "Associate",
+            "content_text": "Hello,\n\nI have connected a sensor to my nucleo board to send data when sensor detects movement.\n\nI have introduced an ISR for that.\n\n```\n\nvoid HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)\n\n{\n\nif (GPIO_Pin == GPIO_PIN_0)\n\n{\n\npirDetected = true;\n\n}\n\n}\n\n```\n\nunfortunatelly with that approach everytime the sensor was triggered ( I was able to measure 3.3v on the OUT pin using voltmeter) my stm32 is kind a freezing.\n\nI have introduced some testcode,\n\n```\n\nextern \"C\" int main(void)\n\n{\n\n/* USER CODE BEGIN 1 */\n\n/* USER CODE END 1 */\n\n/* MCU Configuration--------------------------------------------------------*/\n\n/* Reset of all peripherals, Initializes the Flash interface and the Systick. */\n\nHAL_Init();\n\n/* USER CODE BEGIN Init */\n\n/* USER CODE END Init */\n\n/* Configure the system clock */\n\nSystemClock_Config();\n\n/* USER CODE BEGIN SysInit */\n\n/* USER CODE END SysInit */\n\n/* Initialize all configured peripherals */\n\nMX_GPIO_Init();\n\nwhile (1)\n\n{\n\nif(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))\n\n{\n\nHAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);\n\nHAL_Delay(5000);  // Keep LED on for 5 seconds\n\n}\n\nelse\n\n{\n\nHAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);\n\n}\n\nHAL_Delay(100);\n\n}\n\n```\n\n```\n\n/*Configure GPIO pin : PA0 */\n\nGPIO_InitStruct.Pin = GPIO_PIN_0;\n\nGPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;\n\nGPIO_InitStruct.Pull = GPIO_NOPULL;\n\nHAL_GPIO_Init(GPIOA, &GPIO_InitStruct);\n\n...\n\n/* EXTI interrupt init*/\n\nHAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);\n\nHAL_NVIC_EnableIRQ(EXTI0_IRQn);\n\n...\n\n```\n\nwith that my LED is on for about 5-6seconds and after that goes off, even when I am triggering the sensor, no reaction on led.\n\nI am not sure what could be the reason, voltage is present when waving in front of the sensor.\n\nAM312\\_OUT → PA0\n\nAM312\\_vcc → 5v (have treid 3.3 as well)\n\nAM312\\_GND → GND\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/81601ce9-a3a1-444b-a4ed-ef65140ffb5a.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/900e111b-4389-4e02-801c-2e66c9201b58.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a420392-207f-4fd9-b8b1-381c066c6dbf.png)\n\nsensor involved:\n\n<https://de.aliexpress.com/w/wholesale-am312-pir-sensor.html>\n\nCheers",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/900e111b-4389-4e02-801c-2e66c9201b58.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e5e48c6-cdec-4113-8b49-9d19f3292be5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/2a420392-207f-4fd9-b8b1-381c066c6dbf.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/81601ce9-a3a1-444b-a4ed-ef65140ffb5a.png"
+            ],
+            "author": "DennisM",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>The problem is the EXTI priority. In HAL, SysTick has priority 15 (defined as <code>TICK_INT_PRIORITY = 0x0F</code>), and it is used to increment the counter inside <code>HAL_Delay</code>. Your EXTI0 is set to priority 0, which is the highest. This means SysTick interrupt cannot preempt EXTI0, so <code>HAL_GetTick()</code> stops incrementing and <code>HAL_Delay</code> hangs forever.</p><p>This is made worse by the AM312 behavior: it has a 2-second hold time with repeatable trigger mode, meaning as long as movement is detected the output stays HIGH and EXTI0 keeps firing.</p><p>Fix: change the EXTI priority to any value from 1 to 15:</p><pre><code>HAL_NVIC_SetPriority(EXTI0_IRQn, 15, 0);</code></pre></div>",
+                    "author": "pavich",
+                    "role": "Explorer"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>unfortunately setting priority to 1 or 15 didnt help, I have tried to directly connect PA0 to 3.3v and GND with test code below, but dont see any reaction. If I start whit PA0 connected to GND, then my LED stays off all the time even if I connect to 5v afterwards. If I start with PA0 not connected, then my LED stays on even if I connect PA0 to GND … That is strange..</p><p> </p><p>I am using Pin 18-&gt;5v, 20-&gt;GND and 28-&gt;PA0</p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/5e5e48c6-cdec-4113-8b49-9d19f3292be5.png\"/></figure><p> </p><pre><code class=\"language-c\"><br/>\t  // uint8_t tx_counter = 0;<br/><br/>\t  while(1)<br/>\t  {<br/>//\t\t  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);<br/>//\t\t  HAL_Delay(200);<br/><br/>\t\t  if(pirCount)<br/>\t\t  {<br/>//\t\t\t  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);<br/>//\t\t\t  HAL_Delay(500);<br/>//\t\t\t  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);<br/>//\t\t\t  HAL_Delay(500);<br/><br/>\t\t\t  //pirDetected = false;<br/>\t\t\t  pirCount--;<br/><br/>\t\t\t  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);<br/>//\t\t\t  chupi[6] = tx_counter;<br/>//<br/>//\t\t\t  sendPacket(cfg, chupi, 8);<br/>//<br/>//\t\t\t  tx_counter++;<br/><br/>\t\t  }<br/><br/>//\t\t  HAL_Delay(50);<br/>\t  }<br/><br/>  }<br/><br/>...<br/><br/>void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)<br/>{<br/>\tif (GPIO_Pin == GPIO_PIN_0)<br/>\t{<br/>\t\t// pirDetected = true;<br/>\t\tpirCount++;<br/>\t}<br/>}</code></pre><p> </p><p>unfortunatelly I cannot debug with cubeide as I cannot connect/flash the code with it, I have to use CubeProgrammer for flashing...</p></div>",
+                    "author": "DennisM",
+                    "role": "Associate"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Your Callback should clear EXTI_PR (Pending register).</p><p>If you can’t debug, it is very difficult find these SFR value.</p></div>",
+                    "author": "Richard Li",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>One suggestion is: add LED_GPIO turn on code inside callback, then you can make sure the ISR work.</p></div>",
+                    "author": "Richard Li",
+                    "role": "Senior"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>oh, my goodness ! I messed up  …</p><p>I had generated the code with ISR in CubeMX, but I am writing not in .c but .cpp, and I had my new file generated with ISR as .c file, but I am using g++ compiler for .cpp</p><p> </p><p>Thanks everyone for support :(</p></div>",
+                    "author": "DennisM",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": false,
+                "replies": []
+            }
+        }
+    ]
+}

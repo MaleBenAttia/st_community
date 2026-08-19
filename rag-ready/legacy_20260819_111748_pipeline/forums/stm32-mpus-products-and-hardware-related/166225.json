@@ -1,0 +1,47 @@
+{
+    "forum": [
+        {
+            "id": "166206",
+            "publicId": "166225",
+            "title": "Programming tool for STM32MP157FAC1 and ESD protection required or not ?",
+            "url": "https://community.st.com/stm32-mpus-products-and-hardware-related-39/programming-tool-for-stm32mp157fac1-and-esd-protection-required-or-not-166225",
+            "category": "STM32 MPUs Products and hardware related",
+            "tags": [
+                "STM32MP15 lines"
+            ],
+            "published_at": "2026-06-17T08:36:25+00:00",
+            "views": 62,
+            "reply_count": 2,
+            "best_answer": true,
+            "best_answer_content": "Hello ​@PS\\_115,\n\nQ1.\n\nThe STLINK-V3SET supports **STM32** targets, with SWD up to 24 MHz, JTAG up to 21 MHz, and a VCP function on the same STDC14 interface. So for an STM32MP157FAC1 custom board, using an STDC14 connector with STLINK-V3SET is a valid approach for debugging and console access.\n\nFlash programming cannot be performed via JTAG/SWD. For MPUs, a USB interface is required for programming. The STLINK-V3SET can only be used for debugging and console access.\n\nQ2.\n\nYour UART wiring is correct. STLINK documentation states that **T\\_VCP\\_RX** is an output from the probe and must connect to the target UART\\_RX, while **T\\_VCP\\_TX** is an input to the probe and must connect to the target UART\\_TX.\n\nOn STM32MP157FAC1, PG11 can be configured as **UART4\\_TX** and PB2 can be configured as **UART4\\_RX**, which matches your proposed connection of T\\_VCP\\_TX to PG11 and T\\_VCP\\_RX to PB2. In other words:\n\n* T\\_VCP\\_TX → PG11 / UART4\\_TX is correct.\n\n* T\\_VCP\\_RX → PB2 / UART4\\_RX is correct.\n\nQ3.\n\nSome protection is recommended, but it should be **light** and must not degrade the signal quality of SWD or UART.\n\nThe STM32MP157 datasheet and AN5031 (section 8.3.3) provides a recommended protection example for the reset pin, and more generally includes ESD and I/O electrical sensitivity information that should be considered in the board design.\n\nFor SWD and VCP UART lines, the practical recommendation is:\n\n* add a GND reference close to the connector and keep the traces short.\n\n* if the connector is user-accessible, use low-capacitance ESD protection devices placed close to the connector, so the added capacitance does not distort SWCLK/SWDIO/UART edges.\n\n* avoid large RC filtering on SWDIO/SWCLK, because that can break debug access at higher speed.\n\n* follow the same philosophy as the datasheet reset-pin protection scheme for externally exposed debug pins, while adapting the protection choice to high-speed digital lines.\n\nBest Regards,\n\nZakaria",
+            "best_answer_author": "ZAKARIA_C1",
+            "best_answer_author_role": "ST Employee",
+            "content_text": "Hello,\n\nWe are designing a custom board using the STM32MP157FAC1 device. For programming and debugging, we are planning to provide an STDC14 connector on our board and use the STLINK-V3SET debugger/programmer.\n\nWe have the following queries:\n\n(1.) Is the STLINK-V3SET suitable for programming and debugging the STM32MP157FAC1 device?\n\n(2.) We have connected T\\_VCP\\_TX (Virtual COM Port transmit signal) to PG11, which can be configured as UART4\\_TX, and T\\_VCP\\_RX (Virtual COM Port receive signal) to PB2, which can be configured as UART4\\_RX on the STM32MP157. Kindly confirm whether this connection scheme is correct.\n\n(3.) The SWD and Virtual COM UART signals are connected directly from the STDC14 connector to the STM32MP157FAC1 device. Is any ESD protection recommended on these signals? If yes, kindly share the relevant reference.\n\nRegards,\n\nPrashant Sharma",
+            "images": [],
+            "author": "PS_115",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>ESD protection:</p><p>If that board is always only used and handled in an ESD-safe environment, it’s not necessary.</p><p>But if you have the space on the board and can afford a few extra cents, always put at least some low cap TVS on there, at least some small stuff in 0603 or SOT23.</p><p>I’m currently using a few ESDAVLC6-2BLY for all signals at the ST-Link connector.</p></div>",
+                    "author": "LCE",
+                    "role": "Principal II"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Hello ​<user-mention data-id=\"107509\">@PS_115</user-mention>,<br/><br/>Q1.<br/>The STLINK-V3SET supports <strong>STM32</strong> targets, with SWD up to 24 MHz, JTAG up to 21 MHz, and a VCP function on the same STDC14 interface. So for an STM32MP157FAC1 custom board, using an STDC14 connector with STLINK-V3SET is a valid approach for debugging and console access.<br/><br/>Flash programming cannot be performed via JTAG/SWD. For MPUs, a USB interface is required for programming. The STLINK-V3SET can only be used for debugging and console access.<br/><br/>Q2.</p><p>Your UART wiring is correct. STLINK documentation states that <strong>T_VCP_RX</strong> is an output from the probe and must connect to the target UART_RX, while <strong>T_VCP_TX</strong> is an input to the probe and must connect to the target UART_TX.</p><p>On STM32MP157FAC1, PG11 can be configured as <strong>UART4_TX</strong> and PB2 can be configured as <strong>UART4_RX</strong>, which matches your proposed connection of T_VCP_TX to PG11 and T_VCP_RX to PB2. In other words:</p><ul><li> <p>T_VCP_TX → PG11 / UART4_TX is correct.</p> </li> <li> <p>T_VCP_RX → PB2 / UART4_RX is correct.</p> </li></ul><p>Q3.</p><p>Some protection is recommended, but it should be <strong>light</strong> and must not degrade the signal quality of SWD or UART.<br/>The STM32MP157 datasheet and AN5031 (section 8.3.3) provides a recommended protection example for the reset pin, and more generally includes ESD and I/O electrical sensitivity information that should be considered in the board design.</p><p>For SWD and VCP UART lines, the practical recommendation is:</p><ul><li> <p>add a GND reference close to the connector and keep the traces short.</p> </li> <li> <p>if the connector is user-accessible, use low-capacitance ESD protection devices placed close to the connector, so the added capacitance does not distort SWCLK/SWDIO/UART edges.</p> </li> <li> <p>avoid large RC filtering on SWDIO/SWCLK, because that can break debug access at higher speed.</p> </li> <li> <p>follow the same philosophy as the datasheet reset-pin protection scheme for externally exposed debug pins, while adapting the protection choice to high-speed digital lines.</p> </li></ul><p><br/>Best Regards,<br/>Zakaria</p></div>",
+                    "author": "ZAKARIA_C1",
+                    "role": "ST Employee"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "ZAKARIA_C1",
+                        "role": "ST Employee"
+                    }
+                ]
+            }
+        }
+    ]
+}

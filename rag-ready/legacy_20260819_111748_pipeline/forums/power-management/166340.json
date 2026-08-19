@@ -1,0 +1,54 @@
+{
+    "forum": [
+        {
+            "id": "166319",
+            "publicId": "166340",
+            "title": "LDL1117S50R exhibiting unstable oscillations",
+            "url": "https://community.st.com/power-management-53/ldl1117s50r-exhibiting-unstable-oscillations-166340",
+            "category": "Power management",
+            "tags": [
+                "DC-DC conversion",
+                "Power Management"
+            ],
+            "published_at": "2026-06-22T16:14:11+00:00",
+            "views": 87,
+            "reply_count": 1,
+            "best_answer": true,
+            "best_answer_content": "I figured that it had to be layout. There’s only so much that can go wrong with a linear regulator otherwise. The top plane is +12V, so I got rid of traces on the inner planes.\n\nWe are using Samsung’s CL series ceramic capacitors, so ESR shouldn’t be an issue.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7fa71506-1843-4cb8-b461-9ffa963a47fb.png)",
+            "best_answer_author": "A_MacDonald",
+            "best_answer_author_role": "Associate",
+            "content_text": "I am using an LDL1117S50R fixed voltage, 5 V regulator. I am regulating down from +12V to +5V. Our +12V supply is clean.\n\nIt’s a pretty simple circuit; one 1 uF capacitor at the input, and one 100 nF, one 1 uF, and one 4.7 uF capacitor at the output. I don’t need an enormous load; 500 mA is sufficient.\n\nIt was working great at first, but once I reach a load of about 200 mA, it began oscillating unstably at about 2.2. kHz. See the screenshot below. I was using a Rigol electronic load to test this.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/92631efc-f5ba-4a74-9721-3864529ca372.png)\n\nThis problem also appears to be intermittent. See the screenshots below. It’s fine, and then unstable, and then fine again, and unstable. The period of instability is not consistent.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/08ce4c6d-4e14-4514-b3cb-821c76f64d0d.png)![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03daa42d-db45-41e0-aec1-ec7740f85ad5.png)\n\nMy PCB is good. The input and output caps are close to the pins and I’ve used low ESR ceramic capacitors.\n\n![](https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6539bf2e-13f1-4e55-9df2-ab2b8e7a7d9d.png)\n\nDoes anyone have any idea what this may be?",
+            "images": [
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/6539bf2e-13f1-4e55-9df2-ab2b8e7a7d9d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/08ce4c6d-4e14-4514-b3cb-821c76f64d0d.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/03daa42d-db45-41e0-aec1-ec7740f85ad5.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/92631efc-f5ba-4a74-9721-3864529ca372.png",
+                "https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7fa71506-1843-4cb8-b461-9ffa963a47fb.png"
+            ],
+            "author": "A_MacDonald",
+            "scraped_replies": [
+                {
+                    "is_best": false,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>Welcome ​<user-mention data-id=\"107657\">@A_MacDonald</user-mention>, to the community!</p><p>The oscillation is very likely caused by loop stability and layout, not by the load current itself. The key issue is that the input capacitor is connected through a very narrow track, additionally from the 12V point of view “behind” the input pin, which adds inductance and weakens the regulator’s transient response. Also, the output capacitor network may not match the ESR/capacitance conditions required for this LDO.</p><p>Try:</p><ul><li>Place the input capacitor directly at VIN and GND with very short, wide traces</li> <li>Test with one recommended output capacitor only</li> <li>If the ESR of the individual output capacitor is significantly less than 100mΩ, you can also add a physical ESR in series in the range of around 100mΩ to 1Ω (see <a href=\"https://www.st.com/resource/en/datasheet/ldl1117.pdf\" rel=\"noreferrer noopener\" target=\"_blank\">datasheet</a>, fig. 20)</li> <li>Verify stability with a simple resistive load, not just your or an electronic load</li></ul><p>Hope that helps?</p><p>Regards<br/>/Peter</p></div>",
+                    "author": "Peter BENSCH",
+                    "role": "ST Technical Moderator"
+                },
+                {
+                    "is_best": true,
+                    "html": "<div class=\"post__content post__content--new-editor\"><p>I figured that it had to be layout. There’s only so much that can go wrong with a linear regulator otherwise. The top plane is +12V, so I got rid of traces on the inner planes.</p><p>We are using Samsung’s CL series ceramic capacitors, so ESR shouldn’t be an issue.</p><p> </p><figure><img alt=\"\" src=\"https://uploads-eu-west-1.insided.com/stmicroelectronics-en/attachment/7fa71506-1843-4cb8-b461-9ffa963a47fb.png\"/></figure><p> </p></div>",
+                    "author": "A_MacDonald",
+                    "role": "Associate"
+                }
+            ],
+            "st_agent_reply": {
+                "has_st_reply": true,
+                "replies": [
+                    {
+                        "author": "Peter BENSCH",
+                        "role": "ST Technical Moderator"
+                    }
+                ]
+            }
+        }
+    ]
+}
