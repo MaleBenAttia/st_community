@@ -195,9 +195,24 @@ Les réponses ne contenant que des vidéos ou des intégrations externes (balise
 - Les KPIs agrégés exposés dans `stats.json` / `latest_stats.json` (`step_3_forums_stats`) :
   - **`st_agent_stats`** : répartition ST sur les topics **résolus** (`forums_with_st_reply`, `forums_without_st_reply`, `st_reply_pct`) ;
   - **`st_agent_stats_ongoing`** : même répartition sur les topics **non résolus** (`ongoing`) — alimente le bloc KPI "Ongoing" du Dashboard.
+  - **`super_user_stats`** : breakdown croisé ST × Super User sur les 4 groupes (Solved et Ongoing).
+
+#### ⚠️ Logique de comptage binaire par TOPIC (pas par message)
+
+> **Un topic = une unité.** Que ce soit pour les agents ST ou les Super Users, la statistique mesure la **PRÉSENCE** (oui/non), pas le nombre de messages individuels.
+
+| Situation dans un topic | `ST reply` | `Super User` | Compteur |
+|---|---|---|---|
+| 1 agent ST + 2 Super Users + 1 community user | > 0 | > 0 | `solved_with_st_su += 1` |
+| 1 agent ST + 0 Super User | > 0 | = 0 | `solved_with_st_nosu += 1` |
+| 0 agent ST + 3 Super Users | = 0 | > 0 | `solved_without_st_su += 1` |
+| 0 agent ST + 0 Super User | = 0 | = 0 | `solved_without_st_nosu += 1` |
+
+Exemple concret : un topic avec 1 réponse d'agent ST + 2 réponses de Super Users → `solved_with_st_su += 1` (et non `+= 2`). C'est bien **le topic** qui est compté dans le KPI, pas le nombre de messages.
 
 ### 6. Logs par run
-Chaque exécution du pipeline crée `logs/<YYYYMMDD_HHMMSS>_pipeline/` contenant `run.log` (tee console), `ErrorLog.txt` (erreurs), `stats.json` (KPIs), `scan_report.txt` et `extracted_ids.txt`. Le Dashboard affiche le **dernier run** (dossier, durée, nombre d'erreurs et fin du log).
+Chaque exécution du pipeline crée `logs/<YYYYMMDD_HHMMSS>_pipeline/` contenant `run.log` (tee console), `ErrorLog.txt` (erreurs), `stats.json` (KPIs), `scan_report.txt` et `extracted_ids.txt`. Le Dashboard affiche par défaut le **dernier run** (le plus récent chronologiquement) à chaque chargement de page.
+
 
 ---
 

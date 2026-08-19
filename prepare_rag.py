@@ -27,9 +27,18 @@ from config import (
     slugify,
 )
 
-# Rôles considérés comme des agents ST (réponses ST sur les forums)
+# ─── Rôles d'auteurs reconnus ────────────────────────────────────────────────
+# Agents officiels STMicroelectronics (comptes ST vérifiés sur la communauté).
+# Un topic est comptabilisé « ST reply > 0 » dès qu'AU MOINS UNE réponse
+# provient d'un auteur ayant l'un de ces rôles — peu importe combien d'agents
+# ST ont répondu (1 ou 10 = même compteur +1).
 ST_AGENT_ROLES = {"ST Technical Moderator", "ST Community Manager", "ST Employee"}
-# Rôle considéré comme "Super User" (badge de rang communauté)
+
+# Membres de la communauté bénéficiant du badge « Super User » (rang expert).
+# Même logique binaire : un topic est comptabilisé « Super User > 0 » dès
+# qu'AU MOINS UN Super User y a participé — que ce soit 1 ou plusieurs réponses
+# du même Super User ou de Super Users différents : le topic compte pour +1.
+# Cela reflète la PRÉSENCE d'un Super User, pas le nombre total de ses messages.
 SUPER_USER_ROLES = {"Super User"}
 
 
@@ -107,21 +116,36 @@ def process_forums(run_id: str = None) -> dict:
     ok_urls = []
     filtered_urls = []
     processed_count = 0
-    rag_items = []  # liste consolidée pour le fichier unique
+    rag_items = []  # liste consolidée des topics RAG-ready (1 objet = 1 topic)
 
-    # Stats replies
+    # ── Compteurs de replies et vues ─────────────────────────────────────────
     total_replies = 0
-    reply_counts = []          # liste de (reply_count, title, url)
+    reply_counts = []          # liste de (reply_count, title, url) pour min/max/top3
     total_views = 0
     total_images = 0
-    filtered_no_best_answer = 0
-    filtered_too_old = 0
-    filtered_other = 0
-    st_with = 0      # topics acceptés où un agent ST a répondu
-    st_without = 0   # topics acceptés sans réponse d'agent ST
-    ongoing_with = 0      # topics rejetés (non résolus) où un agent ST a répondu
-    ongoing_without = 0   # topics rejetés (non résolus) sans réponse d'agent ST
-    # Breakdown Super User (rôle "Super User") par groupe
+    filtered_no_best_answer = 0  # rejetés : pas de bestAnswer (= Ongoing)
+    filtered_too_old = 0         # rejetés : antérieurs à RAG_START_DATE
+    filtered_other = 0           # rejetés : autres raisons (pas d'ID, etc.)
+
+    # ── Compteurs ST (présence d'au moins 1 agent ST dans le topic) ──────────
+    # IMPORTANT : Ces compteurs mesurent des TOPICS, PAS des messages individuels.
+    # Un topic avec 3 réponses d'agents ST différents ne compte que pour +1.
+    # La logique est binaire : a-t-il au moins 1 réponse d'un agent ST ? Oui/Non.
+    st_with = 0      # topics résolus (Solved) : au moins 1 réponse d'agent ST
+    st_without = 0   # topics résolus (Solved) : aucune réponse d'agent ST
+    ongoing_with = 0      # topics Ongoing (non résolus) : au moins 1 réponse ST
+    ongoing_without = 0   # topics Ongoing (non résolus) : aucune réponse ST
+
+    # ── Breakdown Super User x ST (tous les 4 groupes) ───────────────────────
+    # Croisement de 2 critères binaires (présence ST ? présence Super User ?)
+    # → 4 groupes possibles par statut (Solved / Ongoing) :
+    #   - solved_with_st_su    : Solved + ST présent   + Super User présent
+    #   - solved_with_st_nosu  : Solved + ST présent   + Super User absent
+    #   - solved_without_st_su : Solved + ST absent    + Super User présent
+    #   - solved_without_st_nosu: Solved + ST absent   + Super User absent
+    # Idem pour les Ongoing.
+    # Exemple : 1 topic avec 1 agent ST + 2 Super Users → solved_with_st_su += 1
+    # (pas solved_with_st_su += 2 : c'est bien LE TOPIC qui est compté, pas les messages)
     solved_with_st_su = 0
     solved_with_st_nosu = 0
     solved_without_st_su = 0
@@ -168,7 +192,11 @@ def process_forums(run_id: str = None) -> dict:
             if activity_max is None or pub_dt > activity_max:
                 activity_max = pub_dt
 
-        # Détection rôles (une seule fois par topic)
+        # ── Détection binaire des rôles (une seule passe par topic) ─────────
+        # On vérifie la PRÉSENCE (any()) — pas le décompte — de chaque type
+        # d'auteur parmi toutes les réponses du topic.
+        # Peu importe que 1 ou 5 agents ST aient répondu : has_st_reply = True.
+        # Peu importe que 1 ou 3 Super Users aient posté  : has_su_reply = True.
         scraped_replies = topic.get("scraped_replies", [])
         has_st_reply = any((r.get("role") or "") in ST_AGENT_ROLES for r in scraped_replies)
         has_su_reply = any((r.get("role") or "") in SUPER_USER_ROLES for r in scraped_replies)
@@ -301,28 +329,36 @@ def process_forums(run_id: str = None) -> dict:
         rag_item["author"] = topic.get("author", {}).get("username", "")
         rag_item["scraped_replies"] = scraped_replies_out
 
-        # Détection des réponses d'agents ST (rôles : Technical Moderator / Community Manager / Employee)
+        # ── Embedding des réponses ST dans le topic RAG-ready ───────────────
+        # Collecte de toutes les réponses individuelles d'agents ST (pour le RAG),
+        # mais le compteur KPI lui ne s'incrémente que de +1 par topic (binaire).
         st_replies = [
             {"author": reply.get("author", ""), "role": reply.get("role", "")}
             for reply in scraped_replies
             if reply.get("role") in ST_AGENT_ROLES
         ]
         rag_item["st_agent_reply"] = {
-            "has_st_reply": bool(st_replies),
-            "replies": st_replies,
+            "has_st_reply": bool(st_replies),   # True si au moins 1 agent ST a répondu
+            "replies": st_replies,               # liste complète des réponses ST individuelles
         }
+
+        # ── Affectation dans l'un des 4 groupes Solved x ST x Super User ────
+        # Chaque topic (Solved) est classé dans exactement UN des 4 groupes :
+        #   ST présent + SU présent | ST présent + SU absent
+        #   ST absent  + SU présent | ST absent  + SU absent
+        # → compteur += 1 (pas += nombre de messages ST ou SU)
         if has_st_reply:
             st_with += 1
             if has_su_reply:
-                solved_with_st_su += 1
+                solved_with_st_su += 1    # Solved, ST > 0, Super User > 0
             else:
-                solved_with_st_nosu += 1
+                solved_with_st_nosu += 1  # Solved, ST > 0, Super User = 0
         else:
             st_without += 1
             if has_su_reply:
-                solved_without_st_su += 1
+                solved_without_st_su += 1    # Solved, ST = 0, Super User > 0
             else:
-                solved_without_st_nosu += 1
+                solved_without_st_nosu += 1  # Solved, ST = 0, Super User = 0
 
         # Silhouette exacte demandée : englobé dans {"forum": [ ... ]}
         wrapped_item = {"forum": [rag_item]}
@@ -403,26 +439,30 @@ def process_forums(run_id: str = None) -> dict:
             "start": activity_min.isoformat() if activity_min else "",
             "end": activity_max.isoformat() if activity_max else "",
         },
-        # Breakdown Super User (rôle "Super User") par groupe (avec/sans réponse ST)
+        # ── Breakdown Super User : 4 groupes (ST x SU) pour Solved et Ongoing ──
+        # Chaque champ représente un NOMBRE DE TOPICS (pas de messages).
+        # Exemple de lecture : solved_with_st.with_su = N
+        #   → N topics résolus où au moins 1 agent ST ET au moins 1 Super User ont participé.
+        # su_pct = part (%) des topics du groupe où un Super User est intervenu.
         "super_user_stats": {
             "solved_with_st": {
-                "with_su": solved_with_st_su,
-                "without_su": solved_with_st_nosu,
+                "with_su": solved_with_st_su,       # Solved + ST > 0 + SU > 0  (nb topics)
+                "without_su": solved_with_st_nosu,  # Solved + ST > 0 + SU = 0  (nb topics)
                 "su_pct": round(solved_with_st_su / (solved_with_st_su + solved_with_st_nosu) * 100, 1) if (solved_with_st_su + solved_with_st_nosu) > 0 else 0,
             },
             "solved_without_st": {
-                "with_su": solved_without_st_su,
-                "without_su": solved_without_st_nosu,
+                "with_su": solved_without_st_su,       # Solved + ST = 0 + SU > 0  (nb topics)
+                "without_su": solved_without_st_nosu,  # Solved + ST = 0 + SU = 0  (nb topics)
                 "su_pct": round(solved_without_st_su / (solved_without_st_su + solved_without_st_nosu) * 100, 1) if (solved_without_st_su + solved_without_st_nosu) > 0 else 0,
             },
             "ongoing_with_st": {
-                "with_su": ongoing_with_st_su,
-                "without_su": ongoing_with_st_nosu,
+                "with_su": ongoing_with_st_su,       # Ongoing + ST > 0 + SU > 0  (nb topics)
+                "without_su": ongoing_with_st_nosu,  # Ongoing + ST > 0 + SU = 0  (nb topics)
                 "su_pct": round(ongoing_with_st_su / (ongoing_with_st_su + ongoing_with_st_nosu) * 100, 1) if (ongoing_with_st_su + ongoing_with_st_nosu) > 0 else 0,
             },
             "ongoing_without_st": {
-                "with_su": ongoing_without_st_su,
-                "without_su": ongoing_without_st_nosu,
+                "with_su": ongoing_without_st_su,       # Ongoing + ST = 0 + SU > 0  (nb topics)
+                "without_su": ongoing_without_st_nosu,  # Ongoing + ST = 0 + SU = 0  (nb topics)
                 "su_pct": round(ongoing_without_st_su / (ongoing_without_st_su + ongoing_without_st_nosu) * 100, 1) if (ongoing_without_st_su + ongoing_without_st_nosu) > 0 else 0,
             },
         },
