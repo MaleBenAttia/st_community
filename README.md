@@ -72,6 +72,7 @@ pip install -r requirements.txt
 # 3. (Optionnel) Dépendances frontend — uniquement pour REBUILD du décor SVG flottant
 cd frontend
 npm install
+npm run build  
 cd ..
 ```
 
@@ -119,12 +120,6 @@ python Dashboard/app.py
 
 Accédez à **[http://127.0.0.1:5000](http://127.0.0.1:5000)** dans votre navigateur.
 
-**En production** (serveur WSGI `waitress`, plus robuste que le serveur de dev Flask) :
-
-```powershell
-python -m waitress --host 0.0.0.0 --port 5000 Dashboard.app:app
-```
-
 **Fonctionnalités du Dashboard :**
 - **Onglet "Knowledge Base"** : Métriques, articles validés, distribution des vues et catégories KB. Breakdown par catégorie et liste d'articles validés repliables (**Voir plus ▾ / Voir moins ▴**).
 - **Onglet "Community Forums"** : Taux de résolution, **Top 10 des posts les plus vus**, posts les plus répondus, statistiques d'interaction, et **2 grands blocs KPI** :
@@ -138,29 +133,6 @@ python -m waitress --host 0.0.0.0 --port 5000 Dashboard.app:app
   - Bouton **"Stop Execution"** pour interrompre immédiatement le pipeline.
   - Console de logs en temps réel (Server-Sent Events).
   - Section **"Run History"** : la sélection d'un run (par date/heure) **change toute la plateforme** — tous les onglets (Global, Knowledge Base, Community Forums) + header (dates, Scrap date, **Activity date = filtre `From RAG_START_DATE` du run**, Run) + fichiers réels (`stats.json`, `run.log`, `ErrorLog.txt`, `extracted_ids.txt`) + fin de log. Au chargement, le **dernier run terminé (avec stats)** est affiché. Un rafraîchissement automatique (20 s) met à jour la **liste** des runs et recharge le **run affiché**, sans jamais changer la sélection ; la date choisie reste verrouillée.
-
-### Option 2 — En Ligne de Commande (CLI)
-
-Le pipeline complet (les 3 étapes + mise à jour des rôles) s'exécute **via un unique point d'entrée** :
-
-```powershell
-python run_pipeline.py
-```
-
-> Les modules d'étapes (`scan_categories.py`, `main.py`, `prepare_rag.py`) **ne sont plus exécutables seuls** (plus de bloc `if __name__ == "__main__"`) : ils sont orchestrés uniquement par `run_pipeline.py`. Pour lancer une étape isolément, appeler sa fonction depuis Python, ex. : `python -c "from prepare_rag import run_prepare; run_prepare()"`.
-
-### Frontend — Éléments flottants (Vite + React)
-
-Le dashboard affiche un **décor d'arrière-plan** composé de ~20 petits SVG animés qui **dérivent en continu sur toute la page** (opacité faible, `pointer-events: none`, derrière le contenu). Design premium aux **couleurs officielles STMicroelectronics** (bleu marine `#03234B`, cyan `#00B4E6`, gris tech `#8A94A6`) : puce **STM32**, **trace de circuit** et **onde** — traits fins 1-1.5px, une animation « signature » lente (4-8 s) par élément. Buildés par Vite, ils sont servis par Flask depuis `/static/floating/`. Le `prefers-reduced-motion` est respecté (dérive désactivée).
-
-```powershell
-cd frontend
-npm install
-npm run build    # → Dashboard/static/floating/ (index.js + index.css)
-npm run dev      # page preview autonome : http://localhost:5173
-```
-
-Le bundle buildé (`Dashboard/static/floating/`) est **versionné** : le serveur Python fonctionne sans étape npm en production. Un rebuild est nécessaire après toute modification des sources (`frontend/src/`).
 
 ---
 
