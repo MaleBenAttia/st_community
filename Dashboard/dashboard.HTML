@@ -791,8 +791,12 @@
           <strong>End <span id="hd-scrap-end">-</span></strong>
           <strong>Duration <span id="hd-scrap-dur">-</span></strong>
         </div>
-        <div>Activity date<strong id="hd-activity">-</strong></div>
+        <div>Activity date<strong>(<span id="hd-activity">-</span>)</strong></div>
         <div>Run<strong id="hd-run">-</strong></div>
+        <div class="meta-group" style="align-items:center;">
+          <label style="font-size:11px;opacity:0.75;margin-bottom:2px;">Run History</label>
+          <select id="hd-lr-select" class="run-select" style="font-size:12px;padding:4px 8px;min-width:220px;"></select>
+        </div>
       </div>
     </header>
 
@@ -1274,16 +1278,20 @@
     }
 
     function populateRunSelect(runs, current) {
-      const sel = document.getElementById('lr-select');
-      sel.innerHTML = '';
-      runs.forEach((r) => {
-        const opt = document.createElement('option');
-        opt.value = r.name;
-        opt.textContent = fmtDate(r.start_time) + ' · ' + fmtDur(r.total_duration_seconds) + ' · ' + (r.errors || 0) + ' err';
-        sel.appendChild(opt);
+      // Synchronise les deux selects (header + tab Control)
+      ['lr-select', 'hd-lr-select'].forEach((id) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = '';
+        runs.forEach((r) => {
+          const opt = document.createElement('option');
+          opt.value = r.name;
+          opt.textContent = fmtDate(r.start_time) + ' · ' + fmtDur(r.total_duration_seconds) + ' · ' + (r.errors || 0) + ' err';
+          sel.appendChild(opt);
+        });
+        if (current && runs.some((r) => r.name === current)) sel.value = current;
+        else if (runs.length) sel.value = runs[0].name;
       });
-      if (current && runs.some((r) => r.name === current)) sel.value = current;
-      else if (runs.length) sel.value = runs[0].name;
     }
 
     async function loadRuns() {
@@ -1369,7 +1377,21 @@
     }
 
     document.getElementById('lr-select').addEventListener('change', function () {
-      if (this.value) loadRunDetail(this.value);
+      if (this.value) {
+        // Synchronise le select du header
+        const hd = document.getElementById('hd-lr-select');
+        if (hd) hd.value = this.value;
+        loadRunDetail(this.value);
+      }
+    });
+
+    document.getElementById('hd-lr-select').addEventListener('change', function () {
+      if (this.value) {
+        // Synchronise le select de l'onglet Control
+        const ctrl = document.getElementById('lr-select');
+        if (ctrl) ctrl.value = this.value;
+        loadRunDetail(this.value);
+      }
     });
 
     loadRuns();
